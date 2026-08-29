@@ -10,7 +10,7 @@ SFFC_APPLICATION_WORKER_TOKEN=replace-with-wordpress-token
 SFFC_WORKER_ID=railway-worker-1
 SFFC_WORKER_POLL_INTERVAL_MS=15000
 SFFC_WORKER_ALLOW_FINAL_SUBMIT=0
-PUPPETEER_EXECUTABLE_PATH=
+PUPPETEER_EXECUTABLE_PATH=/usr/bin/google-chrome-stable
 ```
 
 Use the same token in WordPress, preferably in `wp-config.php`:
@@ -28,6 +28,6 @@ npm install
 npm start
 ```
 
-On Railway, Nixpacks installs system Chromium for this service. The worker prefers `PUPPETEER_EXECUTABLE_PATH` when set, then common Linux Chromium paths such as `/usr/bin/chromium`, and only falls back to Puppeteer's bundled browser lookup if no system browser is found.
+On Railway, deploy this folder with the included `Dockerfile`, not a Nixpacks-generated image. The Docker image installs Google Chrome Stable at `/usr/bin/google-chrome-stable`, sets `PUPPETEER_EXECUTABLE_PATH`, and verifies the browser during build with `google-chrome-stable --version`.
 
 The worker claims one queued task at a time from WordPress, processes it in Chromium, and posts the result back to WordPress.

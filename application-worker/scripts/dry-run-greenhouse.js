@@ -43,6 +43,8 @@ function getBrowserExecutablePath() {
   }
 
   const candidates = [
+    "/usr/bin/google-chrome-stable",
+    "/usr/bin/google-chrome",
     "/root/.nix-profile/bin/chromium",
     "/nix/var/nix/profiles/default/bin/chromium",
     ...String(process.env.PATH || "")
@@ -54,8 +56,6 @@ function getBrowserExecutablePath() {
         path.join(dir, "google-chrome-stable"),
       ]),
     "/usr/bin/chromium",
-    "/usr/bin/google-chrome",
-    "/usr/bin/google-chrome-stable",
     "/usr/bin/chromium-browser",
   ];
   return candidates.find(isUsableBrowserExecutable);
