@@ -1,4 +1,5 @@
 import path from "node:path";
+import fsSync from "node:fs";
 import puppeteer from "puppeteer";
 
 const url =
@@ -34,6 +35,21 @@ const selectAnswers = {
   question_9413092101: "Bachelors Degree (BA/BSc or Equivalent)",
   question_9413094101: "Yes",
 };
+
+function getBrowserExecutablePath() {
+  const configuredPath = process.env.PUPPETEER_EXECUTABLE_PATH || "";
+  if (configuredPath && fsSync.existsSync(configuredPath)) {
+    return configuredPath;
+  }
+
+  const candidates = [
+    "/usr/bin/chromium",
+    "/usr/bin/chromium-browser",
+    "/usr/bin/google-chrome",
+    "/usr/bin/google-chrome-stable",
+  ];
+  return candidates.find((candidate) => fsSync.existsSync(candidate));
+}
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -81,9 +97,10 @@ async function chooseReactSelect(page, id, value) {
 }
 
 async function main() {
+  const executablePath = getBrowserExecutablePath();
   const browser = await puppeteer.launch({
     headless: "new",
-    executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined,
+    executablePath: executablePath || undefined,
     args: ["--no-sandbox", "--disable-setuid-sandbox"],
   });
   const page = await browser.newPage();

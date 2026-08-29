@@ -28,6 +28,6 @@ npm install
 npm start
 ```
 
-`npm start` installs the pinned Puppeteer Chrome build before starting the worker. This keeps Railway from launching the worker without a browser if the build cache missed or discarded the Chrome binary.
+On Railway, Nixpacks installs system Chromium for this service. The worker prefers `PUPPETEER_EXECUTABLE_PATH` when set, then common Linux Chromium paths such as `/usr/bin/chromium`, and only falls back to Puppeteer's bundled browser lookup if no system browser is found.
 
 The worker claims one queued task at a time from WordPress, processes it in Chromium, and posts the result back to WordPress.

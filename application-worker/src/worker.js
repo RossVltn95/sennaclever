@@ -1,4 +1,5 @@
 import fs from "node:fs/promises";
+import fsSync from "node:fs";
 import http from "node:http";
 import os from "node:os";
 import path from "node:path";
@@ -12,6 +13,21 @@ const allowFinalSubmit = process.env.SFFC_WORKER_ALLOW_FINAL_SUBMIT === "1";
 const healthPort = Number(process.env.PORT || 0);
 let lastHeartbeat = new Date().toISOString();
 let lastTaskStatus = "idle";
+
+function getBrowserExecutablePath() {
+  const configuredPath = process.env.PUPPETEER_EXECUTABLE_PATH || "";
+  if (configuredPath && fsSync.existsSync(configuredPath)) {
+    return configuredPath;
+  }
+
+  const candidates = [
+    "/usr/bin/chromium",
+    "/usr/bin/chromium-browser",
+    "/usr/bin/google-chrome",
+    "/usr/bin/google-chrome-stable",
+  ];
+  return candidates.find((candidate) => fsSync.existsSync(candidate));
+}
 
 function requireConfig() {
   if (!ajaxUrl || !workerToken) {
@@ -178,9 +194,10 @@ async function processTask(task) {
   };
   const { firstName, lastName } = splitName(candidate.name);
   const cvPath = await downloadFile(task.cv_file_url, task.cv_file_name);
+  const executablePath = getBrowserExecutablePath();
   const browser = await puppeteer.launch({
     headless: "new",
-    executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined,
+    executablePath: executablePath || undefined,
     args: ["--no-sandbox", "--disable-setuid-sandbox"],
   });
 
