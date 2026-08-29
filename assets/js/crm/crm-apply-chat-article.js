@@ -34591,9 +34591,6 @@
           focusComposer("Upload your CV or paste it here");
           if (pendingLaunchOpenFilePicker) {
             pendingLaunchOpenFilePicker = false;
-            window.setTimeout(function () {
-              fileInput.click();
-            }, 120);
           }
         }
       );
@@ -89699,9 +89696,12 @@
             })
             .catch(function () {
               pollBrowserApplicationTask(taskUuid, currentAttempt + 1);
-            });
+          });
         }, currentAttempt < 6 ? 5000 : 15000);
       }
+
+      root.__sffcQueueBrowserApplicationTask = queueBrowserApplicationTask;
+      root.__sffcPollBrowserApplicationTask = pollBrowserApplicationTask;
 
       function getGreenhouseQuestionField(question) {
         var fields = Array.isArray(question && question.fields)
@@ -94209,12 +94209,28 @@
       }
       if (applicationWorkerQueue) {
         event.preventDefault();
+        var queueApplicationTask =
+          root.__sffcQueueBrowserApplicationTask ||
+          window.__sffcQueueBrowserApplicationTask;
+        var pollApplicationTask =
+          root.__sffcPollBrowserApplicationTask ||
+          window.__sffcPollBrowserApplicationTask;
+        if (typeof queueApplicationTask !== "function") {
+          botMessage(
+            "I could not start the application worker from this chat session. Refresh the page and try again.",
+            humanComposeDelay("Application worker unavailable.", 900, 1800),
+            function () {
+              focusComposer("Refresh the page and try again");
+            }
+          );
+          return;
+        }
         applicationWorkerQueue.disabled = true;
         botMessage(
           "Okay. I’m queueing this for the Senna application worker now.",
           humanComposeDelay("Queueing this application.", 900, 1800),
           function () {
-            queueBrowserApplicationTask()
+            queueApplicationTask()
               .then(function (data) {
                 var taskId = cleanMessageText((data && data.task_uuid) || "");
                 var reply = taskId
@@ -94224,8 +94240,8 @@
                   reply,
                   humanComposeDelay(reply, 1200, 2600),
                   function () {
-                    if (taskId) {
-                      pollBrowserApplicationTask(taskId, 0);
+                    if (taskId && typeof pollApplicationTask === "function") {
+                      pollApplicationTask(taskId, 0);
                     }
                     focusComposer("I’ll update you when the worker returns the submission status");
                   }
