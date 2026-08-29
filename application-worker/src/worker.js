@@ -189,6 +189,215 @@ async function uploadResume(page, cvPath) {
   return false;
 }
 
+function cleanText(value) {
+  return String(value || "").replace(/\s+/g, " ").trim();
+}
+
+function getTaskPayload(task) {
+  const payload = task && task.payload;
+  if (!payload) {
+    return {};
+  }
+  if (typeof payload === "string") {
+    try {
+      const decoded = JSON.parse(payload);
+      return decoded && typeof decoded === "object" ? decoded : {};
+    } catch (error) {
+      return {};
+    }
+  }
+  return typeof payload === "object" ? payload : {};
+}
+
+function getApplicationSchema(task) {
+  const payload = getTaskPayload(task);
+  const schema = payload.application_schema || task.application_schema || {};
+  return schema && typeof schema === "object" ? schema : {};
+}
+
+function getSchemaQuestions(schema) {
+  if (Array.isArray(schema.questions)) {
+    return schema.questions;
+  }
+  if (Array.isArray(schema.fields)) {
+    return schema.fields;
+  }
+  return [];
+}
+
+function getQuestionFields(question) {
+  if (Array.isArray(question?.fields)) {
+    return question.fields;
+  }
+  return question?.name ? [question] : [];
+}
+
+function getQuestionLabel(question) {
+  return cleanText(
+    question?.label ||
+      question?.question ||
+      question?.name ||
+      question?.title ||
+      question?.description ||
+      ""
+  );
+}
+
+function getQuestionFieldNames(question) {
+  return getQuestionFields(question)
+    .map((field) => cleanText(field?.name || field?.id || field?.key || ""))
+    .filter(Boolean);
+}
+
+function questionIsRequired(question) {
+  return question?.required === true || question?.required === "true" || question?.required === 1;
+}
+
+function getApplicationAnswers(task) {
+  const payload = getTaskPayload(task);
+  const answers = payload.application_answers || task.application_answers || {};
+  return answers && typeof answers === "object" ? answers : {};
+}
+
+function answerHasValue(value) {
+  if (Array.isArray(value)) {
+    return value.some(answerHasValue);
+  }
+  return cleanText(value) !== "";
+}
+
+function hasAnswerForQuestion(question, answers) {
+  const label = getQuestionLabel(question).toLowerCase();
+  if (label && answerHasValue(answers[label])) {
+    return true;
+  }
+  return getQuestionFieldNames(question).some((name) => {
+    const lowerName = name.toLowerCase();
+    return answerHasValue(answers[name]) || answerHasValue(answers[lowerName]);
+  });
+}
+
+function isCoveredByCandidateData(question, candidate, hasResume, coverLetterRequested) {
+  const haystack = `${getQuestionLabel(question)} ${getQuestionFieldNames(question).join(" ")}`.toLowerCase();
+  if (/first[_\s-]*name|given[_\s-]*name/.test(haystack)) {
+    return cleanText(candidate.firstName) !== "";
+  }
+  if (/last[_\s-]*name|family[_\s-]*name|surname/.test(haystack)) {
+    return cleanText(candidate.lastName) !== "";
+  }
+  if (/\bemail\b|e-mail/.test(haystack)) {
+    return cleanText(candidate.email) !== "";
+  }
+  if (/\bphone\b|\bmobile\b|telephone/.test(haystack)) {
+    return true;
+  }
+  if (/resume|cv|curriculum/.test(haystack)) {
+    return hasResume;
+  }
+  if (/cover[_\s-]*letter/.test(haystack)) {
+    return !coverLetterRequested;
+  }
+  if (/linkedin/.test(haystack)) {
+    return true;
+  }
+  return false;
+}
+
+function getMissingRequiredSchemaQuestions(task, candidate, hasResume) {
+  const questions = getSchemaQuestions(getApplicationSchema(task));
+  const answers = getApplicationAnswers(task);
+  const coverLetterRequested = Number(task.cover_letter_requested || 0) === 1;
+  return questions
+    .filter((question) => questionIsRequired(question))
+    .filter(
+      (question) =>
+        !isCoveredByCandidateData(question, candidate, hasResume, coverLetterRequested) &&
+        !hasAnswerForQuestion(question, answers)
+    )
+    .map((question) => getQuestionLabel(question) || getQuestionFieldNames(question).join(", "))
+    .filter(Boolean);
+}
+
+async function extractSubmissionState(page) {
+  return page.evaluate(() => {
+    const clean = (value) => String(value || "").replace(/\s+/g, " ").trim();
+    const bodyText = clean(document.body ? document.body.innerText : "");
+    const successPatterns = [
+      /thank you for applying/i,
+      /application submitted/i,
+      /successfully submitted/i,
+      /we received your application/i,
+      /your application has been submitted/i,
+      /thanks for applying/i,
+    ];
+    const validationPatterns = [
+      /required/i,
+      /please complete/i,
+      /please fill/i,
+      /field is required/i,
+      /can't be blank/i,
+      /must be selected/i,
+    ];
+    const errorSelectors = [
+      "[role='alert']",
+      "[aria-live='assertive']",
+      ".error",
+      ".field-error",
+      ".form-error",
+      ".error-message",
+      ".validation-error",
+      "[class*='error' i]",
+    ];
+    const errors = Array.from(document.querySelectorAll(errorSelectors.join(",")))
+      .map((node) => clean(node.innerText || node.textContent || ""))
+      .filter((text, index, list) => text && list.indexOf(text) === index)
+      .slice(0, 12);
+    const missingRequired = Array.from(
+      document.querySelectorAll("input[required], textarea[required], select[required], [aria-required='true']")
+    )
+      .filter((control) => {
+        if (control.type === "hidden" || control.disabled) {
+          return false;
+        }
+        if (control.type === "checkbox" || control.type === "radio") {
+          const name = control.getAttribute("name");
+          if (!name) {
+            return !control.checked;
+          }
+          return !document.querySelector(`[name="${CSS.escape(name)}"]:checked`);
+        }
+        if (control.type === "file") {
+          return !control.files || control.files.length === 0;
+        }
+        return clean(control.value) === "";
+      })
+      .map((control) => {
+        const id = control.getAttribute("id") || "";
+        const label = id ? document.querySelector(`label[for="${CSS.escape(id)}"]`) : null;
+        return clean(
+          (label && label.textContent) ||
+            control.getAttribute("aria-label") ||
+            control.getAttribute("placeholder") ||
+            control.getAttribute("name") ||
+            control.closest("label, fieldset, div")?.textContent ||
+            "Required field"
+        );
+      })
+      .filter((text, index, list) => text && list.indexOf(text) === index)
+      .slice(0, 12);
+    return {
+      submission_confirmed: successPatterns.some((pattern) => pattern.test(bodyText)),
+      validation_detected:
+        errors.length > 0 ||
+        missingRequired.length > 0 ||
+        validationPatterns.some((pattern) => pattern.test(bodyText)),
+      validation_errors: errors,
+      missing_required_fields: missingRequired,
+      page_text_sample: bodyText.slice(0, 1200),
+    };
+  });
+}
+
 async function clickLikelyApplyButton(page) {
   const beforeUrl = page.url();
   const clicked = await page.evaluate(() => {
@@ -206,11 +415,14 @@ async function clickLikelyApplyButton(page) {
   });
   if (clicked) {
     await page.waitForNetworkIdle({ idleTime: 1200, timeout: 10000 }).catch(() => {});
+    await new Promise((resolve) => setTimeout(resolve, 1500));
   }
+  const submissionState = await extractSubmissionState(page).catch(() => ({}));
   return {
     clicked,
     beforeUrl,
     afterUrl: page.url(),
+    ...submissionState,
   };
 }
 
@@ -222,6 +434,8 @@ async function processTask(task) {
     phone: task.candidate_phone || "",
   };
   const { firstName, lastName } = splitName(candidate.name);
+  candidate.firstName = firstName;
+  candidate.lastName = lastName;
   const cvPath = await downloadFile(task.cv_file_url, task.cv_file_name);
   const executablePath = getBrowserExecutablePath();
   const browser = await puppeteer.launch({
@@ -265,11 +479,59 @@ async function processTask(task) {
     const screenshotPath = path.join(os.tmpdir(), `${task.task_uuid}.png`);
     await page.screenshot({ path: screenshotPath, fullPage: true });
 
+    const missingRequiredQuestions = getMissingRequiredSchemaQuestions(task, candidate, Boolean(cvPath));
+    if (allowFinalSubmit && missingRequiredQuestions.length > 0) {
+      return {
+        provider: task.provider || "",
+        url,
+        allow_final_submit: allowFinalSubmit,
+        clicked_submit: false,
+        uploaded_resume: uploadedResume,
+        page_title: await page.title().catch(() => ""),
+        final_url: page.url(),
+        local_screenshot_path: screenshotPath,
+        missing_required_fields: missingRequiredQuestions,
+        last_error:
+          "The worker has not submitted this because required employer answers are missing: " +
+          missingRequiredQuestions.slice(0, 10).join("; "),
+        status: "review_required",
+      };
+    }
+
     let clickedSubmit = false;
     let submitResult = { clicked: false, beforeUrl: page.url(), afterUrl: page.url() };
     if (allowFinalSubmit) {
       submitResult = await clickLikelyApplyButton(page);
       clickedSubmit = submitResult.clicked;
+      await page.screenshot({ path: screenshotPath, fullPage: true }).catch(() => {});
+    }
+
+    let status = "dry_run_ready";
+    let lastError = "";
+    if (allowFinalSubmit) {
+      if (submitResult.submission_confirmed) {
+        status = "submitted";
+      } else {
+        status = "review_required";
+        if (!clickedSubmit) {
+          lastError = "The worker could not find a final submit button on the employer form.";
+        } else if (
+          submitResult.validation_detected ||
+          (submitResult.validation_errors || []).length > 0 ||
+          (submitResult.missing_required_fields || []).length > 0
+        ) {
+          const details = [
+            ...(submitResult.validation_errors || []),
+            ...(submitResult.missing_required_fields || []),
+          ].slice(0, 10);
+          lastError =
+            "The employer form did not confirm submission and appears to need more information" +
+            (details.length ? ": " + details.join("; ") : ".");
+        } else {
+          lastError =
+            "The worker clicked submit, but the employer page did not show a clear submission confirmation.";
+        }
+      }
     }
 
     return {
@@ -283,7 +545,12 @@ async function processTask(task) {
       page_title: await page.title().catch(() => ""),
       final_url: page.url(),
       local_screenshot_path: screenshotPath,
-      status: allowFinalSubmit && clickedSubmit ? "submitted" : "dry_run_ready",
+      submission_confirmed: Boolean(submitResult.submission_confirmed),
+      validation_detected: Boolean(submitResult.validation_detected),
+      validation_errors: submitResult.validation_errors || [],
+      missing_required_fields: submitResult.missing_required_fields || [],
+      last_error: lastError,
+      status,
     };
   } finally {
     await browser.close();

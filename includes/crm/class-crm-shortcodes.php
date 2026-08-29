@@ -43811,6 +43811,9 @@ CRITICAL INSTRUCTIONS:
                 'submitted_at' => sanitize_text_field((string) ($task['submitted_at'] ?? '')),
                 'final_url' => esc_url_raw((string) ($result_payload['final_url'] ?? '')),
                 'uploaded_resume' => !empty($result_payload['uploaded_resume']),
+                'submission_confirmed' => !empty($result_payload['submission_confirmed']),
+                'validation_errors' => array_map('sanitize_text_field', array_slice((array) ($result_payload['validation_errors'] ?? []), 0, 10)),
+                'missing_required_fields' => array_map('sanitize_text_field', array_slice((array) ($result_payload['missing_required_fields'] ?? []), 0, 10)),
                 'updated_at' => sanitize_text_field((string) ($task['updated_at'] ?? '')),
             ]);
         }

@@ -89653,7 +89653,7 @@
               }
               if (status === "submitted") {
                 botMessage(
-                  "Done. The browser worker marked this application as submitted. Please check the candidate email for the employer confirmation.",
+                  "Done. The employer page returned a submission confirmation. Please check the candidate email for the employer confirmation as well.",
                   humanComposeDelay("Application submitted.", 1200, 2600),
                   function () {
                     focusComposer("Tell me if you want to track the next target role");
@@ -89672,8 +89672,22 @@
                 return;
               }
               if (status === "review_required") {
+                var reviewReason = cleanMessageText((data && data.last_error) || "");
+                var missingFields = Array.isArray(data && data.missing_required_fields)
+                  ? data.missing_required_fields
+                      .map(function (field) {
+                        return cleanMessageText(field || "");
+                      })
+                      .filter(Boolean)
+                  : [];
+                var reviewMessage = reviewReason
+                  ? "The browser worker needs review before this can be submitted: " + reviewReason
+                  : "The browser worker needs review before this can be submitted.";
+                if (!reviewReason && missingFields.length) {
+                  reviewMessage += " Missing required fields: " + missingFields.slice(0, 6).join("; ");
+                }
                 botMessage(
-                  "The browser worker needs review before this can be submitted. I’ve kept the task in the application queue.",
+                  reviewMessage,
                   humanComposeDelay("Review required.", 1200, 2600),
                   function () {
                     focusComposer("Tell me if you want the team to review it");
