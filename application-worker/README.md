@@ -28,4 +28,6 @@ npm install
 npm start
 ```
 
+`npm start` installs the pinned Puppeteer Chrome build before starting the worker. This keeps Railway from launching the worker without a browser if the build cache missed or discarded the Chrome binary.
+
 The worker claims one queued task at a time from WordPress, processes it in Chromium, and posts the result back to WordPress.
