@@ -1,0 +1,221 @@
+.sffc-gap-prompt {
+  --sffc-gap-prompt-bg: #f8f5ee;
+  --sffc-gap-prompt-surface: rgba(255, 255, 255, 0.84);
+  --sffc-gap-prompt-ink: #171717;
+  --sffc-gap-prompt-copy: #5f5b53;
+  --sffc-gap-prompt-muted: #90897d;
+  --sffc-gap-prompt-line: rgba(23, 23, 23, 0.1);
+  --sffc-gap-prompt-line-strong: rgba(23, 23, 23, 0.16);
+  --sffc-gap-prompt-navy: #123843;
+  --sffc-gap-prompt-mint: #17dcc6;
+  --sffc-gap-prompt-shadow: 0 28px 80px rgba(34, 34, 30, 0.1);
+  margin: 0 auto;
+  max-width: 980px;
+  padding: 28px 0;
+}
+
+.sffc-gap-prompt__hero {
+  margin: 0 auto 24px;
+  max-width: 780px;
+  text-align: center;
+}
+
+.sffc-gap-prompt__eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 18px;
+  padding: 10px 14px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid var(--sffc-gap-prompt-line);
+  color: #59554e;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.sffc-gap-prompt__eyebrow::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--sffc-gap-prompt-mint);
+}
+
+.sffc-gap-prompt__title {
+  margin: 0 0 14px;
+  color: var(--sffc-gap-prompt-ink);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(2.8rem, 5vw, 4.9rem);
+  line-height: 0.95;
+  font-weight: 400;
+  letter-spacing: -0.07em;
+}
+
+.sffc-gap-prompt__subtitle {
+  margin: 0 auto;
+  max-width: 660px;
+  color: var(--sffc-gap-prompt-copy);
+  font-size: 18px;
+  line-height: 1.72;
+}
+
+.sffc-gap-prompt__shell {
+  overflow: hidden;
+  border-radius: 34px;
+  background: var(--sffc-gap-prompt-surface);
+  border: 1px solid var(--sffc-gap-prompt-line);
+  box-shadow: var(--sffc-gap-prompt-shadow);
+  backdrop-filter: blur(18px);
+}
+
+.sffc-gap-prompt__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 22px 28px 0;
+}
+
+.sffc-gap-prompt__label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--sffc-gap-prompt-muted);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.sffc-gap-prompt__label::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: var(--sffc-gap-prompt-mint);
+}
+
+.sffc-gap-prompt__job-title {
+  min-height: 44px;
+  width: 220px;
+  padding: 0 14px;
+  border: 1px solid var(--sffc-gap-prompt-line);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.7);
+  color: var(--sffc-gap-prompt-ink);
+  font: inherit;
+  font-size: 14px;
+}
+
+.sffc-gap-prompt__body {
+  padding: 16px 28px 0;
+}
+
+.sffc-gap-prompt__textarea {
+  display: block;
+  width: 100%;
+  min-height: 188px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #4f4b45;
+  resize: vertical;
+  font: inherit;
+  font-size: 19px;
+  line-height: 1.75;
+  outline: none;
+}
+
+.sffc-gap-prompt__textarea::placeholder {
+  color: #aaa399;
+}
+
+.sffc-gap-prompt__toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 24px 28px 26px;
+}
+
+.sffc-gap-prompt__toolbar-left,
+.sffc-gap-prompt__toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.sffc-gap-prompt__chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  padding: 0 14px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.76);
+  border: 1px solid var(--sffc-gap-prompt-line);
+  color: #46433d;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.sffc-gap-prompt__chip--icon {
+  width: 40px;
+  min-width: 40px;
+  padding: 0;
+  font-size: 18px;
+}
+
+.sffc-gap-prompt__hint {
+  color: var(--sffc-gap-prompt-muted);
+  font-size: 13px;
+}
+
+.sffc-gap-prompt__submit {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 46px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--sffc-gap-prompt-ink);
+  color: #fff;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.sffc-gap-prompt__submit-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  font-size: 16px;
+}
+
+.sffc-gap-prompt__submit:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+@media (max-width: 840px) {
+  .sffc-gap-prompt__top,
+  .sffc-gap-prompt__toolbar,
+  .sffc-gap-prompt__toolbar-left,
+  .sffc-gap-prompt__toolbar-right {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .sffc-gap-prompt__job-title {
+    width: 100%;
+  }
+}

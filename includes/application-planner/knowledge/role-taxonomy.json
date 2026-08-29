@@ -1,0 +1,195 @@
+{
+  "role_families": {
+    "private_equity": {
+      "label": "Private Equity",
+      "title_signals": ["private equity", "pe", "investment analyst", "investment associate", "co-investment", "secondaries"],
+      "keyword_signals": ["lbo", "deal execution", "investment memo", "investment committee", "due diligence", "portfolio company", "gp", "fund commitments"],
+      "capability_weights": {
+        "financial_modelling": 1.4,
+        "valuation": 1.3,
+        "due_diligence": 1.35,
+        "deal_execution": 1.35,
+        "investment_committee": 1.2,
+        "portfolio_monitoring": 1.1
+      }
+    },
+    "asset_management": {
+      "label": "Asset Management",
+      "title_signals": ["asset management", "portfolio management", "investment products", "wealth management", "investment advisory"],
+      "keyword_signals": ["fund analytics", "investment views", "portfolio reviews", "rebalancing", "product launch", "advisor activity"],
+      "capability_weights": {
+        "investment_research": 1.25,
+        "portfolio_monitoring": 1.35,
+        "public_markets_analysis": 1.3,
+        "market_data_tools": 1.15,
+        "product_client_solutions": 1.15
+      }
+    },
+    "private_credit": {
+      "label": "Private Credit",
+      "title_signals": ["direct lending", "private credit", "credit", "debt capital markets", "syndication"],
+      "keyword_signals": ["re-underwrite", "underwriting", "lender calls", "valuations", "restructuring", "144a", "private placements", "leverage finance"],
+      "capability_weights": {
+        "credit_underwriting": 1.4,
+        "financial_modelling": 1.2,
+        "valuation": 1.15,
+        "portfolio_monitoring": 1.25,
+        "deal_execution": 1.2
+      }
+    },
+    "public_markets": {
+      "label": "Public Markets",
+      "title_signals": ["equity research", "public markets", "strategist", "macro research", "research associate"],
+      "keyword_signals": ["earnings calls", "cross-asset", "equities", "rates", "credit", "foreign exchange", "market commentary", "thought leadership"],
+      "capability_weights": {
+        "public_markets_analysis": 1.45,
+        "investment_research": 1.35,
+        "market_data_tools": 1.2,
+        "portfolio_monitoring": 1.05
+      }
+    },
+    "investor_relations": {
+      "label": "Investor Relations",
+      "title_signals": ["investor relations", "capital raising", "product management", "client and product solutions", "fundraising"],
+      "keyword_signals": ["ddq", "rfp", "pitch deck", "investor updates", "hnwi", "uhnwi", "fundraising lifecycle", "prospects"],
+      "capability_weights": {
+        "fundraising_investor_relations": 1.5,
+        "product_client_solutions": 1.25,
+        "investment_committee": 1.0,
+        "market_data_tools": 0.95
+      }
+    },
+    "risk_governance": {
+      "label": "Risk / Governance",
+      "title_signals": ["risk", "compliance", "governance", "erm", "controls", "internal audit"],
+      "keyword_signals": ["risk register", "coso", "fsa", "regulatory compliance", "board", "audit committee", "internal controls"],
+      "capability_weights": {
+        "risk_governance_controls": 1.5,
+        "regulations_compliance": 1.3,
+        "portfolio_monitoring": 0.95
+      }
+    },
+    "operations_middle_office": {
+      "label": "Operations / Middle Office",
+      "title_signals": ["middle office", "trade support", "operations", "investment accounting", "fund operations"],
+      "keyword_signals": ["settlements", "reconciliation", "trade capture", "margin calls", "nav", "ifrs", "gaap", "prime brokers"],
+      "capability_weights": {
+        "operations_trade_support": 1.5,
+        "regulations_compliance": 1.05,
+        "market_data_tools": 1.0
+      }
+    },
+    "product_client_solutions": {
+      "label": "Product / Client Solutions",
+      "title_signals": ["client solutions", "pre-sales", "product specialist", "solutions", "customer success"],
+      "keyword_signals": ["product demos", "proof-of-concept", "onboarding", "solution presentations", "crm", "salesforce", "enablement"],
+      "capability_weights": {
+        "product_client_solutions": 1.55,
+        "fundraising_investor_relations": 1.05,
+        "market_data_tools": 0.9
+      }
+    },
+    "infrastructure_real_assets": {
+      "label": "Infrastructure / Real Assets",
+      "title_signals": ["infrastructure", "real assets", "real estate", "capital markets", "energy transition"],
+      "keyword_signals": ["project finance", "asset-level", "rate hedging", "loan on loan", "repo facilities", "utilities", "digital infrastructure"],
+      "capability_weights": {
+        "infrastructure_underwriting": 1.45,
+        "financial_modelling": 1.2,
+        "deal_execution": 1.15,
+        "portfolio_monitoring": 1.05
+      }
+    }
+  },
+  "capabilities": {
+    "financial_modelling": {
+      "label": "Financial Modelling",
+      "signals": ["financial modelling", "financial modeling", "lbo", "three-statement", "cash flow model", "excel model", "sensitivity analysis", "scenario analysis", "valuation model"],
+      "adjacent_signals": ["vba", "automation", "forecast model", "pricing analysis"]
+    },
+    "valuation": {
+      "label": "Valuation",
+      "signals": ["valuation", "dcf", "comparable company", "precedent transactions", "mark-to-market", "quarter end valuations", "relative value"],
+      "adjacent_signals": ["financial statements", "returns analysis", "pricing recommendation"]
+    },
+    "due_diligence": {
+      "label": "Due Diligence",
+      "signals": ["due diligence", "commercial diligence", "financial diligence", "operational diligence", "ddq", "reference calls", "data room"],
+      "adjacent_signals": ["risk assessment", "review materials", "diligence calls"]
+    },
+    "deal_execution": {
+      "label": "Deal Execution",
+      "signals": ["deal execution", "transaction", "closing", "structuring", "term sheet", "syndication", "underwriting", "co-investment", "private placements"],
+      "adjacent_signals": ["pipeline calls", "new issues", "secondary trades", "closing allocations"]
+    },
+    "investment_committee": {
+      "label": "Investment Committee / IC Writing",
+      "signals": ["investment committee", "ic memo", "investment memo", "screening memo", "recommendation report", "investment recommendation", "board materials"],
+      "adjacent_signals": ["committee submissions", "management presentations", "present recommendations"]
+    },
+    "investment_research": {
+      "label": "Investment Research",
+      "signals": ["investment research", "market research", "sector research", "research report", "investment thesis", "thematic research", "thought leadership"],
+      "adjacent_signals": ["white papers", "market commentary", "insights", "briefing materials"]
+    },
+    "public_markets_analysis": {
+      "label": "Public Markets Analysis",
+      "signals": ["public equities", "equity research", "cross-asset", "rates", "credit", "foreign exchange", "macro research", "earnings calls", "preferred securities"],
+      "adjacent_signals": ["market trends", "asset allocation", "income strategies", "geopolitical situations"]
+    },
+    "portfolio_monitoring": {
+      "label": "Portfolio Monitoring",
+      "signals": ["portfolio monitoring", "portfolio performance", "quarterly update calls", "valuation updates", "kpi tracking", "rebalance", "portfolio reports"],
+      "adjacent_signals": ["monitor investments", "performance analysis", "company tracking"]
+    },
+    "fundraising_investor_relations": {
+      "label": "Fundraising / Investor Relations",
+      "signals": ["investor relations", "capital raising", "fundraising", "hnwi", "uhnwi", "ddq", "rfp", "pitch deck", "investor materials", "client updates"],
+      "adjacent_signals": ["prospects", "sales teams", "client meetings", "investor questions", "data room"]
+    },
+    "product_client_solutions": {
+      "label": "Product / Client Solutions",
+      "signals": ["product demos", "solution presentations", "proof-of-concept", "onboarding", "client solutions", "enablement", "use cases", "value propositions"],
+      "adjacent_signals": ["customer success", "issue triage", "sales process", "crm", "salesforce"]
+    },
+    "credit_underwriting": {
+      "label": "Credit Underwriting",
+      "signals": ["direct lending", "credit investing", "re-underwrite", "underwriting", "debt investments", "loan", "bond", "distressed credit", "special situations"],
+      "adjacent_signals": ["lender calls", "amendments", "credit research", "syndicate desk"]
+    },
+    "infrastructure_underwriting": {
+      "label": "Infrastructure / Real Assets Underwriting",
+      "signals": ["project finance", "infrastructure", "real estate financing", "rate hedging", "repo facilities", "loan on loan", "asset-level monitoring", "utilities"],
+      "adjacent_signals": ["energy transition", "digital infrastructure", "transportation", "real assets"]
+    },
+    "risk_governance_controls": {
+      "label": "Risk / Governance / Controls",
+      "signals": ["erm", "coso", "risk register", "internal controls", "operational risk", "corporate governance", "audit committee", "board reporting"],
+      "adjacent_signals": ["control effectiveness", "risk culture", "policy development", "risk awareness"]
+    },
+    "operations_trade_support": {
+      "label": "Operations / Trade Support",
+      "signals": ["trade support", "settlement", "trade capture", "confirmation", "nav reconciliation", "margin calls", "middle office", "fund accountants", "investment accounting"],
+      "adjacent_signals": ["custodians", "prime brokers", "back office", "trade breaks", "bookings"]
+    },
+    "market_data_tools": {
+      "label": "Market Data / Platform Tools",
+      "signals": ["bloomberg", "factset", "capital iq", "reuters", "aim", "pitchbook", "dealogic", "lcd", "ipreo", "intralinks", "salesforce"],
+      "adjacent_signals": ["data dashboards", "analytics platform", "proprietary software tools"]
+    },
+    "regulations_compliance": {
+      "label": "Regulation / Compliance",
+      "signals": ["solvency ii", "prudent person principle", "gaap", "ifrs", "sec reporting", "fsa", "sharia", "central bank", "sca", "mifid ii"],
+      "adjacent_signals": ["statutory", "audit", "regulatory reporting", "compliance policy"]
+    }
+  },
+  "languages": {
+    "english": ["english", "fluent english", "native english"],
+    "french": ["french", "french fluency", "french and english"],
+    "arabic": ["arabic", "near-native arabic"],
+    "german": ["german"],
+    "japanese": ["japanese"],
+    "korean": ["korean"],
+    "portuguese": ["portuguese"]
+  }
+}

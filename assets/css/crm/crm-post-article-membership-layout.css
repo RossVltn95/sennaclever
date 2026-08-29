@@ -1,0 +1,643 @@
+.sffc-crm-post-article-layout--membership {
+    background: #ffffff;
+    color: #111111;
+}
+
+.sffc-crm-post-article-layout--membership .sffc-crm-post-article-layout__topbar {
+    width: 100%;
+    min-height: 88px;
+    padding: 0 48px;
+    background: #000000;
+    color: #ffffff;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.sffc-crm-post-article-layout--membership .sffc-crm-post-article-layout__brand img {
+    display: block;
+    width: auto;
+    height: 38px;
+    max-width: 190px;
+    object-fit: contain;
+    filter: brightness(0) invert(1);
+}
+
+.sffc-crm-post-article-layout--membership .sffc-crm-post-article-layout__topbar-join,
+.sffc-crm-post-article-layout--membership .sffc-crm-post-article-layout__topbar-signin {
+    color: #ffffff;
+}
+
+.sffc-crm-post-article-layout--membership .sffc-crm-post-article-layout__topbar-join {
+    min-height: 38px;
+    padding: 0 16px;
+    border: 1px solid rgba(255, 255, 255, 0.82);
+    border-radius: 4px;
+    background: #ffffff;
+    color: #000000;
+}
+
+.sffc-crm-post-article-layout--membership .sffc-crm-post-article-layout__topbar-signin:hover,
+.sffc-crm-post-article-layout--membership .sffc-crm-post-article-layout__topbar-signin:focus {
+    color: #ffffff;
+}
+
+.sffc-crm-post-article-layout--membership .sffc-crm-post-article-layout__shell {
+    width: min(100%, 1680px);
+    max-width: none;
+    padding: 32px 28px 80px;
+    display: block;
+    margin: 0 auto;
+}
+
+.sffc-crm-post-article-layout--membership .sffc-crm-post-article-layout__main {
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+    min-width: 0;
+    width: 100%;
+}
+
+.sffc-crm-post-article-layout__membership-feed {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    width: 100%;
+}
+
+.sffc-crm-post-article-layout__membership-showcase-card,
+.sffc-crm-post-article-layout--membership .sffc-crm-post-article-layout__header,
+.sffc-crm-post-article-layout--membership .sffc-crm-post-article-layout__content,
+.sffc-crm-post-article-layout--membership .sffc-crm-post-article-layout__membership-offer,
+.sffc-crm-post-article-layout--membership .sffc-crm-post-article-layout__similar {
+    border: 1px solid #d9d9d9;
+    border-radius: 4px;
+    background: #ffffff;
+    box-shadow: none;
+}
+
+.sffc-crm-post-article-layout__membership-showcase-card {
+    overflow: hidden;
+    width: 100%;
+}
+
+.sffc-crm-post-article-layout__membership-feed-card {
+    padding: 28px 30px;
+}
+
+.sffc-crm-post-article-layout__membership-feed-title {
+    margin: 14px 0 0;
+    font-size: 44px;
+    line-height: 0.98;
+    font-weight: 700;
+    letter-spacing: -0.05em;
+}
+
+.sffc-crm-post-article-layout__membership-feed-title a {
+    color: inherit;
+    text-decoration: none;
+}
+
+.sffc-crm-post-article-layout__membership-feed-title a:hover,
+.sffc-crm-post-article-layout__membership-feed-title a:focus {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+.sffc-crm-post-article-layout__membership-feed-footer {
+    display: flex;
+    justify-content: center;
+    padding-top: 2px;
+}
+
+.sffc-crm-post-article-layout__membership-load-more {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 52px;
+    padding: 0 28px;
+    border: 1px solid #111111;
+    background: #111111;
+    color: #ffffff;
+    text-decoration: none;
+    font-size: 15px;
+    line-height: 1;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+}
+
+.sffc-crm-post-article-layout__membership-load-more:hover,
+.sffc-crm-post-article-layout__membership-load-more:focus {
+    color: #ffffff;
+    background: #222222;
+    text-decoration: none;
+}
+
+.sffc-crm-post-article-layout__membership-stage {
+    display: grid;
+    grid-template-columns: minmax(0, 1.18fr) minmax(360px, 0.82fr);
+    align-items: stretch;
+    min-height: 620px;
+}
+
+.sffc-crm-post-article-layout__membership-cover {
+    position: relative;
+    background-color: #000000;
+    background-image: var(--membership-cover-image);
+    background-position: center center;
+    background-repeat: no-repeat;
+    background-size: cover;
+    color: #ffffff;
+    padding: 26px 34px 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    justify-content: flex-start;
+    min-width: 0;
+    overflow: hidden;
+    min-height: 100%;
+}
+
+.sffc-crm-post-article-layout__membership-cover::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+        linear-gradient(180deg, rgba(0, 0, 0, 0.18) 0%, rgba(0, 0, 0, 0.5) 34%, rgba(0, 0, 0, 0.78) 62%, rgba(0, 0, 0, 0.94) 100%),
+        linear-gradient(90deg, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0.12) 38%, rgba(0, 0, 0, 0.24) 100%);
+}
+
+.sffc-crm-post-article-layout__membership-cover-image {
+    display: none !important;
+}
+
+.sffc-crm-post-article-layout__membership-cover > * {
+    position: relative;
+    z-index: 1;
+}
+
+.sffc-crm-post-article-layout__membership-simple-head {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    max-width: 560px;
+    padding-top: 32px;
+    margin-top: auto;
+}
+
+.sffc-crm-post-article-layout__membership-eyebrow,
+.sffc-crm-post-article-layout__membership-section-kicker,
+.sffc-crm-post-article-layout__membership-join-kicker {
+    display: inline-flex;
+    align-items: center;
+    align-self: flex-start;
+    min-height: 26px;
+    padding: 0 10px;
+    border-radius: 3px;
+    background: rgba(255, 255, 255, 0.1);
+    color: #ffffff;
+    font-size: 11px;
+    line-height: 1;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.sffc-crm-post-article-layout__membership-section-kicker {
+    background: #f2f2f2;
+    color: #111111;
+}
+
+.sffc-crm-post-article-layout__membership-join-kicker {
+    background: #f3f3f3;
+    color: #111111;
+}
+
+.sffc-crm-post-article-layout__membership-simple-head h2 {
+    margin: 0;
+    max-width: 520px;
+    font-size: 64px;
+    line-height: 0.92;
+    font-weight: 700;
+    letter-spacing: -0.06em;
+    text-wrap: balance;
+    color: #ffffff;
+}
+
+.sffc-crm-post-article-layout__membership-recruiters {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-top: auto;
+    padding-top: 18px;
+}
+
+.sffc-crm-post-article-layout__membership-recruiter-avatars {
+    display: flex;
+    align-items: center;
+}
+
+.sffc-crm-post-article-layout__membership-recruiter-avatar {
+    width: 48px;
+    height: 48px;
+    margin-left: -10px;
+    border-radius: 999px;
+    border: 2px solid #000000;
+    background: #222222;
+    color: #ffffff;
+    overflow: hidden;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.sffc-crm-post-article-layout__membership-recruiter-avatar:first-child {
+    margin-left: 0;
+}
+
+.sffc-crm-post-article-layout__membership-recruiter-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.sffc-crm-post-article-layout__membership-recruiter-avatar > span {
+    font-size: 16px;
+    line-height: 1;
+    font-weight: 700;
+}
+
+.sffc-crm-post-article-layout__membership-recruiter-copy {
+    font-size: 14px;
+    line-height: 1.45;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.sffc-crm-post-article-layout__membership-join-panel {
+    padding: 34px 36px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    justify-content: center;
+    background: #ffffff;
+    border-left: 1px solid #d9d9d9;
+    min-height: 100%;
+}
+
+.sffc-crm-post-article-layout__membership-join-panel h3 {
+    margin: 0;
+    font-size: 38px;
+    line-height: 0.98;
+    font-weight: 700;
+    letter-spacing: -0.04em;
+}
+
+.sffc-crm-post-article-layout__membership-join-panel > p {
+    margin: 0;
+    font-size: 16px;
+    line-height: 1.65;
+    color: #414141;
+}
+
+.sffc-crm-post-article-layout__membership-cover-list {
+    max-width: 420px;
+    margin: 8px 0 0;
+    gap: 10px;
+}
+
+.sffc-crm-post-article-layout__membership-cover-list li,
+.sffc-crm-post-article-layout__membership-cover-list li *,
+.sffc-crm-post-article-layout__membership-cover .sffc-crm-post-article-layout__membership-offer-list li {
+    color: #ffffff !important;
+    font-size: 16px;
+    line-height: 1.5;
+    padding-left: 20px;
+    opacity: 0.96;
+}
+
+.sffc-crm-post-article-layout__membership-cover-list li::before,
+.sffc-crm-post-article-layout__membership-cover .sffc-crm-post-article-layout__membership-offer-list li::before {
+    content: "✓";
+    color: #ffffff !important;
+    left: 0;
+    font-weight: 800;
+}
+
+.sffc-crm-post-article-layout__membership-capture {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.sffc-crm-post-article-layout__membership-capture-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 10px;
+}
+
+.sffc-crm-post-article-layout__membership-capture-field {
+    display: block;
+}
+
+.sffc-crm-post-article-layout__membership-capture-field input {
+    width: 100%;
+    min-height: 54px;
+    padding: 0 16px;
+    border: 1px solid #111111;
+    border-radius: 4px;
+    background: #ffffff;
+    color: #111111;
+    font-size: 16px;
+}
+
+.sffc-crm-post-article-layout__membership-capture-field input::placeholder {
+    color: #6d6d6d;
+}
+
+.sffc-crm-post-article-layout__membership-capture-submit {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    min-height: 54px;
+    padding: 0 20px;
+    border: 1px solid #111111;
+    border-radius: 4px;
+    background: #111111;
+    color: #ffffff;
+    text-decoration: none;
+    font-size: 15px;
+    line-height: 1;
+    font-weight: 800;
+}
+
+.sffc-crm-post-article-layout__membership-capture-submit:hover,
+.sffc-crm-post-article-layout__membership-capture-submit:focus {
+    color: #ffffff;
+    text-decoration: none;
+}
+
+.sffc-crm-post-article-layout__membership-capture .sffc-crm-post-article-layout__signup-feedback {
+    margin: 0;
+}
+
+.sffc-crm-post-article-layout__membership-signal-strip {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0;
+    border-top: 1px solid #d9d9d9;
+    background: #ffffff;
+    width: 100%;
+}
+
+.sffc-crm-post-article-layout__membership-signal-strip span {
+    padding: 16px 18px;
+    border-left: 1px solid #d9d9d9;
+    font-size: 14px;
+    line-height: 1.3;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #111111;
+}
+
+.sffc-crm-post-article-layout__membership-signal-strip span:first-child {
+    border-left: 0;
+}
+
+.sffc-crm-post-article-layout--membership .sffc-crm-post-article-layout__header {
+    padding: 28px 30px;
+    gap: 16px;
+}
+
+.sffc-crm-post-article-layout--membership .sffc-crm-post-article-layout__header h1 {
+    margin: 0;
+    font-size: 44px;
+    line-height: 0.98;
+    font-weight: 700;
+    letter-spacing: -0.05em;
+}
+
+.sffc-crm-post-article-layout__membership-subtitle {
+    margin: 0;
+    font-size: 18px;
+    line-height: 1.4;
+    color: #414141;
+}
+
+.sffc-crm-post-article-layout__membership-role-note {
+    margin: 0;
+    max-width: 720px;
+    font-size: 16px;
+    line-height: 1.65;
+    color: #5b6470;
+}
+
+.sffc-crm-post-article-layout--membership .sffc-crm-post-article-layout__header-recruiter {
+    display: grid;
+    grid-template-columns: 76px minmax(0, 1fr);
+    gap: 16px;
+    align-items: start;
+    margin-top: 8px;
+}
+
+.sffc-crm-post-article-layout--membership .sffc-crm-post-article-layout__header-recruiter-avatar {
+    width: 76px;
+    height: 76px;
+    flex: 0 0 76px;
+    border-radius: 999px;
+}
+
+.sffc-crm-post-article-layout--membership .sffc-crm-post-article-layout__header-recruiter-copy strong {
+    font-size: 24px;
+    line-height: 1.08;
+}
+
+.sffc-crm-post-article-layout--membership .sffc-crm-post-article-layout__header-recruiter-copy span {
+    font-size: 16px;
+    line-height: 1.45;
+}
+
+.sffc-crm-post-article-layout--membership .sffc-crm-post-article-layout__header-actions {
+    margin-top: 12px;
+}
+
+.sffc-crm-post-article-layout--membership .sffc-crm-post-article-layout__apply-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.sffc-crm-post-article-layout__membership-role-cta {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.sffc-crm-post-article-layout__membership-role-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 48px;
+    padding: 0 22px;
+    border: 1px solid #111111;
+    background: #111111;
+    color: #ffffff;
+    text-decoration: none;
+    font-size: 14px;
+    line-height: 1;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+}
+
+.sffc-crm-post-article-layout__membership-role-primary:hover,
+.sffc-crm-post-article-layout__membership-role-primary:focus {
+    color: #ffffff;
+    text-decoration: none;
+}
+
+.sffc-crm-post-article-layout__membership-role-secondary {
+    color: #111111;
+    font-size: 14px;
+    line-height: 1.4;
+    font-weight: 700;
+    text-decoration: underline;
+    text-underline-offset: 0.14em;
+}
+
+.sffc-crm-post-article-layout--membership .sffc-crm-post-article-layout__apply-dropdown {
+    gap: 0;
+}
+
+.sffc-crm-post-article-layout--membership .sffc-crm-post-article-layout__rule {
+    display: none;
+}
+
+.sffc-crm-post-article-layout--membership .sffc-crm-post-article-layout__meta {
+    padding: 0;
+}
+
+.sffc-crm-post-article-layout--membership .sffc-crm-post-article-layout__meta-grid {
+    gap: 18px 28px;
+}
+
+.sffc-crm-post-article-layout--membership .sffc-crm-post-article-layout__meta-item {
+    font-size: 18px;
+}
+
+.sffc-crm-post-article-layout--membership .sffc-crm-post-article-layout__content {
+    padding: 28px 30px;
+}
+
+.sffc-crm-post-article-layout--membership .sffc-crm-post-article-layout__content h2 {
+    margin: 0 0 20px;
+    font-size: 26px;
+    line-height: 1.05;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+}
+
+.sffc-crm-post-article-layout--membership .sffc-crm-post-article-layout__content-body {
+    font-size: 18px;
+    line-height: 1.8;
+    color: #202020;
+}
+
+.sffc-crm-post-article-layout--membership .sffc-crm-post-article-layout__sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.sffc-crm-post-article-layout__membership-offer-list {
+    list-style: none;
+    margin: 0 0 18px;
+    padding: 0;
+    display: grid;
+    gap: 10px;
+}
+
+.sffc-crm-post-article-layout__membership-offer-list li {
+    position: relative;
+    padding-left: 16px;
+    font-size: 15px;
+    line-height: 1.45;
+    color: #202020;
+}
+
+.sffc-crm-post-article-layout__membership-offer-list li::before {
+    content: "•";
+    position: absolute;
+    left: 0;
+    top: 0;
+    color: #111111;
+    font-weight: 700;
+}
+
+@media (max-width: 900px) {
+    .sffc-crm-post-article-layout__membership-stage {
+        grid-template-columns: minmax(0, 1fr);
+        min-height: 0;
+    }
+
+    .sffc-crm-post-article-layout__membership-signal-strip {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .sffc-crm-post-article-layout__membership-signal-strip span {
+        border-left: 0;
+        border-top: 1px solid #d9d9d9;
+    }
+
+    .sffc-crm-post-article-layout__membership-signal-strip span:first-child {
+        border-top: 0;
+    }
+
+    .sffc-crm-post-article-layout__membership-join-panel {
+        border-left: 0;
+        border-top: 1px solid #d9d9d9;
+    }
+}
+
+@media (max-width: 767px) {
+    .sffc-crm-post-article-layout--membership .sffc-crm-post-article-layout__topbar {
+        min-height: 74px;
+        padding: 0 20px;
+    }
+
+    .sffc-crm-post-article-layout--membership .sffc-crm-post-article-layout__shell {
+        padding: 24px 16px 48px;
+    }
+
+    .sffc-crm-post-article-layout__membership-cover,
+    .sffc-crm-post-article-layout__membership-join-panel,
+    .sffc-crm-post-article-layout--membership .sffc-crm-post-article-layout__header,
+    .sffc-crm-post-article-layout--membership .sffc-crm-post-article-layout__content {
+        padding: 22px;
+    }
+
+    .sffc-crm-post-article-layout__membership-feed-card {
+        padding: 22px;
+    }
+
+    .sffc-crm-post-article-layout__membership-simple-head h2 {
+        font-size: 42px;
+    }
+
+    .sffc-crm-post-article-layout__membership-simple-head {
+        padding-top: 18px;
+    }
+
+    .sffc-crm-post-article-layout__membership-cover-list li,
+    .sffc-crm-post-article-layout__membership-cover-list li *,
+    .sffc-crm-post-article-layout__membership-cover .sffc-crm-post-article-layout__membership-offer-list li {
+        font-size: 15px;
+    }
+
+    .sffc-crm-post-article-layout--membership .sffc-crm-post-article-layout__header h1,
+    .sffc-crm-post-article-layout__membership-feed-title {
+        font-size: 32px;
+    }
+}

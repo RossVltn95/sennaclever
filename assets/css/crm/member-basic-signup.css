@@ -1,0 +1,802 @@
+.sffc-basic-member-signup {
+    --sffc-basic-signup-border: #b9b9b2;
+    --sffc-basic-signup-ink: #222222;
+    --sffc-basic-signup-muted: #5f5f59;
+    --sffc-basic-signup-accent: #1177d1;
+    --sffc-basic-signup-surface: #ffffff;
+    --sffc-basic-signup-bg: #f8f7f3;
+    width: 100%;
+    color: var(--sffc-basic-signup-ink);
+}
+
+.sffc-basic-member-signup,
+.sffc-basic-member-signup * {
+    box-sizing: border-box;
+}
+
+.sffc-basic-member-signup [hidden] {
+    display: none !important;
+}
+
+.sffc-mepr-init-decoy {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+    pointer-events: none;
+}
+
+.sffc-basic-member-signup__shell {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 24px 20px 48px;
+}
+
+.sffc-basic-member-signup__card {
+    background: var(--sffc-basic-signup-surface);
+    min-width: 0;
+}
+
+.sffc-basic-member-signup__masthead {
+    width: min(100%, 980px);
+    margin: 0 auto;
+    padding: 22px 20px 0;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 26px;
+}
+
+.sffc-basic-member-signup__masthead h1 {
+    margin: 0;
+    color: #111111;
+    font-size: 52px;
+    line-height: 1.08;
+    font-weight: 450;
+    letter-spacing: 0;
+    text-align: center;
+}
+
+.sffc-basic-member-signup__masthead h1::after {
+    content: "";
+    display: block;
+    width: min(180px, 32%);
+    height: 1px;
+    margin: 18px auto 0;
+    background: linear-gradient(90deg, rgba(17, 17, 17, 0) 0%, rgba(17, 17, 17, 0.18) 18%, rgba(17, 17, 17, 0.18) 82%, rgba(17, 17, 17, 0) 100%);
+}
+
+.sffc-basic-member-signup__masthead .sffc-member-signup__brand {
+    width: 100%;
+    margin: 0;
+    justify-content: flex-start;
+}
+
+.sffc-basic-member-signup__masthead .sffc-member-signup__brand-copy strong {
+    color: #111111;
+}
+
+.sffc-basic-member-signup__access-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+    max-width: 760px;
+    margin: 0 auto;
+}
+
+.sffc-basic-member-signup__access-card {
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    gap: 0;
+    width: 100%;
+    min-width: 0;
+    padding: 0;
+    border: 1px solid rgba(13, 29, 66, 0.16);
+    border-radius: 16px;
+    background: #ffffff;
+    color: #111827;
+    text-align: left;
+    overflow: hidden;
+    cursor: pointer;
+    box-shadow: 0 16px 34px rgba(13, 29, 66, 0.07);
+    transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
+}
+
+.sffc-basic-member-signup__access-card:hover,
+.sffc-basic-member-signup__access-card:focus-visible,
+.sffc-basic-member-signup__access-card.is-selected {
+    border-color: rgba(13, 29, 66, 0.44);
+    box-shadow: 0 22px 44px rgba(13, 29, 66, 0.11);
+    transform: translateY(-2px);
+}
+
+.sffc-basic-member-signup__access-card:focus-visible {
+    outline: 3px solid rgba(17, 119, 209, 0.24);
+    outline-offset: 3px;
+}
+
+.sffc-basic-member-signup__access-media {
+    display: block;
+    aspect-ratio: 1.9 / 1;
+    background: #eef2f7;
+    overflow: hidden;
+}
+
+.sffc-basic-member-signup__access-media img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.sffc-basic-member-signup__access-copy {
+    display: grid;
+    gap: 8px;
+    padding: 18px 20px 20px;
+}
+
+.sffc-basic-member-signup__access-copy strong {
+    color: #102248;
+    font-family: "Iowan Old Style", "Palatino Linotype", Georgia, serif;
+    font-size: clamp(24px, 2.2vw, 32px);
+    font-weight: 400;
+    line-height: 1;
+    letter-spacing: -0.045em;
+}
+
+.sffc-basic-member-signup__access-copy span {
+    color: #5b6372;
+    font-size: 14px;
+    line-height: 1.42;
+}
+
+.sffc-basic-member-signup__access-action {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    min-height: 54px;
+    padding: 0 20px;
+    border-top: 1px solid rgba(13, 29, 66, 0.09);
+    color: #111827;
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.sffc-basic-member-signup__access-action svg {
+    width: 19px;
+    height: 19px;
+}
+
+.sffc-basic-member-signup__field--native-select {
+    position: static;
+    width: auto;
+    height: auto;
+    padding: 0;
+    margin: 0 0 20px;
+    overflow: visible;
+    clip: auto;
+    white-space: normal;
+    border: 0;
+}
+
+.sffc-basic-member-signup__field {
+    margin-bottom: 20px;
+}
+
+.sffc-basic-member-signup__selector-copy {
+    max-width: 560px;
+    margin: -4px 0 12px;
+    color: #5b6372;
+    font-size: 14px;
+    line-height: 1.45;
+}
+
+.sffc-basic-member-signup__field > label {
+    display: block;
+    margin: 0 0 8px;
+    color: #42423d;
+    font-size: 16px;
+    font-weight: 500;
+}
+
+.sffc-basic-member-signup__select-wrap {
+    position: relative;
+}
+
+.sffc-basic-member-signup__select {
+    width: 100%;
+    min-height: 86px;
+    padding: 20px 86px 16px 18px;
+    border: 1px solid var(--sffc-basic-signup-border);
+    border-bottom: 3px solid var(--sffc-basic-signup-accent);
+    border-radius: 0;
+    background: #ffffff;
+    color: var(--sffc-basic-signup-ink);
+    font-size: 22px;
+    line-height: 1.25;
+    appearance: none;
+    outline: none;
+    box-shadow: none;
+}
+
+.sffc-basic-member-signup__select:focus {
+    border-color: #8f8f86;
+}
+
+.sffc-basic-member-signup__select-chevron,
+.sffc-basic-member-signup__select-check {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+}
+
+.sffc-basic-member-signup__select-chevron {
+    right: 56px;
+    color: #373737;
+}
+
+.sffc-basic-member-signup__select-chevron svg {
+    width: 20px;
+    height: 20px;
+}
+
+.sffc-basic-member-signup__select-check {
+    right: 16px;
+    width: 44px;
+    height: 44px;
+    border-radius: 999px;
+    background: #1ea43a;
+    color: #ffffff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.sffc-basic-member-signup__select-check svg {
+    width: 24px;
+    height: 24px;
+}
+
+.sffc-basic-member-signup__plan-details {
+    margin: 14px 0 18px;
+}
+
+.sffc-basic-member-signup__plan-detail {
+    border: 1px solid rgba(13, 29, 66, 0.12);
+    background: #fbfaf7;
+    padding: 14px 16px;
+    border-radius: 12px;
+}
+
+.sffc-basic-member-signup__plan-meta {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 18px;
+}
+
+.sffc-basic-member-signup__plan-meta strong {
+    font-size: 19px;
+    font-weight: 500;
+    line-height: 1.1;
+}
+
+.sffc-basic-member-signup__plan-meta span {
+    color: #202861;
+    font-size: 17px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.sffc-basic-member-signup__current-badge {
+    display: inline-flex;
+    align-items: center;
+    min-height: 28px;
+    padding: 0 10px;
+    border: 1px solid rgba(13, 29, 66, 0.12);
+    border-radius: 999px;
+    background: #e8fff5;
+    color: #0f6a4e;
+    font-size: 12px;
+    font-style: normal;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.sffc-basic-member-signup__plan-detail p {
+    margin: 8px 0 0;
+    color: var(--sffc-basic-signup-muted);
+    font-size: 14px;
+    line-height: 1.45;
+}
+
+.sffc-basic-member-signup__plan-detail ul {
+    margin: 10px 0 0;
+    padding-left: 18px;
+    color: #2e2e2a;
+    display: grid;
+    gap: 4px;
+    font-size: 13px;
+    line-height: 1.4;
+}
+
+.sffc-basic-member-signup__forms {
+    margin-top: 8px;
+    min-width: 0;
+}
+
+.sffc-basic-member-signup__memberpress {
+    background: #ffffff;
+    min-width: 0;
+}
+
+.sffc-basic-member-signup__memberpress .mp_wrapper,
+.sffc-basic-member-signup__memberpress .mepr-signup-form,
+.sffc-basic-member-signup__memberpress form[name="mepr_signup_form"] {
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    padding: 0;
+    background: transparent;
+    box-shadow: none;
+    border: 0;
+}
+
+.sffc-basic-member-signup__memberpress .mp_wrapper h1,
+.sffc-basic-member-signup__memberpress .mp_wrapper h2,
+.sffc-basic-member-signup__memberpress .mp_wrapper h3,
+.sffc-basic-member-signup__memberpress .mp_wrapper .mp-form-label,
+.sffc-basic-member-signup__memberpress .mp_wrapper .mp-form-row label {
+    color: #333333;
+}
+
+.sffc-basic-member-signup__memberpress .mp_wrapper .mp-form-row,
+.sffc-basic-member-signup__memberpress .mp_wrapper .mp-field,
+.sffc-basic-member-signup__memberpress .mp_wrapper .mepr-form-row {
+    margin: 0 0 22px;
+}
+
+.sffc-basic-member-signup__memberpress .mp_wrapper label,
+.sffc-basic-member-signup__memberpress .mp_wrapper .mp-form-label {
+    display: block;
+    margin: 0 0 8px;
+    color: #4a4a44;
+    font-size: 16px;
+    font-weight: 500;
+}
+
+.sffc-basic-member-signup__memberpress .mp_wrapper input[type="text"],
+.sffc-basic-member-signup__memberpress .mp_wrapper input[type="email"],
+.sffc-basic-member-signup__memberpress .mp_wrapper input[type="tel"],
+.sffc-basic-member-signup__memberpress .mp_wrapper input[type="password"],
+.sffc-basic-member-signup__memberpress .mp_wrapper input[type="number"],
+.sffc-basic-member-signup__memberpress .mp_wrapper select,
+.sffc-basic-member-signup__memberpress .mp_wrapper textarea,
+.sffc-basic-member-signup__memberpress .mp_wrapper .mepr-form-input,
+.sffc-basic-member-signup__memberpress .mp_wrapper .chosen-single {
+    width: 100%;
+    min-height: 82px;
+    padding: 18px 18px;
+    border: 1px solid var(--sffc-basic-signup-border);
+    border-radius: 0;
+    background: #ffffff;
+    color: var(--sffc-basic-signup-ink);
+    font-size: 22px;
+    line-height: 1.3;
+    box-shadow: none;
+}
+
+.sffc-basic-member-signup__memberpress .mp_wrapper textarea {
+    min-height: 120px;
+}
+
+.sffc-basic-member-signup__memberpress .mp_wrapper input:focus,
+.sffc-basic-member-signup__memberpress .mp_wrapper select:focus,
+.sffc-basic-member-signup__memberpress .mp_wrapper textarea:focus {
+    outline: none;
+    border-color: #8f8f86;
+}
+
+.sffc-basic-member-signup__memberpress .mp_wrapper .chosen-container {
+    width: 100% !important;
+}
+
+.sffc-basic-member-signup__memberpress .mepr-payment-methods-wrapper {
+    margin: 0 0 28px;
+}
+
+.sffc-basic-member-signup__memberpress .mepr-payment-methods-icons img,
+.sffc-basic-member-signup__memberpress .mepr-payment-methods-icons svg {
+    display: none !important;
+}
+
+.sffc-basic-member-signup__memberpress .mepr-payment-methods-radios {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 14px !important;
+    margin: 0 0 24px !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    overflow: visible !important;
+}
+
+.sffc-basic-member-signup__memberpress .mepr-payment-methods-radios > div {
+    margin: 0 !important;
+}
+
+.sffc-basic-member-signup__memberpress .mepr-payment-methods-radios > div + div {
+    border-top: 0 !important;
+}
+
+.sffc-basic-member-signup__memberpress .mepr-payment-methods-radios label.mepr-payment-option-label {
+    position: relative !important;
+    min-height: 74px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    gap: 12px !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 16px !important;
+    border: 1px solid #dde2ea !important;
+    border-radius: 14px !important;
+    background: #ffffff !important;
+    box-shadow: 0 8px 20px rgba(15, 23, 42, 0.05) !important;
+    cursor: pointer !important;
+    transition: background-color 160ms ease, color 160ms ease, border-color 160ms ease, box-shadow 160ms ease !important;
+}
+
+.sffc-basic-member-signup__memberpress .mepr-payment-methods-radios label.mepr-payment-option-label:hover {
+    background: #f8fafc !important;
+    transform: none !important;
+}
+
+.sffc-basic-member-signup__memberpress .mepr-payment-methods-radios label.mepr-payment-option-label.checked,
+.sffc-basic-member-signup__memberpress .mepr-payment-methods-radios label.mepr-payment-option-label:has(input:checked) {
+    background: #f5f7fb !important;
+}
+
+.sffc-basic-member-signup__memberpress .mepr-payment-methods-radios input[type="radio"] {
+    appearance: none !important;
+    -webkit-appearance: none !important;
+    flex: 0 0 auto !important;
+    width: 24px !important;
+    height: 24px !important;
+    margin: 0 !important;
+    border: 2px solid #d8dee8 !important;
+    border-radius: 999px !important;
+    background: #ffffff !important;
+    box-shadow: inset 0 0 0 7px #ffffff !important;
+    pointer-events: none !important;
+    transition: border-color 160ms ease, box-shadow 160ms ease, background-color 160ms ease !important;
+}
+
+.sffc-basic-member-signup__memberpress .mepr-payment-methods-radios label.mepr-payment-option-label.checked input[type="radio"],
+.sffc-basic-member-signup__memberpress .mepr-payment-methods-radios label.mepr-payment-option-label:has(input:checked) input[type="radio"] {
+    border-color: #1f2b46 !important;
+    background: #1f2b46 !important;
+    box-shadow: inset 0 0 0 5px #ffffff !important;
+}
+
+.sffc-basic-member-signup__memberpress .mepr-payment-method-label-text {
+    display: inline-flex !important;
+    align-items: center !important;
+    margin: 0 !important;
+    color: #18243a !important;
+    font-size: 18px !important;
+    line-height: 1.1 !important;
+    font-weight: 700 !important;
+}
+
+.sffc-basic-member-signup__memberpress .mp_wrapper .mp-submit,
+.sffc-basic-member-signup__memberpress .mp_wrapper .mepr-submit,
+.sffc-basic-member-signup__memberpress .mp_wrapper input[type="submit"],
+.sffc-basic-member-signup__memberpress .mp_wrapper button[type="submit"] {
+    width: min(100%, 220px);
+    min-height: 56px;
+    padding: 0 18px;
+    border: 0;
+    border-radius: 5px;
+    background: var(--sffc-basic-signup-accent);
+    color: #ffffff;
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    cursor: pointer;
+    box-shadow: none;
+    text-align: center;
+    font-family: tahoma;
+}
+
+.sffc-basic-member-signup__memberpress .mp_wrapper .mp-submit:hover,
+.sffc-basic-member-signup__memberpress .mp_wrapper .mepr-submit:hover,
+.sffc-basic-member-signup__memberpress .mp_wrapper input[type="submit"]:hover,
+.sffc-basic-member-signup__memberpress .mp_wrapper button[type="submit"]:hover {
+    background: #0e67b5;
+}
+
+.sffc-basic-member-signup__memberpress .mp_wrapper .mp_error,
+.sffc-basic-member-signup__memberpress .mp_wrapper .mepr_error,
+.sffc-basic-member-signup__memberpress .mp_wrapper .mp-message {
+    margin: 0 0 16px;
+}
+
+.sffc-basic-member-signup__login-state {
+    padding: 28px;
+    border: 1px solid #d8d8d1;
+    background: #ffffff;
+}
+
+.sffc-basic-member-signup__login-state h2 {
+    margin: 0 0 8px;
+    font-size: 32px;
+}
+
+.sffc-basic-member-signup__login-state p {
+    margin: 0 0 16px;
+    color: var(--sffc-basic-signup-muted);
+}
+
+.sffc-basic-member-signup__login-state a {
+    color: #ffffff;
+    background: #111111;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 54px;
+    padding: 0 20px;
+}
+
+@media (max-width: 767px) {
+    .sffc-basic-member-signup {
+        position: relative;
+        left: auto;
+        width: 100%;
+        max-width: 420px;
+        margin-left: auto;
+        margin-right: auto;
+        overflow-x: clip;
+        padding: 0;
+    }
+
+    .sffc-basic-member-signup__shell {
+        max-width: 420px;
+        width: 100%;
+        padding: 18px 0 28px;
+    }
+
+    .sffc-basic-member-signup__masthead {
+        max-width: 420px;
+        padding: 18px 0 0;
+        gap: 18px;
+    }
+
+    .sffc-basic-member-signup__masthead h1 {
+        font-size: 34px;
+        line-height: 1.05;
+        padding: 0 12px;
+    }
+
+    .sffc-basic-member-signup__masthead h1::after {
+        width: min(140px, 42%);
+        margin-top: 14px;
+    }
+
+    .sffc-basic-member-signup__masthead .sffc-member-signup__brand {
+        padding: 0 12px;
+    }
+
+    .sffc-basic-member-signup__card {
+        width: 100%;
+        min-width: 0;
+        border: 1px solid rgba(13, 29, 66, 0.1);
+        border-radius: 18px;
+        background: #ffffff;
+        box-shadow: 0 16px 38px rgba(13, 29, 66, 0.08);
+        overflow: hidden;
+    }
+
+    .sffc-basic-member-signup__access-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    .sffc-basic-member-signup__access-card {
+        grid-template-columns: 84px minmax(0, 1fr);
+        grid-template-rows: auto auto;
+        align-items: stretch;
+        border-radius: 16px;
+        box-shadow: 0 14px 30px rgba(13, 29, 66, 0.08);
+    }
+
+    .sffc-basic-member-signup__access-media {
+        grid-row: 1 / span 2;
+        aspect-ratio: auto;
+        min-height: 126px;
+        height: 100%;
+    }
+
+    .sffc-basic-member-signup__access-copy {
+        padding: 14px 14px 6px;
+        gap: 6px;
+    }
+
+    .sffc-basic-member-signup__access-copy strong {
+        font-size: 22px;
+        line-height: 1.02;
+    }
+
+    .sffc-basic-member-signup__access-copy span {
+        font-size: 12px;
+        line-height: 1.38;
+    }
+
+    .sffc-basic-member-signup__access-action {
+        min-height: 40px;
+        padding: 0 14px 10px;
+        border-top: 0;
+        font-size: 11px;
+        letter-spacing: 0.1em;
+    }
+
+    .sffc-basic-member-signup__field {
+        margin: 0;
+        padding: 18px 18px 16px;
+        background: #ffffff;
+    }
+
+    .sffc-basic-member-signup__selector-copy {
+        margin-bottom: 10px;
+        font-size: 13px;
+    }
+
+    .sffc-basic-member-signup__field > label,
+    .sffc-basic-member-signup__memberpress .mp_wrapper label,
+    .sffc-basic-member-signup__memberpress .mp_wrapper .mp-form-label {
+        margin-bottom: 7px;
+        color: #4c5567;
+        font-size: 13px;
+        font-weight: 750;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+    }
+
+    .sffc-basic-member-signup__select,
+    .sffc-basic-member-signup__memberpress .mp_wrapper input[type="text"],
+    .sffc-basic-member-signup__memberpress .mp_wrapper input[type="email"],
+    .sffc-basic-member-signup__memberpress .mp_wrapper input[type="tel"],
+    .sffc-basic-member-signup__memberpress .mp_wrapper input[type="password"],
+    .sffc-basic-member-signup__memberpress .mp_wrapper input[type="number"],
+    .sffc-basic-member-signup__memberpress .mp_wrapper select,
+    .sffc-basic-member-signup__memberpress .mp_wrapper textarea,
+    .sffc-basic-member-signup__memberpress .mp_wrapper .mepr-form-input {
+        min-height: 60px;
+        max-width: 100%;
+        padding: 15px 16px;
+        font-size: 17px;
+        line-height: 1.3;
+        border-color: rgba(13, 29, 66, 0.16);
+        border-radius: 14px;
+    }
+
+    .sffc-basic-member-signup__select {
+        min-height: 64px;
+        padding-right: 66px;
+        border-bottom: 2px solid var(--sffc-basic-signup-accent);
+        background: #fdfdfb;
+        color: #111827;
+    }
+
+    .sffc-basic-member-signup__select-chevron {
+        right: 50px;
+    }
+
+    .sffc-basic-member-signup__select-check {
+        right: 12px;
+        width: 34px;
+        height: 34px;
+    }
+
+    .sffc-basic-member-signup__plan-details {
+        margin: 12px 0 16px;
+        padding: 0;
+    }
+
+    .sffc-basic-member-signup__plan-detail {
+        padding: 13px 14px 15px;
+        border-radius: 14px;
+        background: #fbfaf7;
+        overflow-wrap: anywhere;
+    }
+
+    .sffc-basic-member-signup__plan-meta {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 6px;
+    }
+
+    .sffc-basic-member-signup__plan-detail p,
+    .sffc-basic-member-signup__plan-detail ul {
+        font-size: 13px;
+        line-height: 1.45;
+    }
+
+    .sffc-basic-member-signup__forms {
+        margin: 0;
+        padding: 18px 18px 20px;
+    }
+
+    .sffc-basic-member-signup__memberpress .mp_wrapper .mp-form-row,
+    .sffc-basic-member-signup__memberpress .mp_wrapper .mp-field,
+    .sffc-basic-member-signup__memberpress .mp_wrapper .mepr-form-row {
+        margin: 0 0 14px;
+        min-width: 0;
+    }
+
+    .sffc-basic-member-signup__memberpress .mp_wrapper .mepr_price_cell,
+    .sffc-basic-member-signup__memberpress .mp_wrapper .mepr_price {
+        font-size: 17px;
+        line-height: 1.35;
+    }
+
+    .sffc-basic-member-signup__memberpress .mepr-payment-methods-radios {
+        grid-template-columns: minmax(0, 1fr) !important;
+        gap: 10px !important;
+        margin-bottom: 18px !important;
+    }
+
+    .sffc-basic-member-signup__memberpress .mepr-payment-methods-radios label.mepr-payment-option-label {
+        min-height: 66px !important;
+        padding: 0 14px !important;
+        gap: 10px !important;
+    }
+
+    .sffc-basic-member-signup__memberpress .mepr-payment-methods-radios input[type="radio"] {
+        width: 22px !important;
+        height: 22px !important;
+        box-shadow: inset 0 0 0 6px #ffffff !important;
+    }
+
+    .sffc-basic-member-signup__memberpress .mepr-payment-methods-radios label.mepr-payment-option-label.checked input[type="radio"],
+    .sffc-basic-member-signup__memberpress .mepr-payment-methods-radios label.mepr-payment-option-label:has(input:checked) input[type="radio"] {
+        box-shadow: inset 0 0 0 4px #ffffff !important;
+    }
+
+    .sffc-basic-member-signup__memberpress .mepr-payment-method-label-text {
+        font-size: 16px !important;
+    }
+
+    .sffc-basic-member-signup__plan-meta strong {
+        font-size: 21px;
+    }
+
+    .sffc-basic-member-signup__plan-meta span {
+        font-size: 17px;
+    }
+
+    .sffc-basic-member-signup__memberpress .mp_wrapper .mp-submit,
+    .sffc-basic-member-signup__memberpress .mp_wrapper .mepr-submit,
+    .sffc-basic-member-signup__memberpress .mp_wrapper input[type="submit"],
+    .sffc-basic-member-signup__memberpress .mp_wrapper button[type="submit"] {
+        width: 100%;
+        min-height: 54px;
+        padding: 0 16px;
+        font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+        font-size: 16px;
+        border-radius: 14px;
+    }
+}

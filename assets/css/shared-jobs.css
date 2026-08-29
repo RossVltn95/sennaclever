@@ -1,0 +1,239 @@
+/**
+ * Shared Jobs Styling
+ * Special styling for jobs shared via external links
+ */
+
+/* Shared intro message */
+.sffc-message.shared-intro {
+    background: linear-gradient(135deg, #FFF9E6 0%, #FFF5D6 100%);
+    border-left: 4px solid #D4AF37;
+    position: relative;
+    overflow: hidden;
+}
+
+.sffc-message.shared-intro::before {
+    content: '🔗';
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    font-size: 20px;
+    opacity: 0.3;
+}
+
+/* Shared job cards highlight */
+.job-card-vogue[data-shared="true"] {
+    position: relative;
+    border: 2px solid #D4AF37;
+    box-shadow: 0 0 20px rgba(212, 175, 55, 0.1);
+    animation: sharedGlow 2s ease-in-out;
+}
+
+.job-card-vogue[data-shared="true"]::before {
+    content: 'SHARED';
+    position: absolute;
+    top: -10px;
+    right: 20px;
+    background: linear-gradient(135deg, #D4AF37 0%, #B8941F 100%);
+    color: white;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    z-index: 10;
+}
+
+/* Glow animation for shared jobs */
+@keyframes sharedGlow {
+    0% {
+        box-shadow: 0 0 0 rgba(212, 175, 55, 0);
+    }
+    50% {
+        box-shadow: 0 0 30px rgba(212, 175, 55, 0.3);
+    }
+    100% {
+        box-shadow: 0 0 20px rgba(212, 175, 55, 0.1);
+    }
+}
+
+/* Shared jobs container */
+.job-cards-in-chat.shared-jobs {
+    position: relative;
+    padding: 20px;
+    background: linear-gradient(to bottom, rgba(212, 175, 55, 0.05), transparent);
+    border-radius: 12px;
+    margin: 10px 0;
+}
+
+.job-cards-in-chat.shared-jobs::before {
+    content: 'Jobs shared with you';
+    position: absolute;
+    top: -25px;
+    left: 0;
+    font-size: 11px;
+    color: #8B9988;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 600;
+}
+
+/* Loading state for shared jobs */
+.sffc-message.loading-shared {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #666;
+    font-style: italic;
+}
+
+.sffc-message.loading-shared::before {
+    content: '';
+    width: 20px;
+    height: 20px;
+    border: 2px solid #D4AF37;
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Share error message */
+.sffc-message.share-error {
+    background: #FFF3CD;
+    border-left: 4px solid #FFC107;
+    color: #856404;
+}
+
+/* Auto-compare prompt */
+.sffc-message.compare-prompt {
+    background: linear-gradient(135deg, #E8F5E9 0%, #DCEDC8 100%);
+    border-left: 4px solid #4CAF50;
+    padding: 15px 20px;
+}
+
+.sffc-message.compare-prompt .pe-compare-btn {
+    display: inline-block;
+    margin-top: 10px;
+    background: linear-gradient(135deg, #1A3028 0%, #2D4A3F 100%);
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.sffc-message.compare-prompt .pe-compare-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(26, 48, 40, 0.3);
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+    .job-card-vogue[data-shared="true"]::before {
+        font-size: 9px;
+        padding: 3px 8px;
+        top: -8px;
+        right: 10px;
+    }
+    
+    .job-cards-in-chat.shared-jobs {
+        padding: 15px;
+    }
+}
+
+/* Share link copied notification */
+.share-link-copied {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: #1A3028;
+    color: white;
+    padding: 12px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    z-index: 10000;
+    animation: slideInUp 0.3s ease;
+}
+
+@keyframes slideInUp {
+    from {
+        transform: translateY(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* URL parameter indicator */
+.url-param-indicator {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    background: rgba(212, 175, 55, 0.9);
+    color: white;
+    padding: 8px 15px;
+    border-radius: 20px;
+    font-size: 12px;
+    z-index: 9999;
+    animation: fadeIn 0.5s ease;
+    cursor: pointer;
+}
+
+.url-param-indicator:hover {
+    background: #D4AF37;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* Highlight shared jobs in list view */
+.sffc-job-list .job-card-vogue[data-shared="true"] {
+    background: linear-gradient(to right, rgba(212, 175, 55, 0.1), transparent);
+}
+
+/* Share button for individual jobs */
+.job-share-button {
+    position: absolute;
+    top: 15px;
+    right: 50px;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: white;
+    border: 1px solid #E5E5E5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    opacity: 0;
+    transition: all 0.3s ease;
+    z-index: 10;
+}
+
+.job-card-vogue:hover .job-share-button {
+    opacity: 1;
+}
+
+.job-share-button:hover {
+    background: #D4AF37;
+    border-color: #D4AF37;
+    transform: scale(1.1);
+}
+
+.job-share-button svg {
+    width: 16px;
+    height: 16px;
+    fill: #666;
+}
+
+.job-share-button:hover svg {
+    fill: white;
+}

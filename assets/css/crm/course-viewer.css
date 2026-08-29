@@ -1,0 +1,396 @@
+/**
+ * Course Viewer Styles
+ * Phase 3: Course Content & Progress Tracking
+ *
+ * Styles for individual course pages and lesson viewer
+ */
+
+/* ============================================
+   Course Viewer Wrapper
+   ============================================ */
+.sffc-course-viewer-wrapper {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 40px 20px;
+    background: var(--linkedin-bg, #F4F2EE);
+}
+
+.sffc-course-overview {
+    background: var(--linkedin-card, #FFFFFF);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+/* ============================================
+   Course Header
+   ============================================ */
+.sffc-course-header {
+    background: linear-gradient(135deg, #2F5233 0%, #4A7C4E 100%);
+    color: #FFFFFF;
+    padding: 60px 40px;
+    position: relative;
+}
+
+.sffc-course-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none"><path d="M0,0 L1200,0 L1200,120 L0,60 Z" fill="rgba(255,255,255,0.03)"/></svg>') no-repeat bottom;
+    background-size: 100% 120px;
+    pointer-events: none;
+}
+
+.sffc-course-header-content {
+    position: relative;
+    z-index: 1;
+    max-width: 900px;
+}
+
+.sffc-course-breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 16px;
+    font-size: 14px;
+    opacity: 0.9;
+}
+
+.sffc-course-breadcrumb a {
+    color: #FFFFFF;
+    text-decoration: none;
+    transition: opacity 0.2s;
+}
+
+.sffc-course-breadcrumb a:hover {
+    opacity: 0.7;
+}
+
+.sffc-course-title {
+    font-size: 42px;
+    font-weight: 700;
+    margin: 0 0 16px 0;
+    line-height: 1.2;
+}
+
+.sffc-course-subtitle {
+    font-size: 18px;
+    line-height: 1.6;
+    opacity: 0.95;
+    margin: 0 0 24px 0;
+}
+
+.sffc-course-meta-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 24px;
+    margin-bottom: 32px;
+}
+
+.sffc-course-meta-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 15px;
+}
+
+.sffc-course-meta-item svg {
+    stroke: currentColor;
+}
+
+.sffc-course-progress-bar {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.sffc-progress-bar-wrapper {
+    flex: 1;
+    max-width: 400px;
+}
+
+.sffc-progress-bar {
+    width: 100%;
+    height: 8px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 6px;
+}
+
+.sffc-progress-fill {
+    height: 100%;
+    background: #B8860B;
+    border-radius: 4px;
+    transition: width 0.3s ease;
+}
+
+.sffc-progress-text {
+    font-size: 14px;
+    opacity: 0.9;
+}
+
+.sffc-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s ease;
+}
+
+.sffc-btn-primary {
+    background: #B8860B;
+    color: #FFFFFF;
+}
+
+.sffc-btn-primary:hover {
+    background: #9A7209;
+    transform: translateY(-1px);
+}
+
+.sffc-enroll-course-btn {
+    font-size: 16px;
+    padding: 14px 32px;
+}
+
+/* ============================================
+   Course Curriculum
+   ============================================ */
+.sffc-course-curriculum {
+    padding: 40px;
+}
+
+.sffc-course-curriculum > h2 {
+    font-size: 28px;
+    font-weight: 700;
+    margin: 0 0 24px 0;
+    color: var(--linkedin-text, #191919);
+}
+
+.sffc-module-card {
+    background: var(--linkedin-bg, #F4F2EE);
+    border: 1px solid var(--linkedin-border, #E0DDD7);
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 20px;
+}
+
+.sffc-module-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--linkedin-border, #E0DDD7);
+}
+
+.sffc-module-header h3 {
+    font-size: 20px;
+    font-weight: 600;
+    margin: 0;
+    color: var(--linkedin-text, #191919);
+}
+
+.sffc-module-number {
+    display: inline-block;
+    padding: 4px 12px;
+    background: var(--senna-primary, #2F5233);
+    color: #FFFFFF;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    margin-right: 12px;
+}
+
+.sffc-module-lessons {
+    font-size: 14px;
+    color: var(--linkedin-text-muted, #666666);
+}
+
+.sffc-lesson-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.sffc-lesson-item {
+    margin-bottom: 8px;
+}
+
+.sffc-lesson-link {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    background: var(--linkedin-card, #FFFFFF);
+    border: 1px solid var(--linkedin-border, #E0DDD7);
+    border-radius: 8px;
+    text-decoration: none;
+    color: var(--linkedin-text, #191919);
+    transition: all 0.2s ease;
+}
+
+.sffc-lesson-link:hover {
+    border-color: var(--senna-primary, #2F5233);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    transform: translateX(4px);
+}
+
+.sffc-lesson-link.locked {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+.sffc-lesson-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    background: var(--linkedin-hover, #F0EDE8);
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.sffc-lesson-icon svg {
+    width: 16px;
+    height: 16px;
+    stroke: var(--senna-primary, #2F5233);
+}
+
+.sffc-lesson-item.completed .sffc-lesson-icon {
+    background: #D1FAE5;
+}
+
+.sffc-lesson-item.completed .sffc-lesson-icon svg {
+    stroke: #065F46;
+}
+
+.sffc-lesson-title {
+    flex: 1;
+    font-size: 15px;
+    font-weight: 500;
+}
+
+.sffc-lesson-badge {
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.sffc-lesson-badge {
+    background: #FEF3C7;
+    color: #92400E;
+}
+
+.sffc-lesson-link.locked .sffc-lesson-badge {
+    background: #E5E7EB;
+    color: #6B7280;
+}
+
+/* ============================================
+   Learning Outcomes
+   ============================================ */
+.sffc-course-outcomes {
+    padding: 0 40px 40px 40px;
+}
+
+.sffc-course-outcomes h2 {
+    font-size: 24px;
+    font-weight: 700;
+    margin: 0 0 20px 0;
+    color: var(--linkedin-text, #191919);
+}
+
+.sffc-outcomes-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 16px;
+}
+
+.sffc-outcomes-list li {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 16px;
+    background: var(--linkedin-bg, #F4F2EE);
+    border-radius: 8px;
+    font-size: 15px;
+    line-height: 1.5;
+}
+
+.sffc-outcomes-list svg {
+    flex-shrink: 0;
+    margin-top: 2px;
+    stroke: var(--senna-primary, #2F5233);
+}
+
+/* ============================================
+   Responsive Design
+   ============================================ */
+@media (max-width: 768px) {
+    .sffc-course-viewer-wrapper {
+        padding: 20px 12px;
+    }
+
+    .sffc-course-header {
+        padding: 40px 20px;
+    }
+
+    .sffc-course-title {
+        font-size: 32px;
+    }
+
+    .sffc-course-subtitle {
+        font-size: 16px;
+    }
+
+    .sffc-course-meta-bar {
+        gap: 16px;
+    }
+
+    .sffc-course-meta-item {
+        font-size: 14px;
+    }
+
+    .sffc-course-progress-bar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .sffc-progress-bar-wrapper {
+        max-width: 100%;
+    }
+
+    .sffc-course-curriculum,
+    .sffc-course-outcomes {
+        padding: 20px;
+    }
+
+    .sffc-module-card {
+        padding: 16px;
+    }
+
+    .sffc-module-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+    .sffc-outcomes-list {
+        grid-template-columns: 1fr;
+    }
+}

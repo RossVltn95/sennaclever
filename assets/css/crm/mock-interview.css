@@ -1,0 +1,614 @@
+/**
+ * Mock Interview System Styles
+ * Phase 4: Interview simulator UI
+ *
+ * @package SennaCareers
+ * @since 1.4.0
+ */
+
+/* ============================================
+   Interview Type Selection
+   ============================================ */
+.sffc-interview-types {
+    padding: 40px 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.sffc-interview-types h2 {
+    font-size: 32px;
+    font-weight: 700;
+    text-align: center;
+    margin-bottom: 8px;
+}
+
+.sffc-interview-subtitle {
+    text-align: center;
+    color: var(--linkedin-text-muted, #666666);
+    font-size: 16px;
+    margin-bottom: 40px;
+}
+
+.sffc-interview-type-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 24px;
+    margin-bottom: 40px;
+}
+
+.sffc-interview-type-card {
+    background: var(--linkedin-card, #FFFFFF);
+    border: 2px solid var(--linkedin-border, #E0DDD7);
+    border-radius: 12px;
+    padding: 24px;
+    text-align: center;
+    transition: all 0.3s;
+}
+
+.sffc-interview-type-card:hover {
+    border-color: var(--senna-primary, #2F5233);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+}
+
+.sffc-interview-type-icon {
+    font-size: 64px;
+    margin-bottom: 16px;
+}
+
+.sffc-interview-type-card h3 {
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: var(--linkedin-text, #191919);
+}
+
+.sffc-interview-type-card p {
+    color: var(--linkedin-text-muted, #666666);
+    font-size: 14px;
+    margin-bottom: 20px;
+}
+
+.sffc-difficulty-selector {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.sffc-start-interview-btn {
+    padding: 10px 16px;
+    background: var(--senna-primary, #2F5233);
+    color: #FFFFFF;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.sffc-start-interview-btn:hover {
+    background: #1F3522;
+    transform: translateY(-1px);
+}
+
+.sffc-interview-history-section {
+    text-align: center;
+    margin-top: 40px;
+}
+
+/* ============================================
+   Active Interview Screen
+   ============================================ */
+.sffc-interview-active {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.sffc-interview-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    background: var(--linkedin-card, #FFFFFF);
+    border-radius: 12px;
+    margin-bottom: 24px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.sffc-interview-progress {
+    flex: 1;
+}
+
+.sffc-interview-progress-text {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--linkedin-text, #191919);
+    margin-bottom: 8px;
+    display: block;
+}
+
+.sffc-interview-progress-bar {
+    height: 8px;
+    background: var(--linkedin-border, #E0DDD7);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.sffc-interview-progress-fill {
+    height: 100%;
+    background: var(--senna-primary, #2F5233);
+    transition: width 0.3s ease;
+    border-radius: 4px;
+}
+
+.sffc-end-interview-btn {
+    background: transparent;
+    border: none;
+    color: #DC2626;
+    cursor: pointer;
+    padding: 8px 16px;
+    font-weight: 600;
+}
+
+.sffc-end-interview-btn:hover {
+    background: #FEF2F2;
+    border-radius: 6px;
+}
+
+/* ============================================
+   Question Display
+   ============================================ */
+.sffc-interview-question-container {
+    background: var(--linkedin-card, #FFFFFF);
+    border-radius: 12px;
+    padding: 32px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.sffc-interview-question-box {
+    margin-bottom: 32px;
+}
+
+.sffc-interview-category-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    background: #DBEAFE;
+    color: #1E40AF;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+}
+
+.sffc-interview-question-text {
+    font-size: 24px;
+    font-weight: 600;
+    line-height: 1.4;
+    color: var(--linkedin-text, #191919);
+    margin-bottom: 12px;
+}
+
+.sffc-interview-question-hint {
+    color: var(--linkedin-text-muted, #666666);
+    font-size: 14px;
+    font-style: italic;
+}
+
+/* ============================================
+   Answer Section
+   ============================================ */
+.sffc-interview-answer-section label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: var(--linkedin-text, #191919);
+}
+
+.sffc-interview-answer-input {
+    width: 100%;
+    padding: 16px;
+    border: 2px solid var(--linkedin-border, #E0DDD7);
+    border-radius: 8px;
+    font-size: 15px;
+    line-height: 1.6;
+    font-family: inherit;
+    resize: vertical;
+    transition: border-color 0.2s;
+}
+
+.sffc-interview-answer-input:focus {
+    outline: none;
+    border-color: var(--senna-primary, #2F5233);
+}
+
+.sffc-interview-answer-actions {
+    margin-top: 16px;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.sffc-submit-answer-btn {
+    padding: 12px 32px;
+    background: var(--senna-primary, #2F5233);
+    color: #FFFFFF;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.sffc-submit-answer-btn:hover:not(:disabled) {
+    background: #1F3522;
+    transform: translateY(-1px);
+}
+
+.sffc-submit-answer-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* ============================================
+   Feedback Section
+   ============================================ */
+.sffc-interview-feedback-card {
+    padding: 24px;
+    background: #F9FAFB;
+    border-radius: 8px;
+}
+
+.sffc-interview-score-display {
+    text-align: center;
+    margin-bottom: 24px;
+    padding: 24px;
+    background: var(--linkedin-card, #FFFFFF);
+    border-radius: 8px;
+}
+
+.sffc-score-circle {
+    margin: 0 auto 12px;
+}
+
+.sffc-score-label {
+    font-size: 14px;
+    color: var(--linkedin-text-muted, #666666);
+    font-weight: 600;
+}
+
+.sffc-interview-feedback-content {
+    display: grid;
+    gap: 20px;
+}
+
+.sffc-feedback-section h4 {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 12px;
+    color: var(--linkedin-text, #191919);
+}
+
+.sffc-feedback-section ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.sffc-feedback-section li {
+    padding: 8px 0;
+    border-bottom: 1px solid var(--linkedin-border, #E0DDD7);
+}
+
+.sffc-feedback-section li:last-child {
+    border-bottom: none;
+}
+
+.sffc-feedback-model-answer {
+    padding: 16px;
+    background: var(--linkedin-card, #FFFFFF);
+    border-radius: 6px;
+    border-left: 4px solid var(--senna-primary, #2F5233);
+}
+
+.sffc-feedback-model-answer pre {
+    white-space: pre-wrap;
+    font-family: inherit;
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.sffc-interview-navigation {
+    margin-top: 24px;
+    text-align: center;
+}
+
+.sffc-next-question-btn {
+    padding: 12px 32px;
+    background: var(--senna-primary, #2F5233);
+    color: #FFFFFF;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.sffc-next-question-btn:hover {
+    background: #1F3522;
+    transform: translateY(-1px);
+}
+
+/* ============================================
+   Results Screen
+   ============================================ */
+.sffc-interview-results {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 40px 20px;
+}
+
+.sffc-results-header {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.sffc-results-header h2 {
+    font-size: 36px;
+    font-weight: 700;
+    color: var(--linkedin-text, #191919);
+    margin-bottom: 8px;
+}
+
+.sffc-results-header p {
+    font-size: 16px;
+    color: var(--linkedin-text-muted, #666666);
+}
+
+.sffc-results-scores {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 20px;
+    margin-bottom: 40px;
+}
+
+.sffc-results-score-card {
+    background: var(--linkedin-card, #FFFFFF);
+    border: 2px solid var(--linkedin-border, #E0DDD7);
+    border-radius: 12px;
+    padding: 24px;
+    text-align: center;
+}
+
+.sffc-results-score-value {
+    font-size: 48px;
+    font-weight: 700;
+    color: var(--senna-primary, #2F5233);
+    margin-bottom: 8px;
+}
+
+.sffc-results-score-label {
+    font-size: 14px;
+    color: var(--linkedin-text-muted, #666666);
+    font-weight: 600;
+}
+
+.sffc-results-details {
+    background: var(--linkedin-card, #FFFFFF);
+    border-radius: 12px;
+    padding: 32px;
+    margin-bottom: 32px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.sffc-results-section {
+    margin-bottom: 32px;
+}
+
+.sffc-results-section:last-child {
+    margin-bottom: 0;
+}
+
+.sffc-results-section h3 {
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 16px;
+    color: var(--linkedin-text, #191919);
+}
+
+.sffc-results-section ul {
+    list-style: disc;
+    padding-left: 20px;
+}
+
+.sffc-results-section li {
+    margin-bottom: 8px;
+    line-height: 1.6;
+}
+
+.sffc-results-meta {
+    display: flex;
+    gap: 24px;
+    padding-top: 24px;
+    border-top: 1px solid var(--linkedin-border, #E0DDD7);
+    color: var(--linkedin-text-muted, #666666);
+    font-size: 14px;
+}
+
+.sffc-results-actions {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+}
+
+/* ============================================
+   Interview History
+   ============================================ */
+.sffc-interview-history {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 40px 20px;
+}
+
+.sffc-history-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 32px;
+}
+
+.sffc-history-header h2 {
+    font-size: 28px;
+    font-weight: 700;
+}
+
+.sffc-history-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin-bottom: 40px;
+}
+
+.sffc-stat-card {
+    background: var(--linkedin-card, #FFFFFF);
+    border: 2px solid var(--linkedin-border, #E0DDD7);
+    border-radius: 12px;
+    padding: 24px;
+    text-align: center;
+}
+
+.sffc-stat-value {
+    font-size: 36px;
+    font-weight: 700;
+    color: var(--senna-primary, #2F5233);
+    margin-bottom: 8px;
+}
+
+.sffc-stat-label {
+    font-size: 14px;
+    color: var(--linkedin-text-muted, #666666);
+    font-weight: 600;
+}
+
+.sffc-history-list {
+    background: var(--linkedin-card, #FFFFFF);
+    border-radius: 12px;
+    padding: 32px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.sffc-history-list h3 {
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 20px;
+}
+
+.sffc-history-items {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.sffc-history-item {
+    padding: 16px;
+    background: #F9FAFB;
+    border-radius: 8px;
+    border-left: 4px solid var(--senna-primary, #2F5233);
+}
+
+.sffc-history-item-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+
+.sffc-history-item-date {
+    color: var(--linkedin-text-muted, #666666);
+    font-size: 14px;
+}
+
+.sffc-history-item-score {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--senna-primary, #2F5233);
+}
+
+/* ============================================
+   Loading State
+   ============================================ */
+.sffc-interview-loading {
+    text-align: center;
+    padding: 60px 20px;
+}
+
+.sffc-loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid var(--linkedin-border, #E0DDD7);
+    border-top-color: var(--senna-primary, #2F5233);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 20px;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* ============================================
+   Responsive Design
+   ============================================ */
+@media (max-width: 768px) {
+    .sffc-interview-types {
+        padding: 20px;
+    }
+
+    .sffc-interview-type-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .sffc-interview-active {
+        padding: 12px;
+    }
+
+    .sffc-interview-question-container {
+        padding: 20px;
+    }
+
+    .sffc-interview-question-text {
+        font-size: 20px;
+    }
+
+    .sffc-results-scores {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .sffc-results-header h2 {
+        font-size: 28px;
+    }
+
+    .sffc-results-actions {
+        flex-direction: column;
+    }
+
+    .sffc-history-header {
+        flex-direction: column;
+        gap: 16px;
+        text-align: center;
+    }
+
+    .sffc-history-stats {
+        grid-template-columns: 1fr;
+    }
+
+    .sffc-history-item-header {
+        flex-direction: column;
+        gap: 4px;
+    }
+}

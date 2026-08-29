@@ -1,0 +1,499 @@
+/**
+ * CV Upload Styles - senna Theme
+ * Uses Cream (#FBF7F0), Forest Green (#1A3028), and Gold (#C9A961)
+ */
+
+:root {
+  --cv-cream: #fbf7f0;
+  --cv-dark-cream: #f5efe6;
+  --cv-forest-green: #1a3028;
+  --cv-dark-forest: #0f1f18;
+  --cv-gold: #c9a961;
+  --cv-dark-gold: #b8935a;
+  --cv-light-gold: #e5d4a1;
+}
+
+/* Main Container */
+.cv-upload-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 30px;
+  background: var(--cv-cream);
+  border-radius: 16px;
+  box-shadow: 0 10px 40px rgba(26, 48, 40, 0.1);
+}
+
+.cv-upload-header {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.cv-upload-header h2 {
+  color: var(--cv-forest-green);
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 8px;
+  font-family: "Playfair Display", Georgia, serif;
+}
+
+.cv-upload-header p {
+  color: rgba(26, 48, 40, 0.7);
+  font-size: 16px;
+}
+
+/* Upload Zone */
+.cv-upload-zone {
+  background: white;
+  border: 3px dashed var(--cv-gold);
+  border-radius: 12px;
+  padding: 60px 40px;
+  text-align: center;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.cv-upload-zone:hover {
+  border-color: var(--cv-dark-gold);
+  background: rgba(251, 247, 240, 0.5);
+  transform: translateY(-2px);
+}
+
+.cv-upload-zone.drag-over {
+  background: linear-gradient(
+    135deg,
+    rgba(201, 169, 97, 0.05) 0%,
+    rgba(201, 169, 97, 0.1) 100%
+  );
+  border-color: var(--cv-dark-gold);
+  border-style: solid;
+  transform: scale(1.02);
+}
+
+.upload-icon svg {
+  transition: all 0.3s ease;
+}
+
+.cv-upload-zone:hover .upload-icon svg {
+  transform: translateY(-5px);
+}
+
+.upload-text h3 {
+  color: var(--cv-forest-green);
+  font-size: 22px;
+  font-weight: 600;
+  margin: 20px 0 10px;
+}
+
+.upload-text p {
+  color: rgba(26, 48, 40, 0.7);
+  font-size: 16px;
+  margin-bottom: 10px;
+}
+
+.browse-btn {
+  background: none;
+  border: none;
+  color: var(--cv-gold);
+  font-weight: 600;
+  text-decoration: underline;
+  cursor: pointer;
+  font-size: 16px;
+  transition: color 0.3s ease;
+}
+
+.browse-btn:hover {
+  color: var(--cv-dark-gold);
+}
+
+.file-info {
+  display: block;
+  color: rgba(26, 48, 40, 0.5);
+  font-size: 14px;
+  margin-top: 10px;
+}
+
+/* Progress Section */
+.cv-upload-progress {
+  background: white;
+  border-radius: 12px;
+  padding: 30px;
+  box-shadow: 0 4px 20px rgba(26, 48, 40, 0.08);
+}
+
+.progress-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.file-name {
+  color: var(--cv-forest-green);
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.progress-status {
+  color: var(--cv-gold);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.progress-bar {
+  height: 8px;
+  background: var(--cv-dark-cream);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 30px;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    var(--cv-gold) 0%,
+    var(--cv-dark-gold) 100%
+  );
+  border-radius: 4px;
+  transition: width 0.3s ease;
+  box-shadow: 0 2px 8px rgba(201, 169, 97, 0.3);
+}
+
+/* Progress Steps */
+.progress-steps {
+  display: flex;
+  justify-content: space-between;
+  padding: 0 20px;
+}
+
+.progress-steps .step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  opacity: 0.4;
+  transition: all 0.3s ease;
+}
+
+.progress-steps .step.active {
+  opacity: 1;
+}
+
+.progress-steps .step.completed {
+  opacity: 0.8;
+}
+
+.progress-steps .step.completed .step-icon {
+  background: var(--cv-light-gold);
+  color: var(--cv-forest-green);
+}
+
+.step-icon {
+  width: 48px;
+  height: 48px;
+  background: var(--cv-dark-cream);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  margin-bottom: 8px;
+  transition: all 0.3s ease;
+}
+
+.step.active .step-icon {
+  background: var(--cv-gold);
+  box-shadow: 0 4px 12px rgba(201, 169, 97, 0.3);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+.step-label {
+  color: var(--cv-forest-green);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+/* Parse Results */
+.cv-parse-results {
+  background: white;
+  border-radius: 12px;
+  padding: 30px;
+  box-shadow: 0 4px 20px rgba(26, 48, 40, 0.08);
+}
+
+.cv-parse-results h3 {
+  color: var(--cv-forest-green);
+  font-size: 22px;
+  font-weight: 600;
+  margin-bottom: 25px;
+  padding-bottom: 15px;
+  border-bottom: 2px solid var(--cv-light-gold);
+}
+
+.results-grid {
+  display: grid;
+  gap: 25px;
+  margin-bottom: 30px;
+}
+
+.result-section {
+  background: var(--cv-cream);
+  border-radius: 10px;
+  padding: 20px;
+  border: 1px solid rgba(201, 169, 97, 0.2);
+}
+
+.result-section h4 {
+  color: var(--cv-forest-green);
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 15px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.result-fields {
+  display: grid;
+  gap: 12px;
+}
+
+.result-fields .field {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(201, 169, 97, 0.1);
+}
+
+.result-fields .field:last-child {
+  border-bottom: none;
+}
+
+.result-fields .field label {
+  color: rgba(26, 48, 40, 0.7);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.result-fields .field span {
+  color: var(--cv-forest-green);
+  font-size: 14px;
+  font-weight: 600;
+  text-align: right;
+}
+
+/* Skill Tags */
+.skill-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.skill-tag {
+  background: white;
+  color: var(--cv-forest-green);
+  border: 1px solid var(--cv-gold);
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.skill-tag:hover {
+  background: var(--cv-gold);
+  color: white;
+  transform: translateY(-1px);
+}
+
+/* Results Actions */
+.results-actions {
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+}
+
+.results-actions button {
+  padding: 14px 28px;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: none;
+}
+
+.btn-edit-profile {
+  background: white;
+  color: var(--cv-forest-green);
+  border: 2px solid var(--cv-gold);
+}
+
+.btn-edit-profile:hover {
+  background: var(--cv-cream);
+  transform: translateY(-2px);
+}
+
+.btn-confirm-profile {
+  background: linear-gradient(
+    135deg,
+    var(--cv-gold) 0%,
+    var(--cv-dark-gold) 100%
+  );
+  color: white;
+  box-shadow: 0 4px 12px rgba(201, 169, 97, 0.3);
+}
+
+.btn-confirm-profile:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(201, 169, 97, 0.4);
+}
+
+/* Error Message */
+.cv-error-message {
+  background: white;
+  border-radius: 12px;
+  padding: 40px;
+  text-align: center;
+  border: 2px solid #ef4444;
+}
+
+.error-icon {
+  font-size: 48px;
+  margin-bottom: 20px;
+}
+
+.error-text {
+  color: var(--cv-forest-green);
+  font-size: 16px;
+  margin-bottom: 25px;
+}
+
+.btn-retry {
+  padding: 12px 24px;
+  background: var(--cv-forest-green);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-retry:hover {
+  background: var(--cv-dark-forest);
+  transform: translateY(-2px);
+}
+
+/* Success Message */
+.cv-success-message {
+  text-align: center;
+  padding: 40px;
+}
+
+.success-icon {
+  font-size: 64px;
+  margin-bottom: 20px;
+}
+
+.cv-success-message h3 {
+  color: var(--cv-forest-green);
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+
+.cv-success-message p {
+  color: rgba(26, 48, 40, 0.7);
+  font-size: 16px;
+  margin-bottom: 30px;
+}
+
+.success-actions {
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+}
+
+.success-actions button {
+  padding: 14px 28px;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: none;
+}
+
+.btn-view-profile {
+  background: white;
+  color: var(--cv-forest-green);
+  border: 2px solid var(--cv-gold);
+}
+
+.btn-start-applying {
+  background: linear-gradient(
+    135deg,
+    var(--cv-gold) 0%,
+    var(--cv-dark-gold) 100%
+  );
+  color: white;
+  box-shadow: 0 4px 12px rgba(201, 169, 97, 0.3);
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .cv-upload-container {
+    padding: 20px;
+    margin: 10px;
+  }
+
+  .cv-upload-zone {
+    padding: 40px 20px;
+  }
+
+  .upload-text h3 {
+    font-size: 18px;
+  }
+
+  .progress-steps {
+    padding: 0;
+  }
+
+  .step-icon {
+    width: 40px;
+    height: 40px;
+    font-size: 16px;
+  }
+
+  .step-label {
+    font-size: 10px;
+  }
+
+  .results-actions {
+    flex-direction: column;
+  }
+
+  .results-actions button {
+    width: 100%;
+  }
+
+  .success-actions {
+    flex-direction: column;
+  }
+
+  .success-actions button {
+    width: 100%;
+  }
+}

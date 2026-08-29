@@ -1,0 +1,456 @@
+/**
+ * European Markets Admin Styles
+ * 
+ * @package SkillFarmFinance
+ * @subpackage EuropeanMarkets
+ * @since 2.0.0
+ */
+
+.sffc-eu-dashboard {
+    max-width: 1400px;
+    margin: 20px 0;
+}
+
+.sffc-card {
+    background: #fff;
+    border: 1px solid #e1e1e1;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.sffc-card h2 {
+    margin-top: 0;
+    margin-bottom: 20px;
+    color: #23282d;
+    font-size: 18px;
+    font-weight: 600;
+    border-bottom: 2px solid #0073aa;
+    padding-bottom: 10px;
+}
+
+/* Progress Tracker */
+.sffc-progress-tracker {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 0;
+    position: relative;
+}
+
+.sffc-progress-tracker::before {
+    content: '';
+    position: absolute;
+    top: 40px;
+    left: 50px;
+    right: 50px;
+    height: 2px;
+    background: #e1e1e1;
+    z-index: 0;
+}
+
+.phase-item {
+    text-align: center;
+    position: relative;
+    z-index: 1;
+    flex: 1;
+    opacity: 0;
+    transform: translateY(10px);
+    animation: fadeInUp 0.5s forwards;
+}
+
+.phase-item.animated {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.phase-number {
+    display: inline-block;
+    width: 40px;
+    height: 40px;
+    line-height: 40px;
+    border-radius: 50%;
+    background: #f1f1f1;
+    color: #666;
+    font-weight: bold;
+    margin-bottom: 10px;
+    transition: all 0.3s;
+}
+
+.phase-item.complete .phase-number {
+    background: #46b450;
+    color: white;
+}
+
+.phase-item.pending .phase-number {
+    background: #f1f1f1;
+    color: #999;
+}
+
+.phase-name {
+    display: block;
+    font-size: 13px;
+    color: #555;
+    margin-bottom: 5px;
+}
+
+.phase-status {
+    display: block;
+    font-size: 11px;
+    color: #999;
+}
+
+/* Tables Grid */
+.tables-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.table-status-item {
+    border: 1px solid #e1e1e1;
+    border-radius: 6px;
+    padding: 15px;
+    background: #fafafa;
+    transition: all 0.3s;
+    cursor: default;
+    position: relative;
+}
+
+.table-status-item:hover {
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    transform: translateY(-2px);
+}
+
+.table-status-item.exists {
+    background: #f0f8f0;
+    border-color: #46b450;
+}
+
+.table-status-item.missing {
+    background: #fff5f5;
+    border-color: #dc3232;
+    cursor: pointer;
+}
+
+.table-status-item.missing::after {
+    content: 'Click to install';
+    position: absolute;
+    top: 5px;
+    right: 10px;
+    font-size: 10px;
+    color: #dc3232;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.table-status-item.missing:hover::after {
+    opacity: 1;
+}
+
+.table-icon {
+    font-size: 20px;
+    margin-right: 10px;
+}
+
+.table-name {
+    font-weight: 600;
+    color: #23282d;
+    display: block;
+    margin-bottom: 5px;
+}
+
+.table-technical {
+    font-size: 11px;
+    color: #999;
+    font-family: monospace;
+}
+
+/* Install Section */
+.install-section {
+    text-align: center;
+    padding: 20px 0;
+    border-top: 1px solid #e1e1e1;
+    margin-top: 20px;
+}
+
+.install-section .button {
+    margin: 0 5px;
+}
+
+.install-section .button-secondary {
+    background: #f7f7f7;
+    border-color: #0073aa;
+    color: #0073aa;
+}
+
+.install-section .button-secondary:hover {
+    background: #fafafa;
+    border-color: #005a87;
+    color: #005a87;
+}
+
+#install-progress {
+    margin: 20px 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+#install-progress .spinner {
+    float: none;
+    margin: 0;
+}
+
+.table-install-details {
+    list-style: none;
+    padding: 0;
+    margin: 15px 0;
+}
+
+.table-install-details li {
+    padding: 5px 0;
+    font-family: monospace;
+}
+
+/* European Indices */
+.indices-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 10px;
+}
+
+.index-item {
+    display: flex;
+    align-items: center;
+    padding: 12px;
+    background: #f8f9fa;
+    border-radius: 6px;
+    border: 1px solid #e1e1e1;
+    transition: all 0.3s;
+}
+
+.index-item:hover,
+.index-item.hover {
+    background: #fff;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.index-symbol {
+    font-weight: bold;
+    color: #0073aa;
+    margin-right: 10px;
+    font-family: monospace;
+    min-width: 80px;
+}
+
+.index-name {
+    flex: 1;
+    color: #555;
+}
+
+.index-country {
+    font-size: 12px;
+    color: #999;
+    margin-right: 10px;
+}
+
+.index-currency {
+    font-weight: 600;
+    color: #46b450;
+    font-size: 12px;
+    background: #f0f8f0;
+    padding: 2px 6px;
+    border-radius: 3px;
+}
+
+/* Feed Statistics */
+.feed-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+    text-align: center;
+}
+
+.stat-item {
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 6px;
+    border: 1px solid #e1e1e1;
+}
+
+.stat-value {
+    display: block;
+    font-size: 32px;
+    font-weight: bold;
+    color: #0073aa;
+    margin-bottom: 5px;
+    transition: all 0.3s;
+}
+
+.stat-value.updating {
+    transform: scale(1.1);
+    color: #46b450;
+}
+
+.stat-label {
+    font-size: 12px;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Quick Actions */
+.quick-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.quick-actions .button {
+    transition: all 0.3s;
+}
+
+.quick-actions .button.clicked {
+    transform: scale(0.95);
+}
+
+/* Success Message */
+.success-message {
+    text-align: center;
+    padding: 20px;
+    background: #f0f8f0;
+    border-radius: 6px;
+    border: 1px solid #46b450;
+    color: #46b450;
+}
+
+.success-message p {
+    margin: 0 0 15px 0;
+    font-size: 16px;
+}
+
+.success-message .button {
+    margin-top: 10px;
+}
+
+/* Table status animations */
+.table-status-item.installing {
+    animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.6;
+    }
+    100% {
+        opacity: 1;
+    }
+}
+
+/* Repair warning */
+.repair-warning {
+    background: #fff3cd;
+    border: 1px solid #ffc107;
+    color: #856404;
+    padding: 10px;
+    border-radius: 4px;
+    margin: 10px 0;
+    font-size: 13px;
+}
+
+/* Tooltip */
+.sffc-tooltip {
+    position: absolute;
+    background: #23282d;
+    color: white;
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    z-index: 9999;
+    display: none;
+    white-space: nowrap;
+}
+
+.sffc-tooltip::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    margin-left: -5px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: #23282d transparent transparent transparent;
+}
+
+/* Animations */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+    .sffc-progress-tracker {
+        flex-wrap: wrap;
+    }
+    
+    .phase-item {
+        flex: 0 0 33.333%;
+        margin-bottom: 20px;
+    }
+    
+    .sffc-progress-tracker::before {
+        display: none;
+    }
+}
+
+@media (max-width: 768px) {
+    .tables-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .indices-list {
+        grid-template-columns: 1fr;
+    }
+    
+    .feed-stats {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .phase-item {
+        flex: 0 0 50%;
+    }
+}
+
+@media (max-width: 480px) {
+    .phase-item {
+        flex: 0 0 100%;
+    }
+    
+    .feed-stats {
+        grid-template-columns: 1fr;
+    }
+    
+    .quick-actions {
+        flex-direction: column;
+    }
+    
+    .quick-actions .button {
+        width: 100%;
+    }
+}

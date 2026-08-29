@@ -1,0 +1,476 @@
+/**
+ * Visual Artifacts Inline System - European PE Platform
+ * Appears directly in chat conversation flow
+ */
+
+/* Inline Visual Artifact Container - Styled like WSJ messages */
+.va-inline-container {
+    background: transparent;
+    margin: 0 0 32px 64px; /* Match MENA Careers message left margin */
+    padding: 0;
+    animation: va-fade-in 0.3s ease-out;
+}
+
+/* Match WSJ style structure */
+.va-inline-header {
+    background: transparent;
+    padding: 0 0 16px 0;
+    border-bottom: 2px solid #e5e5e5;
+    margin-bottom: 24px;
+}
+
+.va-inline-header h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 28px;
+    font-weight: 700;
+    color: #122e24;
+    margin: 0 0 8px 0;
+    line-height: 1.2;
+}
+
+.va-inline-header p {
+    font-family: 'Adamina', serif;
+    font-size: 16px;
+    color: #666;
+    margin: 0;
+    line-height: 1.5;
+}
+
+/* Form styling to match chat aesthetic */
+.va-inline-form {
+    background: #f9f7f4;
+    border-radius: 12px;
+    padding: 24px;
+    border: 1px solid rgba(26, 71, 42, 0.1);
+}
+
+.va-inline-group {
+    margin-bottom: 20px;
+}
+
+.va-inline-group:last-child {
+    margin-bottom: 0;
+}
+
+.va-inline-label {
+    font-family: 'Adamina', serif;
+    font-size: 14px;
+    font-weight: 600;
+    color: #122e24;
+    margin-bottom: 8px;
+    display: block;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.va-inline-input {
+    width: 100%;
+    padding: 12px 16px;
+    background: white;
+    border: 1px solid #d4d4d4;
+    border-radius: 8px;
+    font-family: 'Adamina', serif;
+    font-size: 15px;
+    color: #333;
+    transition: all 0.2s;
+}
+
+.va-inline-input:focus {
+    outline: none;
+    border-color: #1a472a;
+    box-shadow: 0 0 0 3px rgba(26, 71, 42, 0.1);
+}
+
+.va-inline-textarea {
+    width: 100%;
+    padding: 12px 16px;
+    background: white;
+    border: 1px solid #d4d4d4;
+    border-radius: 8px;
+    font-family: 'Adamina', serif;
+    font-size: 15px;
+    color: #333;
+    resize: vertical;
+    min-height: 80px;
+    transition: all 0.2s;
+}
+
+.va-inline-textarea:focus {
+    outline: none;
+    border-color: #1a472a;
+    box-shadow: 0 0 0 3px rgba(26, 71, 42, 0.1);
+}
+
+/* Dropdown styling */
+.va-inline-select {
+    width: 100%;
+    padding: 12px 16px;
+    background: white;
+    border: 1px solid #d4d4d4;
+    border-radius: 8px;
+    font-family: 'Adamina', serif;
+    font-size: 15px;
+    color: #333;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.va-inline-select:focus {
+    outline: none;
+    border-color: #1a472a;
+    box-shadow: 0 0 0 3px rgba(26, 71, 42, 0.1);
+}
+
+/* Tags container */
+.va-inline-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.va-inline-tag {
+    padding: 8px 16px;
+    background: white;
+    border: 1px solid #d4d4d4;
+    border-radius: 20px;
+    font-family: 'Adamina', serif;
+    font-size: 13px;
+    color: #333;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.va-inline-tag:hover {
+    border-color: #1a472a;
+    background: #f9f7f4;
+}
+
+.va-inline-tag.selected {
+    background: linear-gradient(135deg, #1a472a, #2d6a4f);
+    color: white;
+    border-color: transparent;
+}
+
+/* Checkbox group */
+.va-inline-checkbox-group {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.va-inline-checkbox {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+}
+
+.va-inline-checkbox input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    margin-right: 10px;
+    cursor: pointer;
+}
+
+.va-inline-checkbox span {
+    font-family: 'Adamina', serif;
+    font-size: 14px;
+    color: #333;
+}
+
+/* Slider */
+.va-inline-slider {
+    padding: 8px 0;
+}
+
+.va-inline-slider-track {
+    height: 4px;
+    background: #e5e5e5;
+    border-radius: 2px;
+    position: relative;
+    margin: 20px 0;
+}
+
+.va-inline-slider-fill {
+    height: 100%;
+    background: linear-gradient(135deg, #1a472a, #2d6a4f);
+    border-radius: 2px;
+    width: 40%;
+    transition: width 0.2s;
+}
+
+.va-inline-slider-handle {
+    position: absolute;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 20px;
+    height: 20px;
+    background: linear-gradient(135deg, #1a472a, #2d6a4f);
+    border-radius: 50%;
+    cursor: grab;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.va-inline-slider-labels {
+    display: flex;
+    justify-content: space-between;
+    padding-top: 8px;
+}
+
+.va-inline-slider-label {
+    font-family: 'Adamina', serif;
+    font-size: 11px;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Currency input group */
+.va-inline-currency-group {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.va-inline-currency-symbol {
+    position: absolute;
+    left: 16px;
+    font-size: 15px;
+    color: #666;
+    font-weight: 600;
+    z-index: 1;
+}
+
+.va-inline-currency-input {
+    padding-left: 36px;
+    flex: 1;
+}
+
+.va-inline-currency-toggle {
+    display: flex;
+    margin-left: 8px;
+    border: 1px solid #d4d4d4;
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.va-inline-currency-btn {
+    padding: 8px 12px;
+    background: white;
+    border: none;
+    font-family: 'Adamina', serif;
+    font-size: 12px;
+    color: #666;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.va-inline-currency-btn.active {
+    background: linear-gradient(135deg, #1a472a, #2d6a4f);
+    color: white;
+}
+
+/* Submit button */
+.va-inline-submit {
+    width: 100%;
+    padding: 14px 24px;
+    background: linear-gradient(135deg, #1a472a, #2d6a4f);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-family: 'Adamina', serif;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-top: 20px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.va-inline-submit:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(26, 71, 42, 0.3);
+}
+
+.va-inline-submit:active {
+    transform: translateY(0);
+}
+
+/* Cancel button */
+.va-inline-cancel {
+    width: 100%;
+    padding: 14px 24px;
+    background: transparent;
+    color: #666;
+    border: 1px solid #d4d4d4;
+    border-radius: 8px;
+    font-family: 'Adamina', serif;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-top: 12px;
+}
+
+.va-inline-cancel:hover {
+    border-color: #999;
+    background: #f9f7f4;
+}
+
+/* Button group */
+.va-inline-buttons {
+    display: flex;
+    gap: 12px;
+    margin-top: 24px;
+}
+
+.va-inline-buttons button {
+    flex: 1;
+}
+
+/* Grid layouts */
+.va-inline-grid {
+    display: grid;
+    gap: 12px;
+}
+
+.va-inline-grid-2 {
+    grid-template-columns: repeat(2, 1fr);
+}
+
+.va-inline-grid-3 {
+    grid-template-columns: repeat(3, 1fr);
+}
+
+.va-inline-grid-4 {
+    grid-template-columns: repeat(4, 1fr);
+}
+
+/* Card selection */
+.va-inline-card {
+    padding: 16px;
+    background: white;
+    border: 2px solid #e5e5e5;
+    border-radius: 8px;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.2s;
+}
+
+.va-inline-card:hover {
+    border-color: #1a472a;
+    background: #f9f7f4;
+}
+
+.va-inline-card.selected {
+    border-color: #1a472a;
+    background: linear-gradient(135deg, rgba(26, 71, 42, 0.05), rgba(45, 106, 79, 0.05));
+}
+
+.va-inline-card h4 {
+    font-family: 'Adamina', serif;
+    font-size: 14px;
+    font-weight: 600;
+    color: #122e24;
+    margin: 0 0 4px 0;
+}
+
+.va-inline-card p {
+    font-family: 'Adamina', serif;
+    font-size: 12px;
+    color: #666;
+    margin: 0;
+}
+
+/* Progress indicator */
+.va-inline-progress {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 24px;
+    padding: 0 12px;
+}
+
+.va-inline-step {
+    display: flex;
+    align-items: center;
+    position: relative;
+    flex: 1;
+}
+
+.va-inline-step::after {
+    content: '';
+    position: absolute;
+    left: 30px;
+    right: -50%;
+    height: 2px;
+    background: #e5e5e5;
+    top: 15px;
+}
+
+.va-inline-step:last-child::after {
+    display: none;
+}
+
+.va-inline-step.active::after {
+    background: linear-gradient(135deg, #1a472a, #2d6a4f);
+}
+
+.va-inline-step-number {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: white;
+    border: 2px solid #e5e5e5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Adamina', serif;
+    font-size: 12px;
+    font-weight: bold;
+    color: #999;
+    z-index: 1;
+}
+
+.va-inline-step.active .va-inline-step-number {
+    background: linear-gradient(135deg, #1a472a, #2d6a4f);
+    color: white;
+    border: none;
+}
+
+.va-inline-step.completed .va-inline-step-number {
+    background: #1a472a;
+    color: white;
+    border: none;
+}
+
+/* Animation */
+@keyframes va-fade-in {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+    .va-inline-container {
+        margin-left: 56px; /* Reduced margin on mobile */
+    }
+    
+    .va-inline-form {
+        padding: 16px;
+    }
+    
+    .va-inline-grid-2,
+    .va-inline-grid-3,
+    .va-inline-grid-4 {
+        grid-template-columns: 1fr;
+    }
+    
+    .va-inline-header h3 {
+        font-size: 24px;
+    }
+}

@@ -1,0 +1,254 @@
+/**
+ * Job Landing Page - Accordion Styles
+ * Extends crm-main.css (already has all match card styles)
+ * Only adds accordion-specific behavior
+ */
+
+.sffc-job-landing-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* Filters Section */
+.sffc-job-landing-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 24px;
+    padding: 16px;
+    background: #f9fafb;
+    border-radius: 12px;
+}
+
+.sffc-job-landing-filter {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #374151;
+    background: #ffffff;
+    border: 1.5px solid #d1d5db;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.sffc-job-landing-filter:hover {
+    border-color: #9ca3af;
+    background: #f9fafb;
+}
+
+.sffc-job-landing-filter svg {
+    flex-shrink: 0;
+    color: #6b7280;
+}
+
+/* Accordion Rows */
+.sffc-job-landing-rows {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.sffc-job-landing-row {
+    background: #ffffff;
+    border: 1.5px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 20px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.sffc-job-landing-row:hover {
+    border-color: #d1d5db;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+}
+
+.sffc-job-landing-row--expanded {
+    cursor: default;
+}
+
+/* Row Header (Always Visible) */
+.sffc-job-landing-header {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.sffc-job-landing-chevron {
+    margin-left: auto;
+    flex-shrink: 0;
+    transition: transform 0.3s ease;
+}
+
+.sffc-job-landing-row--expanded .sffc-job-landing-chevron {
+    transform: rotate(180deg);
+}
+
+.sffc-job-landing-chevron svg {
+    color: #9ca3af;
+}
+
+/* Expanded Content (Accordion) */
+.sffc-job-landing-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease-out, opacity 0.3s ease-out;
+    opacity: 0;
+}
+
+.sffc-job-landing-row--expanded .sffc-job-landing-content {
+    max-height: 2000px;
+    opacity: 1;
+    margin-top: 24px;
+}
+
+.sffc-job-landing-expanded-inner {
+    padding-top: 24px;
+    border-top: 1.5px solid #e5e7eb;
+}
+
+/* Job Description */
+.sffc-job-landing-description {
+    margin-bottom: 20px;
+}
+
+.sffc-job-landing-description h4 {
+    font-size: 15px;
+    font-weight: 600;
+    color: #111827;
+    margin: 0 0 12px 0;
+}
+
+.sffc-job-landing-jd-text {
+    font-size: 14px;
+    line-height: 1.6;
+    color: #374151;
+}
+
+/* CTA Section */
+.sffc-job-landing-cta {
+    margin-top: 20px;
+    display: flex;
+    gap: 12px;
+}
+
+/* Blur Effects for Logged-Out Users */
+.sffc-job-landing-score--blurred {
+    filter: blur(3px);
+    pointer-events: none;
+    user-select: none;
+}
+
+.sffc-job-landing-avatar--blurred {
+    filter: blur(6px);
+}
+
+.sffc-job-landing-row--blurred .sffc-crm-match-circle-container {
+    position: relative;
+}
+
+/* Footer Signup Prompt */
+.sffc-job-landing-footer {
+    margin-top: 40px;
+    padding: 32px;
+    background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%);
+    border: 2px solid #86efac;
+    border-radius: 16px;
+    text-align: center;
+}
+
+.sffc-job-landing-signup-prompt h3 {
+    font-size: 24px;
+    font-weight: 700;
+    color: #065f46;
+    margin: 0 0 8px 0;
+}
+
+.sffc-job-landing-signup-prompt p {
+    font-size: 16px;
+    color: #047857;
+    margin: 0 0 20px 0;
+}
+
+.sffc-job-landing-btn-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 14px 28px;
+    font-size: 16px;
+    font-weight: 600;
+    color: #ffffff;
+    background: #16a34a;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 6px rgba(22, 163, 74, 0.2);
+}
+
+.sffc-job-landing-btn-primary:hover {
+    background: #15803d;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 12px rgba(22, 163, 74, 0.3);
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+    .sffc-job-landing-container {
+        padding: 12px;
+    }
+
+    .sffc-job-landing-filters {
+        padding: 12px;
+        gap: 8px;
+    }
+
+    .sffc-job-landing-filter {
+        font-size: 13px;
+        padding: 6px 12px;
+    }
+
+    .sffc-job-landing-row {
+        padding: 16px;
+    }
+
+    .sffc-job-landing-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 16px;
+    }
+
+    .sffc-job-landing-chevron {
+        position: absolute;
+        top: 20px;
+        right: 16px;
+        margin-left: 0;
+    }
+
+    .sffc-job-landing-expanded-inner {
+        padding-top: 16px;
+    }
+
+    .sffc-job-landing-footer {
+        padding: 24px 16px;
+        margin-top: 24px;
+    }
+
+    .sffc-job-landing-signup-prompt h3 {
+        font-size: 20px;
+    }
+
+    .sffc-job-landing-signup-prompt p {
+        font-size: 14px;
+    }
+
+    .sffc-job-landing-btn-primary {
+        width: 100%;
+        padding: 12px 20px;
+        font-size: 15px;
+    }
+}

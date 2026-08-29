@@ -1,0 +1,32 @@
+country,top_income_tax_rate,corporate_tax_rate,vat_rate,social_security_employee,social_security_employer,capital_gains_rate,tax_treaty_countries,source
+United States,37,21,0,7.65,7.65,20,65+,IRS 2024
+United Kingdom,45,25,20,12,13.8,20,130+,HMRC 2024
+Germany,45,30,19,20.4,20.8,26.4,95+,BMF 2024
+France,45,25,20,22,45,30,120+,DGFiP 2024
+Switzerland,40,14,8.1,6.4,6.4,0,100+,ESTV 2024
+Netherlands,49.5,25.8,21,27.65,0,0,95+,Belastingdienst 2024
+Singapore,22,17,9,20,17,0,80+,IRAS 2024
+Hong Kong,15,16.5,0,5,5,0,45+,IRD 2024
+Japan,45,23.2,10,15,15,20,70+,NTA 2024
+Australia,45,30,10,0,11.5,0,45+,ATO 2024
+Canada,33,15,5,5.95,5.95,25,95+,CRA 2024
+Ireland,40,12.5,23,4,11.05,33,75+,Revenue 2024
+Luxembourg,42,24.94,17,12.45,12.45,0,85+,ACD 2024
+Spain,47,25,21,6.35,29.9,26,95+,AEAT 2024
+Italy,43,24,22,9.49,30,26,100+,AdE 2024
+Belgium,50,25,21,13.07,25,0,95+,SPF Finances 2024
+Austria,55,25,20,18.12,21.38,27.5,90+,BMF 2024
+Sweden,52,20.6,25,7,31.42,30,80+,Skatteverket 2024
+Denmark,55.9,22,25,8,0,42,80+,SKAT 2024
+Norway,47.4,22,25,8.2,14.1,22,90+,Skatteetaten 2024
+Finland,51.25,20,24,8.4,20.64,30,80+,Vero 2024
+United Arab Emirates,0,9,5,0,12.5,0,115+,FTA 2024
+India,42.74,25,18,12,13,15,95+,Income Tax India 2024
+China,45,25,13,10.5,31,20,110+,SAT 2024
+South Korea,45,25,10,9.4,13.29,0,95+,NTS 2024
+Brazil,27.5,34,17,11,28,15,35+,RFB 2024
+Mexico,35,30,16,2.775,24.6,10,60+,SAT 2024
+South Africa,45,27,15,1,1,18,80+,SARS 2024
+Poland,32,19,23,13.71,19.48,19,90+,MF 2024
+Czech Republic,23,21,21,11,33.8,0,90+,MF 2024
+Portugal,48,21,23,11,23.75,28,80+,AT 2024

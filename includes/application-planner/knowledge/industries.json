@@ -1,0 +1,128 @@
+{
+    "healthcare": {
+        "canonical": "Healthcare & Life Sciences",
+        "sub_sectors": ["pharma", "biotech", "medical devices", "healthcare services", "digital health", "diagnostics", "CRO", "CDMO", "hospitals", "clinics", "dental", "veterinary", "behavioral health", "home health", "med tech", "life sciences tools"],
+        "key_terms": ["FDA", "clinical trials", "reimbursement", "payer", "provider", "patient", "therapeutic", "drug development", "regulatory", "EMA", "Phase I", "Phase II", "Phase III", "HIPAA", "value-based care"],
+        "transferable_from": ["consumer", "retail", "industrials"],
+        "transfer_narrative": "Your experience with franchise/retail rollups translates to healthcare services consolidation (dental, urgent care, veterinary). The operational playbook is similar."
+    },
+    "technology": {
+        "canonical": "Technology, Media & Telecom",
+        "sub_sectors": ["software", "SaaS", "fintech", "hardware", "media", "telecom", "internet", "e-commerce", "cybersecurity", "cloud", "AI", "data analytics", "semiconductors", "gaming", "infrastructure software", "vertical SaaS"],
+        "key_terms": ["ARR", "MRR", "churn", "CAC", "LTV", "Rule of 40", "NRR", "net retention", "recurring revenue", "subscription", "enterprise software", "B2B SaaS", "API", "platform", "product-led growth"],
+        "transferable_from": ["financial_services", "consumer"],
+        "transfer_narrative": "Your financial services experience provides strong foundation for fintech and B2B software given similar metrics focus. Many PE-backed fintechs value IB/PE experience."
+    },
+    "financial_services": {
+        "canonical": "Financial Services",
+        "sub_sectors": ["asset management", "insurance", "banking", "wealth management", "payments", "credit", "lending", "real estate finance", "specialty finance", "fintech", "broker-dealer", "capital markets"],
+        "key_terms": ["AUM", "NAV", "underwriting", "premium", "claims", "loss ratio", "combined ratio", "NIM", "net interest margin", "ROE", "regulatory capital", "Basel", "Solvency II", "NAIC"],
+        "transferable_from": ["technology"],
+        "transfer_narrative": "Your technology background is increasingly valuable as financial services undergoes digital transformation. Fintech and insurtech roles bridge both sectors."
+    },
+    "consumer": {
+        "canonical": "Consumer & Retail",
+        "sub_sectors": ["retail", "restaurants", "food & beverage", "apparel", "beauty", "personal care", "consumer products", "CPG", "grocery", "e-commerce", "DTC", "franchising", "luxury", "sporting goods", "home goods"],
+        "key_terms": ["same-store sales", "comp sales", "foot traffic", "basket size", "SKU", "inventory turnover", "merchandising", "omnichannel", "DTC", "brand", "margin", "category management", "private label"],
+        "transferable_from": ["industrials", "healthcare"],
+        "transfer_narrative": "Your industrials experience with multi-site operations transfers well to retail and restaurant rollups. Similar focus on unit economics and operational excellence."
+    },
+    "industrials": {
+        "canonical": "Industrials & Manufacturing",
+        "sub_sectors": ["aerospace", "defense", "automotive", "machinery", "building products", "chemicals", "packaging", "distribution", "logistics", "transportation", "engineering services", "industrial technology", "flow control"],
+        "key_terms": ["OEM", "aftermarket", "backlog", "book-to-bill", "capacity utilization", "CapEx", "lean manufacturing", "supply chain", "procurement", "inventory", "MRO", "value-added distribution"],
+        "transferable_from": ["consumer", "energy"],
+        "transfer_narrative": "Your consumer experience with supply chain and distribution networks applies directly to industrial distribution and manufacturing businesses."
+    },
+    "energy": {
+        "canonical": "Energy & Infrastructure",
+        "sub_sectors": ["oil & gas", "renewables", "power generation", "utilities", "infrastructure", "midstream", "upstream", "downstream", "solar", "wind", "clean energy", "EV infrastructure", "energy storage", "energy services"],
+        "key_terms": ["EBITDAX", "reserves", "production", "midstream", "upstream", "downstream", "PPA", "capacity factor", "levelized cost", "energy transition", "ESG", "carbon", "decarbonization"],
+        "transferable_from": ["industrials"],
+        "transfer_narrative": "Your industrials experience with capital-intensive assets and long-term contracts provides foundation for energy infrastructure investing."
+    },
+    "real_estate": {
+        "canonical": "Real Estate",
+        "sub_sectors": ["commercial real estate", "residential", "multifamily", "industrial", "retail RE", "office", "hospitality", "data centers", "self-storage", "senior housing", "student housing", "life science real estate", "mixed use"],
+        "key_terms": ["cap rate", "NOI", "FFO", "AFFO", "occupancy", "rent per sqft", "lease-up", "development", "REIT", "loan-to-value", "debt service coverage", "ground lease", "triple net"],
+        "transferable_from": ["financial_services", "hospitality"],
+        "transfer_narrative": "Your financial services background with credit and lending is directly applicable to real estate debt and equity investing."
+    },
+    "business_services": {
+        "canonical": "Business Services",
+        "sub_sectors": ["professional services", "staffing", "outsourcing", "BPO", "IT services", "consulting", "marketing services", "HR services", "facilities management", "testing & inspection", "legal services", "engineering services"],
+        "key_terms": ["billable utilization", "bill rate", "headcount", "contractor", "managed services", "SLA", "retention", "Net Promoter Score", "client concentration", "revenue per employee", "gross margin per FTE"],
+        "transferable_from": ["technology", "financial_services"],
+        "transfer_narrative": "Your technology or financial services experience translates to business services given the focus on recurring revenue and client relationships."
+    },
+    "education": {
+        "canonical": "Education & Training",
+        "sub_sectors": ["K-12", "higher education", "corporate training", "ed tech", "vocational training", "tutoring", "test prep", "online learning", "professional development", "certification", "bootcamps"],
+        "key_terms": ["enrollment", "retention rate", "completion rate", "cost per acquisition", "lifetime value", "accreditation", "curriculum", "learning outcomes", "student outcomes", "credentialing"],
+        "transferable_from": ["consumer", "technology"],
+        "transfer_narrative": "Your consumer or technology experience applies to ed tech and training businesses, particularly those with subscription models or consumer marketing."
+    },
+    "hospitality": {
+        "canonical": "Hospitality & Leisure",
+        "sub_sectors": ["hotels", "restaurants", "travel", "cruise", "gaming", "entertainment", "fitness", "sports", "theme parks", "events", "outdoor recreation", "wellness"],
+        "key_terms": ["RevPAR", "occupancy", "ADR", "same-store sales", "membership", "retention", "seasonal", "franchise", "managed", "food cost percentage", "labor percentage"],
+        "transferable_from": ["consumer", "real_estate"],
+        "transfer_narrative": "Your consumer retail experience with multi-unit operations directly applies to hospitality chains and restaurant groups."
+    },
+    "government_services": {
+        "canonical": "Government Services & Defense",
+        "sub_sectors": ["defense", "government IT", "federal services", "state & local", "aerospace & defense", "intelligence", "cybersecurity", "homeland security", "space", "national security"],
+        "key_terms": ["contract backlog", "IDIQ", "GovCon", "cost-plus", "fixed-price", "security clearance", "recompete", "SBIR", "prime contractor", "subcontractor", "DCAA", "FAR", "DFARS"],
+        "transferable_from": ["technology", "business_services"],
+        "transfer_narrative": "Your technology or business services background applies to government IT and services, though understanding of federal procurement is needed."
+    },
+    "food_agriculture": {
+        "canonical": "Food & Agriculture",
+        "sub_sectors": ["agriculture", "food processing", "food distribution", "ingredients", "animal health", "pet food", "aquaculture", "vertical farming", "ag tech", "crop protection", "food safety"],
+        "key_terms": ["commodity", "input costs", "yield", "organic", "non-GMO", "food safety", "supply chain", "cold chain", "traceability", "formulation", "private label"],
+        "transferable_from": ["consumer", "industrials"],
+        "transfer_narrative": "Your consumer or industrials experience with supply chain and distribution applies to food and agricultural businesses."
+    },
+    "infrastructure": {
+        "canonical": "Infrastructure",
+        "sub_sectors": ["transport infrastructure", "social infrastructure", "digital infrastructure", "water", "waste management", "ports", "airports", "toll roads", "bridges", "fiber networks", "data centers", "cell towers"],
+        "key_terms": ["concession", "availability payment", "traffic risk", "contracted revenue", "asset life", "regulated returns", "PPP", "P3", "greenfield", "brownfield"],
+        "transferable_from": ["real_estate", "energy"],
+        "transfer_narrative": "Your real estate or energy experience with long-duration assets and stable cash flows translates well to infrastructure investing."
+    },
+    "transportation_logistics": {
+        "canonical": "Transportation & Logistics",
+        "sub_sectors": ["trucking", "freight", "rail", "shipping", "last-mile delivery", "3PL", "4PL", "warehousing", "freight brokerage", "fleet management", "aviation", "maritime"],
+        "key_terms": ["utilization", "deadhead", "load factor", "yield", "network density", "asset-light", "asset-heavy", "driver retention", "cost per mile", "revenue per mile"],
+        "transferable_from": ["industrials", "consumer"],
+        "transfer_narrative": "Your industrials or consumer experience with supply chain operations provides relevant context for transportation and logistics investing."
+    },
+    "environmental_services": {
+        "canonical": "Environmental Services",
+        "sub_sectors": ["waste management", "recycling", "environmental consulting", "remediation", "water treatment", "hazardous waste", "sustainability services", "carbon markets", "ESG consulting"],
+        "key_terms": ["collection", "disposal", "landfill", "transfer station", "recycling rate", "environmental compliance", "remediation", "sustainability", "circular economy", "carbon credits"],
+        "transferable_from": ["industrials", "infrastructure"],
+        "transfer_narrative": "Your industrials or infrastructure experience with service businesses and recurring revenue applies to environmental services."
+    },
+    "insurance": {
+        "canonical": "Insurance",
+        "sub_sectors": ["property & casualty", "life insurance", "health insurance", "specialty insurance", "reinsurance", "insurtech", "MGAs", "TPAs", "insurance brokerage", "benefits"],
+        "key_terms": ["combined ratio", "loss ratio", "premium", "underwriting", "claims", "reserves", "actuarial", "ceding", "retention", "float", "policy count", "bound premium"],
+        "transferable_from": ["financial_services", "technology"],
+        "transfer_narrative": "Your financial services experience with regulated entities and capital management translates to insurance investing."
+    },
+    "sports_entertainment": {
+        "canonical": "Sports & Entertainment",
+        "sub_sectors": ["professional sports", "sports media", "esports", "live entertainment", "music", "film", "broadcast", "streaming", "sports betting", "sports technology", "venues"],
+        "key_terms": ["media rights", "sponsorship", "ticket revenue", "merchandise", "streaming subscribers", "content library", "IP", "licensing", "broadcast rights", "gate revenue"],
+        "transferable_from": ["media", "consumer"],
+        "transfer_narrative": "Your media or consumer experience with content and brands applies to sports and entertainment investing."
+    },
+    "credit": {
+        "canonical": "Credit & Specialty Finance",
+        "sub_sectors": ["direct lending", "mezzanine", "distressed debt", "asset-based lending", "equipment finance", "auto finance", "consumer lending", "mortgage", "factoring", "specialty finance"],
+        "key_terms": ["spread", "yield", "loss rate", "recovery rate", "origination", "default rate", "covenant", "leverage", "LTV", "credit quality", "weighted average life"],
+        "transferable_from": ["financial_services", "real_estate"],
+        "transfer_narrative": "Your financial services or real estate credit experience translates directly to specialty finance and credit investing."
+    }
+}

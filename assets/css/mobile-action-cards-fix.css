@@ -1,0 +1,40 @@
+/**
+ * Mobile Action Cards Fix CSS - Priority Version
+ * Higher specificity to prevent override
+ */
+
+@media (max-width: 768px) {
+    /* Ensure action cards are always clickable - high specificity */
+    body .pe-main-filters .question-card.action-card,
+    body .action-cards-container .question-card.action-card {
+        cursor: pointer !important;
+        pointer-events: auto !important;
+    }
+    
+    /* Ensure buttons are always clickable with proper touch targets - high specificity */
+    body .action-trigger-btn,
+    body .action-card .ask-senna-btn,
+    body .question-card .action-trigger-btn,
+    body .question-card.action-card .ask-senna-btn {
+        cursor: pointer !important;
+        pointer-events: auto !important;
+        position: relative !important;
+        z-index: 100 !important; /* Higher z-index */
+        /* Minimum touch target size for mobile */
+        min-height: 44px !important;
+        min-width: 44px !important;
+    }
+    
+    /* Ensure nothing blocks our buttons */
+    body .action-card .bottom-cta {
+        position: relative !important;
+        z-index: 99 !important;
+        pointer-events: auto !important;
+    }
+    
+    /* Prevent any overlay from blocking */
+    body .action-card::before,
+    body .action-card::after {
+        pointer-events: none !important;
+    }
+}

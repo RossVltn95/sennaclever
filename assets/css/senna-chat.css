@@ -1,0 +1,1199 @@
+/**
+ * MENA Careers AI Chat Interface Styles
+ * Premium chat experience with Vogue-inspired design
+ */
+
+:root {
+    --senna-cream: #FBF7F0;
+    --senna-dark: #1A3028;
+    --senna-forest: #1A3028;
+    --senna-gold: #C9A961;
+    --senna-sage: #8B9B88;
+    --senna-muted: #6B5D54;
+    --senna-white: #FFFFFF;
+    --senna-light-gold: #E8DCC4;
+    --senna-shadow-light: rgba(26, 48, 40, 0.03);
+    --senna-shadow-medium: rgba(26, 48, 40, 0.08);
+    --senna-shadow-heavy: rgba(26, 48, 40, 0.15);
+}
+
+/* Chat Container */
+.sffc-senna-chat {
+    font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, sans-serif;
+    position: relative;
+    z-index: 9999;
+}
+
+/* Chat Trigger Button */
+.sffc-senna-trigger {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    width: 60px;
+    height: 60px;
+    background: var(--senna-dark);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 20px var(--senna-shadow-medium);
+    border: none;
+    color: var(--senna-white);
+    z-index: 9998;
+}
+
+.sffc-senna-trigger:hover {
+    transform: scale(1.1);
+    background: var(--senna-gold);
+    box-shadow: 0 6px 30px var(--senna-shadow-heavy);
+}
+
+.sffc-senna-icon {
+    font-size: 24px;
+    line-height: 1;
+}
+
+.sffc-senna-label {
+    display: none;
+}
+
+.sffc-senna-badge {
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    background: var(--senna-gold);
+    color: var(--senna-dark);
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+/* Main Chat Interface - Full Screen Overlay Mode */
+.sffc-senna-chat.overlay .sffc-senna-interface {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    height: 100vh;
+    background: var(--senna-white);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    animation: fadeInScale 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 9999;
+}
+
+/* Main Chat Interface - Embedded Mode */
+.sffc-senna-chat.embedded .sffc-senna-interface {
+    width: 100%;
+    height: 600px;
+    background: var(--senna-white);
+    border-radius: 20px;
+    box-shadow: 0 10px 40px var(--senna-shadow-medium);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* Chat Header - Full Screen */
+.sffc-senna-header {
+    background: linear-gradient(135deg, var(--senna-forest) 0%, #243832 100%);
+    color: var(--senna-white);
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    border-bottom: 2px solid var(--senna-gold);
+    box-shadow: 0 2px 10px rgba(26, 48, 40, 0.1);
+}
+
+.sffc-senna-avatar {
+    width: 35px;
+    height: 35px;
+    background: var(--senna-gold);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.sffc-avatar-initial {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--senna-forest);
+}
+
+.sffc-senna-info {
+    flex: 1;
+}
+
+.sffc-senna-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 16px;
+    font-weight: 600;
+    margin: 0 0 2px 0;
+    color: var(--senna-white);
+}
+
+.sffc-senna-status {
+    font-size: 12px;
+    opacity: 0.8;
+    margin: 0;
+}
+
+.sffc-senna-close {
+    width: 32px;
+    height: 32px;
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: var(--senna-white);
+    font-size: 20px;
+    line-height: 1;
+}
+
+.sffc-senna-close:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+/* Chat Container - Centered for Full Screen */
+.sffc-senna-chat.overlay .sffc-senna-interface {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(26, 48, 40, 0.95);
+    backdrop-filter: blur(20px);
+}
+
+.sffc-senna-chat.overlay .sffc-chat-container {
+    width: 90%;
+    max-width: 1200px;
+    height: 90vh;
+    background: var(--senna-white);
+    border-radius: 24px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-shadow: 0 30px 80px rgba(0, 0, 0, 0.3);
+}
+
+/* Chat Messages Area */
+.sffc-senna-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 30px 40px;
+    background: transparent; /* Removed cream gradient - now handled by conversational interface */
+    max-width: 900px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+/* Welcome Message - DISABLED (handled by JavaScript) */
+.sffc-senna-welcome {
+    display: none !important; /* Hide the old welcome message */
+    text-align: center;
+    padding: 30px 20px;
+    animation: fadeIn 0.5s ease;
+}
+
+.sffc-welcome-text {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 18px;
+    color: var(--senna-dark);
+    margin: 0 0 10px 0;
+}
+
+.sffc-welcome-subtext {
+    font-size: 14px;
+    color: var(--senna-muted);
+    margin: 0;
+}
+
+/* Message Styles - Enhanced for Full Screen */
+.sffc-message {
+    margin-bottom: 30px;
+    animation: fadeInUp 0.3s ease;
+    max-width: 800px;
+}
+
+.sffc-message-user {
+    display: flex;
+    justify-content: flex-end;
+    margin-left: auto;
+}
+
+.sffc-message-senna {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    margin-right: auto;
+    max-width: 85%;
+}
+
+.sffc-message-senna .sffc-message-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.sffc-message-avatar {
+    width: 28px;
+    height: 28px;
+    background: var(--senna-gold);
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 600;
+    color: var(--senna-forest);
+    font-size: 14px;
+}
+
+.sffc-message-senna-name {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--senna-gold);
+}
+
+.sffc-message-content {
+    width: 100%;
+    padding: 12px 16px;
+    border-radius: 16px;
+    font-size: 19px !important;
+    line-height: 1.7 !important;
+    position: relative;
+    font-family: 'Adamina', serif !important;
+    color: rgb(7, 50, 57) !important;
+}
+
+.sffc-message-user .sffc-message-content {
+    background: var(--senna-forest);
+    color: rgb(7, 50, 57) !important;
+    border-bottom-right-radius: 4px;
+    border: 1px solid var(--senna-gold);
+    max-width: 70%;
+    font-family: 'Adamina', serif !important;
+    font-size: 19px !important;
+}
+
+.sffc-message-senna .sffc-message-content {
+    background: var(--senna-white);
+    color: rgb(7, 50, 57) !important;
+    border: 2px solid var(--senna-gold);
+    border-bottom-left-radius: 4px;
+    box-shadow: 0 2px 8px rgba(26, 48, 40, 0.08);
+    font-family: 'Adamina', serif !important;
+    font-size: 19px !important;
+}
+
+.sffc-message-error .sffc-message-content {
+    background: #FFF5F5;
+    color: #C0392B;
+    border: 1px solid #FFD6D6;
+}
+
+.sffc-message-time {
+    font-size: 10px;
+    color: var(--senna-sage);
+    margin-top: 8px;
+    display: block;
+    opacity: 0.7;
+}
+
+.sffc-message-user .sffc-message-time {
+    text-align: right;
+    color: var(--senna-sage);
+}
+
+.sffc-message-senna .sffc-message-time {
+    text-align: left;
+    color: var(--senna-sage);
+    padding-left: 4px;
+}
+
+/* Typing Indicator */
+.sffc-typing-indicator {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.sffc-typing-dots {
+    padding: 12px 16px;
+    background: var(--senna-white);
+    border: 1px solid rgba(201, 169, 97, 0.15);
+    border-radius: 16px;
+    border-bottom-left-radius: 4px;
+    display: flex;
+    gap: 4px;
+}
+
+.sffc-typing-dots span {
+    width: 8px;
+    height: 8px;
+    background: var(--senna-sage);
+    border-radius: 50%;
+    animation: typing 1.4s infinite;
+}
+
+.sffc-typing-dots span:nth-child(2) {
+    animation-delay: 0.2s;
+}
+
+.sffc-typing-dots span:nth-child(3) {
+    animation-delay: 0.4s;
+}
+
+@keyframes typing {
+    0%, 60%, 100% {
+        transform: translateY(0);
+        opacity: 0.5;
+    }
+    30% {
+        transform: translateY(-10px);
+        opacity: 1;
+    }
+}
+
+/* Analysis Cards - Enhanced for Full Screen */
+.sffc-message-card {
+    margin: 30px auto;
+    max-width: 800px;
+}
+
+.sffc-analysis-card {
+    background: var(--senna-white);
+    border: 1px solid rgba(201, 169, 97, 0.15);
+    border-radius: 16px;
+    padding: 30px;
+    box-shadow: 0 4px 20px var(--senna-shadow-light);
+    transition: all 0.3s ease;
+}
+
+.sffc-analysis-card:hover {
+    box-shadow: 0 8px 30px var(--senna-shadow-medium);
+    transform: translateY(-2px);
+}
+
+.sffc-card-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 18px;
+    color: var(--senna-dark);
+    margin: 0 0 15px 0;
+}
+
+/* Summary Card */
+.sffc-card-metrics {
+    display: flex;
+    gap: 20px;
+    justify-content: space-around;
+}
+
+.sffc-metric {
+    text-align: center;
+}
+
+.sffc-metric-value {
+    display: block;
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--senna-gold);
+    margin-bottom: 4px;
+}
+
+.sffc-metric-label {
+    font-size: 11px;
+    color: var(--senna-sage);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Salary Card */
+.sffc-salary-range {
+    margin: 20px 0;
+}
+
+.sffc-range-bar {
+    height: 8px;
+    background: var(--senna-light-gold);
+    border-radius: 4px;
+    position: relative;
+    margin: 20px 0;
+}
+
+.sffc-range-fill {
+    height: 100%;
+    background: var(--senna-gold);
+    border-radius: 4px;
+}
+
+.sffc-range-marker {
+    position: absolute;
+    top: -6px;
+    width: 20px;
+    height: 20px;
+    background: var(--senna-dark);
+    border: 3px solid var(--senna-white);
+    border-radius: 50%;
+    transform: translateX(-50%);
+}
+
+.sffc-range-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: var(--senna-muted);
+}
+
+.sffc-salary-factors {
+    margin-top: 15px;
+    border-top: 1px solid rgba(201, 169, 97, 0.15);
+    padding-top: 15px;
+}
+
+.sffc-factor {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    font-size: 13px;
+}
+
+.sffc-factor span:last-child {
+    font-weight: 600;
+}
+
+.sffc-factor .positive {
+    color: #27AE60;
+}
+
+.sffc-factor .negative {
+    color: #E74C3C;
+}
+
+/* Career Path Card */
+.sffc-career-path {
+    position: relative;
+    padding-left: 30px;
+}
+
+.sffc-career-path::before {
+    content: '';
+    position: absolute;
+    left: 10px;
+    top: 20px;
+    bottom: 20px;
+    width: 2px;
+    background: var(--senna-light-gold);
+}
+
+.sffc-path-stage {
+    position: relative;
+    margin-bottom: 25px;
+}
+
+.sffc-stage-marker {
+    position: absolute;
+    left: -24px;
+    top: 5px;
+    width: 12px;
+    height: 12px;
+    background: var(--senna-white);
+    border: 2px solid var(--senna-sage);
+    border-radius: 50%;
+}
+
+.sffc-path-stage.current .sffc-stage-marker {
+    background: var(--senna-gold);
+    border-color: var(--senna-gold);
+    box-shadow: 0 0 0 4px rgba(201, 169, 97, 0.2);
+}
+
+.sffc-stage-content h5 {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--senna-dark);
+    margin: 0 0 4px 0;
+}
+
+.sffc-stage-content span {
+    font-size: 12px;
+    color: var(--senna-sage);
+}
+
+/* Preferences Card */
+.sffc-preference-group {
+    margin-bottom: 15px;
+}
+
+.sffc-preference-group label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--senna-muted);
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.sffc-preference-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.sffc-option-btn {
+    padding: 6px 12px;
+    background: var(--senna-cream);
+    border: 1px solid var(--senna-light-gold);
+    border-radius: 20px;
+    font-size: 12px;
+    color: var(--senna-dark);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.sffc-option-btn:hover,
+.sffc-option-btn.selected {
+    background: var(--senna-gold);
+    border-color: var(--senna-gold);
+    color: var(--senna-white);
+}
+
+/* Action Buttons */
+/* action buttons removed */
+
+/* Suggestions */
+.sffc-suggestions {
+    margin: 16px 0 22px;
+    padding: 14px 16px;
+    background: rgba(13, 53, 62, 0.04);
+    border-radius: 16px;
+    border: 1px solid rgba(13, 53, 62, 0.08);
+}
+
+.sffc-suggestions-label {
+    display: block;
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--senna-sage);
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    margin-bottom: 8px;
+}
+
+.sffc-suggestion-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.sffc-suggestion-chip {
+    padding: 10px 16px;
+    background: var(--senna-white);
+    border: 1px solid rgba(13, 53, 62, 0.2);
+    border-radius: 999px;
+    font-size: 13px;
+    color: var(--senna-forest);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    box-shadow: 0 6px 14px rgba(13, 53, 62, 0.08);
+}
+
+.sffc-suggestion-chip:hover {
+    background: var(--senna-gold);
+    border-color: var(--senna-gold);
+    color: var(--senna-white);
+    box-shadow: 0 10px 20px rgba(201, 169, 97, 0.35);
+}
+
+.sffc-lesson-controls {
+    margin-top: 14px;
+    padding-top: 12px;
+    border-top: 1px dashed rgba(13, 53, 62, 0.15);
+}
+
+.sffc-lesson-controls-label {
+    display: block;
+    font-size: 10px;
+    font-weight: 600;
+    color: rgba(13, 53, 62, 0.6);
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    margin-bottom: 8px;
+}
+
+.sffc-lesson-control-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.sffc-lesson-control {
+    border: 1px solid rgba(13, 53, 62, 0.2);
+    border-radius: 999px;
+    background: rgba(13, 53, 62, 0.08);
+    color: #0d353e;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 6px 14px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.sffc-lesson-control:hover {
+    background: #0d353e;
+    color: #ffffff;
+    border-color: #0d353e;
+}
+
+/* Quick Prompts - DISABLED (handled by JavaScript) */
+.sffc-senna-prompts {
+    display: none !important; /* Hide the old quick prompts */
+    padding: 15px 20px;
+    background: var(--senna-cream);
+    border-top: 1px solid rgba(201, 169, 97, 0.15);
+    /* display: flex; */
+    gap: 10px;
+    overflow-x: auto;
+}
+
+.sffc-quick-prompt {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    background: var(--senna-white);
+    border: 2px solid var(--senna-gold);
+    border-radius: 20px;
+    font-size: 12px;
+    color: var(--senna-forest);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    flex-shrink: 0;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+}
+
+.sffc-quick-prompt:hover {
+    background: var(--senna-gold);
+    border-color: var(--senna-gold);
+    color: var(--senna-white);
+}
+
+.sffc-prompt-icon {
+    font-size: 14px;
+}
+
+/* Input Area - Full Screen */
+.sffc-senna-input-area {
+    padding: 30px 40px;
+    background: var(--senna-white);
+    border-top: 1px solid rgba(201, 169, 97, 0.15);
+    max-width: 900px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+.sffc-senna-input-wrapper {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.sffc-senna-input {
+    flex: 1;
+    padding: 12px 16px;
+    background: var(--senna-cream);
+    border: 1px solid var(--senna-light-gold);
+    border-radius: 24px;
+    font-size: 14px;
+    font-family: inherit;
+    resize: none;
+    min-height: 44px;
+    max-height: 120px;
+    line-height: 1.4;
+    transition: all 0.2s ease;
+}
+
+.sffc-senna-input:focus {
+    outline: none;
+    border-color: var(--senna-gold);
+    background: var(--senna-white);
+}
+
+.sffc-senna-send {
+    width: 44px;
+    height: 44px;
+    background: var(--senna-forest);
+    border: 2px solid var(--senna-gold);
+    border-radius: 50%;
+    color: var(--senna-white);
+    font-size: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+}
+
+.sffc-senna-send:hover:not(:disabled) {
+    background: var(--senna-gold);
+    transform: scale(1.1);
+}
+
+.sffc-senna-send:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Input Actions */
+.sffc-senna-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.sffc-senna-actions .sffc-action-btn {
+    padding: 6px 12px;
+    background: transparent;
+    border: 1px solid var(--senna-light-gold);
+    border-radius: 16px;
+    font-size: 11px;
+    color: var(--senna-muted);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.sffc-senna-actions .sffc-action-btn:hover {
+    background: var(--senna-cream);
+    border-color: var(--senna-gold);
+    color: var(--senna-dark);
+}
+
+/* Animations */
+@keyframes fadeInScale {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(100px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes fadeInUp {
+    from {
+        transform: translateY(10px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* Premium Analysis Styles */
+.sffc-premium-analysis {
+    padding: 0;
+}
+
+.sffc-analysis-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 28px;
+    color: var(--senna-dark);
+    margin: 0 0 30px 0;
+    text-align: center;
+}
+
+.sffc-analysis-overview {
+    background: linear-gradient(135deg, var(--senna-dark), #2A4A3C);
+    color: var(--senna-white);
+    padding: 30px;
+    border-radius: 16px;
+    margin-bottom: 30px;
+}
+
+.sffc-overview-stats {
+    display: flex;
+    justify-content: space-around;
+    gap: 30px;
+}
+
+.sffc-overview-stats .sffc-stat {
+    text-align: center;
+}
+
+.sffc-overview-stats .sffc-stat-value {
+    display: block;
+    font-size: 36px;
+    font-weight: 600;
+    color: var(--senna-gold);
+    margin-bottom: 8px;
+}
+
+.sffc-overview-stats .sffc-stat-label {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    opacity: 0.9;
+}
+
+/* Analysis Insights */
+.sffc-analysis-insights {
+    background: var(--senna-cream);
+    padding: 25px;
+    border-radius: 12px;
+    margin-bottom: 30px;
+}
+
+.sffc-analysis-insights h4 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 20px;
+    color: var(--senna-dark);
+    margin: 0 0 20px 0;
+}
+
+.sffc-insights {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.sffc-insights li {
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(201, 169, 97, 0.15);
+    font-size: 14px;
+    color: var(--senna-dark);
+}
+
+.sffc-insights li:last-child {
+    border-bottom: none;
+}
+
+.sffc-insights strong {
+    color: var(--senna-gold);
+    font-weight: 600;
+}
+
+/* Shortlist items removed */
+
+.sffc-card-rank {
+    width: 40px;
+    height: 40px;
+    background: var(--senna-gold);
+    color: var(--senna-white);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 16px;
+}
+
+.sffc-card-details {
+    flex: 1;
+}
+
+.sffc-card-details h5 {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--senna-dark);
+    margin: 0 0 5px 0;
+}
+
+.sffc-card-details p {
+    font-size: 14px;
+    color: var(--senna-sage);
+    margin: 0 0 8px 0;
+}
+
+.sffc-card-meta {
+    display: flex;
+    gap: 15px;
+    font-size: 12px;
+}
+
+.sffc-match {
+    color: var(--senna-gold);
+    font-weight: 500;
+}
+
+.sffc-score {
+    color: var(--senna-dark);
+    font-weight: 600;
+}
+
+.sffc-card-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.sffc-analyze-job,
+.sffc-remove-job {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 1px solid rgba(201, 169, 97, 0.3);
+    background: transparent;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+}
+
+.sffc-analyze-job {
+    color: var(--senna-gold);
+}
+
+.sffc-analyze-job:hover {
+    background: var(--senna-gold);
+    color: var(--senna-white);
+    border-color: var(--senna-gold);
+}
+
+.sffc-remove-job {
+    color: var(--senna-muted);
+}
+
+.sffc-remove-job:hover {
+    background: #E74C3C;
+    color: var(--senna-white);
+    border-color: #E74C3C;
+}
+
+/* Recommendations */
+.sffc-analysis-recommendations {
+    background: linear-gradient(135deg, rgba(201, 169, 97, 0.05), rgba(201, 169, 97, 0.02));
+    padding: 25px;
+    border-radius: 12px;
+}
+
+.sffc-analysis-recommendations h4 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 20px;
+    color: var(--senna-dark);
+    margin: 0 0 25px 0;
+}
+
+.sffc-recommendations {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.sffc-recommendation {
+    display: flex;
+    gap: 15px;
+    align-items: flex-start;
+}
+
+.sffc-rec-icon {
+    width: 32px;
+    height: 32px;
+    background: var(--senna-gold);
+    color: var(--senna-white);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    flex-shrink: 0;
+}
+
+.sffc-rec-content {
+    flex: 1;
+}
+
+.sffc-rec-content strong {
+    display: block;
+    color: var(--senna-dark);
+    margin-bottom: 5px;
+    font-size: 15px;
+}
+
+.sffc-rec-content p {
+    margin: 0;
+    color: var(--senna-muted);
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+/* Premium Card Styling */
+.sffc-card-premium {
+    background: var(--senna-white);
+    border: 2px solid var(--senna-gold);
+    box-shadow: 0 10px 40px rgba(201, 169, 97, 0.15);
+    padding: 40px;
+}
+
+/* Scrollbar Styling */
+.sffc-senna-messages::-webkit-scrollbar {
+    width: 6px;
+}
+
+.sffc-senna-messages::-webkit-scrollbar-track {
+    background: var(--senna-cream);
+}
+
+.sffc-senna-messages::-webkit-scrollbar-thumb {
+    background: var(--senna-light-gold);
+    border-radius: 3px;
+}
+
+.sffc-senna-messages::-webkit-scrollbar-thumb:hover {
+    background: var(--senna-gold);
+}
+
+/* Mobile Touch Optimization */
+@media (pointer: coarse) {
+    .sffc-action-button,
+    .sffc-suggestion-chip,
+    .sffc-quick-prompt,
+    .sffc-option-btn,
+    .sffc-senna-send,
+    .sffc-senna-trigger,
+    .sffc-senna-close {
+        min-height: 44px;
+        min-width: 44px;
+    }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .sffc-senna-chat.overlay .sffc-chat-container {
+        width: 100%;
+        height: 100vh;
+        max-width: 100%;
+        border-radius: 0;
+    }
+    
+    .sffc-senna-trigger {
+        bottom: 20px;
+        right: 20px;
+    }
+    
+    .sffc-message-content {
+        max-width: 85%;
+    }
+}
+
+
+@media (max-width: 480px) {
+    .sffc-senna-header {
+        padding: 12px 15px;
+        gap: 10px;
+    }
+    
+    .sffc-senna-avatar {
+        width: 30px;
+        height: 30px;
+    }
+    
+    .sffc-senna-name {
+        font-size: 14px;
+    }
+    
+    .sffc-senna-status {
+        font-size: 11px;
+    }
+    
+    .sffc-senna-messages {
+        padding: 15px;
+    }
+    
+    .sffc-message {
+        margin-bottom: 20px;
+    }
+    
+    .sffc-message-content {
+        max-width: 90%;
+        font-size: 19px !important;
+        padding: 10px 14px;
+        font-family: 'Adamina', serif !important;
+        color: rgb(7, 50, 57) !important;
+    }
+    
+    .sffc-message-user .sffc-message-content {
+        max-width: 80%;
+    }
+    
+    .sffc-message-senna {
+        max-width: 90%;
+    }
+    
+    .sffc-senna-input-area {
+        padding: 15px;
+    }
+    
+    .sffc-card-metrics {
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    /* Ensure clickable elements are easily tappable */
+    .sffc-action-button,
+    .sffc-suggestion-chip,
+    .sffc-quick-prompt {
+        padding: 12px 16px;
+        font-size: 14px;
+    }
+    
+    /* Fix overlapping issues */
+    .sffc-senna-interface {
+        z-index: 99999;
+    }
+    
+    .sffc-senna-trigger {
+        z-index: 99998;
+    }
+}

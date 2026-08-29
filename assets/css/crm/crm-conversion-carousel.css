@@ -1,0 +1,892 @@
+/**
+ * Conversion Carousel Styles
+ * Optimized for conversion with psychological triggers
+ */
+
+/* Wrapper */
+.sffc-conversion-wrapper {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 40px 20px;
+}
+
+/* Hero Section */
+.sffc-conv-hero {
+    text-align: center;
+    margin-bottom: 60px;
+}
+
+.sffc-conv-hero h1 {
+    font-size: 36px;
+    font-weight: 700;
+    color: #0f172a;
+    margin-bottom: 16px;
+}
+
+.sffc-conv-hero p {
+    font-size: 18px;
+    color: #64748b;
+}
+
+/* Recruiter Cards Grid */
+.sffc-conv-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 24px;
+    margin-bottom: 60px;
+}
+
+.sffc-conv-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 24px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.sffc-conv-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px rgba(15, 23, 42, 0.12);
+    border-color: #0d353e;
+}
+
+.sffc-conv-card-avatar {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    overflow: hidden;
+    margin-bottom: 16px;
+    background: #f1f5f9;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.sffc-conv-card-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.sffc-conv-card-initial {
+    font-size: 24px;
+    font-weight: 700;
+    color: #0d353e;
+}
+
+.sffc-conv-card-content h3 {
+    font-size: 18px;
+    font-weight: 700;
+    color: #0f172a;
+    margin-bottom: 8px;
+}
+
+.sffc-conv-card-company {
+    font-size: 14px;
+    font-weight: 600;
+    color: #64748b;
+    margin-bottom: 4px;
+}
+
+.sffc-conv-card-location {
+    font-size: 14px;
+    color: #94a3b8;
+    margin-bottom: 4px;
+}
+
+.sffc-conv-card-recruiter {
+    font-size: 13px;
+    color: #0d353e;
+    font-style: italic;
+    margin-top: 12px;
+}
+
+.sffc-conv-card-btn {
+    width: 100%;
+    padding: 12px 24px;
+    background: #0d353e;
+    color: #ffffff;
+    border: none;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.3s ease;
+    margin-top: 16px;
+}
+
+.sffc-conv-card-btn:hover {
+    background: #1a5264;
+}
+
+/* Modal Base */
+.sffc-conv-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 99999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.sffc-conv-modal-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(15, 23, 42, 0.7);
+    backdrop-filter: blur(4px);
+}
+
+.sffc-conv-modal-dialog {
+    position: relative;
+    background: #ffffff;
+    border-radius: 16px;
+    max-width: 600px;
+    width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+    padding: 40px;
+    box-shadow: 0 20px 40px rgba(15, 23, 42, 0.25);
+}
+
+.sffc-conv-modal-wide {
+    max-width: 900px;
+}
+
+.sffc-conv-modal-close {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    background: transparent;
+    border: none;
+    font-size: 28px;
+    color: #64748b;
+    cursor: pointer;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.3s ease;
+}
+
+.sffc-conv-modal-close:hover {
+    color: #0f172a;
+}
+
+/* Lightbox Specific */
+.sffc-conv-lightbox-content h2 {
+    font-size: 28px;
+    font-weight: 700;
+    color: #0f172a;
+    margin-bottom: 24px;
+    text-align: center;
+}
+
+.sffc-conv-lightbox-recruiter-card {
+    display: flex;
+    gap: 16px;
+    padding: 20px;
+    background: #f8fafc;
+    border-radius: 12px;
+    margin-bottom: 24px;
+}
+
+.sffc-conv-lightbox-avatar {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    overflow: hidden;
+    flex-shrink: 0;
+    background: #e2e8f0;
+}
+
+.sffc-conv-lightbox-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.sffc-conv-lightbox-info {
+    flex: 1;
+}
+
+.sffc-conv-lightbox-name {
+    font-size: 16px;
+    font-weight: 700;
+    color: #0f172a;
+    margin-bottom: 4px;
+}
+
+.sffc-conv-lightbox-title {
+    font-size: 14px;
+    color: #64748b;
+    margin-bottom: 2px;
+}
+
+.sffc-conv-lightbox-company {
+    font-size: 14px;
+    color: #94a3b8;
+}
+
+.sffc-conv-lightbox-value h3 {
+    font-size: 18px;
+    font-weight: 600;
+    color: #0f172a;
+    margin-bottom: 16px;
+}
+
+.sffc-conv-lightbox-value ul {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 24px 0;
+}
+
+.sffc-conv-lightbox-value li {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 0;
+    font-size: 15px;
+    color: #475569;
+}
+
+.sffc-conv-lightbox-value li svg {
+    width: 20px;
+    height: 20px;
+    color: #10b981;
+    flex-shrink: 0;
+}
+
+.sffc-conv-lightbox-cta {
+    width: 100%;
+    padding: 16px 32px;
+    background: #0d353e;
+    color: #ffffff;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+.sffc-conv-lightbox-cta:hover {
+    background: #1a5264;
+}
+
+/* Quiz Styles */
+.sffc-conv-quiz-content h2 {
+    font-size: 26px;
+    font-weight: 700;
+    color: #0f172a;
+    margin-bottom: 16px;
+    text-align: center;
+}
+
+.sffc-conv-quiz-progress {
+    width: 100%;
+    height: 8px;
+    background: #e2e8f0;
+    border-radius: 999px;
+    overflow: hidden;
+    margin-bottom: 8px;
+}
+
+.sffc-conv-quiz-progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, #0d353e, #10b981);
+    transition: width 0.3s ease;
+}
+
+.sffc-conv-quiz-step-indicator {
+    text-align: center;
+    font-size: 13px;
+    color: #64748b;
+    margin-bottom: 32px;
+}
+
+.sffc-conv-quiz-step h3 {
+    font-size: 22px;
+    font-weight: 600;
+    color: #0f172a;
+    margin-bottom: 24px;
+    text-align: center;
+}
+
+.sffc-conv-quiz-options {
+    display: grid;
+    gap: 12px;
+}
+
+.sffc-conv-quiz-option {
+    padding: 16px 24px;
+    background: #ffffff;
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 500;
+    color: #0f172a;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: left;
+}
+
+.sffc-conv-quiz-option:hover {
+    border-color: #0d353e;
+    background: #f8fafc;
+}
+
+.sffc-conv-quiz-option.is-selected {
+    border-color: #0d353e;
+    background: #0d353e;
+    color: #ffffff;
+}
+
+.sffc-conv-quiz-other-input {
+    width: 100%;
+    border: none;
+    background: transparent;
+    font-size: 16px;
+    outline: none;
+}
+
+/* Matches Preview */
+.sffc-conv-matches-content h2 {
+    font-size: 28px;
+    font-weight: 700;
+    color: #0f172a;
+    margin-bottom: 24px;
+    text-align: center;
+}
+
+.sffc-conv-matches-stats {
+    text-align: center;
+    margin-bottom: 32px;
+}
+
+.sffc-conv-matches-stats p {
+    font-size: 16px;
+    color: #475569;
+    margin-bottom: 8px;
+}
+
+.sffc-conv-matches-stats strong {
+    color: #0d353e;
+    font-weight: 700;
+}
+
+.sffc-conv-matches-fresh {
+    font-size: 14px !important;
+    color: #10b981 !important;
+    font-weight: 600 !important;
+}
+
+.sffc-conv-matches-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 16px;
+    margin-bottom: 32px;
+}
+
+.sffc-conv-match-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 16px;
+    position: relative;
+}
+
+.sffc-conv-match-card--locked {
+    filter: blur(4px);
+    pointer-events: none;
+}
+
+.sffc-conv-match-card--locked::after {
+    content: '🔒';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 32px;
+    filter: blur(0);
+}
+
+.sffc-conv-matches-kit {
+    background: #fef3c7;
+    border: 2px solid #fbbf24;
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 24px;
+}
+
+.sffc-conv-matches-kit h3 {
+    font-size: 18px;
+    font-weight: 700;
+    color: #0f172a;
+    margin-bottom: 16px;
+}
+
+.sffc-conv-matches-kit ul {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 16px 0;
+}
+
+.sffc-conv-matches-kit li {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 0;
+    font-size: 14px;
+    color: #475569;
+}
+
+.sffc-conv-matches-kit li svg {
+    width: 18px;
+    height: 18px;
+    color: #10b981;
+}
+
+.sffc-conv-matches-kit-lock {
+    text-align: center;
+    font-size: 14px;
+    color: #92400e;
+    font-weight: 600;
+    margin: 0;
+}
+
+.sffc-conv-matches-social {
+    text-align: center;
+    padding: 16px;
+    background: #ecfdf5;
+    border-radius: 8px;
+    margin-bottom: 24px;
+}
+
+.sffc-conv-matches-social p {
+    font-size: 15px;
+    color: #047857;
+    font-weight: 600;
+    margin: 0;
+}
+
+.sffc-conv-matches-email-gate {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+#sffcMatchesEmail {
+    padding: 14px 16px;
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 16px;
+    outline: none;
+    transition: border-color 0.3s ease;
+}
+
+#sffcMatchesEmail:focus {
+    border-color: #0d353e;
+}
+
+.sffc-conv-matches-unlock-btn {
+    padding: 16px 32px;
+    background: #0d353e;
+    color: #ffffff;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+.sffc-conv-matches-unlock-btn:hover {
+    background: #1a5264;
+}
+
+.sffc-conv-matches-privacy {
+    text-align: center;
+    font-size: 13px;
+    color: #64748b;
+    margin: 0;
+}
+
+/* Pricing Page */
+.sffc-conv-pricing {
+    padding: 60px 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.sffc-conv-pricing-hero {
+    text-align: center;
+    margin-bottom: 48px;
+}
+
+.sffc-conv-pricing-hero h1 {
+    font-size: 36px;
+    font-weight: 700;
+    color: #0f172a;
+    margin-bottom: 16px;
+}
+
+.sffc-conv-pricing-hero p {
+    font-size: 18px;
+    color: #64748b;
+}
+
+/* Brand Carousel */
+.sffc-conv-brands {
+    text-align: center;
+    margin-bottom: 48px;
+    overflow: hidden;
+}
+
+.sffc-conv-brands-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #64748b;
+    margin-bottom: 16px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.sffc-conv-brands-scroll {
+    display: flex;
+    gap: 32px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.sffc-conv-brand {
+    font-size: 16px;
+    font-weight: 600;
+    color: #475569;
+    padding: 8px 16px;
+    background: #f8fafc;
+    border-radius: 6px;
+}
+
+/* Value Cards */
+.sffc-conv-value-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 24px;
+    margin-bottom: 48px;
+}
+
+.sffc-conv-value-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 32px 24px;
+    text-align: center;
+}
+
+.sffc-conv-value-icon {
+    font-size: 48px;
+    margin-bottom: 16px;
+}
+
+.sffc-conv-value-card h3 {
+    font-size: 18px;
+    font-weight: 700;
+    color: #0f172a;
+    margin-bottom: 8px;
+}
+
+.sffc-conv-value-card p {
+    font-size: 14px;
+    color: #64748b;
+    margin: 0;
+}
+
+/* Testimonials */
+.sffc-conv-testimonials {
+    margin-bottom: 48px;
+}
+
+.sffc-conv-testimonials h2 {
+    font-size: 28px;
+    font-weight: 700;
+    color: #0f172a;
+    text-align: center;
+    margin-bottom: 32px;
+}
+
+.sffc-conv-testimonials-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 24px;
+}
+
+.sffc-conv-testimonial {
+    background: #f8fafc;
+    border-radius: 12px;
+    padding: 24px;
+}
+
+.sffc-conv-testimonial-rating {
+    color: #fbbf24;
+    font-size: 18px;
+    margin-bottom: 12px;
+}
+
+.sffc-conv-testimonial-quote {
+    font-size: 15px;
+    color: #475569;
+    line-height: 1.6;
+    margin-bottom: 16px;
+}
+
+.sffc-conv-testimonial-author {
+    font-size: 14px;
+    color: #64748b;
+    margin: 0;
+}
+
+.sffc-conv-testimonial-author strong {
+    color: #0f172a;
+}
+
+/* Urgency Banner */
+.sffc-conv-urgency {
+    background: linear-gradient(135deg, #fef3c7, #fbbf24);
+    border-radius: 12px;
+    padding: 32px;
+    text-align: center;
+    margin-bottom: 48px;
+}
+
+.sffc-conv-urgency h3 {
+    font-size: 24px;
+    font-weight: 700;
+    color: #0f172a;
+    margin-bottom: 12px;
+}
+
+.sffc-conv-urgency p {
+    font-size: 16px;
+    color: #475569;
+    margin: 8px 0;
+}
+
+.sffc-conv-urgency-scarcity {
+    font-size: 14px !important;
+    color: #92400e !important;
+    font-weight: 600 !important;
+}
+
+#sffcCountdownTimer {
+    font-weight: 700;
+    color: #dc2626;
+    font-size: 20px;
+}
+
+/* Pricing Plans */
+.sffc-conv-plans-section h2 {
+    font-size: 28px;
+    font-weight: 700;
+    color: #0f172a;
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.sffc-conv-plans-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 24px;
+    margin-bottom: 48px;
+}
+
+.sffc-conv-plan-card {
+    background: #ffffff;
+    border: 2px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 32px 24px;
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+.sffc-conv-plan-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px rgba(15, 23, 42, 0.12);
+}
+
+.sffc-conv-plan-featured {
+    border-color: #0d353e;
+    box-shadow: 0 8px 16px rgba(13, 53, 62, 0.15);
+}
+
+.sffc-conv-plan-badge {
+    display: inline-block;
+    padding: 6px 12px;
+    background: #0d353e;
+    color: #ffffff;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-radius: 999px;
+    margin-bottom: 16px;
+}
+
+.sffc-conv-plan-card h3 {
+    font-size: 22px;
+    font-weight: 700;
+    color: #0f172a;
+    margin-bottom: 8px;
+}
+
+.sffc-conv-plan-price {
+    margin-bottom: 8px;
+}
+
+.sffc-conv-plan-amount {
+    font-size: 36px;
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.sffc-conv-plan-cycle {
+    font-size: 16px;
+    color: #64748b;
+}
+
+.sffc-conv-plan-rating {
+    font-size: 14px;
+    color: #fbbf24;
+    margin-bottom: 20px;
+}
+
+.sffc-conv-plan-features {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 24px 0;
+}
+
+.sffc-conv-plan-features li {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 0;
+    font-size: 14px;
+    color: #475569;
+}
+
+.sffc-conv-plan-features li svg {
+    width: 18px;
+    height: 18px;
+    color: #10b981;
+    flex-shrink: 0;
+}
+
+.sffc-conv-plan-btn {
+    display: block;
+    width: 100%;
+    padding: 14px 24px;
+    background: #0d353e;
+    color: #ffffff;
+    text-align: center;
+    text-decoration: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    transition: background 0.3s ease;
+}
+
+.sffc-conv-plan-btn:hover {
+    background: #1a5264;
+}
+
+/* Guarantees */
+.sffc-conv-guarantees {
+    display: flex;
+    justify-content: center;
+    gap: 32px;
+    flex-wrap: wrap;
+    padding: 24px;
+    background: #ecfdf5;
+    border-radius: 12px;
+    margin-bottom: 48px;
+}
+
+.sffc-conv-guarantee {
+    font-size: 15px;
+    color: #047857;
+    font-weight: 600;
+}
+
+/* Pricing Testimonials */
+.sffc-conv-pricing-testimonials {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 24px;
+    margin-bottom: 48px;
+}
+
+.sffc-conv-pricing-testimonials blockquote {
+    background: #f8fafc;
+    border-left: 4px solid #0d353e;
+    border-radius: 8px;
+    padding: 20px 24px;
+    margin: 0;
+    font-size: 15px;
+    color: #475569;
+    line-height: 1.6;
+}
+
+.sffc-conv-pricing-testimonials cite {
+    display: block;
+    font-size: 14px;
+    color: #64748b;
+    font-style: normal;
+    margin-top: 12px;
+}
+
+/* Trust Badges */
+.sffc-conv-trust {
+    display: flex;
+    justify-content: center;
+    gap: 32px;
+    flex-wrap: wrap;
+    padding: 24px;
+    text-align: center;
+}
+
+.sffc-conv-trust span {
+    font-size: 14px;
+    color: #64748b;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .sffc-conv-hero h1 {
+        font-size: 28px;
+    }
+
+    .sffc-conv-cards-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .sffc-conv-modal-dialog {
+        padding: 24px;
+    }
+
+    .sffc-conv-pricing-hero h1 {
+        font-size: 28px;
+    }
+
+    .sffc-conv-guarantees {
+        flex-direction: column;
+        gap: 12px;
+    }
+}

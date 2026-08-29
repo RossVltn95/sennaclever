@@ -1,0 +1,585 @@
+/**
+ * MENA Careers Conversational Interface Styles
+ * Unified browsing experience with AI guidance
+ */
+
+/* View Toggle */
+.sffc-view-toggle {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 24px;
+    padding: 8px;
+    background: rgba(26, 48, 40, 0.03);
+    border-radius: 12px;
+}
+
+.view-toggle-btn {
+    padding: 10px 24px;
+    background: transparent;
+    border: 1px solid rgba(26, 48, 40, 0.1);
+    border-radius: 8px;
+    color: var(--dark-green);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.view-toggle-btn:hover {
+    background: rgba(26, 48, 40, 0.05);
+}
+
+.view-toggle-btn.active {
+    background: var(--dark-green);
+    color: white;
+    border-color: var(--dark-green);
+}
+
+/* Conversational View Container */
+.sffc-conversational-view {
+    display: none;
+    animation: fadeIn 0.5s ease;
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.sffc-conversational-view.active {
+    display: block;
+}
+
+.sffc-classic-view {
+    display: none;
+}
+
+.sffc-classic-view.active {
+    display: block;
+}
+
+/* MENA Careers Header */
+.sffc-senna-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px;
+    background: linear-gradient(135deg, #1A3028 0%, #2A4038 100%);
+    border-radius: 12px 12px 0 0;
+    color: white;
+}
+
+.senna-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 2px solid var(--gold);
+}
+
+.senna-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.senna-greeting {
+    flex: 1;
+    margin-left: 16px;
+}
+
+.senna-name {
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0;
+    color: white;
+}
+
+.senna-status {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.8);
+    margin: 4px 0 0 0;
+}
+
+/* Stage Indicators */
+.conversation-stage {
+    display: flex;
+    gap: 16px;
+}
+
+.stage-indicator {
+    padding: 6px 16px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 20px;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.stage-indicator:hover {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+}
+
+.stage-indicator.active {
+    background: var(--gold);
+    color: var(--dark-green);
+    border-color: var(--gold);
+}
+
+/* Conversation Area */
+.sffc-senna-conversation {
+    background: #FAFAF8;
+    border: 1px solid rgba(26, 48, 40, 0.08);
+    border-radius: 0 0 12px 12px;
+    margin-bottom: 24px;
+    max-width: 900px;
+    margin-left: auto;
+    margin-right: auto;
+    padding: 0 20px;
+}
+
+.senna-messages {
+    height: 300px;
+    overflow-y: auto;
+    padding: 20px;
+    scroll-behavior: smooth;
+}
+
+.senna-messages::-webkit-scrollbar {
+    width: 6px;
+}
+
+.senna-messages::-webkit-scrollbar-track {
+    background: rgba(26, 48, 40, 0.05);
+}
+
+.senna-messages::-webkit-scrollbar-thumb {
+    background: rgba(26, 48, 40, 0.2);
+    border-radius: 3px;
+}
+
+/* Message Styles */
+.senna-message, .user-message {
+    display: flex;
+    margin-bottom: 16px;
+    animation: slideIn 0.3s ease;
+}
+
+.senna-message {
+    align-items: flex-start;
+}
+
+.user-message {
+    justify-content: flex-end;
+}
+
+.message-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    overflow: hidden;
+    margin-right: 12px;
+    flex-shrink: 0;
+}
+
+.message-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.message-content {
+    max-width: 70%;
+}
+
+.senna-message .message-text {
+    background: white;
+    padding: 12px 16px;
+    border-radius: 12px 12px 12px 0;
+    color: var(--dark-green);
+    font-size: 14px;
+    line-height: 1.5;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.user-message .message-text {
+    background: var(--dark-green);
+    color: white;
+    padding: 12px 16px;
+    border-radius: 12px 12px 0 12px;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.message-time {
+    font-size: 11px;
+    color: #999;
+    margin-top: 4px;
+}
+
+/* Intelligence Package in Chat */
+.sffc-intelligence-message {
+    margin: 20px 0;
+    animation: fadeIn 0.5s ease;
+}
+
+.sffc-intelligence-message .intelligence-package {
+    max-width: 100%;
+    margin: 0;
+}
+
+/* Input Area */
+
+
+.senna-input {
+    flex: 1;
+    padding: 12px 16px;
+    background: #FAFAF8;
+    border: 1px solid rgba(26, 48, 40, 0.1);
+    border-radius: 24px;
+    font-size: 14px;
+    color: var(--dark-green);
+    transition: all 0.3s ease;
+}
+
+.senna-input:focus {
+    outline: none;
+    border-color: var(--gold);
+    background: white;
+}
+
+.senna-send-btn {
+    width: 44px;
+    height: 44px;
+    background: var(--dark-green);
+    border: none;
+    border-radius: 50%;
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.senna-send-btn:hover {
+    background: var(--gold);
+    color: var(--dark-green);
+    transform: scale(1.05);
+}
+
+/* Guided Opportunities Grid */
+.sffc-guided-opportunities {
+    padding: 24px 0;
+}
+
+.sffc-cards-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 20px;
+}
+
+/* Job Card Guided Style */
+.sffc-job-card-guided {
+    background: white;
+    border: 1px solid rgba(26, 48, 40, 0.08);
+    border-radius: 12px;
+    padding: 20px;
+    transition: all 0.3s ease;
+    animation: fadeInUp 0.5s ease backwards;
+}
+
+.sffc-job-card-guided:hover {
+    box-shadow: 0 8px 24px rgba(26, 48, 40, 0.1);
+    transform: translateY(-4px);
+}
+
+.sffc-job-card-guided .card-header {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 16px;
+}
+
+.sffc-job-card-guided .company-logo {
+    width: 48px;
+    height: 48px;
+    background: linear-gradient(135deg, var(--dark-green) 0%, #2A4038 100%);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 20px;
+    font-weight: 600;
+    margin-right: 12px;
+}
+
+.sffc-job-card-guided .job-info {
+    flex: 1;
+}
+
+.sffc-job-card-guided .job-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--dark-green);
+    margin: 0 0 4px 0;
+}
+
+.sffc-job-card-guided .company-name {
+    font-size: 13px;
+    color: #666;
+    margin: 0;
+}
+
+.sffc-job-card-guided .match-score {
+    text-align: center;
+}
+
+.sffc-job-card-guided .match-score .score {
+    display: block;
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--gold);
+}
+
+.sffc-job-card-guided .match-score .label {
+    font-size: 11px;
+    color: #999;
+    text-transform: uppercase;
+}
+
+.sffc-job-card-guided .card-meta {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 12px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(26, 48, 40, 0.08);
+}
+
+.sffc-job-card-guided .meta-item {
+    font-size: 12px;
+    color: #666;
+}
+
+.sffc-job-card-guided .card-skills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 16px;
+}
+
+.sffc-job-card-guided .skill-tag {
+    padding: 4px 10px;
+    background: rgba(45, 106, 79, 0.1);
+    border-radius: 12px;
+    font-size: 11px;
+    color: var(--dark-green);
+}
+
+.sffc-job-card-guided .skill-more {
+    padding: 4px 10px;
+    background: rgba(26, 48, 40, 0.05);
+    border-radius: 12px;
+    font-size: 11px;
+    color: #666;
+}
+
+.sffc-job-card-guided .card-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.sffc-job-card-guided .action-btn {
+    flex: 1;
+    padding: 10px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.sffc-job-card-guided .btn-interested {
+    background: var(--dark-green);
+    color: white;
+    border: 1px solid var(--dark-green);
+}
+
+.sffc-job-card-guided .btn-interested:hover {
+    background: #0F241E;
+}
+
+.sffc-job-card-guided .btn-interested.added {
+    background: var(--gold);
+    color: var(--dark-green);
+    border-color: var(--gold);
+}
+
+.sffc-job-card-guided .btn-pass {
+    background: transparent;
+    color: #666;
+    border: 1px solid rgba(26, 48, 40, 0.2);
+}
+
+.sffc-job-card-guided .btn-pass:hover {
+    background: rgba(26, 48, 40, 0.05);
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Job Cards in Chat - Ensure proper positioning */
+.job-cards-in-chat {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    padding: 0 !important;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.job-cards-in-chat .sffc-match-card,
+.job-cards-in-chat .job-card-vogue,
+.job-cards-in-chat .job-card-simplified {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    box-sizing: border-box !important;
+}
+
+/* Ensure message content doesn't push cards */
+.senna-message .sffc-message-content {
+    width: 100%;
+    max-width: 100%;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .sffc-senna-header {
+        flex-direction: column;
+        gap: 16px;
+        text-align: center;
+    }
+    
+    .senna-greeting {
+        margin-left: 0;
+    }
+    
+    .conversation-stage {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .sffc-cards-container {
+        grid-template-columns: 1fr;
+    }
+    
+    .message-content {
+        max-width: 85%;
+    }
+}
+
+/* Live Expert Message Styles */
+.live-expert-message {
+    /* Inherits all standard senna-message styling */
+}
+
+.live-expert-message .message-text {
+    /* Bigger, more modern content styling */
+    font-size: 16px !important;
+    line-height: 1.7 !important;
+    color: #1f2937 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.live-expert-underline {
+    background: #15803d !important;
+    height: 3px !important;
+}
+
+.live-expert-meta {
+    margin-top: 16px !important;
+    font-size: 13px !important;
+    color: #6b7280 !important;
+    font-weight: 500 !important;
+    padding-top: 12px !important;
+    border-top: 1px solid #f3f4f6 !important;
+}
+
+/* Live Expert Avatar Styles */
+.live-expert-letter-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #fef7ed;
+    color: #1e3a8a;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    font-weight: 700;
+    text-transform: uppercase;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    border: 2px solid #f3f4f6;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.live-expert-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    overflow: hidden;
+    flex-shrink: 0;
+    position: relative;
+    margin-right: 12px;
+}
+
+.live-expert-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+    border: 2px solid #f3f4f6;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}

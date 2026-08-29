@@ -1,0 +1,578 @@
+/**
+ * Ultimate Vogue Premium Interface
+ * 10/10 Premium Design - Better than Claude/ChatGPT
+ */
+
+@import url("https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;900&family=Inter:wght@300;400;500;600&display=swap");
+
+:root {
+  --vogue-black: #0a0a0a;
+  --vogue-charcoal: #1a1a1a;
+  --vogue-gold: #c9a961;
+  --vogue-gold-light: #e4d4a8;
+  --vogue-cream: #faf9f6;
+  --vogue-white: #ffffff;
+  --vogue-gray: #6b6b6b;
+  --vogue-light-gray: #f7f7f5;
+  --vogue-shadow: 0 20px 60px rgba(0, 0, 0, 0.08);
+  --vogue-shadow-hover: 0 30px 80px rgba(0, 0, 0, 0.12);
+}
+
+/* ============================================
+   PROFILE BUILDER - FULLSCREEN PREMIUM
+   ============================================ */
+
+.sffc-profile-builder {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  z-index: 2147483647 !important; /* Maximum z-index */
+  display: none;
+  background: rgba(10, 10, 10, 0.95);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+.sffc-profile-builder.active {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  animation: vogueReveal 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+@keyframes vogueReveal {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.sffc-pb-container {
+  width: 94vw !important;
+  height: 94vh !important;
+  max-width: 1400px !important;
+  max-height: none !important;
+  background: linear-gradient(135deg, #ffffff 0%, #faf9f6 100%);
+  border-radius: 24px;
+  box-shadow: 0 40px 120px rgba(0, 0, 0, 0.3);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+}
+
+/* Progress Bar - Vogue Style */
+.sffc-pb-progress {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: rgba(201, 169, 97, 0.1);
+  z-index: 100;
+}
+
+.sffc-pb-progress-bar {
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    var(--vogue-gold) 0%,
+    var(--vogue-gold-light) 100%
+  );
+  transition: width 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+  box-shadow: 0 0 20px rgba(201, 169, 97, 0.5);
+}
+
+/* Header with Progress */
+.sffc-pb-header {
+  padding: 32px 48px 24px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  background: white;
+}
+
+.sffc-pb-step-indicator {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  margin-top: 20px;
+}
+
+.sffc-pb-step {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-family: "Inter", sans-serif;
+  font-size: 13px;
+  color: var(--vogue-gray);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.sffc-pb-step.active {
+  color: var(--vogue-black);
+  font-weight: 600;
+}
+
+.sffc-pb-step-number {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 2px solid var(--vogue-gray);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.sffc-pb-step.active .sffc-pb-step-number {
+  background: var(--vogue-gold);
+  border-color: var(--vogue-gold);
+  color: white;
+}
+
+.sffc-pb-step.completed .sffc-pb-step-number {
+  background: var(--vogue-black);
+  border-color: var(--vogue-black);
+  color: white;
+}
+
+/* Answer Area - Full Visibility */
+.sffc-pb-answer-area {
+  flex: 1;
+  padding: 48px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.sffc-pb-answer-area::-webkit-scrollbar {
+  width: 8px;
+}
+
+.sffc-pb-answer-area::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.02);
+}
+
+.sffc-pb-answer-area::-webkit-scrollbar-thumb {
+  background: rgba(201, 169, 97, 0.3);
+  border-radius: 4px;
+}
+
+.sffc-pb-answer-area::-webkit-scrollbar-thumb:hover {
+  background: rgba(201, 169, 97, 0.5);
+}
+
+/* ============================================
+   CONVERSATIONAL VIEW - REPOSITIONED
+   ============================================ */
+
+.sffc-conversational-view {
+  position: relative;
+  min-height: 100vh;
+  padding-top: 0 !important;
+}
+
+/* Header Reorganization */
+.sffc-opp-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24px 32px;
+  background: white;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+/* Brand Logo - Top Left */
+.sffc-brand {
+  order: 1;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.sffc-brand-logo {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.sffc-brand-s {
+  font-family: "Playfair Display", serif;
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--vogue-black);
+}
+
+.sffc-brand-dot {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  background: var(--vogue-gold);
+  border-radius: 50%;
+  bottom: 8px;
+  right: 8px;
+}
+
+/* Conversation Stages - Center */
+.conversation-stage {
+  order: 2;
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.stage-indicators {
+  display: flex;
+  gap: 32px;
+}
+
+/* User Actions - Right */
+.sffc-profile-actions {
+  order: 3;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.user-greeting {
+  font-family: "Inter", sans-serif;
+  font-size: 14px;
+  color: var(--vogue-gray);
+  font-weight: 500;
+  padding-right: 8px;
+  border-right: 1px solid rgba(0, 0, 0, 0.08);
+  margin-right: 8px;
+}
+
+/* Search Bar - Below Header */
+.sffc-message-search {
+  position: sticky;
+  top: 60px; /* Moved up from 80px */
+  z-index: 90;
+  background: linear-gradient(to bottom, white 0%, white 80%, transparent 100%);
+  padding: 16px 32px 40px; /* Increased bottom padding from 24px to 40px */
+  margin-bottom: 30px; /* Added margin bottom to create more space */
+}
+
+.sffc-search-wrapper {
+  max-width: 800px;
+  margin: 0 auto;
+  position: relative;
+}
+
+.sffc-search-input {
+  width: 100%;
+  padding: 14px 48px 14px 20px;
+  background: var(--vogue-light-gray);
+  border: 1px solid transparent;
+  border-radius: 12px;
+  font-family: "Inter", sans-serif;
+  font-size: 14px;
+  color: var(--vogue-black);
+  transition: all 0.3s ease;
+}
+
+.sffc-search-input:focus {
+  outline: none;
+  background: white;
+  border-color: var(--vogue-gold);
+  box-shadow: 0 4px 20px rgba(201, 169, 97, 0.15);
+}
+
+.sffc-search-icon {
+  position: absolute;
+  right: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--vogue-gray);
+  pointer-events: none;
+}
+
+.senna-input-wrapper {
+  max-width: 800px !important;
+  margin: 0 auto !important;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: white;
+  padding: 8px 8px 8px 24px !important;
+  border-radius: 32px !important;
+  border: 2px solid rgba(0, 0, 0, 0.06) !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08), 0 4px 16px rgba(0, 0, 0, 0.04),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9) !important;
+  transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+  position: relative;
+  pointer-events: all; /* Re-enable clicks on the input wrapper itself */
+}
+
+.senna-input-wrapper:hover {
+  border-color: rgba(201, 169, 97, 0.2) !important;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.1), 0 4px 16px rgba(0, 0, 0, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9) !important;
+}
+
+.senna-input-wrapper:focus-within {
+  border-color: var(--vogue-gold) !important;
+  box-shadow: 0 12px 48px rgba(201, 169, 97, 0.2),
+    0 4px 16px rgba(201, 169, 97, 0.1), inset 0 1px 0 rgba(255, 255, 255, 1) !important;
+  transform: translateY(-2px);
+}
+
+.senna-input {
+  flex: 1;
+  background: transparent !important;
+  border: none !important;
+  outline: none !important;
+  font-family: "Playfair Display", sans-serif;
+  font-size: 18px !important;
+  line-height: 1.6;
+  color: var(--vogue-black) !important;
+  padding: 8px 0 !important;
+  min-height: 40px;
+  max-height: 120px;
+  resize: none;
+}
+
+.senna-input::placeholder {
+  color: var(--vogue-gray);
+  font-style: normal;
+  font-weight: 400;
+}
+
+/* Input Actions */
+.senna-input-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.senna-action-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  color: var(--vogue-gray);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+/* Typing Indicator - Removed */
+
+/* ============================================
+   CONVERSATION ALIGNMENT
+   ============================================ */
+
+.sffc-senna-conversation,
+.senna-messages {
+  max-width: 800px !important;
+  margin: 0 auto !important;
+  padding: 32px 0 140px !important; /* Space for floating input */
+}
+
+/* Ensure job cards container also aligns */
+.job-cards-container {
+  max-width: 800px !important;
+  margin: 0 auto !important;
+}
+
+/* Message Alignment with Input */
+.senna-message {
+  margin: 0 0 24px 0 !important;
+  animation: messageSlide 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+@keyframes messageSlide {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ============================================
+   PREMIUM POLISH - FINAL TOUCHES
+   ============================================ */
+
+/* Option Cards - Ultra Premium */
+.option-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-top: 20px;
+}
+
+.option-card {
+  padding: 20px;
+  background: white;
+  border: 1.5px solid rgba(0, 0, 0, 0.06);
+  border-radius: 16px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.option-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, #2d6a4f, #4a8b6f);
+  transform: scaleX(0);
+  transition: transform 0.3s ease;
+}
+
+.option-card:hover {
+  border-color: #2d6a4f;
+  transform: translateY(-4px);
+  box-shadow: 0 12px 32px rgba(45, 106, 79, 0.15);
+  background: #2d6a4f;
+  color: white;
+}
+
+.option-card:hover .option-card-text,
+.option-card:hover .option-card-icon,
+.option-card:hover span,
+.option-card:hover p {
+  color: white !important;
+}
+
+.option-card:hover svg {
+  stroke: white !important;
+  fill: white !important;
+}
+
+.option-card:hover::before {
+  transform: scaleX(1);
+}
+
+/* Job Cards - Vogue Enhancement */
+.job-card-vogue {
+  background: white !important;
+  border: 1px solid rgba(0, 0, 0, 0.04) !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04) !important;
+  transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1) !important;
+}
+
+.job-card-vogue:hover {
+  transform: translateY(-8px) !important;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08) !important;
+  border-color: var(--vogue-gold) !important;
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+/* Loading States */
+.loading-shimmer {
+  background: linear-gradient(
+    90deg,
+    var(--vogue-light-gray) 25%,
+    rgba(201, 169, 97, 0.1) 50%,
+    var(--vogue-light-gray) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* Focus States */
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--vogue-gold);
+  outline-offset: 2px;
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+  .sffc-opp-header {
+    flex-direction: column;
+    gap: 16px;
+    padding: 16px;
+  }
+
+  .sffc-brand {
+    align-self: flex-start;
+  }
+
+  .conversation-stage {
+    width: 100%;
+    order: 3;
+  }
+
+  .sffc-profile-actions {
+    width: 100%;
+    justify-content: flex-end;
+    order: 2;
+  }
+
+  .senna-input-wrapper {
+    border-radius: 24px !important;
+    padding: 6px 6px 6px 16px !important;
+  }
+
+  .sffc-message-search {
+    padding: 12px 16px 20px;
+  }
+}
+
+/* High DPI Displays */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .sffc-brand-logo,
+  .option-card,
+  .job-card-vogue {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+/* Print Styles */
+@media print;

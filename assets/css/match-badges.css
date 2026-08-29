@@ -1,0 +1,302 @@
+/**
+ * Match Badges CSS
+ * Visual indicators for job match scores
+ * Integrates with existing opportunity cards
+ */
+
+/* Match Indicator Badge */
+.sffc-match-indicator {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 8px 14px;
+    border-radius: 20px;
+    font-family: 'Montserrat', sans-serif;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    z-index: 10;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    animation: fadeInScale 0.4s ease;
+}
+
+@keyframes fadeInScale {
+    from {
+        opacity: 0;
+        transform: scale(0.8);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.sffc-match-indicator:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+}
+
+/* Match Score removed - fake percentages deleted */
+
+/* Match Label */
+.sffc-match-label {
+    font-size: 10px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-top: 2px;
+    opacity: 0.9;
+}
+
+/* Color Schemes for Different Match Levels */
+
+/* Perfect Match (90-100%) */
+.sffc-match-indicator.perfect-match {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #FFFFFF;
+}
+
+/* Very Strong Match (80-89%) */
+.sffc-match-indicator.very-strong-match {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    color: #FFFFFF;
+}
+
+/* Strong Match (70-79%) */
+.sffc-match-indicator.strong-match {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    color: #FFFFFF;
+}
+
+/* Good Match (60-69%) */
+.sffc-match-indicator.good-match {
+    background: linear-gradient(135deg, var(--gold) 0%, var(--light-gold) 100%);
+    color: var(--dark-green);
+}
+
+/* Moderate Match (50-59%) */
+.sffc-match-indicator.moderate-match {
+    background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+    color: var(--dark-green);
+}
+
+/* Stretch Match (<50%) */
+.sffc-match-indicator.stretch-match {
+    background: var(--cream);
+    border: 1px solid var(--light-gold);
+    color: var(--muted-brown);
+}
+
+/* Position adjustment for job cards */
+.sffc-opportunity-card {
+    position: relative;
+}
+
+/* Match Details Expansion */
+.sffc-match-details {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    margin-top: 8px;
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.98);
+    backdrop-filter: blur(10px);
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(26, 48, 40, 0.12);
+    min-width: 200px;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: all 0.3s ease;
+    z-index: 20;
+}
+
+.sffc-match-indicator:hover + .sffc-match-details,
+.sffc-match-details:hover {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+/* Match Reasons List */
+.sffc-match-reasons {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.sffc-match-reason {
+    display: flex;
+    align-items: flex-start;
+    padding: 6px 0;
+    font-size: 12px;
+    color: var(--dark-green);
+    line-height: 1.4;
+}
+
+.sffc-match-reason::before {
+    content: "✓";
+    color: var(--gold);
+    font-weight: 600;
+    margin-right: 8px;
+    flex-shrink: 0;
+}
+
+/* Skill Gaps */
+.sffc-skill-gaps {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(201, 169, 97, 0.2);
+}
+
+.sffc-skill-gap-title {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--muted-brown);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 6px;
+}
+
+.sffc-skill-gap-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+
+.sffc-skill-gap {
+    display: inline-block;
+    padding: 4px 8px;
+    background: var(--cream);
+    border-radius: 12px;
+    font-size: 11px;
+    color: var(--muted-brown);
+}
+
+/* Loading State for Match Calculation */
+.sffc-match-loading {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.sffc-match-loading::after {
+    content: "";
+    width: 24px;
+    height: 24px;
+    border: 2px solid var(--cream);
+    border-top-color: var(--gold);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* No Profile State */
+.sffc-no-profile-badge {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    padding: 6px 12px;
+    background: var(--cream);
+    border: 1px dashed var(--gold);
+    border-radius: 16px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 11px;
+    color: var(--muted-brown);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.sffc-no-profile-badge:hover {
+    background: var(--gold);
+    color: var(--pure-white);
+    border-style: solid;
+}
+
+/* Match Score Animation on Update */
+.sffc-match-indicator.updating {
+    animation: pulse 0.6s ease;
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .sffc-match-indicator {
+        top: 12px;
+        right: 12px;
+        padding: 6px 10px;
+    }
+    
+    /* .sffc-match-score removed */ {
+        font-size: 16px;
+    }
+    
+    .sffc-match-label {
+        font-size: 9px;
+    }
+    
+    .sffc-match-details {
+        position: fixed;
+        top: auto;
+        bottom: 20px;
+        left: 20px;
+        right: 20px;
+        transform: translateY(100%);
+    }
+    
+    .sffc-match-indicator:hover + .sffc-match-details,
+    .sffc-match-details:hover {
+        transform: translateY(0);
+    }
+}
+
+/* Integration with Existing Cards */
+.sffc-opportunity-card .sffc-company-header {
+    position: relative;
+    padding-right: 100px; /* Make room for badge */
+}
+
+/* Profile Prompt on Low Match */
+.sffc-improve-profile-prompt {
+    margin-top: 12px;
+    padding: 8px 12px;
+    background: linear-gradient(135deg, var(--cream) 0%, rgba(248, 244, 237, 0.5) 100%);
+    border-radius: 8px;
+    font-size: 12px;
+    color: var(--dark-green);
+    text-align: center;
+}
+
+.sffc-improve-profile-btn {
+    display: inline-block;
+    margin-top: 6px;
+    padding: 4px 12px;
+    background: var(--dark-green);
+    color: var(--pure-white);
+    border-radius: 14px;
+    font-size: 11px;
+    font-weight: 500;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.sffc-improve-profile-btn:hover {
+    background: var(--gold);
+    color: var(--dark-green);
+    transform: translateY(-1px);
+}

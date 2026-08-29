@@ -1,0 +1,815 @@
+/**
+ * Career Onboarding - McKinsey Institutional Design
+ *
+ * Premium sequenced onboarding experience
+ * Clean, professional, corporate aesthetic
+ *
+ * @package SFFC_Careers
+ */
+
+/* =============================================
+   CSS VARIABLES
+   ============================================= */
+
+:root {
+    --onboarding-bg: #f8fafc;
+    --onboarding-card-bg: #ffffff;
+    --onboarding-primary: #1e3a5f;
+    --onboarding-primary-light: #2563eb;
+    --onboarding-text: #1e293b;
+    --onboarding-text-muted: #64748b;
+    --onboarding-text-soft: #94a3b8;
+    --onboarding-border: rgba(15, 23, 42, 0.08);
+    --onboarding-border-strong: rgba(15, 23, 42, 0.12);
+    --onboarding-success: #22c55e;
+    --onboarding-radius: 12px;
+    --onboarding-radius-sm: 8px;
+    --onboarding-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+    --onboarding-shadow-lg: 0 12px 48px rgba(0, 0, 0, 0.1);
+    --onboarding-font: system-ui, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
+}
+
+/* =============================================
+   BASE LAYOUT
+   ============================================= */
+
+.sffc-onboarding {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100vw;
+    height: 100vh;
+    background: var(--onboarding-bg);
+    z-index: 999999;
+    display: flex;
+    flex-direction: column;
+    font-family: var(--onboarding-font);
+    overflow: hidden;
+}
+
+/* Hide WP admin bar and other elements */
+body.sffc-onboarding-active #wpadminbar,
+body.sffc-onboarding-active header,
+body.sffc-onboarding-active .site-header,
+body.sffc-onboarding-active footer,
+body.sffc-onboarding-active .site-footer {
+    display: none !important;
+}
+
+/* =============================================
+   PROGRESS BAR
+   ============================================= */
+
+.sffc-onboarding-progress {
+    width: 100%;
+    padding: 24px 40px;
+    background: var(--onboarding-card-bg);
+    border-bottom: 1px solid var(--onboarding-border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+}
+
+.sffc-onboarding-progress-bar {
+    flex: 1;
+    max-width: 400px;
+    height: 4px;
+    background: rgba(15, 23, 42, 0.08);
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.sffc-onboarding-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--onboarding-primary-light), #0ea5e9);
+    border-radius: 2px;
+    transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.sffc-onboarding-step-indicator {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--onboarding-text-muted);
+    letter-spacing: -0.01em;
+}
+
+/* =============================================
+   STEPS CONTAINER
+   ============================================= */
+
+.sffc-onboarding-steps {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+    overflow-y: auto;
+}
+
+.sffc-onboarding-step {
+    display: none;
+    width: 100%;
+    max-width: 640px;
+    background: var(--onboarding-card-bg);
+    border-radius: var(--onboarding-radius);
+    box-shadow: var(--onboarding-shadow-lg);
+    border: 1px solid var(--onboarding-border);
+    animation: fadeInUp 0.4s ease;
+}
+
+.sffc-onboarding-step.active {
+    display: block;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* =============================================
+   STEP HEADER
+   ============================================= */
+
+.sffc-onboarding-step-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 32px 32px 24px;
+    border-bottom: 1px solid var(--onboarding-border);
+}
+
+.sffc-onboarding-step-number {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, var(--onboarding-primary-light), #0ea5e9);
+    color: #ffffff;
+    font-size: 16px;
+    font-weight: 600;
+    border-radius: 10px;
+    flex-shrink: 0;
+}
+
+.sffc-onboarding-step-titles {
+    flex: 1;
+}
+
+.sffc-onboarding-step-title {
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--onboarding-text);
+    margin: 0 0 4px;
+    letter-spacing: -0.02em;
+}
+
+.sffc-onboarding-step-subtitle {
+    font-size: 14px;
+    color: var(--onboarding-text-muted);
+    margin: 0;
+    font-weight: 400;
+}
+
+/* =============================================
+   STEP CONTENT
+   ============================================= */
+
+.sffc-onboarding-step-content {
+    padding: 32px;
+}
+
+/* =============================================
+   INTRO STEP
+   ============================================= */
+
+.sffc-onboarding-intro {
+    text-align: center;
+}
+
+.sffc-onboarding-intro-icon {
+    margin-bottom: 24px;
+}
+
+.sffc-onboarding-intro-text {
+    margin-bottom: 32px;
+}
+
+.sffc-onboarding-intro-text p {
+    font-size: 15px;
+    color: var(--onboarding-text-muted);
+    line-height: 1.7;
+    margin: 0 0 16px;
+}
+
+.sffc-onboarding-intro-time {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--onboarding-text-soft);
+    padding: 8px 16px;
+    background: rgba(15, 23, 42, 0.04);
+    border-radius: 20px;
+}
+
+.sffc-onboarding-intro-benefits {
+    text-align: left;
+    background: rgba(37, 99, 235, 0.04);
+    border: 1px solid rgba(37, 99, 235, 0.1);
+    border-radius: var(--onboarding-radius-sm);
+    padding: 20px;
+}
+
+.sffc-onboarding-benefit {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px 0;
+}
+
+.sffc-onboarding-benefit:not(:last-child) {
+    border-bottom: 1px solid rgba(37, 99, 235, 0.08);
+}
+
+.sffc-onboarding-benefit-icon {
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(37, 99, 235, 0.1);
+    border-radius: 6px;
+    flex-shrink: 0;
+}
+
+.sffc-onboarding-benefit-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.sffc-onboarding-benefit-text strong {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--onboarding-text);
+}
+
+.sffc-onboarding-benefit-text span {
+    font-size: 13px;
+    color: var(--onboarding-text-muted);
+}
+
+/* =============================================
+   FORM FIELDS
+   ============================================= */
+
+.sffc-onboarding-form {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.sffc-onboarding-field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.sffc-onboarding-field label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--onboarding-text);
+    letter-spacing: 0.01em;
+}
+
+.sffc-field-hint {
+    font-weight: 400;
+    color: var(--onboarding-text-soft);
+    margin-left: 8px;
+}
+
+.sffc-onboarding-field input[type="text"],
+.sffc-onboarding-field input[type="number"],
+.sffc-onboarding-field input[type="date"],
+.sffc-onboarding-field input[type="email"],
+.sffc-onboarding-field select {
+    width: 100%;
+    padding: 14px 16px;
+    font-size: 15px;
+    font-family: var(--onboarding-font);
+    color: var(--onboarding-text);
+    background: var(--onboarding-card-bg);
+    border: 1px solid var(--onboarding-border-strong);
+    border-radius: var(--onboarding-radius-sm);
+    transition: all 0.2s ease;
+}
+
+.sffc-onboarding-field input:focus,
+.sffc-onboarding-field select:focus {
+    outline: none;
+    border-color: var(--onboarding-primary-light);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.sffc-onboarding-field input::placeholder {
+    color: var(--onboarding-text-soft);
+}
+
+/* Input with prefix (currency) */
+.sffc-onboarding-input-prefix {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.sffc-onboarding-input-prefix span {
+    position: absolute;
+    left: 16px;
+    font-size: 15px;
+    color: var(--onboarding-text-muted);
+    font-weight: 500;
+}
+
+.sffc-onboarding-input-prefix input {
+    padding-left: 36px;
+}
+
+/* Half-width fields */
+.sffc-onboarding-field-half {
+    display: inline-flex;
+    flex-direction: column;
+    width: calc(50% - 12px);
+}
+
+/* =============================================
+   OPTION SELECTORS (Radio/Checkbox)
+   ============================================= */
+
+.sffc-onboarding-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.sffc-onboarding-options-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+}
+
+.sffc-onboarding-options-inline {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.sffc-onboarding-options-multi {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.sffc-onboarding-options-locations {
+    max-height: 280px;
+    overflow-y: auto;
+    padding-right: 8px;
+}
+
+.sffc-onboarding-option {
+    position: relative;
+    cursor: pointer;
+}
+
+.sffc-onboarding-option input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.sffc-onboarding-option-content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 18px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--onboarding-text);
+    background: var(--onboarding-card-bg);
+    border: 1px solid var(--onboarding-border-strong);
+    border-radius: var(--onboarding-radius-sm);
+    transition: all 0.2s ease;
+    text-align: center;
+}
+
+.sffc-onboarding-option:hover .sffc-onboarding-option-content {
+    border-color: var(--onboarding-primary-light);
+    background: rgba(37, 99, 235, 0.02);
+}
+
+.sffc-onboarding-option input:checked + .sffc-onboarding-option-content {
+    background: rgba(37, 99, 235, 0.08);
+    border-color: var(--onboarding-primary-light);
+    color: var(--onboarding-primary-light);
+}
+
+/* Checkbox style options */
+.sffc-onboarding-option-checkbox .sffc-onboarding-option-content {
+    padding: 10px 14px;
+    font-size: 13px;
+}
+
+/* =============================================
+   SKILLS STEP
+   ============================================= */
+
+.sffc-onboarding-skills {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.sffc-onboarding-skills-input label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--onboarding-text);
+    margin-bottom: 8px;
+}
+
+.sffc-onboarding-skill-add {
+    display: flex;
+    gap: 10px;
+}
+
+.sffc-onboarding-skill-add input {
+    flex: 1;
+    padding: 14px 16px;
+    font-size: 15px;
+    font-family: var(--onboarding-font);
+    color: var(--onboarding-text);
+    background: var(--onboarding-card-bg);
+    border: 1px solid var(--onboarding-border-strong);
+    border-radius: var(--onboarding-radius-sm);
+    transition: all 0.2s ease;
+}
+
+.sffc-onboarding-skill-add input:focus {
+    outline: none;
+    border-color: var(--onboarding-primary-light);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.sffc-onboarding-skills-selected {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    min-height: 44px;
+    padding: 12px;
+    background: rgba(15, 23, 42, 0.02);
+    border: 1px dashed var(--onboarding-border-strong);
+    border-radius: var(--onboarding-radius-sm);
+}
+
+.sffc-onboarding-skill-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 12px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--onboarding-primary-light);
+    background: rgba(37, 99, 235, 0.08);
+    border-radius: 20px;
+}
+
+.sffc-onboarding-skill-tag .sffc-remove-skill {
+    width: 16px;
+    height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: none;
+    color: var(--onboarding-primary-light);
+    cursor: pointer;
+    font-size: 16px;
+    line-height: 1;
+    opacity: 0.6;
+    transition: opacity 0.2s;
+}
+
+.sffc-onboarding-skill-tag .sffc-remove-skill:hover {
+    opacity: 1;
+}
+
+.sffc-onboarding-skills-suggested {
+    padding-top: 16px;
+    border-top: 1px solid var(--onboarding-border);
+}
+
+.sffc-onboarding-skills-suggested-label {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--onboarding-text-soft);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin: 0 0 12px;
+}
+
+.sffc-onboarding-skills-suggested-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.sffc-onboarding-suggested-skill {
+    padding: 8px 14px;
+    font-size: 13px;
+    font-family: var(--onboarding-font);
+    font-weight: 500;
+    color: var(--onboarding-text-muted);
+    background: transparent;
+    border: 1px solid var(--onboarding-border-strong);
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.sffc-onboarding-suggested-skill:hover {
+    color: var(--onboarding-primary-light);
+    border-color: var(--onboarding-primary-light);
+    background: rgba(37, 99, 235, 0.04);
+}
+
+.sffc-onboarding-suggested-skill.added {
+    display: none;
+}
+
+/* =============================================
+   COMPLETE STEP
+   ============================================= */
+
+.sffc-onboarding-complete {
+    text-align: center;
+    padding: 20px 0;
+}
+
+.sffc-onboarding-complete-icon {
+    margin-bottom: 24px;
+}
+
+.sffc-onboarding-complete h3 {
+    font-size: 28px;
+    font-weight: 600;
+    color: var(--onboarding-text);
+    margin: 0 0 12px;
+    letter-spacing: -0.02em;
+}
+
+.sffc-onboarding-complete p {
+    font-size: 15px;
+    color: var(--onboarding-text-muted);
+    line-height: 1.6;
+    margin: 0 0 32px;
+    max-width: 420px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.sffc-onboarding-complete-summary {
+    background: rgba(15, 23, 42, 0.02);
+    border: 1px solid var(--onboarding-border);
+    border-radius: var(--onboarding-radius-sm);
+    padding: 20px;
+    margin-bottom: 32px;
+    text-align: left;
+}
+
+.sffc-onboarding-summary-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 0;
+}
+
+.sffc-onboarding-summary-item:not(:last-child) {
+    border-bottom: 1px solid var(--onboarding-border);
+}
+
+.sffc-onboarding-summary-label {
+    font-size: 13px;
+    color: var(--onboarding-text-muted);
+}
+
+.sffc-onboarding-summary-value {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--onboarding-text);
+}
+
+.sffc-onboarding-summary-success {
+    color: var(--onboarding-success);
+}
+
+/* =============================================
+   NAVIGATION
+   ============================================= */
+
+.sffc-onboarding-nav {
+    width: 100%;
+    padding: 20px 40px;
+    background: var(--onboarding-card-bg);
+    border-top: 1px solid var(--onboarding-border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+}
+
+.sffc-onboarding-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 24px;
+    font-size: 14px;
+    font-family: var(--onboarding-font);
+    font-weight: 600;
+    border-radius: var(--onboarding-radius-sm);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: none;
+}
+
+.sffc-onboarding-btn-primary {
+    background: linear-gradient(135deg, var(--onboarding-primary), #1e40af);
+    color: #ffffff;
+}
+
+.sffc-onboarding-btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(30, 58, 95, 0.25);
+}
+
+.sffc-onboarding-btn-secondary {
+    background: transparent;
+    color: var(--onboarding-text-muted);
+    border: 1px solid var(--onboarding-border-strong);
+}
+
+.sffc-onboarding-btn-secondary:hover {
+    color: var(--onboarding-text);
+    border-color: var(--onboarding-text-muted);
+}
+
+.sffc-onboarding-btn-text {
+    background: transparent;
+    color: var(--onboarding-text-soft);
+    padding: 14px 16px;
+}
+
+.sffc-onboarding-btn-text:hover {
+    color: var(--onboarding-text-muted);
+}
+
+.sffc-onboarding-btn-small {
+    padding: 10px 16px;
+    font-size: 13px;
+}
+
+.sffc-onboarding-btn-large {
+    padding: 16px 32px;
+    font-size: 15px;
+}
+
+/* =============================================
+   LOGIN PROMPT
+   ============================================= */
+
+.sffc-onboarding-login {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--onboarding-bg);
+    z-index: 999999;
+}
+
+.sffc-onboarding-login-content {
+    text-align: center;
+    max-width: 400px;
+    padding: 48px;
+    background: var(--onboarding-card-bg);
+    border-radius: var(--onboarding-radius);
+    box-shadow: var(--onboarding-shadow-lg);
+    border: 1px solid var(--onboarding-border);
+}
+
+.sffc-onboarding-logo {
+    margin-bottom: 24px;
+}
+
+.sffc-onboarding-login-content h1 {
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--onboarding-text);
+    margin: 0 0 12px;
+}
+
+.sffc-onboarding-login-content > p {
+    font-size: 14px;
+    color: var(--onboarding-text-muted);
+    margin: 0 0 24px;
+}
+
+.sffc-onboarding-signup {
+    font-size: 13px;
+    color: var(--onboarding-text-muted);
+    margin-top: 20px;
+}
+
+.sffc-onboarding-signup a {
+    color: var(--onboarding-primary-light);
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.sffc-onboarding-signup a:hover {
+    text-decoration: underline;
+}
+
+/* =============================================
+   RESPONSIVE
+   ============================================= */
+
+@media (max-width: 768px) {
+    .sffc-onboarding-progress {
+        padding: 16px 20px;
+    }
+
+    .sffc-onboarding-steps {
+        padding: 20px;
+    }
+
+    .sffc-onboarding-step-header {
+        padding: 24px 24px 20px;
+    }
+
+    .sffc-onboarding-step-content {
+        padding: 24px;
+    }
+
+    .sffc-onboarding-step-title {
+        font-size: 20px;
+    }
+
+    .sffc-onboarding-nav {
+        padding: 16px 20px;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    .sffc-onboarding-btn-text {
+        order: -1;
+        width: 100%;
+        justify-content: center;
+    }
+
+    .sffc-onboarding-options-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .sffc-onboarding-field-half {
+        width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    .sffc-onboarding-step-header {
+        flex-direction: column;
+        gap: 12px;
+        text-align: center;
+    }
+
+    .sffc-onboarding-step-number {
+        margin: 0 auto;
+    }
+
+    .sffc-onboarding-btn {
+        padding: 12px 20px;
+        font-size: 13px;
+    }
+}

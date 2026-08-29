@@ -1,0 +1,443 @@
+/**
+ * PE Filter Cards - Centered Chat Layout
+ * Sidebar on left, chat content centered in remaining space
+ */
+
+/* MAIN SIDEBAR - Fixed on left */
+.pe-filter-sidebar {
+    position: fixed !important;
+    left: 0 !important;
+    top: 80px !important;
+    width: 420px !important;
+    height: calc(100vh - 80px) !important;
+    background: #F5F2E8 !important;
+    overflow: hidden !important;
+    box-shadow: 10px 0 30px rgba(13, 53, 62, 0.1) !important;
+    z-index: 10 !important;
+    display: flex !important;
+    flex-direction: column !important;
+}
+
+/* MAIN CHAT CONTAINER - Centered in remaining space */
+.sffc-opportunities-wrapper {
+    margin-left: 420px !important; /* Account for sidebar */
+    padding: 0 !important;
+    max-width: none !important;
+}
+
+.sffc-main-container {
+    max-width: 900px !important; /* Limit width for readability */
+    margin: 0 auto !important; /* Center horizontally */
+    padding: 0 40px !important; /* Add padding on sides */
+}
+
+/* CONVERSATION VIEW - Centered content */
+.sffc-conversational-view {
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 auto !important;
+}
+
+/* MENA CAREERS CONVERSATION - Centered messages */
+.sffc-senna-conversation {
+    max-width: 800px !important;
+    margin: 0 auto !important;
+    width: 100% !important;
+    padding: 20px !important;
+}
+
+/* MESSAGES CONTAINER - Centered */
+.senna-messages {
+    max-width: 700px !important;
+    margin: 0 auto !important;
+    width: 100% !important;
+}
+
+/* INPUT AREA - Centered and fixed at bottom */
+
+
+/* INPUT WRAPPER - Centered with max width */
+.senna-input-wrapper {
+    max-width: 700px !important;
+    width: 100% !important;
+    margin: 0 auto !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 12px !important;
+    background: white !important;
+    border-radius: 24px !important;
+    padding: 8px 16px !important;
+    box-shadow: 0 2px 20px rgba(13, 53, 62, 0.1) !important;
+}
+
+/* HEADER - Centered content */
+.sffc-opp-header {
+    margin-left: 420px !important; /* Account for sidebar */
+}
+
+.sffc-opp-header-inner {
+    max-width: 900px !important;
+    margin: 0 auto !important;
+    padding: 0 40px !important;
+}
+
+/* JOB CARDS - Centered */
+.job-card-vogue,
+.sffc-match-card {
+    max-width: 650px !important;
+    margin: 20px auto !important;
+}
+
+/* STORIES BAR - Inside sidebar */
+.pe-quick-filters,
+.stories-bar {
+    position: relative !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100px !important;
+    min-height: 100px !important;
+    background: linear-gradient(to bottom, rgba(245, 242, 232, 0.98), rgba(245, 242, 232, 0.8)) !important;
+    z-index: 100 !important;
+    padding: 20px 16px !important;
+    display: flex !important;
+    gap: 12px !important;
+    overflow-x: auto !important;
+    scrollbar-width: none !important;
+    border-bottom: 1px solid #E0DDD3 !important;
+    flex-shrink: 0 !important;
+}
+
+.pe-quick-filters::-webkit-scrollbar {
+    display: none !important;
+}
+
+/* Story bubbles */
+.pe-quick-filter-item {
+    flex-shrink: 0 !important;
+    width: 60px !important;
+    text-align: center !important;
+    cursor: pointer !important;
+}
+
+.pe-quick-icon {
+    width: 60px !important;
+    height: 60px !important;
+    border-radius: 16px !important;
+    padding: 3px !important;
+    position: relative !important;
+    transition: all 0.3s ease !important;
+}
+
+.pe-quick-icon:hover {
+    transform: scale(1.1) rotate(3deg) !important;
+}
+
+/* Bubble shapes */
+.pe-quick-filter-item:nth-child(1) .pe-quick-icon {
+    background: linear-gradient(135deg, #0d353e 0%, #6B8E8F 50%, #0d353e 100%) !important;
+    border-radius: 50% !important;
+    animation: pulse-glow 3s infinite !important;
+}
+
+@keyframes pulse-glow {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(13, 53, 62, 0.4); }
+    50% { box-shadow: 0 0 20px 5px rgba(13, 53, 62, 0.2); }
+}
+
+.pe-quick-filter-item:nth-child(2) .pe-quick-icon {
+    background: conic-gradient(from 45deg, #0d353e, #6B8E8F, #0d353e) !important;
+    border-radius: 20px !important;
+}
+
+.pe-quick-filter-item:nth-child(3) .pe-quick-icon {
+    background: linear-gradient(45deg, #E0DDD3 25%, transparent 25%, transparent 75%, #E0DDD3 75%, #E0DDD3),
+                linear-gradient(45deg, #E0DDD3 25%, #6B8E8F 25%, #6B8E8F 75%, #E0DDD3 75%) !important;
+    background-size: 20px 20px !important;
+    background-position: 0 0, 10px 10px !important;
+    border-radius: 50% !important;
+}
+
+.pe-quick-filter-item:nth-child(4) .pe-quick-icon {
+    background: linear-gradient(to right, #0d353e 0%, #0d353e 33%, #6B8E8F 33%, #6B8E8F 66%, #0d353e 66%, #0d353e 100%) !important;
+    border-radius: 50% 20% 50% 20% !important;
+}
+
+.pe-quick-filter-item:nth-child(5) .pe-quick-icon {
+    background: radial-gradient(circle at center, #6B8E8F 0%, #0d353e 70%) !important;
+    border-radius: 18px !important;
+    overflow: hidden !important;
+}
+
+.pe-quick-filter-item:nth-child(6) .pe-quick-icon {
+    background: repeating-linear-gradient(45deg, #E0DDD3, #E0DDD3 5px, #6B8E8F 5px, #6B8E8F 10px) !important;
+    border-radius: 50% !important;
+}
+
+/* Inner avatar */
+.pe-quick-icon-inner {
+    width: 100% !important;
+    height: 100% !important;
+    border-radius: inherit !important;
+    background: white !important;
+    border: 2px solid #F5F2E8 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 16px !important;
+    color: #0d353e !important;
+    font-weight: 700 !important;
+    backdrop-filter: blur(10px) !important;
+    background: rgba(255, 255, 255, 0.95) !important;
+}
+
+.pe-filter-label {
+    color: #0d353e !important;
+    font-size: 10px !important;
+    margin-top: 4px !important;
+    font-weight: 500 !important;
+}
+
+/* SCROLL AREA for cards */
+.pe-main-filters,
+.content-scroll {
+    flex: 1 !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    scroll-snap-type: y proximity !important;
+    scrollbar-width: none !important;
+    padding-top: 0 !important;
+    padding-bottom: 20px !important;
+    background: #F5F2E8 !important;
+    position: relative !important;
+}
+
+.pe-main-filters::-webkit-scrollbar {
+    display: none !important;
+}
+
+/* QUESTION CARDS */
+.question-card {
+    min-height: 60vh !important;
+    max-height: 70vh !important;
+    scroll-snap-align: start !important;
+    position: relative !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    padding: 80px 20px 60px !important;
+    background: linear-gradient(135deg, #0d353e 0%, #1a5a65 100%) !important;
+    margin-bottom: 20px !important;
+    border-radius: 0 !important;
+    overflow: hidden !important;
+}
+
+.question-card:first-child {
+    margin-top: 12px !important;
+}
+
+.question-card::before {
+    content: '' !important;
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    background: radial-gradient(circle at 20% 50%, rgba(107, 142, 143, 0.1) 0%, transparent 50%) !important;
+    pointer-events: none !important;
+}
+
+.question-card:nth-child(2) {
+    background: linear-gradient(145deg, #0d353e 0%, #2a6a75 100%) !important;
+}
+
+.question-card:nth-child(3) {
+    background: linear-gradient(125deg, #0d353e 0%, #1f5460 100%) !important;
+}
+
+.question-card:nth-child(4) {
+    background: linear-gradient(155deg, #0d353e 0%, #3a7a85 100%) !important;
+}
+
+/* Content styling */
+.question-content {
+    flex: 1 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    max-width: 340px !important;
+    margin: 0 auto !important;
+    position: relative !important;
+    z-index: 1 !important;
+}
+
+.question-category {
+    color: rgba(255,255,255,0.9) !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 1px !important;
+    margin-bottom: 8px !important;
+}
+
+.question-title {
+    color: white !important;
+    font-size: 28px !important;
+    font-weight: 700 !important;
+    line-height: 1.3 !important;
+    margin-bottom: 20px !important;
+    text-shadow: 0 2px 10px rgba(0,0,0,0.2) !important;
+}
+
+.question-preview {
+    color: rgba(255,255,255,0.95) !important;
+    font-size: 16px !important;
+    line-height: 1.6 !important;
+    margin-bottom: 30px !important;
+}
+
+.question-bullets {
+    list-style: none !important;
+    padding: 0 !important;
+    margin: 20px 0 !important;
+}
+
+.question-bullets li {
+    color: rgba(255,255,255,0.85) !important;
+    font-size: 14px !important;
+    line-height: 1.8 !important;
+    padding-left: 20px !important;
+    position: relative !important;
+}
+
+.question-bullets li:before {
+    content: '→' !important;
+    position: absolute !important;
+    left: 0 !important;
+    color: rgba(255,255,255,0.6) !important;
+}
+
+.filter-meta {
+    display: flex !important;
+    gap: 8px !important;
+    margin-top: 16px !important;
+    flex-wrap: wrap !important;
+}
+
+.meta-tag {
+    display: inline-block !important;
+    padding: 4px 10px !important;
+    background: rgba(255,255,255,0.15) !important;
+    border-radius: 12px !important;
+    color: rgba(255,255,255,0.9) !important;
+    font-size: 12px !important;
+    font-weight: 500 !important;
+}
+
+.trending-badge {
+    position: absolute !important;
+    top: 20px !important;
+    left: 20px !important;
+    background: rgba(245, 242, 232, 0.95) !important;
+    backdrop-filter: blur(10px) !important;
+    padding: 8px 16px !important;
+    border-radius: 20px !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    border: 1px solid rgba(255,255,255,0.3) !important;
+    z-index: 2 !important;
+}
+
+.trending-icon {
+    width: 16px !important;
+    height: 16px !important;
+    background: #0d353e !important;
+    border-radius: 50% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    color: #F5F2E8 !important;
+    font-size: 10px !important;
+    font-weight: bold !important;
+}
+
+.trending-text {
+    color: #0d353e !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+}
+
+.bottom-cta {
+    position: absolute !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    padding: 20px !important;
+    background: linear-gradient(to top, rgba(13, 53, 62, 0.9), transparent) !important;
+}
+
+.ask-senna-btn {
+    width: 100% !important;
+    padding: 16px !important;
+    background: #F5F2E8 !important;
+    border: 2px solid #F5F2E8 !important;
+    border-radius: 12px !important;
+    color: #0d353e !important;
+    font-size: 16px !important;
+    font-weight: 700 !important;
+    cursor: pointer !important;
+    transition: all 0.2s !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 8px !important;
+}
+
+.ask-senna-btn:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 10px 30px rgba(245,242,232,0.3) !important;
+    background: white !important;
+}
+
+/* Hide old elements */
+.pe-filter-section,
+.pe-filter-options,
+input[type="checkbox"] {
+    display: none !important;
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+    .sffc-main-container {
+        max-width: 100% !important;
+        padding: 0 20px !important;
+    }
+    
+    .senna-messages,
+    .senna-input-wrapper {
+        max-width: 600px !important;
+    }
+}
+
+@media (max-width: 768px) {
+    .pe-filter-sidebar {
+        left: -100% !important;
+        top: 0 !important;
+        height: 100vh !important;
+        transition: left 0.3s ease !important;
+        z-index: 100 !important;
+    }
+    
+    .pe-filter-sidebar.active {
+        left: 0 !important;
+    }
+    
+    .sffc-opportunities-wrapper,
+    .sffc-opp-header,
+    
+    
+    .sffc-main-container {
+        padding: 0 15px !important;
+    }
+}

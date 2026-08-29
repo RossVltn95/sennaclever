@@ -1,0 +1,204 @@
+/**
+ * Message Styling Fix
+ * Ensures all MENA Careers messages use WSJ styling
+ */
+
+/* Apply WSJ style to all MENA Careers messages */
+.sffc-message.sffc-message-senna,
+.senna-message {
+    display: flex !important;
+    gap: 16px !important;
+    margin-bottom: 32px !important;
+    width: 100% !important;
+    align-items: flex-start !important;
+    padding: 0 !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+/* Avatar styling for MENA Careers messages */
+.sffc-message.sffc-message-senna .senna-avatar,
+.senna-message .senna-avatar {
+    width: 48px !important;
+    height: 48px !important;
+    min-width: 48px !important;
+    border-radius: 50% !important;
+    overflow: hidden !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) !important;
+    margin-top: 4px !important;
+}
+
+.sffc-message.sffc-message-senna .senna-avatar img,
+.senna-message .senna-avatar img {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+    display: block !important;
+}
+
+/* Content styling - match WSJ */
+.sffc-message.sffc-message-senna .sffc-message-content,
+.senna-message .sffc-message-content,
+.senna-message .message-text {
+    flex: 1 !important;
+    font-family: 'Playfair Display', 'Georgia', serif !important;
+    font-size: 18px !important;
+    line-height: 1.8 !important;
+    color: #333 !important;
+    background: transparent !important;
+    padding: 0 !important;
+    border: none !important;
+}
+
+/* Headlines within messages */
+.sffc-message.sffc-message-senna h1,
+.sffc-message.sffc-message-senna h2,
+.sffc-message.sffc-message-senna h3,
+.sffc-message.sffc-message-senna .wsj-headline-text {
+    font-family: 'Playfair Display', 'Georgia', serif !important;
+    font-weight: 700 !important;
+    color: #000 !important;
+    margin: 0 0 12px 0 !important;
+    line-height: 1.3 !important;
+}
+
+.sffc-message.sffc-message-senna h1,
+.sffc-message.sffc-message-senna .wsj-headline-text {
+    font-size: 24px !important;
+}
+
+.sffc-message.sffc-message-senna h2 {
+    font-size: 20px !important;
+}
+
+.sffc-message.sffc-message-senna h3 {
+    font-size: 18px !important;
+}
+
+/* Paragraphs */
+.sffc-message.sffc-message-senna p {
+    margin: 0 0 16px 0 !important;
+    color: #333 !important;
+    font-size: 16px !important;
+    line-height: 1.7 !important;
+}
+
+/* Lists */
+.sffc-message.sffc-message-senna ul,
+.sffc-message.sffc-message-senna ol {
+    margin: 0 0 20px 20px !important;
+    padding: 0 !important;
+    color: #333 !important;
+}
+
+.sffc-message.sffc-message-senna li {
+    margin-bottom: 8px !important;
+    line-height: 1.6 !important;
+    font-size: 16px !important;
+}
+
+/* Code blocks */
+.sffc-message.sffc-message-senna pre,
+.sffc-message.sffc-message-senna code {
+    font-family: 'Monaco', 'Courier New', monospace !important;
+    background: #f5f5f5 !important;
+    padding: 2px 6px !important;
+    border-radius: 3px !important;
+    font-size: 14px !important;
+}
+
+.sffc-message.sffc-message-senna pre {
+    padding: 16px !important;
+    overflow-x: auto !important;
+    margin: 0 0 20px 0 !important;
+}
+
+/* Links */
+.sffc-message.sffc-message-senna a {
+    color: #004276 !important;
+    text-decoration: none !important;
+    border-bottom: 1px solid #004276 !important;
+    transition: all 0.2s ease !important;
+}
+
+.sffc-message.sffc-message-senna a:hover {
+    color: #002d4f !important;
+    border-bottom-width: 2px !important;
+}
+
+/* Blockquotes */
+.sffc-message.sffc-message-senna blockquote {
+    border-left: 3px solid #333 !important;
+    padding-left: 20px !important;
+    margin: 0 0 20px 0 !important;
+    font-style: italic !important;
+    color: #666 !important;
+}
+
+/* Strong and emphasis */
+.sffc-message.sffc-message-senna strong,
+.sffc-message.sffc-message-senna b {
+    font-weight: 700 !important;
+    color: #000 !important;
+}
+
+.sffc-message.sffc-message-senna em,
+.sffc-message.sffc-message-senna i {
+    font-style: italic !important;
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+    .sffc-message.sffc-message-senna {
+        margin-bottom: 20px !important;
+    }
+    
+    .sffc-message.sffc-message-senna .senna-avatar {
+        width: 40px !important;
+        height: 40px !important;
+        min-width: 40px !important;
+    }
+    
+    .sffc-message.sffc-message-senna .sffc-message-content {
+        font-size: 16px !important;
+    }
+    
+    .sffc-message.sffc-message-senna h1,
+    .sffc-message.sffc-message-senna .wsj-headline-text {
+        font-size: 20px !important;
+    }
+    
+    .sffc-message.sffc-message-senna h2 {
+        font-size: 18px !important;
+    }
+    
+    .sffc-message.sffc-message-senna h3 {
+        font-size: 16px !important;
+    }
+}
+
+/* Ensure inline artifacts inherit proper styling */
+.sffc-message.sffc-message-senna .va-inline-container {
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+/* Remove any conflicting backgrounds or borders */
+.sffc-message.sffc-message-senna > * {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+/* Exception for specific components that need backgrounds */
+.sffc-message.sffc-message-senna .va-inline-form,
+.sffc-message.sffc-message-senna .va-inline-card,
+.sffc-message.sffc-message-senna button,
+.sffc-message.sffc-message-senna input,
+.sffc-message.sffc-message-senna select,
+.sffc-message.sffc-message-senna textarea {
+    background: initial !important;
+    border: initial !important;
+    box-shadow: initial !important;
+}

@@ -1,0 +1,230 @@
+/* ============================================
+   Logo Carousel - Frontend Styles
+   ============================================ */
+
+.sffc-logo-carousel {
+    width: 100%;
+    overflow: hidden;
+    position: relative;
+    background: #fafafa;
+    padding: 40px 0;
+    margin: 40px 0;
+}
+
+.sffc-logo-track {
+    display: flex;
+    align-items: center;
+    gap: 60px;
+    animation: scroll-logos 30s linear infinite;
+    width: fit-content;
+}
+
+.sffc-logo-slide {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 20px;
+}
+
+.sffc-logo-slide img {
+    width: auto;
+    height: 100%;
+    object-fit: contain;
+    display: block;
+    transition: all 0.3s ease;
+}
+
+/* Size Mode: Fixed width slides */
+.sffc-carousel-size-fixed .sffc-logo-slide {
+    min-width: fit-content;
+}
+
+.sffc-carousel-size-fixed .sffc-logo-slide img {
+    width: 100%;
+    height: 100%;
+}
+
+/* Size Mode: Cover (fill the box) */
+.sffc-carousel-size-cover .sffc-logo-slide img {
+    width: 100%;
+    height: 100%;
+}
+
+/* Size Mode: Contain (default - fit within box) */
+.sffc-carousel-size-contain .sffc-logo-slide img {
+    width: auto;
+    height: auto;
+}
+
+/* ============================================
+   Speed Variations
+   ============================================ */
+
+.sffc-carousel-speed-slow .sffc-logo-track {
+    animation-duration: 50s;
+}
+
+.sffc-carousel-speed-medium .sffc-logo-track {
+    animation-duration: 30s;
+}
+
+.sffc-carousel-speed-fast .sffc-logo-track {
+    animation-duration: 20s;
+}
+
+/* ============================================
+   Style: Default (Full Color)
+   ============================================ */
+
+.sffc-carousel-default .sffc-logo-slide img {
+    opacity: 0.9;
+}
+
+.sffc-carousel-default .sffc-logo-slide:hover img {
+    opacity: 1;
+    transform: scale(1.05);
+}
+
+/* ============================================
+   Style: Grayscale
+   ============================================ */
+
+.sffc-carousel-grayscale .sffc-logo-slide img {
+    filter: grayscale(100%);
+    opacity: 0.7;
+}
+
+.sffc-carousel-grayscale .sffc-logo-slide:hover img {
+    filter: grayscale(0%);
+    opacity: 1;
+    transform: scale(1.08);
+}
+
+/* ============================================
+   Style: Opacity (Light Gray with Hover)
+   ============================================ */
+
+.sffc-carousel-opacity .sffc-logo-slide img {
+    opacity: 0.4;
+    filter: brightness(0.95);
+}
+
+.sffc-carousel-opacity .sffc-logo-slide:hover img {
+    opacity: 0.95;
+    filter: brightness(1);
+    transform: scale(1.06);
+}
+
+/* ============================================
+   Style: Hover Color (Grayscale → Color)
+   ============================================ */
+
+.sffc-carousel-hover-color {
+    background: #ffffff;
+    border-top: 1px solid #e5e7eb;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.sffc-carousel-hover-color .sffc-logo-slide img {
+    filter: grayscale(100%) brightness(0) opacity(0.5);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.sffc-carousel-hover-color .sffc-logo-slide:hover img {
+    filter: grayscale(0%) brightness(1) opacity(1);
+    transform: scale(1.1);
+}
+
+/* ============================================
+   Style: Fade (Subtle with Soft Hover)
+   ============================================ */
+
+.sffc-carousel-fade {
+    background: linear-gradient(135deg, #f9fafb 0%, #ffffff 100%);
+}
+
+.sffc-carousel-fade .sffc-logo-slide img {
+    opacity: 0.5;
+    filter: grayscale(50%) contrast(0.9);
+}
+
+.sffc-carousel-fade .sffc-logo-slide:hover img {
+    opacity: 0.9;
+    filter: grayscale(0%) contrast(1);
+    transform: scale(1.05);
+}
+
+/* ============================================
+   Scroll Animation
+   ============================================ */
+
+@keyframes scroll-logos {
+    0% {
+        transform: translateX(0);
+    }
+    100% {
+        transform: translateX(-50%);
+    }
+}
+
+/* Pause on hover */
+.sffc-logo-carousel:hover .sffc-logo-track {
+    animation-play-state: paused;
+}
+
+/* ============================================
+   Empty State
+   ============================================ */
+
+.sffc-logo-carousel-empty {
+    background: #f3f4f6;
+    border: 2px dashed #d1d5db;
+    border-radius: 12px;
+    padding: 40px;
+    text-align: center;
+    color: #6b7280;
+    font-size: 15px;
+    margin: 40px 0;
+}
+
+/* ============================================
+   Responsive
+   ============================================ */
+
+@media (max-width: 768px) {
+    .sffc-logo-carousel {
+        padding: 30px 0;
+        margin: 30px 0;
+    }
+
+    .sffc-logo-track {
+        gap: 40px;
+    }
+
+    .sffc-logo-slide {
+        padding: 0 15px;
+    }
+
+    .sffc-carousel-speed-slow .sffc-logo-track {
+        animation-duration: 40s;
+    }
+
+    .sffc-carousel-speed-medium .sffc-logo-track {
+        animation-duration: 25s;
+    }
+
+    .sffc-carousel-speed-fast .sffc-logo-track {
+        animation-duration: 15s;
+    }
+}
+
+@media (max-width: 480px) {
+    .sffc-logo-track {
+        gap: 30px;
+    }
+
+    .sffc-logo-slide {
+        padding: 0 10px;
+    }
+}

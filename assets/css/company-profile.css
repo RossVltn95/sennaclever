@@ -1,0 +1,575 @@
+:root {
+    --sffc-cream: #FFFDF8;
+    --sffc-navy: #132D51;
+    --sffc-text: #111827;
+    --sffc-muted: #5F6C7B;
+    --sffc-border: rgba(19, 45, 81, 0.08);
+    --senna-green-gradient-start: #2D6A4F;
+    --senna-green-gradient-end: #1B4332;
+}
+
+.sffc-company-profile {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    color: var(--sffc-text);
+    background: var(--sffc-cream);
+    border-radius: 28px;
+    padding: 56px;
+    max-width: 1200px;
+    margin: 48px auto;
+    box-shadow: 0 44px 90px rgba(19, 45, 81, 0.18);
+    position: relative;
+    overflow: hidden;
+}
+
+.sffc-company-profile::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 28px;
+    pointer-events: none;
+    border: 1px solid rgba(19, 45, 81, 0.06);
+}
+
+.sffc-company-profile__layout {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+    gap: 48px;
+    align-items: flex-start;
+    margin-top: 48px;
+}
+
+@media (max-width: 1024px) {
+    .sffc-company-profile {
+        padding: 40px 28px;
+        border-radius: 24px;
+    }
+
+    .sffc-company-profile__layout {
+        grid-template-columns: 1fr;
+        gap: 32px;
+    }
+}
+
+@media (max-width: 768px) {
+    .sffc-company-profile {
+        padding: 32px 22px;
+        margin: 24px 16px;
+    }
+}
+
+.sffc-company-hero {
+    display: flex;
+    align-items: center;
+    gap: 32px;
+    margin-bottom: 36px;
+}
+
+@media (max-width: 640px) {
+    .sffc-company-hero {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 20px;
+    }
+}
+
+.sffc-company-hero__logo {
+    width: 120px;
+    height: 120px;
+    border-radius: 24px;
+    background: var(--sffc-navy);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 25px 60px rgba(19, 45, 81, 0.35);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    position: relative;
+    overflow: hidden;
+}
+
+.sffc-company-hero__logo img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.sffc-company-hero__initials {
+    font-family: 'Playfair Display', 'Times New Roman', serif;
+    font-size: 2.75rem;
+    line-height: 1;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--sffc-cream);
+}
+
+.sffc-company-hero__name {
+    font-family: 'Playfair Display', 'Times New Roman', serif;
+    font-size: 3rem;
+    font-weight: 600;
+    margin: 0 0 14px;
+    color: var(--sffc-navy);
+}
+
+@media (max-width: 768px) {
+    .sffc-company-hero__name {
+        font-size: 2.4rem;
+    }
+}
+
+.sffc-company-hero__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 18px;
+    color: var(--sffc-muted);
+    font-weight: 600;
+    letter-spacing: 0.02em;
+}
+
+.sffc-company-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 14px;
+    border-radius: 999px;
+    background: rgba(19, 45, 81, 0.08);
+    color: var(--sffc-navy);
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.sffc-company-description {
+    line-height: 1.75;
+    color: var(--sffc-text);
+    font-size: 1.02rem;
+    max-width: 720px;
+}
+
+.sffc-company-metrics {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 18px;
+}
+
+.sffc-company-metric {
+    background: #ffffff;
+    border-radius: 18px;
+    padding: 20px 22px;
+    box-shadow: 0 28px 60px rgba(19, 45, 81, 0.12);
+    border: 1px solid rgba(19, 45, 81, 0.05);
+}
+
+.sffc-company-metric__label {
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--sffc-muted);
+    margin-bottom: 10px;
+}
+
+.sffc-company-metric__value {
+    font-size: 1.45rem;
+    font-weight: 700;
+    color: var(--sffc-navy);
+}
+
+.sffc-company-section {
+    margin-bottom: 48px;
+}
+
+.sffc-company-section__title {
+    font-size: 1.4rem;
+    font-weight: 700;
+    margin-bottom: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    color: var(--sffc-navy);
+}
+
+.sffc-company-section__subtitle {
+    color: var(--sffc-muted);
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.sffc-company-news-item,
+.sffc-company-job-item,
+.sffc-company-fund-item,
+.sffc-company-card,
+.sffc-company-team-item {
+    background: #ffffff;
+    border-radius: 18px;
+    padding: 22px 24px;
+    margin-bottom: 18px;
+    box-shadow: 0 24px 54px rgba(19, 45, 81, 0.12);
+    border: 1px solid rgba(19, 45, 81, 0.05);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.sffc-company-news-item:hover,
+.sffc-company-job-item:hover,
+.sffc-company-fund-item:hover,
+.sffc-company-card:hover,
+.sffc-company-team-item:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 34px 70px rgba(19, 45, 81, 0.16);
+}
+
+.sffc-company-news-item h4,
+.sffc-company-job-item h4,
+.sffc-company-fund-item h4,
+.sffc-company-team-item h4,
+.sffc-company-card h4 {
+    margin: 0 0 10px;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--sffc-navy);
+}
+
+.sffc-company-news-item__meta,
+.sffc-company-job-item__meta,
+.sffc-company-fund-item__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    font-size: 0.8rem;
+    color: var(--sffc-muted);
+    margin-bottom: 12px;
+}
+
+.sffc-company-news-item__meta span,
+.sffc-company-job-item__meta span,
+.sffc-company-fund-item__meta span {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.sffc-company-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 12px;
+    border-radius: 999px;
+    background: rgba(19, 45, 81, 0.08);
+    color: var(--sffc-navy);
+    font-size: 0.78rem;
+    font-weight: 600;
+}
+
+.sffc-company-list--grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 18px;
+}
+
+.sffc-company-empty {
+    padding: 28px;
+    text-align: center;
+    border-radius: 18px;
+    background: rgba(19, 45, 81, 0.06);
+    color: var(--sffc-muted);
+    font-weight: 600;
+}
+
+.sffc-company-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 26px;
+}
+
+.sffc-company-card--highlight {
+    background: linear-gradient(135deg, rgba(19, 45, 81, 0.92) 0%, rgba(19, 45, 81, 0.82) 100%);
+    color: #ffffff;
+    border: none;
+    box-shadow: 0 30px 68px rgba(19, 45, 81, 0.35);
+}
+
+.sffc-company-card--highlight h3,
+.sffc-company-card--highlight p,
+.sffc-company-card--highlight span,
+.sffc-company-card--highlight strong {
+    color: #ffffff;
+}
+
+.sffc-company-links {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 12px;
+}
+
+.sffc-company-links a {
+    color: var(--sffc-navy);
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.sffc-company-links a:hover {
+    text-decoration: underline;
+}
+
+.sffc-company-tag-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 14px;
+}
+
+.sffc-company-tag-group .sffc-company-pill {
+    background: rgba(19, 45, 81, 0.12);
+    color: var(--sffc-navy);
+    border: 1px solid rgba(19, 45, 81, 0.12);
+}
+
+.sffc-company-job-item__cta {
+    margin-top: 14px;
+}
+
+.sffc-company-job-item__cta a {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    border-radius: 999px;
+    background: linear-gradient(135deg, var(--senna-green-gradient-start) 0%, var(--senna-green-gradient-end) 100%);
+    color: #FFFDF8;
+    font-weight: 700;
+    font-size: 0.9rem;
+    text-decoration: none;
+    box-shadow: 0 18px 32px rgba(45, 106, 79, 0.28);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.sffc-company-job-item__cta a:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 26px 40px rgba(27, 67, 50, 0.32);
+}
+
+.sffc-company-activity {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 16px;
+}
+
+.sffc-company-activity-card {
+    background: rgba(255, 255, 255, 0.12);
+    border-radius: 16px;
+    padding: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.sffc-company-activity-card h4 {
+    margin: 0 0 6px;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.sffc-company-activity-card strong {
+    display: block;
+    font-size: 1.55rem;
+}
+
+.sffc-company-pulse {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.9rem;
+}
+
+.sffc-company-pulse--up {
+    color: #4ade80;
+}
+
+.sffc-company-pulse--down {
+    color: #f87171;
+}
+
+.sffc-company-pulse--stable {
+    color: #facc15;
+}
+
+.sffc-company-divider {
+    margin: 60px 0 48px;
+    height: 1px;
+    background: var(--sffc-border);
+}
+
+.sffc-company-funds {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 18px;
+}
+
+.sffc-company-fund-item ul {
+    margin: 12px 0 0;
+    padding-left: 18px;
+    color: var(--sffc-muted);
+    font-size: 0.88rem;
+    line-height: 1.55;
+}
+
+.sffc-company-fund-item ul li strong {
+    color: var(--sffc-text);
+}
+
+.sffc-company-quick-facts {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px;
+}
+
+.sffc-company-quick-facts div {
+    background: rgba(19, 45, 81, 0.06);
+    padding: 12px 16px;
+    border-radius: 14px;
+    font-size: 0.9rem;
+    color: var(--sffc-text);
+    font-weight: 600;
+}
+
+.sffc-company-quick-facts div a {
+    color: var(--sffc-navy);
+    text-decoration: none;
+}
+
+.sffc-company-quick-facts div a:hover {
+    text-decoration: underline;
+}
+
+.sffc-company-section h3 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin: 0 0 14px;
+    color: var(--sffc-navy);
+}
+
+.sffc-company-team-item p {
+    margin: 0;
+    color: var(--sffc-muted);
+    font-weight: 500;
+}
+
+.sffc-company-card p {
+    margin: 0 0 8px;
+    color: var(--sffc-muted);
+}
+
+.sffc-company-card span.sffc-company-chip {
+    background: rgba(45, 106, 79, 0.12);
+    color: var(--senna-green-gradient-end);
+}
+
+.sffc-company-manage-link {
+    color: var(--sffc-navy);
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.sffc-company-manage-link:hover {
+    text-decoration: underline;
+}
+
+.sffc-company-jobs {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 24px;
+    align-items: stretch;
+}
+
+@media (max-width: 900px) {
+    .sffc-company-jobs {
+        grid-template-columns: 1fr;
+    }
+}
+
+.sffc-company-notice {
+    padding: 14px 18px;
+    border-radius: 14px;
+    margin-bottom: 22px;
+    font-weight: 600;
+}
+
+.sffc-company-notice--success {
+    background: rgba(45, 106, 79, 0.12);
+    color: var(--senna-green-gradient-end);
+    border: 1px solid rgba(45, 106, 79, 0.25);
+}
+
+.sffc-company-portfolio-form {
+    margin-top: 26px;
+    background: rgba(19, 45, 81, 0.05);
+    border-radius: 16px;
+    padding: 20px 22px;
+}
+
+.sffc-company-portfolio-form__inner {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.sffc-company-portfolio-fields {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+}
+
+.sffc-company-portfolio-form label {
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--sffc-muted);
+    display: block;
+    margin-bottom: 6px;
+}
+
+.sffc-company-portfolio-form input,
+.sffc-company-portfolio-form textarea {
+    width: 100%;
+    border: 1px solid rgba(19, 45, 81, 0.18);
+    border-radius: 10px;
+    padding: 10px 12px;
+    font-size: 0.95rem;
+}
+
+.sffc-company-cta {
+    align-self: flex-start;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    border-radius: 999px;
+    background: linear-gradient(135deg, var(--senna-green-gradient-start) 0%, var(--senna-green-gradient-end) 100%);
+    color: #FFFDF8;
+    font-weight: 700;
+    font-size: 0.9rem;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 18px 32px rgba(45, 106, 79, 0.28);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.sffc-company-cta:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 26px 40px rgba(27, 67, 50, 0.32);
+}
+
+.sffc-company-fund-item__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    font-size: 0.82rem;
+    color: var(--sffc-muted);
+    margin-bottom: 10px;
+}
+
+@media (max-width: 640px) {
+    .sffc-company-jobs {
+        grid-template-columns: 1fr;
+    }
+}

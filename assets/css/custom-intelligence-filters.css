@@ -1,0 +1,373 @@
+/**
+ * Custom Intelligence Filters CSS
+ * Styling for custom intelligence filters that integrate with ZENA
+ * 
+ * @package SkillFarmFinance
+ * @since 10.20.0
+ */
+
+/* Custom Intelligence Section */
+.custom-intelligence-section {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid #e5e7eb;
+}
+
+.custom-intelligence-section .pe-section-header {
+    margin-bottom: 15px;
+}
+
+.custom-intelligence-section .pe-section-header h3 {
+    color: #1f2937;
+    font-size: 16px;
+    font-weight: 600;
+    margin: 0 0 5px 0;
+}
+
+.custom-intelligence-section .section-description {
+    color: #6b7280;
+    font-size: 13px;
+}
+
+/* Custom Intelligence Grid */
+.custom-intelligence-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+    margin-top: 15px;
+}
+
+/* Custom Intelligence Filter Cards */
+.custom-intelligence-filter {
+    position: relative;
+    padding: 16px;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.custom-intelligence-filter:hover {
+    border-color: #d1d5db;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    transform: translateY(-1px);
+}
+
+.custom-intelligence-filter.active,
+.custom-intelligence-filter.selected {
+    border-color: #3b82f6;
+    background: #f8fafc;
+    box-shadow: 0 4px 12px -1px rgba(59, 130, 246, 0.15);
+}
+
+.custom-intelligence-filter.active::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background: #3b82f6;
+    border-radius: 4px 0 0 4px;
+}
+
+/* Filter Icon */
+.custom-intelligence-filter .filter-icon {
+    font-size: 20px;
+    min-width: 24px;
+    text-align: center;
+}
+
+/* Filter Content */
+.custom-intelligence-filter .filter-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.custom-intelligence-filter .filter-title {
+    font-weight: 600;
+    font-size: 14px;
+    color: #1f2937;
+    margin-bottom: 2px;
+}
+
+.custom-intelligence-filter .filter-description {
+    font-size: 12px;
+    color: #6b7280;
+    line-height: 1.3;
+}
+
+/* Filter Status */
+.custom-intelligence-filter .filter-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.custom-intelligence-filter .filter-count {
+    background: #f3f4f6;
+    color: #374151;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
+    min-width: 24px;
+    text-align: center;
+}
+
+.custom-intelligence-filter.active .filter-count {
+    background: #3b82f6;
+    color: white;
+}
+
+/* No Custom Filters State */
+.no-custom-filters {
+    text-align: center;
+    padding: 20px;
+    color: #6b7280;
+    font-style: italic;
+}
+
+/* Loading States */
+.custom-intelligence-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    color: #6b7280;
+}
+
+.loading-spinner {
+    width: 32px;
+    height: 32px;
+    border: 3px solid #f3f4f6;
+    border-top: 3px solid #3b82f6;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 12px;
+}
+
+.loading-text {
+    font-size: 14px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Error States */
+.custom-intelligence-error {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    text-align: center;
+}
+
+.custom-intelligence-error .error-icon {
+    font-size: 32px;
+    margin-bottom: 12px;
+}
+
+.custom-intelligence-error .error-message {
+    color: #dc2626;
+    font-size: 14px;
+    margin-bottom: 16px;
+}
+
+.custom-intelligence-error .retry-button {
+    background: #3b82f6;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+}
+
+.custom-intelligence-error .retry-button:hover {
+    background: #2563eb;
+}
+
+/* Custom Intelligence Cards */
+.custom-intelligence-card {
+    border-left: 4px solid #3b82f6;
+}
+
+.custom-intelligence-card .sffc-card-header .sffc-company-badge {
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+}
+
+.custom-intelligence-card.user-interested {
+    border-left-color: #ef4444;
+    background: #fef2f2;
+}
+
+.custom-intelligence-card .sffc-card-interest.interested {
+    color: #ef4444;
+    background: #fef2f2;
+}
+
+/* Standalone System */
+.custom-intelligence-standalone-container {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    margin: 20px 0;
+    overflow: hidden;
+}
+
+.standalone-header {
+    background: #f9fafb;
+    padding: 16px 20px;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.standalone-header h3 {
+    margin: 0;
+    color: #1f2937;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.standalone-filters {
+    padding: 20px;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.standalone-cards-container {
+    padding: 20px;
+    min-height: 200px;
+}
+
+.welcome-message {
+    text-align: center;
+    color: #6b7280;
+    padding: 40px 20px;
+    font-style: italic;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .custom-intelligence-filter {
+        padding: 12px;
+        gap: 8px;
+    }
+    
+    .custom-intelligence-filter .filter-icon {
+        font-size: 18px;
+        min-width: 20px;
+    }
+    
+    .custom-intelligence-filter .filter-title {
+        font-size: 13px;
+    }
+    
+    .custom-intelligence-filter .filter-description {
+        font-size: 11px;
+    }
+    
+    .custom-intelligence-filter .filter-count {
+        padding: 3px 6px;
+        font-size: 11px;
+    }
+}
+
+/* Integration with ZENA's existing styles */
+.pe-filter-sidebar .custom-intelligence-section {
+    margin-top: 24px;
+    padding-top: 20px;
+}
+
+.pe-filter-container-wrapper .custom-intelligence-section {
+    background: inherit;
+}
+
+/* Dark mode support (if ZENA has dark mode) */
+@media (prefers-color-scheme: dark) {
+    .custom-intelligence-filter {
+        background: #1f2937;
+        border-color: #374151;
+        color: #f9fafb;
+    }
+    
+    .custom-intelligence-filter:hover {
+        border-color: #4b5563;
+        background: #111827;
+    }
+    
+    .custom-intelligence-filter.active {
+        background: #1e40af;
+        border-color: #3b82f6;
+    }
+    
+    .custom-intelligence-filter .filter-title {
+        color: #f9fafb;
+    }
+    
+    .custom-intelligence-filter .filter-description {
+        color: #d1d5db;
+    }
+    
+    .custom-intelligence-filter .filter-count {
+        background: #374151;
+        color: #d1d5db;
+    }
+    
+    .custom-intelligence-filter.active .filter-count {
+        background: #1d4ed8;
+        color: white;
+    }
+    
+    .loading-spinner {
+        border-color: #374151;
+        border-top-color: #3b82f6;
+    }
+    
+    .custom-intelligence-loading,
+    .no-custom-filters,
+    .welcome-message {
+        color: #d1d5db;
+    }
+}
+
+/* Animation for card interactions */
+.sffc-intelligence-card {
+    transition: all 0.3s ease;
+}
+
+.sffc-intelligence-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
+
+.custom-intelligence-active .sffc-intelligence-card {
+    border-left-width: 4px;
+    border-left-style: solid;
+}
+
+/* Custom action button styles */
+.custom-intelligence-card .sffc-action-btn {
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+    transition: all 0.2s ease;
+}
+
+.custom-intelligence-card .sffc-action-btn:hover {
+    background: linear-gradient(135deg, #2563eb, #1e40af);
+    transform: translateY(-1px);
+}
+
+.custom-intelligence-card .sffc-btn-secondary {
+    background: linear-gradient(135deg, #6b7280, #4b5563);
+}
+
+.custom-intelligence-card .sffc-btn-secondary:hover {
+    background: linear-gradient(135deg, #4b5563, #374151);
+}

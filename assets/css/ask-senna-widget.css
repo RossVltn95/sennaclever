@@ -1,0 +1,175 @@
+
+/* Ask MENA Careers Subscribe Button Styling */
+.sffc-ask-senna-bubble .sffc-job-cta {
+    background: var(--sffc-accent, #0d353e);
+    color: white;
+    border: none;
+    border-radius: 999px;
+    padding: 10px 24px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.sffc-ask-senna-bubble .sffc-job-cta:hover {
+    background: #00364f;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(13, 53, 62, 0.2);
+}
+
+.sffc-ask-senna-bubble .sffc-job-cta svg {
+    width: 16px;
+    height: 16px;
+}
+
+/* Disabled input styling */
+.sffc-ask-senna-input:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    background: #f5f5f5;
+}
+
+/* Ensure links in MENA Careers responses are styled properly */
+.sffc-ask-senna-bubble a:not(.sffc-job-cta) {
+    color: var(--sffc-accent);
+    text-decoration: none;
+    border-bottom: 1px solid var(--sffc-accent);
+    transition: opacity 0.2s ease;
+}
+
+.sffc-ask-senna-bubble a:not(.sffc-job-cta):hover {
+    opacity: 0.8;
+}
+
+/* Bell Icon for Alerts Tab */
+.sffc-tab-icon--bell {
+    width: 20px;
+    height: 20px;
+    display: inline-block;
+    vertical-align: middle;
+    margin-right: 4px;
+}
+
+.sffc-tab-btn:hover .sffc-tab-icon--bell path,
+.sffc-tab-btn.is-active .sffc-tab-icon--bell path {
+    fill: currentColor;
+}
+
+/* Greeting Notification */
+.sffc-greeting-notification {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+    padding: 16px 20px;
+    max-width: 380px;
+    border: 1px solid rgba(13, 53, 62, 0.08);
+}
+
+.sffc-greeting-content {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.sffc-greeting-icon {
+    flex-shrink: 0;
+    width: 24px;
+    height: 24px;
+    fill: #FFB800;
+    margin-top: 2px;
+}
+
+.sffc-greeting-text {
+    flex: 1;
+    min-width: 0;
+}
+
+.sffc-greeting-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--sffc-heading, #0d353e);
+    margin: 0 0 4px 0;
+    line-height: 1.4;
+}
+
+.sffc-greeting-subtitle {
+    font-size: 13px;
+    color: #6b7280;
+    margin: 0;
+    line-height: 1.4;
+}
+
+.sffc-greeting-close {
+    flex-shrink: 0;
+    background: transparent;
+    border: none;
+    font-size: 24px;
+    color: #9ca3af;
+    cursor: pointer;
+    padding: 0;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.2s ease;
+    margin: -4px -4px 0 0;
+}
+
+.sffc-greeting-close:hover {
+    background: rgba(0, 0, 0, 0.05);
+    color: #6b7280;
+}
+
+/* Mobile Adjustments */
+@media (max-width: 768px) {
+    .sffc-greeting-notification {
+        max-width: calc(100vw - 32px);
+        right: 16px !important;
+        bottom: 100px !important;
+    }
+    
+    .sffc-greeting-content {
+        gap: 8px;
+    }
+    
+    .sffc-greeting-title {
+        font-size: 13px;
+    }
+    
+    .sffc-greeting-subtitle {
+        font-size: 12px;
+    }
+}
+
+/* Dark Mode Support */
+@media (prefers-color-scheme: dark) {
+    .sffc-greeting-notification {
+        background: #1a1a1a;
+        border-color: rgba(255, 255, 255, 0.1);
+        color: #fff;
+    }
+    
+    .sffc-greeting-title {
+        color: #fff;
+    }
+    
+    .sffc-greeting-subtitle {
+        color: #9ca3af;
+    }
+    
+    .sffc-greeting-close {
+        color: #6b7280;
+    }
+    
+    .sffc-greeting-close:hover {
+        background: rgba(255, 255, 255, 0.1);
+        color: #9ca3af;
+    }
+}

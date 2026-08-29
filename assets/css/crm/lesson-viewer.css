@@ -1,0 +1,548 @@
+/**
+ * Lesson Viewer Styles
+ * Phase 3: Lesson Content Display
+ *
+ * Full lesson viewer with sidebar navigation
+ */
+
+/* ============================================
+   Lesson Viewer Layout
+   ============================================ */
+.sffc-lesson-viewer-wrapper {
+    display: grid;
+    grid-template-columns: 320px 1fr;
+    min-height: 100vh;
+    background: var(--linkedin-bg, #F4F2EE);
+}
+
+/* ============================================
+   Lesson Sidebar
+   ============================================ */
+.sffc-lesson-sidebar {
+    background: var(--linkedin-card, #FFFFFF);
+    border-right: 1px solid var(--linkedin-border, #E0DDD7);
+    overflow-y: auto;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+}
+
+.sffc-lesson-sidebar-header {
+    padding: 20px;
+    border-bottom: 1px solid var(--linkedin-border, #E0DDD7);
+}
+
+.sffc-back-to-course {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--senna-primary, #2F5233);
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 600;
+    transition: opacity 0.2s;
+}
+
+.sffc-back-to-course:hover {
+    opacity: 0.7;
+}
+
+.sffc-lesson-progress-overview {
+    padding: 24px 20px;
+    text-align: center;
+    border-bottom: 1px solid var(--linkedin-border, #E0DDD7);
+}
+
+.sffc-progress-circle {
+    margin: 0 auto 12px;
+    width: 60px;
+    height: 60px;
+}
+
+.sffc-progress-label {
+    font-size: 13px;
+    color: var(--linkedin-text-muted, #666666);
+    margin: 0;
+}
+
+/* ============================================
+   Module Navigation
+   ============================================ */
+.sffc-lesson-nav {
+    padding: 16px 0;
+}
+
+.sffc-module-nav-item {
+    margin-bottom: 8px;
+}
+
+.sffc-module-nav-header {
+    padding: 12px 20px;
+    cursor: pointer;
+}
+
+.sffc-module-nav-number {
+    display: block;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: var(--senna-primary, #2F5233);
+    letter-spacing: 0.5px;
+}
+
+.sffc-module-nav-title {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--linkedin-text, #191919);
+    margin-top: 4px;
+}
+
+.sffc-module-nav-item.active .sffc-module-nav-header {
+    background: var(--linkedin-hover, #F0EDE8);
+}
+
+.sffc-lesson-nav-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.sffc-lesson-nav-item {
+    position: relative;
+}
+
+.sffc-lesson-nav-item a,
+.sffc-lesson-nav-item .sffc-lesson-nav-locked {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 20px 10px 40px;
+    text-decoration: none;
+    color: var(--linkedin-text, #191919);
+    font-size: 14px;
+    transition: all 0.2s;
+}
+
+.sffc-lesson-nav-item a:hover {
+    background: var(--linkedin-hover, #F0EDE8);
+}
+
+.sffc-lesson-nav-item.current a {
+    background: #E8F4E9;
+    color: var(--senna-primary, #2F5233);
+    font-weight: 600;
+    border-left: 3px solid var(--senna-primary, #2F5233);
+}
+
+.sffc-lesson-nav-item.completed a {
+    opacity: 0.7;
+}
+
+.sffc-lesson-nav-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    flex-shrink: 0;
+}
+
+.sffc-lesson-nav-item.completed .sffc-lesson-nav-icon {
+    color: #10B981;
+}
+
+.sffc-lesson-number {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--linkedin-text-muted, #666666);
+}
+
+.sffc-lesson-nav-text {
+    flex: 1;
+    line-height: 1.4;
+}
+
+.sffc-lesson-nav-locked {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* ============================================
+   Lesson Main Content
+   ============================================ */
+.sffc-lesson-main {
+    overflow-y: auto;
+    padding: 40px;
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.sffc-lesson-content-wrapper {
+    background: var(--linkedin-card, #FFFFFF);
+    border-radius: 12px;
+    padding: 40px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.sffc-lesson-header {
+    margin-bottom: 32px;
+}
+
+.sffc-lesson-meta {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 12px;
+}
+
+.sffc-lesson-module {
+    display: inline-block;
+    padding: 4px 12px;
+    background: var(--senna-primary, #2F5233);
+    color: #FFFFFF;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.sffc-lesson-duration {
+    font-size: 14px;
+    color: var(--linkedin-text-muted, #666666);
+}
+
+.sffc-lesson-title {
+    font-size: 36px;
+    font-weight: 700;
+    color: var(--linkedin-text, #191919);
+    margin: 0;
+    line-height: 1.3;
+}
+
+/* ============================================
+   Lesson Content Styling
+   ============================================ */
+.sffc-lesson-body {
+    color: var(--linkedin-text, #191919);
+    font-size: 16px;
+    line-height: 1.7;
+}
+
+.lesson-content h2 {
+    font-size: 28px;
+    font-weight: 700;
+    margin: 32px 0 16px 0;
+    color: var(--linkedin-text, #191919);
+}
+
+.lesson-content h3 {
+    font-size: 22px;
+    font-weight: 600;
+    margin: 28px 0 12px 0;
+    color: var(--linkedin-text, #191919);
+}
+
+.lesson-content h4 {
+    font-size: 18px;
+    font-weight: 600;
+    margin: 24px 0 12px 0;
+    color: var(--senna-primary, #2F5233);
+}
+
+.lesson-content p {
+    margin: 0 0 16px 0;
+}
+
+.lesson-content ul,
+.lesson-content ol {
+    margin: 0 0 16px 20px;
+    padding: 0;
+}
+
+.lesson-content li {
+    margin-bottom: 8px;
+}
+
+.lesson-content strong {
+    font-weight: 600;
+    color: var(--linkedin-text, #191919);
+}
+
+.lesson-intro {
+    padding: 20px;
+    background: #FEF3C7;
+    border-left: 4px solid #F59E0B;
+    border-radius: 8px;
+    margin-bottom: 24px;
+}
+
+.lesson-intro p {
+    margin: 0;
+    font-size: 16px;
+    line-height: 1.6;
+}
+
+.formula-box {
+    padding: 20px;
+    background: #F0F9FF;
+    border: 2px solid #0EA5E9;
+    border-radius: 8px;
+    margin: 20px 0;
+    font-family: 'Courier New', monospace;
+    font-size: 15px;
+}
+
+.calculation-example {
+    padding: 20px;
+    background: #F0FDF4;
+    border-left: 4px solid #10B981;
+    border-radius: 8px;
+    margin: 20px 0;
+}
+
+.calculation-example p {
+    margin: 8px 0;
+}
+
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+}
+
+.data-table th,
+.data-table td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid var(--linkedin-border, #E0DDD7);
+}
+
+.data-table th {
+    background: var(--linkedin-hover, #F0EDE8);
+    font-weight: 600;
+    color: var(--senna-primary, #2F5233);
+}
+
+.data-table tr:hover {
+    background: var(--linkedin-hover, #F0EDE8);
+}
+
+.step-by-step h4 {
+    margin-top: 24px;
+}
+
+.warning-box {
+    padding: 20px;
+    background: #FEF2F2;
+    border-left: 4px solid #EF4444;
+    border-radius: 8px;
+    margin: 24px 0;
+}
+
+.warning-box h4 {
+    margin-top: 0;
+    color: #DC2626;
+}
+
+.insight-box {
+    padding: 20px;
+    background: #EDE9FE;
+    border-left: 4px solid #8B5CF6;
+    border-radius: 8px;
+    margin: 24px 0;
+    font-style: italic;
+}
+
+.bridge-analysis,
+.case-study,
+.pe-perspective {
+    padding: 24px;
+    background: var(--linkedin-hover, #F0EDE8);
+    border-radius: 8px;
+    margin: 24px 0;
+}
+
+/* ============================================
+   Lesson Actions
+   ============================================ */
+.sffc-lesson-takeaways {
+    padding: 24px;
+    background: #F0FDF4;
+    border-radius: 8px;
+    margin: 32px 0;
+}
+
+.sffc-lesson-takeaways h3 {
+    margin-top: 0;
+    color: var(--senna-primary, #2F5233);
+}
+
+.sffc-lesson-takeaways ul {
+    margin: 0;
+}
+
+.sffc-lesson-takeaways li {
+    font-weight: 500;
+}
+
+.sffc-lesson-actions {
+    padding: 32px 0;
+    border-top: 1px solid var(--linkedin-border, #E0DDD7);
+    text-align: center;
+}
+
+.sffc-mark-complete-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 32px;
+    background: var(--senna-primary, #2F5233);
+    color: #FFFFFF;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.sffc-mark-complete-btn:hover {
+    background: #1F3522;
+    transform: translateY(-1px);
+}
+
+.sffc-lesson-completed-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 24px;
+    background: #D1FAE5;
+    color: #065F46;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 600;
+}
+
+/* ============================================
+   Lesson Navigation (Prev/Next)
+   ============================================ */
+.sffc-lesson-navigation {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    margin-top: 32px;
+    padding-top: 32px;
+    border-top: 1px solid var(--linkedin-border, #E0DDD7);
+}
+
+.sffc-lesson-nav-btn {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 20px;
+    background: var(--linkedin-card, #FFFFFF);
+    border: 2px solid var(--linkedin-border, #E0DDD7);
+    border-radius: 8px;
+    text-decoration: none;
+    color: var(--linkedin-text, #191919);
+    transition: all 0.2s;
+    flex: 1;
+    max-width: 45%;
+}
+
+.sffc-lesson-nav-btn:hover {
+    border-color: var(--senna-primary, #2F5233);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.sffc-lesson-nav-prev {
+    justify-content: flex-start;
+}
+
+.sffc-lesson-nav-next {
+    justify-content: flex-end;
+    margin-left: auto;
+}
+
+.sffc-lesson-nav-btn small {
+    display: block;
+    font-size: 12px;
+    color: var(--linkedin-text-muted, #666666);
+    margin-bottom: 4px;
+}
+
+.sffc-lesson-nav-btn strong {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.next-steps {
+    padding: 24px;
+    background: #DBEAFE;
+    border-radius: 8px;
+    margin: 32px 0 0 0;
+}
+
+.next-steps h3 {
+    margin-top: 0;
+    color: #1E40AF;
+}
+
+/* ============================================
+   Responsive Design
+   ============================================ */
+@media (max-width: 1024px) {
+    .sffc-lesson-viewer-wrapper {
+        grid-template-columns: 280px 1fr;
+    }
+
+    .sffc-lesson-main {
+        padding: 24px;
+    }
+
+    .sffc-lesson-content-wrapper {
+        padding: 24px;
+    }
+}
+
+@media (max-width: 768px) {
+    .sffc-lesson-viewer-wrapper {
+        grid-template-columns: 1fr;
+    }
+
+    .sffc-lesson-sidebar {
+        position: relative;
+        height: auto;
+        border-right: none;
+        border-bottom: 1px solid var(--linkedin-border, #E0DDD7);
+    }
+
+    .sffc-lesson-main {
+        padding: 16px;
+    }
+
+    .sffc-lesson-content-wrapper {
+        padding: 20px;
+    }
+
+    .sffc-lesson-title {
+        font-size: 28px;
+    }
+
+    .lesson-content h2 {
+        font-size: 24px;
+    }
+
+    .lesson-content h3 {
+        font-size: 20px;
+    }
+
+    .sffc-lesson-navigation {
+        flex-direction: column;
+    }
+
+    .sffc-lesson-nav-btn {
+        max-width: 100%;
+    }
+}

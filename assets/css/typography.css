@@ -1,0 +1,148 @@
+/**
+ * Typography Settings CSS
+ * Dynamic font styling for MENA Careers
+ */
+
+/* Font Family Definitions */
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Lato:wght@400;700&display=swap");
+
+/* Font Family Classes */
+.sffc-font-system .sffc-message-text {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
+    Ubuntu, Cantarell, sans-serif;
+}
+
+.sffc-font-inter .sffc-message-text {
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.sffc-font-helvetica-neue .sffc-message-text {
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+
+.sffc-font-sf-pro .sffc-message-text {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text",
+    "SF Pro Display", sans-serif;
+}
+
+.sffc-font-ibm-plex .sffc-message-text {
+  font-family: "IBM Plex Sans", -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.sffc-font-roboto .sffc-message-text {
+  font-family: "Roboto", -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.sffc-font-source-sans .sffc-message-text {
+  font-family: "Source Sans 3", "Source Sans Pro", -apple-system,
+    BlinkMacSystemFont, sans-serif;
+}
+
+.sffc-font-open-sans .sffc-message-text {
+  font-family: "Open Sans", -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.sffc-font-lato .sffc-message-text {
+  font-family: "Lato", -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.sffc-font-bloomberg .sffc-message-text {
+  font-family: "SF Mono", Monaco, "Cascadia Code", "Roboto Mono", Consolas,
+    "Courier New", monospace;
+  letter-spacing: -0.3px;
+}
+
+/* Remove text shadows when disabled */
+.sffc-no-shadows .sffc-message-text {
+  text-shadow: none !important;
+}
+
+.sffc-no-shadows .sffc-assistant-message,
+.sffc-no-shadows .sffc-user-message {
+  text-shadow: none !important;
+}
+
+/* Remove font smoothing when disabled */
+.sffc-no-smoothing .sffc-message-text {
+  -webkit-font-smoothing: auto !important;
+  -moz-osx-font-smoothing: auto !important;
+}
+
+/* Font size variations */
+.sffc-font-14 .sffc-message-text {
+  font-size: 14px !important;
+}
+.sffc-font-15 .sffc-message-text {
+  font-size: 15px !important;
+}
+.sffc-font-16 .sffc-message-text {
+  font-size: 16px !important;
+}
+.sffc-font-17 .sffc-message-text {
+  font-size: 17px !important;
+}
+.sffc-font-18 .sffc-message-text {
+  font-size: 18px !important;
+}
+.sffc-font-20 .sffc-message-text {
+  font-size: 20px !important;
+}
+
+/* Line height variations */
+.sffc-line-14 .sffc-message-text {
+  line-height: 1.4 !important;
+}
+.sffc-line-15 .sffc-message-text {
+  line-height: 1.5 !important;
+}
+.sffc-line-16 .sffc-message-text {
+  line-height: 1.6 !important;
+}
+.sffc-line-17 .sffc-message-text {
+  line-height: 1.7 !important;
+}
+.sffc-line-18 .sffc-message-text {
+  line-height: 1.8 !important;
+}
+
+/* Fix auto-scrolling for messages */
+.sffc-messages-container {
+  scroll-behavior: smooth;
+  overflow-y: auto;
+}
+
+/* Ensure messages scroll into view properly */
+.sffc-message {
+  scroll-margin-top: 20px;
+}
+
+/* Hide loading indicator when content arrives */
+.sffc-visual-loaded .sffc-visual-loading {
+  display: none !important;
+}
+
+/* Visual card loaded state */
+.sffc-visual-card.loaded .sffc-visual-loading {
+  display: none !important;
+}
+
+/* Faster animations */
+.sffc-message {
+  animation-duration: 0.2s !important;
+}
+
+.sffc-typing-indicator {
+  animation-duration: 0.8s !important;
+}
+
+/* Remove blur from glassmorphism if causing issues */
+.sffc-no-blur .sffc-chat-container {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  background: rgba(255, 255, 255, 0.98) !important;
+}

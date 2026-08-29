@@ -1,0 +1,636 @@
+{
+  "investment_management": {
+    "weight": 3,
+    "keywords": {
+      "deal_execution": {
+        "weight": 3,
+        "phrases": [
+          "investment memo",
+          "investment committee",
+          "IC paper",
+          "deal memo",
+          "investment thesis",
+          "investment proposal",
+          "IC presentation",
+          "investment recommendation",
+          "deal approval",
+          "investment rationale"
+        ],
+        "terms": ["investment", "IC", "deal"]
+      },
+      "due_diligence": {
+        "weight": 3,
+        "phrases": [
+          "due diligence",
+          "DD report",
+          "due diligence process",
+          "commercial due diligence",
+          "financial due diligence",
+          "legal due diligence",
+          "operational due diligence",
+          "vendor due diligence",
+          "buy-side due diligence",
+          "sell-side due diligence"
+        ],
+        "terms": ["diligence", "DD"]
+      },
+      "portfolio_management": {
+        "weight": 3,
+        "phrases": [
+          "portfolio management",
+          "asset allocation",
+          "portfolio construction",
+          "portfolio rebalancing",
+          "portfolio optimization",
+          "portfolio monitoring",
+          "portfolio strategy",
+          "asset management",
+          "fund management",
+          "investment portfolio"
+        ],
+        "terms": ["portfolio", "allocation"]
+      },
+      "valuation": {
+        "weight": 3,
+        "phrases": [
+          "DCF model",
+          "discounted cash flow",
+          "comparable companies",
+          "comp analysis",
+          "precedent transactions",
+          "valuation analysis",
+          "financial modeling",
+          "LBO model",
+          "merger model",
+          "3-statement model",
+          "sum of parts",
+          "SOTP valuation"
+        ],
+        "terms": ["valuation", "DCF", "modeling"]
+      },
+      "research": {
+        "weight": 2,
+        "phrases": [
+          "equity research",
+          "credit analysis",
+          "fundamental analysis",
+          "industry research",
+          "company analysis",
+          "financial analysis",
+          "market research",
+          "sector research",
+          "investment research"
+        ],
+        "terms": ["research", "analysis"]
+      },
+      "client_relations": {
+        "weight": 2,
+        "phrases": [
+          "investor relations",
+          "LP reporting",
+          "investor reporting",
+          "fundraising",
+          "capital raising",
+          "investor presentations",
+          "investor meetings",
+          "quarterly reports",
+          "fund performance",
+          "investor communication"
+        ],
+        "terms": ["investor", "fundraising", "capital raising"]
+      }
+    }
+  },
+  "investment_banking": {
+    "weight": 3,
+    "keywords": {
+      "mergers_acquisitions": {
+        "weight": 3,
+        "phrases": [
+          "mergers and acquisitions",
+          "M&A advisory",
+          "M&A execution",
+          "buy-side advisory",
+          "sell-side advisory",
+          "merger integration",
+          "acquisition strategy",
+          "deal structuring",
+          "transaction advisory",
+          "strategic advisory",
+          "fairness opinion",
+          "valuation opinion"
+        ],
+        "terms": ["M&A", "merger", "acquisition"]
+      },
+      "capital_markets": {
+        "weight": 3,
+        "phrases": [
+          "initial public offering",
+          "IPO execution",
+          "equity capital markets",
+          "debt capital markets",
+          "ECM",
+          "DCM",
+          "bond issuance",
+          "equity offering",
+          "debt offering",
+          "underwriting",
+          "syndication",
+          "book building",
+          "roadshow"
+        ],
+        "terms": ["IPO", "ECM", "DCM", "underwriting"]
+      },
+      "deal_management": {
+        "weight": 3,
+        "phrases": [
+          "deal execution",
+          "transaction closing",
+          "data room management",
+          "Q&A process",
+          "management presentation",
+          "pitch book",
+          "CIM preparation",
+          "confidential information memorandum",
+          "teaser preparation",
+          "buyer list",
+          "vendor due diligence"
+        ],
+        "terms": ["pitch book", "data room", "closing"]
+      },
+      "financial_modeling": {
+        "weight": 3,
+        "phrases": [
+          "financial modeling",
+          "LBO model",
+          "leveraged buyout",
+          "merger model",
+          "accretion dilution",
+          "3-statement model",
+          "cash flow modeling",
+          "scenario analysis",
+          "sensitivity analysis"
+        ],
+        "terms": ["LBO", "accretion", "dilution"]
+      }
+    }
+  },
+  "private_equity": {
+    "weight": 3,
+    "keywords": {
+      "investing": {
+        "weight": 3,
+        "phrases": [
+          "private equity",
+          "PE investment",
+          "growth equity",
+          "buyout",
+          "leveraged buyout",
+          "control investment",
+          "minority stake",
+          "majority stake",
+          "platform investment",
+          "add-on acquisition",
+          "bolt-on acquisition",
+          "carve-out"
+        ],
+        "terms": ["PE", "buyout", "growth equity"]
+      },
+      "value_creation": {
+        "weight": 3,
+        "phrases": [
+          "portfolio company",
+          "value creation",
+          "operational improvement",
+          "EBITDA improvement",
+          "margin expansion",
+          "revenue growth",
+          "cost reduction",
+          "working capital",
+          "buy and build",
+          "post-acquisition",
+          "portfolio monitoring"
+        ],
+        "terms": ["value creation", "portfolio company"]
+      },
+      "exit_strategy": {
+        "weight": 2,
+        "phrases": [
+          "exit strategy",
+          "IPO exit",
+          "strategic sale",
+          "secondary sale",
+          "trade sale",
+          "exit planning",
+          "portfolio exit",
+          "realization"
+        ],
+        "terms": ["exit", "realization"]
+      },
+      "fund_operations": {
+        "weight": 2,
+        "phrases": [
+          "fund raising",
+          "limited partner",
+          "general partner",
+          "LP",
+          "GP",
+          "carried interest",
+          "management fee",
+          "hurdle rate",
+          "waterfall",
+          "fund performance",
+          "IRR",
+          "MOIC",
+          "DPI",
+          "TVPI"
+        ],
+        "terms": ["LP", "GP", "IRR", "MOIC"]
+      }
+    }
+  },
+  "venture_capital": {
+    "weight": 3,
+    "keywords": {
+      "early_stage": {
+        "weight": 3,
+        "phrases": [
+          "venture capital",
+          "VC investment",
+          "seed funding",
+          "series A",
+          "series B",
+          "early stage",
+          "growth stage",
+          "startup investment",
+          "venture funding",
+          "equity financing"
+        ],
+        "terms": ["VC", "seed", "series A", "startup"]
+      },
+      "portfolio_support": {
+        "weight": 2,
+        "phrases": [
+          "portfolio support",
+          "board observer",
+          "board member",
+          "strategic guidance",
+          "founder support",
+          "value add",
+          "network access"
+        ],
+        "terms": ["board", "portfolio support"]
+      }
+    }
+  },
+  "corporate_finance": {
+    "weight": 2,
+    "keywords": {
+      "planning": {
+        "weight": 2,
+        "phrases": [
+          "financial planning",
+          "FP&A",
+          "financial planning and analysis",
+          "budgeting",
+          "forecasting",
+          "variance analysis",
+          "business planning",
+          "strategic planning"
+        ],
+        "terms": ["FP&A", "budgeting", "forecasting"]
+      },
+      "corporate_development": {
+        "weight": 3,
+        "phrases": [
+          "corporate development",
+          "corp dev",
+          "business development",
+          "strategic M&A",
+          "corporate strategy",
+          "strategic initiatives",
+          "inorganic growth"
+        ],
+        "terms": ["corp dev", "corporate development"]
+      }
+    }
+  },
+  "technical_skills": {
+    "weight": 2,
+    "keywords": {
+      "core_tools": {
+        "weight": 2,
+        "phrases": [
+          "financial modeling",
+          "Excel modeling",
+          "advanced Excel",
+          "VBA",
+          "macro",
+          "pivot tables",
+          "PowerPoint",
+          "data visualization"
+        ],
+        "terms": ["Excel", "PowerPoint", "modeling"]
+      },
+      "financial_statements": {
+        "weight": 2,
+        "phrases": [
+          "financial statements",
+          "income statement",
+          "balance sheet",
+          "cash flow statement",
+          "P&L",
+          "profit and loss",
+          "statement of cash flows",
+          "3-statement",
+          "financial reporting"
+        ],
+        "terms": ["P&L", "balance sheet", "cash flow"]
+      },
+      "accounting": {
+        "weight": 2,
+        "phrases": [
+          "IFRS",
+          "US GAAP",
+          "accounting principles",
+          "financial accounting",
+          "revenue recognition",
+          "EBITDA",
+          "adjusted EBITDA",
+          "working capital",
+          "net working capital"
+        ],
+        "terms": ["IFRS", "GAAP", "EBITDA"]
+      }
+    }
+  },
+  "asset_classes": {
+    "weight": 2,
+    "keywords": {
+      "equities": {
+        "weight": 2,
+        "phrases": [
+          "equity markets",
+          "stock market",
+          "public equities",
+          "listed companies",
+          "equity analysis",
+          "stock picking",
+          "long-only",
+          "long-short"
+        ],
+        "terms": ["equities", "stocks", "shares"]
+      },
+      "fixed_income": {
+        "weight": 2,
+        "phrases": [
+          "fixed income",
+          "bonds",
+          "credit analysis",
+          "bond markets",
+          "debt securities",
+          "corporate bonds",
+          "sovereign bonds",
+          "credit risk",
+          "yield analysis"
+        ],
+        "terms": ["bonds", "fixed income", "credit"]
+      },
+      "alternatives": {
+        "weight": 2,
+        "phrases": [
+          "alternative investments",
+          "real estate",
+          "infrastructure",
+          "commodities",
+          "hedge funds",
+          "private markets",
+          "illiquid assets"
+        ],
+        "terms": ["alternatives", "real estate", "infrastructure"]
+      }
+    }
+  },
+  "private_equity_specific": {
+    "weight": 2,
+    "keywords": {
+      "regions": {
+        "weight": 2,
+        "phrases": [
+          "private equity",
+          "private equity",
+          "GCC",
+          "Gulf Cooperation Council",
+          "Saudi Arabia",
+          "United Arab Emirates",
+          "Dubai",
+          "Abu Dhabi",
+          "Riyadh",
+          "Qatar",
+          "Doha",
+          "Kuwait",
+          "Bahrain",
+          "Oman"
+        ],
+        "terms": ["private equity", "GCC", "private equity"]
+      },
+      "markets": {
+        "weight": 2,
+        "phrases": [
+          "Tadawul",
+          "Saudi Exchange",
+          "ADX",
+          "Abu Dhabi Securities Exchange",
+          "DFM",
+          "Dubai Financial Market",
+          "QSE",
+          "Qatar Stock Exchange",
+          "SAMA",
+          "Saudi Central Bank",
+          "DFSA",
+          "Dubai Financial Services Authority",
+          "ADGM",
+          "Abu Dhabi Global Market",
+          "DIFC",
+          "Dubai International Financial Centre"
+        ],
+        "terms": ["Tadawul", "ADX", "DFM", "SAMA", "DFSA", "ADGM", "DIFC"]
+      },
+      "islamic_finance": {
+        "weight": 2,
+        "phrases": [
+          "Islamic finance",
+          "Sharia compliant",
+          "Sharia compliance",
+          "Sukuk",
+          "Islamic banking",
+          "Murabaha",
+          "Musharaka",
+          "Ijara",
+          "Takaful"
+        ],
+        "terms": ["Sukuk", "Sharia", "Islamic finance"]
+      }
+    }
+  },
+  "education_certifications": {
+    "weight": 1.5,
+    "keywords": {
+      "certifications": {
+        "weight": 3,
+        "phrases": [
+          "CFA charter",
+          "CFA Level III",
+          "CFA Level 3",
+          "CFA Level II",
+          "CFA Level 2",
+          "CFA Level I",
+          "CFA Level 1",
+          "CFA candidate",
+          "Chartered Financial Analyst",
+          "FRM",
+          "Financial Risk Manager",
+          "CPA",
+          "Certified Public Accountant",
+          "ACCA",
+          "Series 7",
+          "Series 63",
+          "CMT",
+          "CAIA"
+        ],
+        "terms": ["CFA", "FRM", "CPA", "ACCA"]
+      },
+      "degrees": {
+        "weight": 2,
+        "phrases": [
+          "MBA",
+          "Master of Business Administration",
+          "MSc Finance",
+          "Master Finance",
+          "Master Economics",
+          "Bachelor Finance",
+          "Bachelor Economics",
+          "Bachelor Business",
+          "BBA",
+          "Bachelor Commerce"
+        ],
+        "terms": ["MBA", "Masters", "Bachelor", "MSc"]
+      },
+      "universities": {
+        "weight": 1.5,
+        "phrases": [
+          "Harvard",
+          "Stanford",
+          "Wharton",
+          "MIT",
+          "LSE",
+          "London School of Economics",
+          "Oxford",
+          "Cambridge",
+          "INSEAD",
+          "LBS",
+          "London Business School",
+          "Columbia",
+          "Chicago Booth",
+          "Kellogg",
+          "AUB",
+          "American University of Beirut",
+          "AUD",
+          "American University of Dubai",
+          "AUS",
+          "American University of Sharjah"
+        ],
+        "terms": ["Harvard", "Stanford", "Wharton", "MIT", "LSE", "Oxford", "Cambridge", "INSEAD"]
+      }
+    }
+  },
+  "soft_skills": {
+    "weight": 1,
+    "keywords": {
+      "leadership": {
+        "weight": 1,
+        "phrases": [
+          "team leadership",
+          "led team",
+          "managed team",
+          "supervised team",
+          "mentored analysts",
+          "people management",
+          "team management"
+        ],
+        "terms": ["leadership", "management", "mentored"]
+      },
+      "communication": {
+        "weight": 1,
+        "phrases": [
+          "client presentation",
+          "stakeholder management",
+          "presentation skills",
+          "report writing",
+          "business writing",
+          "executive communication"
+        ],
+        "terms": ["presentation", "communication"]
+      }
+    }
+  },
+  "consulting_transferable": {
+    "weight": 2.5,
+    "keywords": {
+      "strategy_consulting": {
+        "weight": 3,
+        "phrases": [
+          "McKinsey",
+          "BCG",
+          "Boston Consulting Group",
+          "Bain",
+          "strategy consulting",
+          "management consulting",
+          "strategic advisory",
+          "corporate strategy",
+          "business strategy",
+          "commercial due diligence",
+          "market assessment",
+          "competitive analysis"
+        ],
+        "terms": ["McKinsey", "BCG", "Bain", "strategy"]
+      },
+      "transaction_services": {
+        "weight": 3,
+        "phrases": [
+          "transaction services",
+          "transaction advisory",
+          "deal advisory",
+          "financial due diligence",
+          "vendor due diligence",
+          "buy-side advisory",
+          "sell-side advisory",
+          "Big Four",
+          "Big 4",
+          "Deloitte",
+          "PwC",
+          "EY",
+          "KPMG"
+        ],
+        "terms": ["transaction services", "Big Four", "Deloitte", "PwC", "EY", "KPMG"]
+      }
+    }
+  },
+  "languages": {
+    "weight": 1,
+    "keywords": {
+      "arabic": {
+        "weight": 2,
+        "phrases": [
+          "Arabic",
+          "fluent Arabic",
+          "native Arabic",
+          "Arabic speaker",
+          "bilingual Arabic",
+          "Arabic proficiency"
+        ],
+        "terms": ["Arabic"]
+      }
+    }
+  }
+}

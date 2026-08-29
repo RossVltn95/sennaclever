@@ -1,0 +1,391 @@
+/* ============================================
+   MENA Careers Signup Form Shortcode
+   Clean, modern signup form for any page
+   ============================================ */
+
+.sffc-signup-form-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 600px;
+    padding: 40px 20px;
+}
+
+.sffc-signup-form-wrapper[dir="rtl"] {
+    direction: rtl;
+    text-align: right;
+}
+
+.sffc-signup-form-container {
+    max-width: 500px;
+    width: 100%;
+    background: white;
+    border-radius: 12px;
+    padding: 48px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.sffc-signup-form-logo {
+    text-align: center;
+    margin-bottom: 32px;
+}
+
+.sffc-signup-form-logo img {
+    max-width: 120px;
+    height: auto;
+}
+
+.sffc-signup-form-header {
+    text-align: center;
+    margin-bottom: 32px;
+}
+
+.sffc-signup-form-header h2 {
+    font-size: 28px;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin: 0 0 12px 0;
+    line-height: 1.3;
+}
+
+.sffc-signup-form-header p {
+    font-size: 16px;
+    color: #666;
+    line-height: 1.5;
+    margin: 0;
+}
+
+.sffc-signup-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.sffc-signup-form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+.sffc-signup-form-field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.sffc-signup-form-field label {
+    font-size: 14px;
+    font-weight: 600;
+    color: #333;
+}
+
+.sffc-signup-form-field label .required {
+    color: #dc2626;
+    margin-left: 2px;
+}
+
+.sffc-signup-form-field input {
+    width: 100%;
+    padding: 12px 16px;
+    font-size: 15px;
+    border: 2px solid #e5e7eb;
+    border-radius: 8px;
+    background: white;
+    color: #1a1a1a;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.sffc-signup-form-field input:focus {
+    outline: none;
+    border-color: #0D353E;
+    box-shadow: 0 0 0 3px rgba(13, 53, 62, 0.1);
+}
+
+.sffc-signup-form-field input::placeholder {
+    color: #9ca3af;
+}
+
+/* Checkbox field */
+.sffc-signup-form-checkbox {
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.sffc-signup-form-checkbox label {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    cursor: pointer;
+    font-weight: 400;
+}
+
+.sffc-signup-form-checkbox input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    min-width: 20px;
+    margin: 0;
+    cursor: pointer;
+    accent-color: #0D353E;
+}
+
+.sffc-signup-form-checkbox label span {
+    font-size: 14px;
+    line-height: 1.5;
+    color: #666;
+}
+
+.sffc-signup-form-checkbox label span a {
+    color: #0D353E;
+    text-decoration: underline;
+}
+
+.sffc-signup-form-checkbox label span a:hover {
+    color: #0a272e;
+}
+
+.sffc-signup-form-submit {
+    width: 100%;
+    padding: 14px 24px;
+    font-size: 16px;
+    font-weight: 600;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: opacity 0.2s, transform 0.1s;
+    margin-top: 8px;
+}
+
+.sffc-signup-form-submit:hover {
+    opacity: 0.9;
+}
+
+.sffc-signup-form-submit:active {
+    transform: translateY(1px);
+}
+
+.sffc-signup-form-submit:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.sffc-signup-form-feedback {
+    padding: 12px 16px;
+    border-radius: 8px;
+    font-size: 14px;
+    text-align: center;
+    margin: 0;
+}
+
+.sffc-signup-form-feedback.is-error {
+    background: #fee;
+    border: 1px solid #fca5a5;
+    color: #dc2626;
+}
+
+.sffc-signup-form-feedback.is-success {
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    color: #16a34a;
+}
+
+.sffc-signup-form-footer {
+    text-align: center;
+    font-size: 14px;
+    color: #666;
+    margin: 24px 0 0 0;
+}
+
+.sffc-signup-form-footer a {
+    color: #0D353E;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.sffc-signup-form-footer a:hover {
+    text-decoration: underline;
+}
+
+/* Field error states */
+.sffc-signup-form-field input.has-error {
+    border-color: #dc2626;
+}
+
+.sffc-signup-form-field input.has-error:focus {
+    border-color: #dc2626;
+    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+}
+
+.sffc-signup-field-error {
+    font-size: 13px;
+    color: #dc2626;
+    margin: 0;
+    padding: 0;
+}
+
+.sffc-signup-field-help {
+    font-size: 13px;
+    color: #6b7280;
+    margin: 0;
+    padding: 0;
+}
+
+/* Step transitions */
+.sffc-signup-step-1,
+.sffc-signup-step-2,
+.sffc-signup-step-3 {
+    animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Welcome back message (Step 3) */
+.sffc-signup-welcome-message {
+    text-align: center;
+    padding: 40px 20px;
+}
+
+.sffc-signup-welcome-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 24px auto;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+    color: #059669;
+}
+
+.sffc-signup-welcome-icon svg {
+    width: 40px;
+    height: 40px;
+}
+
+.sffc-signup-welcome-message h3 {
+    font-size: 24px;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin: 0 0 16px 0;
+}
+
+.sffc-signup-welcome-message p {
+    font-size: 16px;
+    color: #666;
+    line-height: 1.6;
+    margin: 0 0 16px 0;
+}
+
+.sffc-signup-welcome-email {
+    font-weight: 600;
+    color: #0D353E;
+}
+
+.sffc-signup-welcome-note {
+    font-size: 14px;
+    color: #9ca3af;
+    margin-bottom: 24px !important;
+}
+
+.sffc-signup-welcome-message a {
+    display: inline-block;
+    padding: 12px 32px;
+    font-size: 16px;
+    font-weight: 600;
+    color: white;
+    background: #0D353E;
+    border-radius: 8px;
+    text-decoration: none;
+    transition: opacity 0.2s;
+}
+
+.sffc-signup-welcome-message a:hover {
+    opacity: 0.9;
+}
+
+.sffc-signup-form-wrapper[dir="rtl"] .sffc-signup-form-header,
+.sffc-signup-form-wrapper[dir="rtl"] .sffc-signup-form-footer,
+.sffc-signup-form-wrapper[dir="rtl"] .sffc-signup-welcome-message {
+    text-align: right;
+}
+
+.sffc-signup-form-wrapper[dir="rtl"] .sffc-signup-form-row {
+    direction: rtl;
+}
+
+.sffc-signup-form-wrapper[dir="rtl"] .sffc-signup-form-field,
+.sffc-signup-form-wrapper[dir="rtl"] .sffc-signup-form-field label,
+.sffc-signup-form-wrapper[dir="rtl"] .sffc-signup-field-help,
+.sffc-signup-form-wrapper[dir="rtl"] .sffc-signup-field-error,
+.sffc-signup-form-wrapper[dir="rtl"] .sffc-signup-form-feedback {
+    text-align: right;
+}
+
+.sffc-signup-form-wrapper[dir="rtl"] .sffc-signup-form-field input,
+.sffc-signup-form-wrapper[dir="rtl"] .sffc-signup-welcome-email,
+.sffc-signup-form-wrapper[dir="rtl"] .sffc-signup-welcome-note {
+    text-align: right;
+}
+
+.sffc-signup-form-wrapper[dir="rtl"] .sffc-signup-form-field label .required {
+    margin-left: 0;
+    margin-right: 2px;
+}
+
+.sffc-signup-form-wrapper[dir="rtl"] .sffc-signup-form-checkbox {
+    flex-direction: row-reverse;
+}
+
+.sffc-signup-form-wrapper[dir="rtl"] .sffc-signup-form-checkbox label {
+    flex-direction: row-reverse;
+}
+
+.sffc-signup-form-wrapper[dir="rtl"] .sffc-signup-welcome-icon {
+    margin: 0 0 24px auto;
+}
+
+.sffc-signup-form-wrapper[dir="rtl"] .sffc-signup-form-submit,
+.sffc-signup-form-wrapper[dir="rtl"] .sffc-signup-welcome-message a {
+    text-align: center;
+}
+
+/* Mobile responsive */
+@media (max-width: 640px) {
+    .sffc-signup-form-container {
+        padding: 32px 24px;
+    }
+
+    .sffc-signup-form-header h2 {
+        font-size: 24px;
+    }
+
+    .sffc-signup-form-header p {
+        font-size: 14px;
+    }
+
+    .sffc-signup-form-row {
+        grid-template-columns: 1fr;
+    }
+
+    .sffc-signup-welcome-message {
+        padding: 30px 15px;
+    }
+
+    .sffc-signup-welcome-message h3 {
+        font-size: 20px;
+    }
+
+    .sffc-signup-welcome-message p {
+        font-size: 14px;
+    }
+}

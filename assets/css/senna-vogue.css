@@ -1,0 +1,4879 @@
+/**
+ * MENA Careers Vogue - Ultra-Premium Magazine Interface
+ * Seamless, borderless, Claude-inspired but superior
+ */
+
+/* Import Playfair Displayfont for MENA Careers messages */
+@import url("https://fonts.googleapis.com/css2?family=Playfair+Display&display=swap");
+
+/* Global message text styling */
+.message-text {
+  text-align: left !important;
+  font-family: "Playfair Display", serif !important;
+  font-size: 19px !important;
+  line-height: 1.8 !important;
+  color: rgb(7, 50, 57) !important;
+}
+
+/* WSJ-Style Headlines - Clean Textbook Layout */
+.wsj-headline {
+  margin-bottom: 16px !important;
+  padding-bottom: 0 !important;
+  width: 100% !important;
+}
+
+.wsj-headline-text {
+  font-family: "Playfair Display", serif !important;
+  font-size: 22px !important;
+  font-weight: 600 !important;
+  color: #000000 !important;
+  margin: 0 0 10px 0 !important;
+  line-height: 1.3 !important;
+  letter-spacing: -0.3px !important;
+  text-align: left !important;
+}
+
+/* User message headlines - slightly different styling */
+.user-headline .wsj-headline-text {
+  color: #666666 !important;
+  font-size: 18px !important;
+  font-weight: 500 !important;
+  font-style: italic !important;
+}
+
+/* Ensure messages have proper structure */
+.wsj-style-message .sffc-message-content {
+  width: 100% !important;
+}
+
+/* User Profile Dropdown Styles */
+.sffc-user-dropdown-container {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 100000; /* High z-index to be above all other elements */
+}
+
+.sffc-user-dropdown-trigger {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  background: white;
+  border: 1px solid #e5e5e5;
+  border-radius: 25px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 14px;
+  color: #333;
+}
+
+.sffc-user-dropdown-trigger:hover {
+  background: #f8f8f8;
+  border-color: #d0d0d0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.user-avatar {
+  width: 32px;
+  height: 32px;
+  background: linear-gradient(135deg, #1a3028 0%, #2d6a4f 100%);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.sffc-user-dropdown-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 8px;
+  background: white;
+  border: 1px solid #e5e5e5;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  min-width: 200px;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-10px);
+  transition: all 0.2s ease;
+  z-index: 100001; /* Above the container */
+}
+
+.sffc-user-dropdown-menu.active {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  cursor: pointer;
+  transition: background 0.2s;
+  color: #333;
+  text-decoration: none;
+  font-size: 14px;
+  border: none;
+  background: none;
+  width: 100%;
+  text-align: left;
+}
+
+.dropdown-item:hover {
+  background: #f8f8f8;
+}
+
+.dropdown-item:first-child {
+  border-radius: 8px 8px 0 0;
+}
+
+.dropdown-item:last-child {
+  border-radius: 0 0 8px 8px;
+}
+
+/* Application Support Modal Styles */
+.sffc-application-modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 100000;
+  align-items: center;
+  justify-content: center;
+}
+
+.sffc-application-modal .modal-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  cursor: pointer;
+}
+
+.sffc-application-modal .modal-content {
+  position: relative;
+  background: white;
+  border-radius: 12px !important;
+  padding: 32px;
+  max-width: 980px;
+  width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  z-index: 100001;
+  margin-left: auto;
+}
+
+.sffc-application-modal .modal-close {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #666;
+  padding: 5px;
+  transition: color 0.2s;
+}
+
+.sffc-application-modal .modal-close:hover {
+  color: #333;
+}
+
+.sffc-application-modal .modal-header {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 24px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #e5e5e5;
+}
+
+.sffc-application-modal .modal-header h2 {
+  font-family: "Playfair Display", serif;
+  font-size: 24px;
+  color: #1a3028;
+  margin: 0;
+}
+
+.sffc-application-modal .job-details-section {
+  margin-bottom: 24px;
+}
+
+.sffc-application-modal .job-details-section h3 {
+  font-family: "Playfair Display", serif;
+  font-size: 20px;
+  color: #333;
+  margin: 0 0 8px 0;
+}
+
+.sffc-application-modal .job-details-section p {
+  color: #666;
+  font-size: 14px;
+  margin: 0;
+}
+
+.sffc-application-modal .support-message {
+  margin-bottom: 24px;
+}
+
+.sffc-application-modal .message-box {
+  background: #f0fdf4;
+  border-left: 3px solid #10b981;
+  border-radius: 6px;
+  padding: 16px;
+}
+
+.sffc-application-modal .message-box svg {
+  float: left;
+  margin-right: 12px;
+}
+
+.sffc-application-modal .message-box p {
+  margin: 0 0 12px 0;
+  color: #333;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.sffc-application-modal .message-box ul {
+  margin: 8px 0 0 20px;
+  padding: 0;
+  list-style: disc;
+}
+
+.sffc-application-modal .message-box li {
+  color: #666;
+  font-size: 13px;
+  line-height: 1.8;
+}
+
+.sffc-application-modal .application-link-section {
+  margin-bottom: 24px;
+}
+
+.sffc-application-modal .application-link-section label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+}
+
+.sffc-application-modal .link-container {
+  display: flex;
+  gap: 8px;
+}
+
+.sffc-application-modal #applicationLink {
+  flex: 1;
+  padding: 10px 12px;
+  border: 1px solid #e5e5e5;
+  border-radius: 6px;
+  font-size: 14px;
+  color: #666;
+  background: #f8f8f8;
+}
+
+.sffc-application-modal .copy-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 16px;
+  background: white;
+  border: 1px solid #e5e5e5;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 14px;
+  color: #666;
+}
+
+.sffc-application-modal .copy-btn:hover {
+  background: #f8f8f8;
+  border-color: #d0d0d0;
+}
+
+.sffc-application-modal .copy-success {
+  color: #10b981;
+  font-size: 13px;
+  margin-left: 12px;
+  font-weight: 500;
+}
+
+.sffc-application-modal .modal-actions {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.sffc-application-modal .btn-secondary,
+.sffc-application-modal .btn-primary {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px 20px;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.sffc-application-modal .btn-secondary {
+  background: white;
+  color: #1a3028;
+  border: 2px solid #1a3028;
+}
+
+.sffc-application-modal .btn-secondary:hover {
+  background: #f8f8f8;
+}
+
+.sffc-application-modal .btn-primary {
+  background: linear-gradient(135deg, #1a3028 0%, #2d6a4f 100%);
+  color: white;
+  box-shadow: 0 3px 10px rgba(26, 48, 40, 0.2);
+}
+
+.sffc-application-modal .btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(45, 106, 79, 0.3);
+}
+
+.sffc-application-modal .save-progress {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-top: 20px;
+  border-top: 1px solid #e5e5e5;
+}
+
+.sffc-application-modal .save-progress input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: #2d6a4f;
+}
+
+.sffc-application-modal .save-progress label {
+  font-size: 14px;
+  color: #666;
+  cursor: pointer;
+}
+
+/* Support Popup Styles */
+.sffc-support-popup {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 100003; /* Higher than other modals */
+  align-items: center;
+  justify-content: center;
+}
+
+.popup-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  cursor: pointer;
+}
+
+.popup-close {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  width: 32px;
+  height: 32px;
+  background: rgba(0, 0, 0, 0.05);
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.popup-close:hover {
+  background: rgba(0, 0, 0, 0.1);
+  transform: rotate(90deg);
+}
+
+.popup-close svg {
+  width: 16px;
+  height: 16px;
+  stroke: #666;
+}
+
+.form-group {
+  margin-bottom: 15px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-family: "Inter", sans-serif;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #666;
+  font-weight: 600;
+}
+
+.popup-content {
+  background: white;
+  border-radius: 16px;
+  padding: 30px;
+  max-width: 500px;
+  width: 90%;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+  position: relative;
+  z-index: 100004;
+}
+
+.popup-content h3 {
+  margin: 0 0 20px 0;
+  font-size: 22px;
+  color: #1a3028;
+  font-family: "Playfair Display", serif;
+  font-weight: 400;
+}
+
+#supportSubject,
+#supportMessage {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 15px;
+  border: 1px solid #e5e5e5;
+  border-radius: 6px;
+  font-size: 14px;
+  transition: border-color 0.2s;
+}
+
+#supportSubject:focus,
+#supportMessage:focus {
+  outline: none;
+  border-color: #2d6a4f;
+}
+
+#supportMessage {
+  min-height: 120px;
+  resize: vertical;
+  font-family: inherit;
+}
+
+.form-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 24px;
+}
+
+/* Support Popup Button Styles */
+.popup-content .btn-cancel,
+.popup-content .btn-submit,
+.popup-content .btn-primary {
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-family: "Inter", sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+}
+
+.popup-content .btn-cancel {
+  background: white;
+  color: #1a3028;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.popup-content .btn-cancel:hover {
+  background: rgba(0, 0, 0, 0.02);
+  border-color: rgba(0, 0, 0, 0.2);
+}
+
+.popup-content .btn-submit,
+.popup-content .btn-primary {
+  background: linear-gradient(135deg, #1a3028 0%, #2d6a4f 100%);
+  color: white;
+}
+
+.popup-content .btn-submit:hover,
+.popup-content .btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(45, 106, 79, 0.3);
+}
+
+.popup-cancel,
+.popup-send {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.popup-cancel {
+  background: #f0f0f0;
+  color: #666;
+}
+
+.popup-cancel:hover {
+  background: #e0e0e0;
+}
+
+.popup-send {
+  background: linear-gradient(135deg, #1a3028 0%, #2d6a4f 100%);
+  color: white;
+}
+
+.popup-send:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(45, 106, 79, 0.3);
+}
+
+.popup-send:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Success state */
+.popup-success {
+  text-align: center;
+  padding: 20px;
+}
+
+.popup-success svg {
+  margin-bottom: 20px;
+}
+
+.popup-success h3 {
+  color: #2d6a4f;
+  margin-bottom: 10px;
+}
+
+.popup-success p {
+  color: #666;
+  margin-bottom: 20px;
+  font-size: 14px;
+}
+
+.senna-message.wsj-style-message {
+  display: flex !important;
+  gap: 16px !important;
+  margin-bottom: 32px !important;
+  width: 100% !important;
+}
+
+.senna-message-no-avatar {
+  gap: 0 !important;
+}
+
+.senna-message-no-avatar .sffc-message-content,
+.senna-message-no-avatar .message-content-full {
+  margin-left: 0;
+  width: 100%;
+}
+
+.user-message.wsj-style-message {
+  margin-bottom: 32px !important;
+  width: 100% !important;
+}
+
+/* Desktop specific */
+@media (min-width: 769px) {
+  .wsj-headline-text {
+    font-size: 24px !important;
+  }
+}
+
+/* Mobile adjustments for WSJ headlines */
+@media (max-width: 768px) {
+  .wsj-headline-text {
+    font-size: 20px !important;
+    margin: 0 0 8px 0 !important;
+  }
+
+  /* Reduce message margins on mobile */
+  .senna-message.wsj-style-message {
+    margin-bottom: 20px !important; /* Reduced from 32px */
+  }
+
+  .user-message.wsj-style-message {
+    margin-bottom: 20px !important; /* Reduced from 32px */
+  }
+}
+
+/* Message Headers - Enhanced for better hierarchy */
+.message-text h1,
+.message-text h2,
+.message-text h3,
+.message-text h4,
+.sffc-message-content h1,
+.sffc-message-content h2,
+.sffc-message-content h3,
+.sffc-message-content h4 {
+  font-family: "Playfair Display", serif !important;
+  color: rgb(7, 50, 57) !important;
+  margin: 24px 0 16px 0 !important;
+  font-weight: 700 !important;
+  text-align: left !important;
+}
+
+.message-text h1,
+.sffc-message-content h1 {
+  font-size: 26px !important;
+  border-bottom: 2px solid rgb(7, 50, 57);
+  padding-bottom: 8px;
+}
+
+.message-text h2,
+.sffc-message-content h2 {
+  font-size: 23px !important;
+  border-bottom: 1px solid rgba(7, 50, 57, 0.2);
+  padding-bottom: 6px;
+}
+
+.message-text h3,
+.sffc-message-content h3 {
+  font-size: 21px !important;
+}
+
+.message-text h4,
+.sffc-message-content h4 {
+  font-size: 19px !important;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Bold text for key points */
+.message-text strong,
+.message-text b {
+  font-weight: 700 !important;
+  color: #132d51 !important;
+  background: linear-gradient(
+    to bottom,
+    transparent 60%,
+    rgba(45, 106, 79, 0.1) 60%
+  );
+  padding: 0 2px;
+}
+
+/* Lists in messages */
+.message-text ul,
+.message-text ol,
+.sffc-message-content ul,
+.sffc-message-content ol {
+  margin: 16px 0 !important;
+  padding-left: 24px !important;
+  color: rgb(7, 50, 57) !important;
+}
+
+.message-text li,
+.sffc-message-content li {
+  margin: 8px 0 !important;
+  line-height: 1.6 !important;
+  color: rgb(7, 50, 57) !important;
+}
+
+/* Bold text highlighting for key points */
+.message-text strong,
+.message-text b,
+.sffc-message-content strong,
+.sffc-message-content b {
+  font-weight: 700 !important;
+  color: rgb(7, 50, 57) !important;
+  background: linear-gradient(
+    to bottom,
+    transparent 60%,
+    rgba(201, 169, 97, 0.15) 60%
+  ) !important;
+  padding: 0 2px !important;
+}
+
+/* Enhanced paragraph styling with better spacing */
+.message-text p,
+.sffc-message-content p {
+  margin: 12px 0 !important;
+  line-height: 1.8 !important;
+  color: rgb(7, 50, 57) !important;
+}
+
+/* Subheading styles for better content organization */
+.sffc-message-content .subheading,
+.message-text .subheading {
+  font-size: 17px !important;
+  font-weight: 600 !important;
+  color: rgb(7, 50, 57) !important;
+  margin: 20px 0 10px 0 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 1px !important;
+  border-left: 3px solid #c9a961 !important;
+  padding-left: 12px !important;
+}
+
+/* Key point emphasis */
+.sffc-message-content .key-point,
+.message-text .key-point {
+  background: rgba(201, 169, 97, 0.08) !important;
+  border-left: 3px solid #c9a961 !important;
+  padding: 12px 16px !important;
+  margin: 16px 0 !important;
+  font-weight: 500 !important;
+  color: rgb(7, 50, 57) !important;
+}
+
+/* Emphasized text */
+.message-text em,
+.sffc-message-content em {
+  font-style: italic !important;
+  color: rgb(7, 50, 57) !important;
+  font-weight: 500 !important;
+}
+
+/* Message Header Styling - Properly linked to MENA Careers Avatar */
+.sffc-message-header {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  margin-bottom: 16px !important;
+  padding: 8px 0 !important;
+  border-bottom: 1px solid rgba(201, 169, 97, 0.15) !important;
+}
+
+.sffc-message-header .sffc-message-avatar {
+  width: 45px !important;
+  height: 45px !important;
+  border-radius: 50% !important;
+  background: linear-gradient(135deg, #2d6a4f, #1b4332) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-family: "Playfair Display", serif !important;
+  font-size: 22px !important;
+  font-weight: 600 !important;
+  color: #c9a961 !important;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1) !important;
+  border: 2px solid #c9a961 !important;
+  flex-shrink: 0 !important;
+}
+
+.sffc-message-header .sffc-message-senna-name {
+  font-family: "Playfair Display", serif !important;
+  font-size: 18px !important;
+  font-weight: 600 !important;
+  color: rgb(7, 50, 57) !important;
+  letter-spacing: 0.5px !important;
+  text-transform: none !important;
+  padding-left: 60px !important;
+}
+
+.message-text li strong {
+  display: inline-block;
+  margin-right: 4px;
+}
+
+/* Paragraphs in messages */
+.message-text p {
+  margin: 12px 0 !important;
+  text-align: left !important;
+}
+
+/* First paragraph - no top margin */
+.message-text p:first-child {
+  margin-top: 0 !important;
+}
+
+/* Emphasis text */
+.message-text em,
+.message-text i {
+  font-style: italic;
+  color: #4a5b4f;
+}
+
+/* Code inline */
+.message-text code {
+  background: rgba(19, 45, 81, 0.08);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: "Courier New", monospace;
+  font-size: 18px;
+}
+
+/* Reset and Base */
+.sffc-opportunities-wrapper * {
+  box-sizing: border-box;
+}
+
+/* Main Container - No borders, pure elegance */
+.sffc-opportunities-wrapper {
+  background: #ffffff;
+  min-height: auto;
+  font-family: "Crimson Text", "Playfair Display", Georgia, serif;
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* Header Section */
+.sffc-opp-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24px 0;
+  margin-bottom: 32px;
+  position: relative;
+}
+
+@media (max-width: 768px) {
+  .sffc-opp-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 20px;
+  }
+}
+
+/* senna Branding */
+.sffc-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.sffc-brand-logo {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sffc-brand-s {
+  font-size: 28px;
+  font-weight: 700;
+  color: #1a3028;
+  font-family: "Inter", sans-serif;
+  line-height: 1;
+}
+
+.sffc-brand-dot {
+  position: absolute;
+  top: 2px;
+  right: -6px;
+  width: 6px;
+  height: 6px;
+  background: #2d6a4f;
+  border-radius: 50%;
+}
+
+.sffc-brand-text {
+  font-size: 20px;
+  font-weight: 500;
+  color: #1a3028;
+  font-family: "Inter", sans-serif;
+  letter-spacing: -0.5px;
+}
+
+/* User Header */
+.sffc-user-header {
+  flex: 1;
+  text-align: center;
+  padding: 0 20px;
+}
+
+@media (max-width: 768px) {
+  .sffc-user-header {
+    text-align: left;
+    padding: 0;
+    width: 100%;
+  }
+}
+
+.sffc-opp-title {
+  font-size: 32px;
+  font-weight: 400;
+  color: #1a3028;
+  margin: 0;
+  font-family: "Playfair Display", Georgia, serif;
+}
+
+@media (max-width: 768px) {
+  .sffc-opp-title {
+    font-size: 24px;
+  }
+}
+
+.user-first-name {
+  color: #2d6a4f;
+  font-weight: 500;
+  font-style: italic;
+}
+
+.sffc-title-underline {
+  width: 80px;
+  height: 2px;
+  background: linear-gradient(to right, #2d6a4f, transparent);
+  margin: 12px auto 0;
+}
+
+@media (max-width: 768px) {
+  .sffc-title-underline {
+    margin: 12px 0 0;
+  }
+}
+
+/* Profile Actions */
+.sffc-profile-actions {
+  display: flex;
+  align-items: center;
+}
+
+.sffc-edit-profile-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background: white;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 24px !important;
+  color: #4a5568;
+  font-size: 14px;
+  font-family: "Inter", sans-serif;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.sffc-edit-profile-btn:hover {
+  background: #1a3028;
+  color: white;
+  border-color: #1a3028;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.sffc-edit-profile-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* Remove all view toggle styles - no longer needed */
+
+/* Conversational View - Full Width Mobile Optimized */
+.sffc-conversational-view {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px 20px 100px;
+  width: 100%;
+}
+
+@media (min-width: 768px) {
+  .sffc-conversational-view {
+    padding: 30px 40px 120px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .sffc-conversational-view {
+    padding: 40px 60px 120px;
+  }
+}
+
+/* Remove all containers and borders */
+.sffc-senna-header {
+  display: none; /* Remove header completely */
+}
+
+.sffc-senna-conversation {
+  background: transparent;
+  border: none;
+  padding-top: 20px !important; /* Added top padding for spacing */
+  box-shadow: none;
+  margin: 20px auto 0; /* Added top margin */
+  padding: 0;
+  max-width: 900px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+/* Messages Area - Aligned Container */
+.senna-messages {
+  background: transparent;
+  border: none;
+  min-height: auto; /* Changed from calc(100vh - 300px) to auto */
+  padding-top: 0 !important; /* Remove top padding */
+  max-height: none;
+  height: auto;
+  overflow: visible;
+  padding: 30px 20px;
+  margin: 0 auto 80px;
+  width: 100%;
+  max-width: 800px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Message Styles - Premium Editorial Design */
+.senna-message,
+.user-message {
+  margin-bottom: 16px;
+  animation: fadeInUp 0.5s ease;
+  display: block;
+  position: relative;
+  width: 100%;
+  max-width: 700px;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* User Messages - Refined Design */
+.user-message {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 16px;
+}
+
+.user-message .message-content {
+  max-width: 100%;
+  background: linear-gradient(135deg, #1a3028 0%, #2a4038 100%);
+  padding: 0px 0px;
+  border-radius: 20px 20px 4px 20px !important;
+  box-shadow: 0 4px 12px rgba(26, 48, 40, 0.15);
+}
+
+.user-message .message-text {
+  color: white;
+  font-size: 16px;
+  line-height: 1.6;
+  font-family: "Inter", sans-serif;
+  font-weight: 400;
+}
+
+/* MENA Careers Messages - Editorial Excellence with Enhanced Avatar */
+.senna-message {
+  display: flex !important;
+  align-items: flex-start !important;
+  gap: 0 !important;
+  position: relative !important;
+  padding-left: 0 !important;
+  margin-bottom: 28px !important;
+}
+
+/* Subtle separator after MENA Careers messages */
+.senna-message::after {
+  content: "";
+  position: absolute;
+  bottom: -20px;
+  left: 64px;
+  right: 20%;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(201, 169, 97, 0.15) 20%,
+    rgba(201, 169, 97, 0.15) 80%,
+    transparent
+  );
+}
+
+/* Premium Avatar Design */
+.senna-avatar {
+  width: 48px !important;
+  height: 48px !important;
+  border-radius: 50% !important;
+  overflow: hidden !important;
+  flex-shrink: 0 !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12) !important;
+  border: 2.5px solid #c9a961 !important;
+  margin-right: 16px !important;
+  position: relative !important;
+  top: 0 !important;
+  background: linear-gradient(135deg, #2d6a4f, #1b4332) !important;
+}
+
+.senna-avatar img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+}
+
+/* Legacy support */
+.message-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  overflow: hidden;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border: 2px solid rgba(201, 169, 97, 0.2);
+}
+
+.message-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.message-content,
+.sffc-message-content {
+  flex: 1;
+  max-width: none;
+  position: relative;
+  text-align: left !important;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  font-family: "Playfair Display", serif !important;
+  font-size: 19px !important;
+  color: rgb(7, 50, 57) !important;
+  line-height: 1.7 !important;
+}
+
+.senna-message .message-text,
+.senna-message .sffc-message-content {
+  background: transparent !important;
+  padding: 0;
+  border-radius: 0;
+  color: rgb(7, 50, 57) !important;
+  font-size: 19px !important;
+  line-height: 1.8;
+  font-weight: 400;
+  font-family: "Playfair Display", serif !important;
+  box-shadow: none !important;
+  letter-spacing: 0.2px;
+  text-align: left !important;
+  border: none !important;
+}
+
+/* First paragraph emphasis */
+.senna-message .message-text > p:first-child {
+  font-size: 21px;
+  color: #0f1f18;
+  margin-bottom: 20px;
+  font-family: "Playfair Display", serif !important;
+  text-align: left !important;
+}
+
+/* Specific styling for MENA Careers messages with class sffc-message-senna */
+.sffc-message-senna {
+  display: block !important;
+  position: relative !important;
+  margin-bottom: 32px !important;
+}
+
+.sffc-message-senna .senna-avatar {
+  position: absolute !important;
+  left: 0 !important;
+  top: 0 !important;
+  width: 48px !important;
+  height: 48px !important;
+  border-radius: 50% !important;
+  overflow: hidden !important;
+  flex-shrink: 0 !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12) !important;
+  border: 2.5px solid #c9a961 !important;
+  background: linear-gradient(135deg, #2d6a4f, #1b4332) !important;
+  z-index: 1 !important;
+}
+
+.sffc-message-senna .senna-avatar img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  display: block !important;
+  position: relative !important;
+  z-index: 1 !important;
+}
+
+/* Fallback only when image fails to load or is missing */
+.sffc-message-senna .senna-avatar:empty::before,
+.sffc-message-senna .senna-avatar:not(:has(img))::before {
+  content: "S" !important;
+  position: absolute !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  font-family: "Playfair Display", serif !important;
+  font-size: 22px !important;
+  color: #c9a961 !important;
+  font-weight: 700 !important;
+}
+
+.sffc-message-senna .message-content,
+.sffc-message-senna .sffc-message-content {
+  margin-left: 4px !important; /* Avatar width (48px) + gap (16px) */
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  text-align: left !important;
+  font-family: "Playfair Display", serif !important;
+  font-size: 19px !important;
+  line-height: 1.8 !important;
+  color: rgb(7, 50, 57) !important;
+}
+
+/* Headers (WSJ headlines) stay aligned with message content container */
+.sffc-message-senna .wsj-headline {
+  margin-left: 0 !important;
+  margin-bottom: 16px !important;
+}
+
+/* All other content aligns with the avatar */
+.sffc-message-senna .message-text,
+.sffc-message-senna .job-cards-container,
+.sffc-message-senna .jobs-grid,
+.sffc-message-senna .option-cards,
+.sffc-message-senna .quick-options,
+.sffc-message-senna .wsj-cv-chat-container,
+.sffc-message-senna .skeleton-jobs-container,
+.sffc-message-senna .senna-guidance,
+.sffc-message-senna .quick-apply-interface {
+  margin-left: -64px !important; /* Negative margin to align with avatar */
+  padding-left: 64px !important; /* Restore content position but keep left edge aligned with avatar */
+}
+
+/* Override more specific selectors for MENA Careers messages */
+.sffc-conversational-view .sffc-message-senna .sffc-message-content,
+.sffc-conversational-view .sffc-message-senna .message-content,
+.sffc-conversational-view .sffc-message-senna .message-text,
+.sffc-opportunities-wrapper .sffc-message-senna .sffc-message-content,
+.sffc-opportunities-wrapper .sffc-message-senna .message-content,
+.sffc-opportunities-wrapper .sffc-message-senna .message-text {
+  margin-left: 4px !important;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  text-align: left !important;
+  font-family: "Playfair Display", serif !important;
+  font-size: 19px !important;
+  line-height: 1.8 !important;
+  color: rgb(7, 50, 57) !important;
+}
+
+/* Apply alignment fix to override selectors too */
+.sffc-conversational-view .sffc-message-senna .message-text,
+.sffc-conversational-view .sffc-message-senna .job-cards-container,
+.sffc-conversational-view .sffc-message-senna .jobs-grid,
+.sffc-conversational-view .sffc-message-senna .option-cards,
+.sffc-conversational-view .sffc-message-senna .quick-options,
+.sffc-opportunities-wrapper .sffc-message-senna .message-text,
+.sffc-opportunities-wrapper .sffc-message-senna .job-cards-container,
+.sffc-opportunities-wrapper .sffc-message-senna .jobs-grid,
+.sffc-opportunities-wrapper .sffc-message-senna .option-cards,
+.sffc-opportunities-wrapper .sffc-message-senna .quick-options {
+  margin-left: -64px !important;
+  padding-left: 64px !important;
+}
+
+/* Subheadings in messages */
+.sffc-message-content .sffc-subheading {
+  font-family: "Playfair Display", serif !important;
+  font-weight: 600 !important;
+  color: #122e24 !important;
+  margin: 20px 0 12px !important;
+  font-size: 22px !important;
+  letter-spacing: -0.3px !important;
+}
+
+.sffc-message-content h2.sffc-subheading {
+  font-size: 24px !important;
+  margin-top: 24px !important;
+}
+
+.sffc-message-content h3.sffc-subheading {
+  font-size: 20px !important;
+  margin-top: 20px !important;
+}
+
+/* Highlighted phrases */
+.sffc-message-content .sffc-highlight {
+  background: linear-gradient(
+    to bottom,
+    transparent 60%,
+    rgba(176, 141, 87, 0.2) 60%
+  ) !important;
+  padding: 0 3px !important;
+  font-weight: 500 !important;
+  color: #122e24 !important;
+}
+
+/* Finance keywords */
+.sffc-message-content .sffc-keyword {
+  color: #2d6a4f !important;
+  font-weight: 500 !important;
+  border-bottom: 1px solid rgba(45, 106, 79, 0.3) !important;
+}
+
+/* Bullet lists */
+.sffc-message-content .sffc-bullet-list {
+  margin: 12px 0 !important;
+  padding-left: 24px !important;
+}
+
+.sffc-message-content .sffc-bullet-list li {
+  margin: 8px 0 !important;
+  color: rgb(7, 50, 57) !important;
+  font-family: "Playfair Display", serif !important;
+  font-size: 18px !important;
+  line-height: 1.7 !important;
+}
+
+/* User Messages Redesign - Vogue Style */
+.sffc-message-user {
+  display: block !important;
+  text-align: center !important;
+  margin-bottom: 32px !important;
+  padding: 0 20px !important;
+}
+
+.sffc-message-user .message-content,
+.sffc-message-user .sffc-message-content {
+  background: transparent !important;
+  border: none !important;
+  border-bottom: 1px solid rgba(7, 50, 57, 0.2) !important;
+  box-shadow: none !important;
+  padding: 8px 0 !important;
+  font-family: "Playfair Display", serif !important;
+  font-size: 19px !important;
+  line-height: 1.6 !important;
+  color: rgb(7, 50, 57) !important;
+  text-align: center !important;
+  max-width: 80% !important;
+  margin: 0 auto !important;
+}
+
+/* Guidance sections within messages */
+.senna-guidance {
+  margin-top: 20px;
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.8);
+  border-left: 3px solid rgba(201, 169, 97, 0.3);
+}
+
+.senna-guidance h4 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1a3028;
+  margin: 0 0 12px 0;
+  font-family: "Inter", sans-serif;
+  letter-spacing: 0.5px;
+}
+
+.senna-guidance ul {
+  margin: 0;
+  padding-left: 20px;
+  list-style: none;
+}
+
+.senna-guidance li {
+  margin-bottom: 10px;
+  font-size: 15px;
+  line-height: 1.6;
+  color: #4a5568;
+  position: relative;
+  padding-left: 16px;
+}
+
+.senna-guidance li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 8px;
+  width: 0;
+  height: 0;
+  border-left: 6px solid #2d6a4f;
+  border-top: 4px solid transparent;
+  border-bottom: 4px solid transparent;
+}
+
+.senna-guidance li strong {
+  color: #1a3028;
+  font-weight: 600;
+}
+
+.guidance-tip {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
+  font-size: 14px;
+  color: #666;
+  font-style: italic;
+}
+
+.guidance-tip strong {
+  color: #2d6a4f;
+  font-style: normal;
+  margin-right: 4px;
+}
+
+/* Profile Prompt Styling */
+.profile-prompt {
+  background: linear-gradient(
+    135deg,
+    rgba(201, 169, 97, 0.05),
+    rgba(26, 48, 40, 0.02)
+  );
+  padding: 24px;
+  border-radius: 12px !important;
+  margin: 16px 0;
+}
+
+.profile-prompt p {
+  margin: 0 0 16px 0;
+  font-size: 18px;
+  line-height: 1.6;
+  color: #4a5568;
+}
+
+.inline-profile-btn {
+  display: inline-block;
+  padding: 12px 24px;
+  background: #1a3028;
+  color: white;
+  border: none;
+  border-radius: 24px !important;
+  font-size: 15px;
+  font-weight: 500;
+  font-family: "Inter", sans-serif;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin: 8px 0;
+}
+
+.inline-profile-btn:hover {
+  background: #2d6a4f;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(201, 169, 97, 0.3);
+}
+
+.continue-anyway {
+  margin-top: 16px !important;
+  font-size: 14px !important;
+  color: #999 !important;
+  font-style: italic;
+}
+
+/* Profile Builder Completion Icon */
+.completion-icon svg {
+  color: #2d6a4f;
+  width: 48px;
+  height: 48px;
+}
+
+/* Option Cards System */
+
+.option-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px;
+  margin-top: 22px;
+}
+
+@media (max-width: 640px) {
+  .option-cards {
+    grid-template-columns: 1fr;
+  }
+}
+
+.option-card {
+  min-height: 120px;
+  padding: 18px 20px;
+  background: linear-gradient(135deg, rgba(250, 249, 245, 0.95), #ffffff);
+  border: 1.5px solid rgba(26, 71, 42, 0.12);
+  border-radius: 16px !important;
+  cursor: pointer;
+  transition: transform 0.22s ease, box-shadow 0.22s ease,
+    border-color 0.22s ease;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0 12px 28px rgba(26, 71, 42, 0.08);
+  color: #1a472a;
+}
+
+.option-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    circle at top,
+    rgba(212, 175, 55, 0.12),
+    transparent 65%
+  );
+  opacity: 0;
+  transition: opacity 0.22s ease;
+}
+
+.option-card:hover {
+  transform: translateY(-3px);
+  border-color: rgba(26, 71, 42, 0.35);
+  box-shadow: 0 18px 36px rgba(26, 71, 42, 0.14);
+  background: linear-gradient(135deg, rgba(252, 251, 248, 1), #ffffff);
+}
+
+.option-card:hover::before {
+  opacity: 1;
+}
+
+.option-card:active {
+  transform: translateY(0) scale(0.97);
+}
+
+.option-card-icon {
+  width: 28px;
+  height: 28px;
+  margin: 0 auto 10px;
+  color: inherit;
+}
+
+.option-card-text {
+  font-size: 14px;
+  font-weight: 600;
+  color: inherit;
+  font-family: "Inter", sans-serif;
+  letter-spacing: 0.2px;
+  position: relative;
+  z-index: 1;
+}
+
+.option-card--accent {
+  background: linear-gradient(
+    140deg,
+    rgba(99, 102, 241, 0.18),
+    rgba(228, 232, 255, 0.92)
+  );
+  border-color: rgba(99, 102, 241, 0.32);
+  color: #4338ca;
+  box-shadow: 0 14px 30px rgba(99, 102, 241, 0.22);
+}
+
+.option-card--accent:hover {
+  border-color: rgba(68, 64, 221, 0.5);
+  box-shadow: 0 20px 32px rgba(79, 70, 229, 0.28);
+  background: linear-gradient(
+    140deg,
+    rgba(79, 70, 229, 0.22),
+    rgba(222, 226, 255, 0.96)
+  );
+}
+
+.option-card.primary {
+  background: #1a3028;
+  border-color: #1a3028;
+  color: white;
+}
+
+/* Application Support Modal */
+#applicationModal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  z-index: 100001;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.sffc-application-modal {
+  background: white;
+  border-radius: 16px;
+  max-width: 1960px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+}
+
+.sffc-modal-header {
+  padding: 32px 32px 24px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  position: relative;
+}
+
+.sffc-modal-close {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  width: 32px;
+  height: 32px;
+  background: rgba(0, 0, 0, 0.05);
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.sffc-modal-close:hover {
+  background: rgba(0, 0, 0, 0.1);
+  transform: rotate(90deg);
+}
+
+.sffc-modal-icon {
+  width: 56px;
+  height: 56px;
+  background: linear-gradient(135deg, #1a3028 0%, #2d6a4f 100%);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.sffc-modal-icon svg {
+  width: 28px;
+  height: 28px;
+  stroke: white;
+}
+
+.sffc-modal-title {
+  font-family: "Playfair Display", serif;
+  font-size: 24px;
+  color: #1a3028;
+  margin: 0 0 8px;
+  font-weight: 400;
+}
+
+.sffc-modal-subtitle {
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
+  font-size: 14px;
+  color: #666;
+  margin: 0;
+}
+
+.sffc-modal-subtitle strong {
+  color: #1a3028;
+  font-weight: 600;
+}
+
+.sffc-modal-body {
+  padding: 32px;
+}
+
+.sffc-application-tips {
+  background: linear-gradient(
+    135deg,
+    rgba(201, 169, 97, 0.05) 0%,
+    rgba(201, 169, 97, 0.02) 100%
+  );
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 24px;
+}
+
+.sffc-tips-title {
+  font-family: "Inter", sans-serif;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #666;
+  margin: 0 0 12px;
+  font-weight: 600;
+}
+
+.sffc-tip-item {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+.sffc-tip-item:last-child {
+  margin-bottom: 0;
+}
+
+.sffc-tip-icon {
+  width: 20px;
+  height: 20px;
+  background: #2d6a4f;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-right: 12px;
+}
+
+.sffc-tip-icon svg {
+  width: 12px;
+  height: 12px;
+  stroke: white;
+  stroke-width: 3;
+}
+
+.sffc-tip-text {
+  font-family: "Inter", sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #333;
+  flex: 1;
+}
+
+.sffc-application-link {
+  margin-bottom: 24px;
+}
+
+.sffc-link-label {
+  font-family: "Inter", sans-serif;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #666;
+  margin: 0 0 8px;
+  font-weight: 600;
+}
+
+.sffc-link-input-group {
+  display: flex;
+  gap: 8px;
+}
+
+.sffc-link-input {
+  flex: 1;
+  padding: 12px 16px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  font-family: "Inter", sans-serif;
+  font-size: 14px;
+  color: #1a3028;
+  background: rgba(0, 0, 0, 0.02);
+}
+
+.sffc-link-input:focus {
+  outline: none;
+  border-color: #2d6a4f;
+  background: white;
+}
+
+.sffc-copy-btn {
+  padding: 12px 20px;
+  background: white;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: "Inter", sans-serif;
+  font-size: 14px;
+  color: #1a3028;
+  transition: all 0.2s;
+}
+
+.sffc-copy-btn:hover {
+  background: rgba(45, 106, 79, 0.05);
+  border-color: #2d6a4f;
+}
+
+.sffc-copy-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+.sffc-copy-success {
+  display: none;
+  color: #2d6a4f;
+  font-size: 12px;
+  margin-left: 8px;
+}
+
+.sffc-save-interest {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  background: rgba(45, 106, 79, 0.05);
+  border-radius: 8px;
+  margin-bottom: 24px;
+}
+
+.sffc-save-checkbox {
+  width: 20px;
+  height: 20px;
+  accent-color: #2d6a4f;
+}
+
+.sffc-save-label {
+  font-family: "Inter", sans-serif;
+  font-size: 14px;
+  color: #1a3028;
+  cursor: pointer;
+}
+
+.sffc-modal-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.sffc-modal-btn {
+  flex: 1;
+  padding: 14px 24px;
+  border: none;
+  border-radius: 8px;
+  font-family: "Inter", sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.sffc-modal-btn-primary {
+  background: linear-gradient(135deg, #1a3028 0%, #2d6a4f 100%);
+  color: white;
+}
+
+.sffc-modal-btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(45, 106, 79, 0.3);
+}
+
+.sffc-modal-btn-secondary {
+  background: white;
+  color: #1a3028;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.sffc-modal-btn-secondary:hover {
+  background: rgba(0, 0, 0, 0.02);
+  border-color: rgba(0, 0, 0, 0.2);
+}
+
+.sffc-modal-support {
+  text-align: center;
+  padding: 20px;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  background: rgba(0, 0, 0, 0.02);
+}
+
+.sffc-support-text {
+  font-family: "Inter", sans-serif;
+  font-size: 13px;
+  color: #666;
+  margin: 0;
+}
+
+.sffc-support-link {
+  color: #2d6a4f;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.sffc-support-link:hover {
+  text-decoration: underline;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 640px) {
+  .sffc-modal-header {
+    padding: 24px 20px 16px;
+  }
+
+  .sffc-modal-body {
+    padding: 20px;
+  }
+
+  .sffc-modal-title {
+    font-size: 20px;
+  }
+
+  .sffc-modal-actions {
+    flex-direction: column;
+  }
+}
+
+.option-card.primary .option-card-text {
+  color: white;
+}
+
+/* Expert Advice Modal */
+#adviceModal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.75);
+  z-index: 100002;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.sffc-advice-modal {
+  background: white;
+  border-radius: 20px;
+  max-width: 720px;
+  width: 100%;
+  max-height: 85vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.35);
+}
+
+.sffc-advice-modal .sffc-modal-header {
+  padding: 32px 32px 24px;
+  background: linear-gradient(
+    135deg,
+    rgba(45, 106, 79, 0.03) 0%,
+    rgba(201, 169, 97, 0.03) 100%
+  );
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  position: relative;
+  text-align: center;
+}
+
+.sffc-advice-modal .sffc-modal-icon {
+  width: 64px;
+  height: 64px;
+  background: linear-gradient(135deg, #c9a961 0%, #b8985a 100%);
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 20px;
+  box-shadow: 0 8px 20px rgba(201, 169, 97, 0.3);
+}
+
+.sffc-advice-modal .sffc-modal-icon svg {
+  stroke: white;
+  fill: white;
+}
+
+.sffc-section-title {
+  font-family: "Inter", sans-serif;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  color: #666;
+  margin: 0 0 20px;
+  font-weight: 600;
+}
+
+.sffc-advice-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+@media (max-width: 640px) {
+  .sffc-advice-cards {
+    grid-template-columns: 1fr;
+  }
+}
+
+.sffc-advice-card {
+  padding: 20px;
+  border: 1.5px solid rgba(0, 0, 0, 0.08);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-align: center;
+  background: white;
+}
+
+.sffc-advice-card:hover {
+  border-color: #c9a961;
+  background: linear-gradient(
+    135deg,
+    rgba(201, 169, 97, 0.05) 0%,
+    rgba(201, 169, 97, 0.02) 100%
+  );
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(201, 169, 97, 0.15);
+}
+
+.sffc-advice-card-icon {
+  width: 48px;
+  height: 48px;
+  margin: 0 auto 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(45, 106, 79, 0.08);
+  border-radius: 50%;
+}
+
+.sffc-advice-card-icon svg {
+  width: 24px;
+  height: 24px;
+  stroke: #2d6a4f;
+}
+
+.sffc-advice-card h4 {
+  font-family: "Playfair Display", serif;
+  font-size: 16px;
+  color: #1a3028;
+  margin: 0 0 8px;
+  font-weight: 400;
+}
+
+.sffc-advice-card p {
+  font-family: "Inter", sans-serif;
+  font-size: 13px;
+  color: #666;
+  margin: 0 0 12px;
+  line-height: 1.4;
+}
+
+.sffc-advice-time {
+  display: inline-block;
+  padding: 4px 8px;
+  background: rgba(45, 106, 79, 0.1);
+  color: #2d6a4f;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.sffc-advice-questions {
+  padding: 0 32px;
+}
+
+.sffc-question-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.sffc-chip {
+  padding: 8px 16px;
+  background: white;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 20px;
+  font-family: "Inter", sans-serif;
+  font-size: 13px;
+  color: #333;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.sffc-chip:hover {
+  background: #2d6a4f;
+  color: white;
+  border-color: #2d6a4f;
+  transform: translateY(-1px);
+}
+
+.sffc-custom-question {
+  margin-top: 20px;
+}
+
+.sffc-custom-question textarea {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  font-family: "Inter", sans-serif;
+  font-size: 14px;
+  resize: vertical;
+  margin-bottom: 12px;
+}
+
+.sffc-custom-question textarea:focus {
+  outline: none;
+  border-color: #2d6a4f;
+}
+
+.sffc-ask-btn {
+  padding: 12px 24px;
+  background: linear-gradient(135deg, #1a3028 0%, #2d6a4f 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-family: "Inter", sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s;
+}
+
+.sffc-ask-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(45, 106, 79, 0.3);
+}
+
+.sffc-advice-response {
+  padding: 24px;
+  background: linear-gradient(
+    135deg,
+    rgba(45, 106, 79, 0.03) 0%,
+    rgba(201, 169, 97, 0.03) 100%
+  );
+  border-radius: 12px;
+  margin: 24px 32px;
+}
+
+.sffc-response-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.sffc-response-header h4 {
+  font-family: "Playfair Display", serif;
+  font-size: 18px;
+  color: #1a3028;
+  margin: 0;
+}
+
+.sffc-response-content {
+  font-family: "Inter", sans-serif;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #333;
+}
+
+.sffc-response-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.sffc-btn-primary,
+.sffc-btn-secondary {
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-family: "Inter", sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+}
+
+.sffc-btn-primary {
+  background: linear-gradient(135deg, #1a3028 0%, #2d6a4f 100%);
+  color: white;
+}
+
+.sffc-btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(45, 106, 79, 0.3);
+}
+
+.sffc-btn-secondary {
+  background: white;
+  color: #1a3028;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.sffc-btn-secondary:hover {
+  background: rgba(0, 0, 0, 0.02);
+}
+
+.sffc-modal-footer {
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.02);
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+  text-align: center;
+}
+
+.sffc-footer-text {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-family: "Inter", sans-serif;
+  font-size: 13px;
+  color: #666;
+  margin: 0;
+}
+
+.sffc-footer-text svg {
+  width: 14px;
+  height: 14px;
+  stroke: #c9a961;
+}
+
+/* Response content styles */
+.sffc-coming-soon,
+.sffc-expert-connect,
+.sffc-peer-insights,
+.sffc-question-submitted {
+  padding: 16px;
+}
+
+.sffc-submitted-question {
+  padding: 12px;
+  background: white;
+  border-radius: 8px;
+  margin: 12px 0;
+  border-left: 3px solid #2d6a4f;
+}
+
+.sffc-expert-note {
+  padding: 12px;
+  background: rgba(201, 169, 97, 0.1);
+  border-radius: 8px;
+  margin: 16px 0;
+  color: #8b7355;
+  font-weight: 500;
+}
+
+.option-card.primary:hover {
+  background: #0f241e;
+  border-color: #0f241e;
+  box-shadow: 0 8px 24px rgba(26, 48, 40, 0.25);
+}
+
+/* Quick Options - Inline Buttons */
+.quick-options {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+  flex-wrap: wrap;
+}
+
+.quick-option {
+  padding: 8px 16px;
+  background: rgba(201, 169, 97, 0.08);
+  border: 1px solid rgba(201, 169, 97, 0.2);
+  border-radius: 20px !important;
+  font-size: 13px;
+  font-family: "Inter", sans-serif;
+  color: #4a5568;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.quick-option:hover {
+  background: #2d6a4f;
+  border-color: #2d6a4f;
+  color: white;
+  transform: translateY(-1px);
+}
+
+.message-time {
+  display: none; /* Remove timestamps for cleaner look */
+}
+
+/* Job Cards Integrated in Chat - Simplified List View */
+.job-cards-in-chat {
+  margin: 24px 0 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 0;
+  width: 100%;
+  max-width: 100%;
+}
+
+/* Removed job-card-simplified styles - using only vogue cards */
+
+/* Ensure all job card types have clickable company sections */
+.job-cards-in-chat .sffc-company-section,
+.job-card-vogue .sffc-company-section {
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+
+.job-cards-in-chat .sffc-company-section:hover,
+.job-card-vogue .sffc-company-section:hover {
+  opacity: 0.85;
+}
+
+/* Action Buttons for Vogue Cards */
+@media (max-width: 768px) {
+  .job-card-vogue .sffc-match-actions,
+  .sffc-match-card .sffc-match-actions {
+    display: flex;
+    gap: 6px;
+    margin-left: auto;
+    padding-left: 12px;
+    flex-shrink: 0;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+}
+
+/* Show buttons on card hover */
+.job-card-vogue:hover .sffc-match-actions,
+.sffc-match-card:hover .sffc-match-actions {
+  opacity: 1;
+}
+
+/* Button design - Mobile */
+@media (max-width: 768px) {
+  .sffc-match-actions button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    padding: 6px 10px;
+    border-radius: 6px;
+    border: 1px solid rgba(45, 106, 79, 0.15);
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 11px;
+    font-weight: 600;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+    white-space: nowrap;
+    color: #1a472a !important; /* Premium dark green text */
+    letter-spacing: 0.2px;
+    box-shadow: 0 1px 3px rgba(45, 106, 79, 0.1);
+    position: relative;
+    overflow: hidden;
+  }
+}
+
+/* Job cards in chat - positioning for action buttons */
+.job-cards-in-chat .sffc-match-actions {
+  position: absolute !important;
+  bottom: 15px !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  display: flex !important;
+  flex-direction: row !important; /* Force horizontal */
+  gap: 8px !important;
+  justify-content: center !important;
+  width: auto !important;
+}
+
+/* Remove avatar icons globally */
+.avatar-icon {
+  display: none !important;
+}
+
+/* Ensure buttons in chat cards have proper styling */
+.job-cards-in-chat .sffc-match-actions button,
+.job-cards-in-chat .sffc-match-actions .sffc-action-btn {
+  color: #1a472a !important; /* Premium dark green */
+  background: rgba(255, 255, 255, 0.98) !important;
+  border: 1px solid rgba(45, 106, 79, 0.2) !important;
+  font-weight: 600 !important;
+  padding: 8px 16px !important;
+  border-radius: 8px !important;
+  font-size: 13px !important;
+  min-width: auto !important;
+  flex: 0 0 auto !important;
+  white-space: nowrap !important;
+  box-shadow: 0 2px 4px rgba(45, 106, 79, 0.1) !important;
+  transition: all 0.2s ease !important;
+}
+
+.job-cards-in-chat .sffc-match-actions button:hover,
+.job-cards-in-chat .sffc-match-actions .sffc-action-btn:hover {
+  background: #f8fdf9 !important;
+  border-color: #2d6a4f !important;
+  color: #2d6a4f !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 8px rgba(45, 106, 79, 0.15) !important;
+}
+
+/* Remove aggressive effects */
+.sffc-match-actions button::before {
+  display: none;
+}
+
+/* Subtle hover state */
+.sffc-match-actions button:hover {
+  background: rgba(255, 255, 255, 1);
+  border-color: rgba(45, 106, 79, 0.3);
+  color: #1a472a !important;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(45, 106, 79, 0.12);
+}
+
+/* Icon styling - smaller and more subtle */
+.sffc-match-actions button svg {
+  width: 12px;
+  height: 12px;
+  stroke-width: 1.5;
+  opacity: 0.7;
+  transition: opacity 0.2s ease;
+}
+
+.sffc-match-actions button:hover svg {
+  opacity: 1;
+}
+
+/* Hide text on mobile, show only icons */
+@media (max-width: 768px) {
+  .sffc-match-actions button span {
+    display: none;
+  }
+
+  .sffc-match-actions button {
+    padding: 8px;
+    min-width: 32px;
+  }
+}
+
+/* Text styling */
+.sffc-match-actions button span {
+  display: inline-block;
+  font-weight: 500;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+/* Individual button subtle accents */
+
+/* Apply Button - Primary action */
+.sffc-btn-apply {
+  background: linear-gradient(
+    135deg,
+    rgba(45, 106, 79, 0.95) 0%,
+    rgba(39, 91, 68, 0.95) 100%
+  ) !important;
+  color: white !important;
+  border: 1px solid rgba(45, 106, 79, 0.2) !important;
+  font-weight: 600 !important;
+}
+
+.sffc-btn-apply svg {
+  stroke: white !important;
+}
+
+.sffc-btn-apply:hover {
+  background: linear-gradient(
+    135deg,
+    rgba(39, 91, 68, 1) 0%,
+    rgba(33, 78, 58, 1) 100%
+  ) !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(45, 106, 79, 0.25) !important;
+}
+
+.sffc-btn-apply.applied {
+  background: linear-gradient(
+    135deg,
+    rgba(34, 197, 94, 0.95) 0%,
+    rgba(45, 106, 79, 0.95) 100%
+  ) !important;
+  color: white !important;
+  pointer-events: none;
+}
+
+/* Tailor CV - Secondary action */
+.sffc-btn-tailor {
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.95) 0%,
+    rgba(251, 245, 237, 0.95) 100%
+  ) !important;
+  color: rgba(139, 111, 78, 0.9) !important;
+  border: 1px solid rgba(176, 141, 87, 0.15) !important;
+}
+
+.sffc-btn-tailor svg {
+  stroke: rgba(139, 111, 78, 0.8) !important;
+}
+
+.sffc-btn-tailor:hover {
+  background: linear-gradient(
+    135deg,
+    rgba(251, 245, 237, 1) 0%,
+    rgba(246, 235, 219, 1) 100%
+  ) !important;
+  color: rgba(139, 111, 78, 1) !important;
+  border-color: rgba(176, 141, 87, 0.25) !important;
+}
+
+/* Alternative: Always show buttons (remove hover-only display) */
+@media (min-width: 1024px) {
+  .sffc-match-actions {
+    opacity: 0.7 !important; /* Always visible but subtle */
+  }
+
+  .job-card-vogue:hover .sffc-match-actions,
+  .sffc-match-card:hover .sffc-match-actions {
+    opacity: 1 !important; /* Full opacity on hover */
+  }
+}
+
+/* Mobile: Always show buttons since hover doesn't work */
+@media (max-width: 1023px) {
+  .sffc-match-actions {
+    opacity: 0.8 !important;
+  }
+}
+
+/* Mobile Card Display Fix - Ensure cards display fully */
+@media (max-width: 768px) {
+  .sffc-match-card.job-card-vogue {
+    margin-bottom: 20px !important;
+    min-height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+    padding-bottom: 60px !important; /* Space for buttons */
+  }
+
+  .job-cards-in-chat .sffc-match-card.job-card-vogue {
+    width: calc(100% - 20px) !important;
+    margin: 10px !important;
+  }
+
+  /* Ensure action buttons are properly positioned on mobile */
+  .sffc-match-card.job-card-vogue .sffc-match-actions {
+    position: absolute !important;
+    bottom: 10px !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    width: calc(100% - 40px) !important;
+    max-width: 300px !important;
+    display: flex !important;
+    gap: 10px !important;
+    justify-content: center !important;
+  }
+
+  /* Make buttons more prominent on mobile */
+  .sffc-match-card.job-card-vogue .sffc-match-actions button {
+    flex: 1 !important;
+    padding: 10px 16px !important;
+    font-size: 14px !important;
+    font-weight: 600 !important;
+  }
+}
+
+/* Prominent Tailor CV Button at Top of Card */
+.tailor-cv-prominent {
+  padding: 16px 16px 12px 16px;
+  border-bottom: 1px solid rgba(26, 48, 40, 0.08);
+}
+
+.tailor-cv-main-btn {
+  width: 100%;
+  padding: 14px 24px;
+  background: linear-gradient(135deg, #1a3028 0%, #2d6a4f 100%);
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 3px 10px rgba(26, 48, 40, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  position: relative;
+  overflow: hidden;
+}
+
+.tailor-cv-main-btn:hover {
+  background: linear-gradient(135deg, #2d6a4f 0%, #1a3028 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(26, 48, 40, 0.3);
+}
+
+.tailor-cv-main-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(26, 48, 40, 0.2);
+}
+
+/* Quick Action Buttons */
+.vogue-job-actions {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+  position: relative;
+  z-index: 2;
+}
+
+.vogue-action-btn {
+  flex: 1;
+  padding: 8px 16px;
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(26, 48, 40, 0.12);
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #1a3028;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.vogue-action-btn:hover {
+  background: #ffffff;
+  border-color: #2d6a4f;
+  color: #2d6a4f;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(26, 48, 40, 0.1);
+}
+
+.vogue-action-btn:active {
+  transform: translateY(0);
+}
+
+/* Save Button States */
+.vogue-action-btn.btn-save {
+  background: rgba(255, 255, 255, 0.95);
+  color: #1a3028;
+}
+
+.vogue-action-btn.btn-save.saved {
+  background: #2d6a4f;
+  color: white;
+  border-color: #2d6a4f;
+}
+
+.vogue-action-btn.btn-save.saved:hover {
+  background: #1a3028;
+  border-color: #1a3028;
+}
+
+/* Apply Button States */
+.vogue-action-btn.btn-apply {
+  background: rgba(45, 106, 79, 0.08);
+  color: #2d6a4f;
+  border-color: rgba(45, 106, 79, 0.2);
+}
+
+.vogue-action-btn.btn-apply:hover {
+  background: #2d6a4f;
+  color: white;
+  border-color: #2d6a4f;
+}
+
+.vogue-action-btn.btn-apply.applied {
+  background: #2d6a4f;
+  color: white;
+  border-color: #2d6a4f;
+  pointer-events: none;
+  opacity: 0.8;
+}
+
+/* Loading Spinner */
+.spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: white;
+  animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Mobile Adjustments */
+@media (max-width: 768px) {
+  .tailor-cv-prominent {
+    padding: 12px 12px 10px 12px;
+  }
+
+  .tailor-cv-main-btn {
+    padding: 12px 16px;
+    font-size: 14px;
+  }
+
+  .tailor-cv-main-btn svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .vogue-job-actions {
+    gap: 6px;
+    margin-bottom: 10px;
+  }
+
+  .vogue-action-btn {
+    padding: 7px 12px;
+    font-size: 12px;
+  }
+}
+
+/* Job Analysis Container in Chat - Premium Well-Formatted */
+.job-analysis-container {
+  background: linear-gradient(to bottom, #ffffff, #fafaf8);
+  border: 1px solid rgba(26, 48, 40, 0.06);
+  border-radius: 14px;
+  padding: 24px;
+  margin: 16px auto !important; /* Center horizontally */
+  animation: fadeIn 0.4s ease-in;
+  text-align: left !important;
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.04);
+  max-width: 800px !important; /* Max width for readability */
+  width: 95% !important; /* Responsive width */
+}
+
+.job-analysis-header {
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 2px solid rgba(26, 48, 40, 0.08);
+}
+
+.job-analysis-header h3 {
+  font-size: 24px;
+  font-weight: 600;
+  color: #1a3028;
+  margin: 0 0 12px 0;
+  font-family: "Playfair Display", serif;
+}
+
+.job-quick-info {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.job-quick-info .info-tag {
+  font-size: 13px;
+  padding: 6px 12px;
+  background: rgba(45, 106, 79, 0.08);
+  color: #2d6a4f;
+  border-radius: 8px;
+  font-weight: 500;
+}
+
+.job-analysis-section {
+  margin-bottom: 24px;
+}
+
+.job-analysis-section h4 {
+  font-size: 17px;
+  font-weight: 600;
+  color: #1a3028;
+  margin: 0 0 12px 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  text-align: left !important;
+  border-left: 3px solid #2d6a4f;
+  padding-left: 12px;
+}
+
+.job-analysis-section p {
+  font-size: 15px;
+  line-height: 1.8;
+  color: #4a5a59;
+  margin: 0 0 12px 0;
+  font-family: "Playfair Display", serif;
+}
+
+@media (max-width: 640px) {
+  .job-analysis-section p {
+    font-size: 17px !important; /* Larger text for mobile reading */
+    line-height: 1.9 !important;
+    color: #2a3433 !important; /* Darker for better contrast */
+  }
+}
+
+.requirements-list {
+  margin: 0;
+  padding: 0 0 0 20px;
+  list-style: none;
+}
+
+.requirements-list li {
+  position: relative;
+  font-size: 15px;
+  line-height: 1.7;
+  color: #4a5a59;
+  margin-bottom: 8px;
+  padding-left: 24px;
+  font-family: "Playfair Display", serif;
+}
+
+@media (max-width: 640px) {
+  .requirements-list li {
+    font-size: 16px !important;
+    line-height: 1.8 !important;
+    margin-bottom: 12px !important;
+    color: #2a3433 !important;
+  }
+}
+
+.requirements-list li::before {
+  content: "✓";
+  position: absolute;
+  left: 0;
+  color: #2d6a4f;
+  font-weight: 600;
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+/* Action Buttons for Job Analysis */
+.job-action-buttons {
+  display: flex;
+  gap: 12px;
+  margin-top: 28px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(26, 48, 40, 0.08);
+  flex-wrap: wrap;
+}
+
+.action-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: none;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+.action-btn.primary {
+  background: #2d6a4f;
+  color: white;
+}
+
+.action-btn.primary:hover {
+  background: #245940;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(45, 106, 79, 0.3);
+}
+
+.action-btn.secondary {
+  background: #faf7f2;
+  color: #2d6a4f;
+  border: 1px solid rgba(45, 106, 79, 0.2);
+}
+
+.action-btn.secondary:hover {
+  background: #f0ede6;
+  border-color: #2d6a4f;
+}
+
+.action-btn.tertiary {
+  background: transparent;
+  color: #6b7c7b;
+  border: 1px solid rgba(26, 48, 40, 0.15);
+}
+
+.action-btn.tertiary:hover {
+  background: rgba(26, 48, 40, 0.04);
+  color: #1a3028;
+  border-color: rgba(26, 48, 40, 0.3);
+}
+
+/* Mobile responsive for job analysis */
+@media (max-width: 640px) {
+  .job-analysis-container {
+    padding: 24px 20px !important;
+    max-width: 100% !important;
+    width: calc(100% - 20px) !important; /* Full width minus margins */
+    margin: 16px 10px !important; /* Small side margins */
+    font-size: 16px !important; /* Larger base font for Kindle-like reading */
+  }
+
+  .job-analysis-header h3 {
+    font-size: 20px;
+  }
+
+  .job-action-buttons {
+    flex-direction: column;
+  }
+
+  .action-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* Ultra-Premium Job Card - Mobile Optimized */
+.job-card-vogue {
+  background: white;
+  padding: 20px;
+  border-radius: 12px !important;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+  cursor: pointer;
+  position: relative;
+  overflow: visible; /* Changed from hidden to allow full content display */
+}
+
+@media (min-width: 768px) {
+  .job-card-vogue {
+    padding: 24px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .job-card-vogue {
+    padding: 28px;
+  }
+}
+
+.job-card-vogue:hover {
+  background: #ffffff;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.08);
+  transform: translateY(-2px);
+}
+
+/* Mobile touch feedback */
+.job-card-vogue:active {
+  transform: scale(0.98);
+}
+
+/* Card Typography - Editorial Style */
+.vogue-company {
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #999;
+  margin-bottom: 8px;
+  font-family: "Inter", "SF Pro Display", sans-serif;
+  font-weight: 500;
+}
+
+.vogue-title {
+  font-size: 20px;
+  font-weight: 400;
+  color: #1a3028;
+  margin: 0 0 12px 0;
+  line-height: 1.3;
+  font-family: "Crimson Text", "Playfair Display", Georgia, serif;
+}
+
+.vogue-meta {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+}
+
+.vogue-meta-item {
+  font-size: 13px;
+  color: #666;
+  font-family: "Inter", sans-serif;
+}
+
+.vogue-skills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.vogue-skill {
+  padding: 4px 12px;
+  background: #fafaf8;
+  font-size: 11px;
+  color: #666;
+  font-family: "Inter", sans-serif;
+  letter-spacing: 0.5px;
+}
+
+/* Match Score - Subtle, Elegant */
+.vogue-match {
+  position: absolute;
+  top: 28px;
+  right: 28px;
+  text-align: right;
+}
+
+.vogue-match-score {
+  font-size: 24px;
+  font-weight: 300;
+  color: #2d6a4f;
+  font-family: "Inter", sans-serif;
+}
+
+.vogue-match-label {
+  font-size: 10px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: #999;
+  margin-top: 2px;
+}
+
+/* Card Actions - Premium Elegant Design */
+.vogue-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(0, 0, 0, 0.04);
+}
+
+.vogue-action {
+  flex: 1;
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(201, 169, 97, 0.08);
+  color: #4b5563;
+  font-size: 12px;
+  letter-spacing: 0.4px;
+  text-transform: none;
+  font-family: "SF Pro Text", -apple-system, sans-serif;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 10px;
+  backdrop-filter: blur(10px);
+}
+
+.vogue-action:hover {
+  background: rgba(201, 169, 97, 0.04);
+  color: #2d6a4f;
+  border-color: rgba(201, 169, 97, 0.15);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(201, 169, 97, 0.1);
+}
+
+.vogue-action.primary {
+  background: linear-gradient(
+    135deg,
+    rgba(201, 169, 97, 0.08) 0%,
+    rgba(201, 169, 97, 0.12) 100%
+  );
+  color: #1a3028;
+  border-color: rgba(201, 169, 97, 0.12);
+  font-weight: 600;
+}
+
+.vogue-action.primary:hover {
+  background: linear-gradient(135deg, #2d6a4f 0%, #1b4332 100%);
+  color: white;
+  border-color: transparent;
+  box-shadow: 0 3px 12px rgba(201, 169, 97, 0.25);
+}
+
+.vogue-action.added {
+  background: linear-gradient(135deg, #2d6a4f 0%, #1b4332 100%);
+  color: white;
+  border-color: transparent;
+  box-shadow: 0 2px 10px rgba(201, 169, 97, 0.2);
+}
+
+.vogue-action.added:hover {
+  background: linear-gradient(135deg, #1b4332 0%, #2d6a4f 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(201, 169, 97, 0.3);
+}
+
+/* Floating Input Area - Mobile Optimized */
+
+@media (min-width: 768px) {
+}
+
+.senna-input-wrapper {
+  max-width: 100%;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #fff;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  padding: 6px 6px 6px 12px;
+  border-radius: 20px !important;
+  border: 1px solid #e0e0e0;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  pointer-events: all;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.senna-input-wrapper:hover {
+  box-shadow: 0 6px 32px rgba(0, 0, 0, 0.15), 0 2px 12px rgba(0, 0, 0, 0.1);
+}
+
+@media (min-width: 768px) {
+  .senna-input-wrapper {
+    padding: 14px;
+    gap: 14px;
+  }
+}
+
+.senna-input {
+  flex: 1;
+  padding: 10px 4px;
+  background: transparent !important;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  font-size: 15px;
+  color: #1a3028;
+  font-family: "Inter", sans-serif;
+  transition: all 0.3s ease;
+  min-height: 36px;
+}
+
+@media (min-width: 768px) {
+  .senna-input {
+    padding: 6px 16px;
+    font-size: 16px;
+  }
+}
+
+.senna-input:focus {
+  outline: none;
+}
+
+/* Focus state for the wrapper */
+.senna-input-wrapper:focus-within {
+  border-color: rgba(201, 169, 97, 0.5);
+  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.08), 0 0 0 2px rgba(201, 169, 97, 0.1);
+}
+
+.senna-input::placeholder {
+  color: #999;
+}
+
+/* Hamburger Menu Toggle */
+.sffc-menu-toggle {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  width: 48px;
+  height: 48px;
+  background: white;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 50% !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 1100;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+}
+
+.sffc-menu-toggle:hover {
+  background: #1a3028;
+  color: white;
+  transform: scale(1.05);
+}
+
+.sffc-menu-toggle svg {
+  width: 24px;
+  height: 24px;
+}
+
+/* Stage Navigation Dropdown */
+.sffc-stage-menu {
+  position: fixed;
+  top: 80px;
+  right: 20px;
+  background: white;
+  border-radius: 12px !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  padding: 12px;
+  display: none;
+  z-index: 1090;
+  min-width: 200px;
+}
+
+.sffc-stage-menu.active {
+  display: block;
+  animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.stage-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 16px;
+  background: transparent;
+  border: none;
+  border-radius: 8px !important;
+  text-align: left;
+  font-size: 14px;
+  font-family: "Inter", sans-serif;
+  color: #4a5568;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-bottom: 4px;
+}
+
+.stage-menu-item .menu-icon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+.stage-menu-item:hover {
+  background: #f7f7f5;
+  color: #1a3028;
+}
+
+.stage-menu-item.active {
+  background: #1a3028;
+  color: white;
+}
+
+/* Hidden default stage indicators on mobile */
+.conversation-stage {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .conversation-stage {
+    position: fixed;
+    top: 24px;
+    right: 80px;
+    display: flex;
+    gap: 24px;
+    z-index: 100;
+  }
+
+  .sffc-menu-toggle {
+    display: none;
+  }
+
+  .sffc-stage-menu {
+    display: none !important;
+  }
+}
+
+.stage-indicator {
+  font-size: 11px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: #999;
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  transition: color 0.3s ease;
+  font-family: "Inter", sans-serif;
+  font-weight: 500;
+}
+
+.stage-indicator.active {
+  color: #1a3028;
+}
+
+.stage-indicator:hover {
+  color: #666;
+}
+
+/* Load More - Integrated */
+.load-more-in-chat {
+  text-align: center;
+  padding: 32px 0;
+}
+
+.load-more-btn {
+  background: transparent;
+  border: none;
+  color: #666;
+  font-size: 13px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: color 0.3s ease;
+  font-family: "Inter", sans-serif;
+  font-weight: 500;
+}
+
+.load-more-btn:hover {
+  color: #1a3028;
+}
+
+/* Remove guided opportunities container */
+.sffc-guided-opportunities {
+  display: none;
+}
+
+/* Classic View Fixes */
+.sffc-classic-view {
+  padding: 48px 24px;
+}
+
+.sffc-classic-view .sffc-page-title {
+  text-align: center;
+  margin-bottom: 48px;
+}
+
+.sffc-classic-view h1 {
+  font-size: 48px;
+  font-weight: 300;
+  color: #1a3028;
+  margin: 0 0 8px 0;
+  font-family: "Crimson Text", "Playfair Display", Georgia, serif;
+}
+
+.sffc-classic-view .sffc-page-subtitle {
+  font-size: 12px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: #999;
+  font-family: "Inter", sans-serif;
+}
+
+/* Floating Elements - Hide on Mobile */
+.sffc-floating-menu-bar {
+  display: none;
+}
+
+/* Shortlist styles removed */
+
+@media (min-width: 1024px) {
+  .sffc-floating-menu-bar {
+    display: flex;
+    background: white;
+    border: 1px solid rgba(0, 0, 0, 0.04);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    position: fixed;
+    top: 50%;
+    right: 20px;
+    transform: translateY(-50%);
+    flex-direction: column;
+    gap: 12px;
+    padding: 12px;
+    border-radius: 12px !important;
+    z-index: 100;
+  }
+
+  /* Shortlist styles removed */
+}
+
+/* Typography Hierarchy */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: "Crimson Text", "Playfair Display", Georgia, serif;
+  font-weight: 400;
+}
+
+/* Smooth Scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Exception for rounded elements */
+.senna-avatar,
+.typing-dot {
+  border-radius: 50% !important;
+}
+
+/* Content spacing for readability */
+.sffc-conversational-view {
+  padding-bottom: 20px; /* Space for fixed input */
+}
+
+/* Ensure main container doesn't interfere */
+.sffc-main-container {
+  width: 100%;
+  max-width: 100%;
+  padding: 0;
+  margin: 0;
+}
+
+/* Typing Indicator */
+.typing-indicator {
+  display: inline-flex;
+  gap: 4px;
+  padding: 8px 0;
+  align-items: center;
+}
+
+.typing-indicator span {
+  display: block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(26, 48, 40, 0.4);
+  animation: typing-bounce 1.4s ease-in-out infinite;
+}
+
+.typing-indicator span:nth-child(1) {
+  animation-delay: -0.32s;
+}
+
+.typing-indicator span:nth-child(2) {
+  animation-delay: -0.16s;
+}
+
+.typing-indicator span:nth-child(3) {
+  animation-delay: 0;
+}
+
+@keyframes typing-bounce {
+  0%,
+  80%,
+  100% {
+    transform: scale(0.8);
+    opacity: 0.5;
+  }
+  40% {
+    transform: scale(1.2);
+    opacity: 1;
+  }
+}
+
+/* Typing Cursor */
+.typing-cursor {
+  display: inline-block;
+  width: 2px;
+  height: 1.2em;
+  background: rgba(26, 48, 40, 0.8);
+  animation: cursor-blink 1s infinite;
+  margin-left: 2px;
+  vertical-align: text-bottom;
+}
+
+@keyframes cursor-blink {
+  0%,
+  50% {
+    opacity: 1;
+  }
+  51%,
+  100% {
+    opacity: 0;
+  }
+}
+
+.typing-dot {
+  width: 8px;
+  height: 8px;
+  background: #999;
+  border-radius: 50% !important;
+  animation: typing 1.4s infinite;
+}
+
+.typing-dot:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.typing-dot:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes typing {
+  0%,
+  60%,
+  100% {
+    opacity: 0.3;
+  }
+  30% {
+    opacity: 1;
+  }
+}
+
+/* Responsive Option Cards */
+@media (max-width: 640px) {
+  .option-cards {
+    gap: 8px;
+  }
+
+  .option-card {
+    min-width: 100%;
+    padding: 14px 16px;
+  }
+
+  .option-card-icon {
+    width: 20px;
+    height: 20px;
+    margin-bottom: 6px;
+  }
+
+  .option-card-text {
+    font-size: 13px;
+  }
+
+  .quick-options {
+    gap: 6px;
+  }
+
+  .quick-option {
+    padding: 6px 12px;
+    font-size: 12px;
+  }
+}
+
+/* COMPREHENSIVE MOBILE REDESIGN */
+@media (max-width: 768px) {
+  /* PROPER MOBILE SCROLLING FIX - FINAL */
+  html {
+    /* Allow natural document flow */
+    height: auto !important;
+    min-height: 100% !important;
+    overflow-x: hidden !important;
+    overflow-y: visible !important; /* Allow vertical scrolling */
+  }
+
+  body {
+    /* Allow body to expand with content */
+    height: auto !important;
+    min-height: auto !important;
+    overflow-x: hidden !important;
+    overflow-y: visible !important; /* Natural scrolling */
+    -webkit-overflow-scrolling: touch !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    position: relative !important; /* Not fixed */
+  }
+
+  .sffc-opportunities-wrapper {
+    /* Remove fixed positioning and viewport locks */
+    position: relative !important; /* Changed from any fixed positioning */
+    min-height: auto !important;
+    height: auto !important; /* Allow to expand with content */
+    overflow: visible !important; /* Content can flow */
+    padding-bottom: 20px !important; /* Reduced from 100px - minimal space */
+    width: 100% !important;
+    max-width: 100vw !important;
+  }
+
+  .sffc-conversational-view {
+    overflow: visible !important;
+    height: auto !important;
+    position: relative !important;
+    padding: 20px 0 20px 0 !important; /* Remove side padding since we handle it per message */
+  }
+
+  .sffc-main-container {
+    overflow: visible !important; /* Allow content to flow */
+    height: auto !important;
+    position: relative !important;
+  }
+
+  .sffc-senna-conversation,
+  .senna-messages {
+    overflow: visible !important;
+    height: auto !important;
+    position: relative !important;
+    margin-bottom: 0 !important; /* Remove bottom margin */
+  }
+
+  /* Hide conflicting headers - using new mobile-header-buttons instead */
+  .sffc-opp-header,
+  .app-tab-bar {
+    display: none !important;
+  }
+
+  /* Old Mobile Top Bar - Hidden */
+  .app-tab-bar.disabled {
+    display: none !important;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    height: 56px !important;
+    background: white !important;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08) !important;
+    z-index: 1000 !important;
+    padding: 0 !important;
+    justify-content: space-around !important;
+    align-items: center !important;
+  }
+
+  .app-tab-item {
+    flex: 1 !important;
+    height: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    background: transparent !important;
+    border: none !important;
+    color: #999 !important;
+    font-size: 11px !important;
+    font-family: "Inter", sans-serif !important;
+    transition: all 0.2s ease !important;
+    cursor: pointer !important;
+    position: relative !important;
+  }
+
+  .app-tab-item.active {
+    color: #2d6a4f !important;
+  }
+
+  .app-tab-item.active::after {
+    content: "" !important;
+    position: absolute !important;
+    bottom: 0 !important;
+    left: 20% !important;
+    right: 20% !important;
+    height: 2px !important;
+    background: #2d6a4f !important;
+  }
+
+  /* Add padding to account for fixed header */
+  .sffc-main-container {
+    padding-top: 20px !important; /* Reduced from 56px to minimize gap */
+    padding-bottom: 20px !important; /* Reduced from 80px to minimize gap */
+    min-height: auto !important; /* Changed from 100vh to auto */
+    overflow: visible !important;
+    position: relative !important;
+  }
+
+  /* Large Centered Text for All Messages */
+  .senna-message .message-text,
+  .senna-message .sffc-message-content,
+  .sffc-message-senna .sffc-message-content,
+  .sffc-message-user .sffc-message-content,
+  .sffc-message-user .message-content {
+    font-size: 20px !important;
+    line-height: 1.8 !important;
+    text-align: left !important;
+    font-family: "Playfair Display", Georgia, serif !important;
+  }
+
+  /* User Messages - Centered and Styled */
+  .sffc-message-user {
+    text-align: center !important;
+    padding: 0 24px !important; /* Increased from 20px to 24px to match MENA Careers messages */
+    margin-bottom: 20px !important; /* Reduced from 32px */
+  }
+
+  .sffc-message-user .sffc-message-content,
+  .sffc-message-user .message-content {
+    color: #666 !important;
+    background: transparent !important;
+    border: none !important;
+    border-bottom: 1px solid rgba(201, 169, 97, 0.2) !important;
+    font-style: italic !important;
+    display: inline-block !important;
+    padding: 8px 0 !important;
+  }
+
+  /* MENA Careers Messages - Mobile padding */
+  .sffc-message-senna {
+    padding: 0 24px !important; /* Increased from 20px to 24px */
+    margin-bottom: 20px !important;
+  }
+
+  .sffc-message-senna .sffc-message-content {
+    margin-left: 4px !important;
+    text-align: left !important;
+    font-size: 19px !important;
+    font-family: "Playfair Display", serif !important;
+    color: rgb(7, 50, 57) !important;
+  }
+
+  /* Mobile alignment fix with additional padding */
+  .sffc-message-senna .message-text,
+  .sffc-message-senna .job-cards-container,
+  .sffc-message-senna .jobs-grid,
+  .sffc-message-senna .option-cards,
+  .sffc-message-senna .quick-options {
+    margin-left: -64px !important;
+    padding-left: 68px !important; /* Increased from 64px to 68px for more breathing room */
+    padding-right: 4px !important; /* Add right padding to prevent edge touching */
+  }
+
+  /* Redesigned Input Area - Fixed at Bottom with Glassmorphism */
+
+  .senna-input-wrapper {
+    display: flex !important;
+    align-items: center !important;
+    background: rgba(255, 255, 255, 0.95) !important;
+    backdrop-filter: blur(20px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+    border: 1px solid rgba(0, 0, 0, 0.06) !important;
+    border-radius: 12px !important;
+    padding: 0 !important;
+    position: relative !important;
+    width: 100% !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1) !important;
+  }
+
+  .senna-input {
+    flex: 1 !important;
+    padding: 14px 50px 14px 16px !important;
+    background: transparent !important;
+    border: none !important;
+    border-radius: 12px !important;
+    font-size: 16px !important;
+    font-family: "Inter", sans-serif !important;
+    color: #1a3028 !important;
+    outline: none !important;
+    -webkit-appearance: none !important;
+  }
+
+  .senna-input-actions {
+    position: absolute !important;
+    right: 8px !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    display: flex !important;
+    gap: 8px !important;
+  }
+
+  #senna-attach {
+    display: none !important; /* Hide attachment for simplicity */
+  }
+
+  /* Hide elements not needed on mobile */
+  .sffc-menu-toggle,
+  .sffc-stage-menu,
+  .conversation-stage,
+  .sffc-floating-menu-bar,
+  /* .sffc-shortlist-floating removed */
+  .sffc-message-search {
+    display: none !important;
+  }
+
+  /* Guidance sections */
+  .senna-guidance {
+    padding: 16px;
+    margin-left: -10px;
+    margin-right: -10px;
+  }
+
+  .senna-guidance h4 {
+    font-size: 15px;
+  }
+
+  .senna-guidance li {
+    font-size: 14px;
+  }
+
+  .vogue-title {
+    font-size: 18px;
+  }
+
+  /* Better touch targets */
+  .vogue-action {
+    min-height: 44px;
+    font-size: 13px;
+  }
+
+  /* Adjust margins for mobile */
+  .senna-message {
+    margin-bottom: 24px;
+  }
+
+  .job-cards-in-chat {
+    margin: 16px -10px 24px;
+  }
+}
+
+@media (max-width: 480px) {
+  .senna-message::after {
+    left: 36px;
+  }
+
+  .senna-avatar {
+    width: 32px;
+    height: 32px;
+  }
+
+  .conversation-stage {
+    font-size: 10px;
+  }
+}
+
+/* ==========================================
+   NEW SFFC Match Card Design - Premium Style
+   ========================================== */
+
+:root {
+  --shadow-soft: 0 2px 8px rgba(0, 0, 0, 0.08);
+  --success-gradient: linear-gradient(135deg, #2d6a4f 0%, #40916c 100%);
+  --header-blue: #1a3028;
+  --text-primary: #2d3436;
+  --text-secondary: #636e72;
+  --cream-light: #fffef7;
+}
+
+/* Match Card Container */
+.sffc-match-card {
+  background: white;
+  border-radius: 20px;
+  padding: 2rem;
+  position: relative;
+  box-shadow: var(--shadow-soft);
+  transition: all 0.3s ease;
+  min-height: 450px;
+  display: flex;
+  flex-direction: column;
+  cursor: pointer;
+}
+
+.sffc-match-card:hover {
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
+  transform: translateY(-4px);
+}
+
+.sffc-match-card:hover .sffc-senna-tip {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Match Score Badge */
+/* Removed sffc-match-score - fake percentages deleted */
+
+/* MENA Careers Tip Tooltip */
+.sffc-senna-tip {
+  position: absolute;
+  top: 1.5rem;
+  left: 1.5rem;
+  background: rgba(45, 106, 79, 0.95);
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  opacity: 0;
+  transform: translateY(-10px);
+  transition: all 0.3s ease;
+  max-width: 250px;
+  z-index: 10;
+}
+
+.sffc-senna-tip svg {
+  flex-shrink: 0;
+}
+
+/* Company Section */
+.sffc-company-section {
+  margin-top: 2rem;
+  margin-bottom: 1.5rem;
+}
+
+.sffc-company-logo {
+  width: 60px;
+  height: 60px;
+  background: linear-gradient(135deg, #f0f0f0, #e0e0e0);
+  border-radius: 12px;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--header-blue);
+}
+
+.sffc-job-title {
+  font-family: "Playfair Display", serif;
+  font-size: 1.5rem;
+  color: var(--header-blue);
+  margin-bottom: 0.5rem;
+  font-weight: 700;
+  margin: 0 0 0.5rem 0;
+}
+
+.sffc-company-name {
+  color: var(--text-secondary);
+  font-size: 1rem;
+  margin-bottom: 1rem;
+}
+
+/* Job Tags */
+.sffc-job-tags {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-top: 0.75rem;
+}
+
+.sffc-job-tag {
+  background: var(--cream-light);
+  padding: 0.375rem 0.75rem;
+  border-radius: 15px;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  border: 1px solid rgba(26, 48, 40, 0.1);
+}
+
+/* Match Highlights */
+.sffc-match-highlights {
+  flex: 1;
+  margin: 1.5rem 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.sffc-highlight {
+  display: flex;
+  align-items: center;
+  font-size: 0.9375rem;
+  color: var(--text-primary);
+  gap: 0.75rem;
+  min-height: 24px;
+}
+
+.sffc-highlight span {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
+  line-height: 1.4;
+  position: relative;
+}
+
+/* Show full text on hover if truncated */
+.sffc-highlight:hover span {
+  overflow: visible;
+  position: relative;
+  z-index: 5;
+}
+
+.sffc-highlight span:hover::after {
+  content: attr(title);
+  position: absolute;
+  left: 0;
+  top: 100%;
+  background: rgba(26, 48, 40, 0.95);
+  color: white;
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  white-space: normal;
+  max-width: 300px;
+  margin-top: 4px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 100;
+}
+
+.sffc-highlight-icon {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: rgba(45, 106, 79, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.sffc-highlight-icon svg {
+  stroke: #2d6a4f;
+}
+
+/* Action Buttons */
+.sffc-match-actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: auto;
+  padding: 1rem 1.5rem 1rem 1.5rem; /* Better spacing from edges */
+  justify-content: center !important;
+  align-items: center !important;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.sffc-btn-pass {
+  flex: 1;
+  padding: 0.75rem 1rem; /* Consistent padding */
+  min-height: 42px; /* Consistent height */
+  background: #fffdf8;
+  border: 2px solid rgba(201, 169, 97, 0.2);
+  border-radius: 10px; /* Consistent radius */
+  color: #122e24;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 1.2;
+}
+
+.sffc-btn-pass:hover {
+  border-color: rgba(201, 169, 97, 0.4);
+  background: rgba(255, 253, 248, 0.95);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(201, 169, 97, 0.15);
+}
+
+.sffc-btn-tailor {
+  flex: 1.5;
+  padding: 0.75rem 1rem !important; /* Consistent padding */
+  min-height: 42px !important; /* Consistent height */
+  background: linear-gradient(135deg, #b08d57 0%, #cb997e 100%) !important;
+  border: none !important;
+  border-radius: 10px !important; /* Consistent radius */
+  color: white !important;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 1.2;
+  box-shadow: 0 2px 8px rgba(176, 141, 87, 0.2);
+}
+
+.sffc-btn-tailor:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(176, 141, 87, 0.35);
+  background: linear-gradient(
+    135deg,
+    #cb997e 0%,
+    #b08d57 100%
+  ); /* Reversed gradient on hover */
+}
+
+.sffc-btn-interested {
+  flex: 1.5;
+  padding: 0.75rem 1rem; /* Consistent padding */
+  min-height: 42px; /* Consistent height */
+  background: linear-gradient(135deg, #2d6a4f 0%, #1b4332 100%);
+  border: none;
+  border-radius: 10px; /* Consistent radius */
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 1.2;
+  box-shadow: 0 2px 8px rgba(45, 106, 79, 0.2);
+}
+
+.sffc-btn-interested:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(45, 106, 79, 0.35);
+  background: linear-gradient(
+    135deg,
+    #1b4332 0%,
+    #2d6a4f 100%
+  ); /* Reversed gradient on hover */
+}
+
+.sffc-btn-interested.added {
+  background: linear-gradient(135deg, #4a5b4f 0%, #3a4a3f 100%);
+  cursor: pointer;
+  opacity: 0.9;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+  .sffc-match-card:not(.job-card-simplified),
+  .job-card-vogue:not(.job-card-simplified) {
+    padding: 1rem !important;
+    min-height: auto !important;
+    max-width: 95% !important; /* Wider on mobile */
+    width: 95% !important;
+    margin: 0.5rem auto !important;
+  }
+
+  /* More compact header */
+  .sffc-match-header {
+    gap: 0.75rem !important;
+    margin-bottom: 0.75rem !important;
+  }
+
+  /* Removed mobile sffc-match-score */
+
+  .sffc-senna-tip {
+    font-size: 0.7rem;
+    padding: 0.3rem 0.6rem;
+    max-width: 180px;
+  }
+
+  .sffc-company-logo {
+    width: 40px;
+    height: 40px;
+    font-size: 18px;
+  }
+
+  .sffc-job-title {
+    font-size: 1.1rem;
+    line-height: 1.3;
+    margin-bottom: 0.25rem;
+  }
+
+  .sffc-company-info {
+    font-size: 0.85rem;
+  }
+
+  .sffc-match-highlights {
+    gap: 0.4rem;
+    margin: 0.75rem 0;
+  }
+
+  .sffc-highlight {
+    font-size: 0.8rem;
+    padding: 0.4rem 0.6rem;
+  }
+
+  .sffc-highlight span {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: calc(100vw - 100px);
+  }
+
+  /* More compact actions */
+  .sffc-match-actions {
+    flex-direction: row; /* Keep horizontal on mobile */
+    gap: 0.5rem;
+    padding: 0.75rem 0.5rem;
+  }
+
+  .sffc-btn-pass,
+  .sffc-btn-tailor,
+  .sffc-btn-interested {
+    flex: 1;
+    min-height: 36px !important;
+    padding: 0.5rem 0.75rem !important;
+    font-size: 0.85rem !important;
+  }
+}
+
+/* ==========================================
+   CV Tailoring Modal Styles
+   ========================================== */
+
+/* Spinner Animation */
+.spinner {
+  width: 40px;
+  height: 40px;
+  margin: 0 auto;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #b08d57;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* CV Upload Modal */
+.cv-upload-modal {
+  animation: fadeIn 0.3s ease;
+}
+
+.cv-upload-content {
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* CV Tailor Modal */
+.cv-tailor-modal {
+  animation: fadeIn 0.3s ease;
+}
+
+.cv-tailor-container {
+  animation: slideUp 0.3s ease;
+}
+
+/* Drag and Drop Area */
+.cv-upload-area {
+  transition: all 0.3s ease;
+}
+
+.cv-upload-area:hover {
+  border-color: #b08d57 !important;
+  background: rgba(176, 141, 87, 0.05);
+}
+
+.cv-upload-area.drag-over {
+  border-color: #2d6a4f !important;
+  background: rgba(45, 106, 79, 0.05);
+}
+
+/* ==============================================
+   CRITICAL: Left-aligned messages with bold key points
+   Similar to ChatGPT and Claude formatting
+   ============================================== */
+
+/* Force all MENA Careers messages to be left-aligned */
+.sffc-conversational-view .sffc-message-senna,
+.sffc-conversational-view .senna-message,
+.sffc-opportunities-wrapper .sffc-message-senna,
+.sffc-opportunities-wrapper .senna-message {
+  text-align: left !important;
+  display: block !important;
+  position: relative !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  margin: 0 auto 24px !important;
+}
+
+/* Avatar positioning for main layout sections */
+.sffc-conversational-view .sffc-message-senna .senna-avatar,
+.sffc-opportunities-wrapper .sffc-message-senna .senna-avatar {
+  position: absolute !important;
+  left: 0 !important;
+  top: 0 !important;
+}
+
+/* Message content - left aligned with proper formatting */
+.sffc-conversational-view .sffc-message-content,
+.sffc-conversational-view .message-content,
+.sffc-conversational-view .message-text,
+.sffc-opportunities-wrapper .sffc-message-content,
+.sffc-opportunities-wrapper .message-content,
+.sffc-opportunities-wrapper .message-text {
+  text-align: left !important;
+  font-family: "Playfair Display", serif !important;
+  font-size: 19px !important;
+  line-height: 1.8 !important;
+  color: rgb(7, 50, 57) !important;
+}
+
+/* All paragraphs left-aligned */
+.sffc-message-content p,
+.message-content p,
+.message-text p {
+  text-align: left !important;
+  margin: 0 0 16px 0 !important;
+}
+
+/* Bold highlighting for key points and headers */
+.sffc-message-content strong,
+.sffc-message-content b,
+.message-content strong,
+.message-content b,
+.message-text strong,
+.message-text b {
+  font-weight: 600 !important;
+  color: #000 !important;
+  background: linear-gradient(
+    to bottom,
+    transparent 60%,
+    rgba(45, 106, 79, 0.1) 60%
+  ) !important;
+  padding: 0 2px !important;
+}
+
+/* Headers in messages */
+.sffc-message-content h1,
+.sffc-message-content h2,
+.sffc-message-content h3,
+.sffc-message-content h4,
+.message-content h1,
+.message-content h2,
+.message-content h3,
+.message-content h4 {
+  font-weight: 600 !important;
+  text-align: left !important;
+  margin: 24px 0 12px 0 !important;
+  color: #1a1a1a !important;
+}
+
+/* Lists - left aligned with proper indentation */
+.sffc-message-content ul,
+.sffc-message-content ol,
+.message-content ul,
+.message-content ol {
+  text-align: left !important;
+  padding-left: 20px !important;
+  margin: 12px 0 !important;
+}
+
+.sffc-message-content li,
+.message-content li {
+  text-align: left !important;
+  margin: 6px 0 !important;
+  line-height: 1.6 !important;
+}
+
+/* Code blocks and inline code */
+.sffc-message-content code,
+.message-content code {
+  background: #f6f8fa !important;
+  padding: 2px 6px !important;
+  border-radius: 3px !important;
+  font-family: "SF Mono", Monaco, monospace !important;
+  font-size: 14px !important;
+}
+
+/* Override any center alignment specifically */
+.sffc-conversational-view .senna-messages,
+.sffc-opportunities-wrapper .senna-messages {
+  align-items: flex-start !important;
+}
+
+/* User messages can stay centered but MENA Careers messages MUST be left */
+.sffc-message-user {
+  text-align: center !important;
+}
+
+/* ==========================================================
+ * Private Equity Tutor Experience (career_opportunities)
+ * ========================================================== */
+.sffc-opportunities-wrapper .sffc-main-container {
+  background: linear-gradient(180deg, #ffffff 0%, #fdfbf5 100%);
+  border: 1px solid rgba(13, 53, 62, 0.08);
+  border-radius: 0;
+  padding: 32px;
+  box-shadow: 0 30px 90px rgba(13, 53, 62, 0.08);
+}
+
+.sffc-opportunities-wrapper .sffc-conversational-view {
+  background: transparent;
+  border: none;
+  border-radius: inherit;
+  padding: 0;
+  box-shadow: none;
+}
+
+.sffc-opportunities-wrapper .sffc-senna-conversation {
+  background: transparent;
+  border-radius: inherit;
+  border: none;
+  box-shadow: none;
+  min-height: 520px;
+  width: 100%;
+  max-width: 1120px;
+  margin: 0 auto;
+}
+
+.sffc-opportunities-wrapper .senna-messages {
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  counter-reset: sennaTutorBlocks;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(13, 53, 62, 0.05);
+  border-radius: 26px;
+  width: 100%;
+  max-width: 1120px;
+  margin: 0 auto 24px;
+}
+
+.sffc-opportunities-wrapper .senna-message {
+  position: relative;
+}
+
+.sffc-opportunities-wrapper .senna-message.wsj-style-message::before {
+  counter-increment: sennaTutorBlocks;
+  content: "Learning block " counter(sennaTutorBlocks);
+  position: absolute;
+  top: -14px;
+  left: 48px;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(13, 53, 62, 0.55);
+}
+
+.sffc-opportunities-wrapper .sffc-message-content {
+  background: #ffffff;
+  border-radius: 22px;
+  border: 1px solid rgba(13, 53, 62, 0.12);
+  padding: 22px 26px;
+  box-shadow: 0 18px 50px rgba(13, 53, 62, 0.08);
+  color: #1f2a33;
+}
+
+.sffc-opportunities-wrapper .sffc-message-content p {
+  color: #2a3c46;
+  line-height: 1.75;
+  font-size: 15px;
+}
+
+.sffc-opportunities-wrapper .sffc-message-content strong {
+  color: #0d353e;
+}
+
+.sffc-opportunities-wrapper .sffc-message-content ul {
+  margin: 12px 0 0;
+  padding-left: 20px;
+  color: #42515c;
+}
+
+.sffc-opportunities-wrapper .sffc-message-content li + li {
+  margin-top: 6px;
+}
+
+.sffc-opportunities-wrapper .senna-message.wsj-style-message .sffc-message-content {
+  border-left: 4px solid #0d353e;
+  padding-top: 26px;
+  padding-bottom: 26px;
+}
+
+.sffc-opportunities-wrapper .sffc-senna-conversation .senna-input-wrapper {
+  background: rgba(13, 53, 62, 0.02);
+  border-radius: 26px;
+  border: 1px solid rgba(13, 53, 62, 0.12);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.6);
+}
+
+.sffc-opportunities-wrapper .sffc-senna-conversation .senna-input-wrapper input {
+  color: #0d353e;
+}
+
+.sffc-opportunities-wrapper .sffc-senna-conversation .senna-input-wrapper input::placeholder {
+  color: rgba(13, 53, 62, 0.4);
+}
+
+.sffc-opportunities-wrapper .senna-message.wsj-style-message .message-text {
+  font-size: 15px;
+  color: inherit;
+}
+
+.sffc-opportunities-wrapper .live-expert-panel {
+  margin-top: 16px;
+  width: 100%;
+  max-width: 1120px;
+  margin-left: auto;
+  margin-right: auto;
+  border-radius: 26px;
+  border: 1px solid rgba(13, 53, 62, 0.1);
+  background: linear-gradient(180deg, #ffffff 0%, #fefcf7 85%);
+  padding: 32px;
+  box-shadow: 0 25px 55px rgba(13, 53, 62, 0.1);
+  color: #0d353e;
+}
+
+.tutor-learning-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.tutor-panel-hero {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.tutor-panel-hero .tutor-hero-avatar {
+  width: 78px;
+  height: 78px;
+  border-radius: 24px;
+  background: linear-gradient(150deg, #d1f3e0, #8dd7bf);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #0d353e;
+  border: 2px solid rgba(13, 53, 62, 0.1);
+}
+
+.tutor-panel-hero .tutor-hero-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center;
+  border-radius: inherit;
+}
+
+.tutor-eyebrow {
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(13, 53, 62, 0.55);
+  margin: 0 0 6px;
+}
+
+.tutor-panel-hero h3 {
+  margin: 0;
+  font-size: 22px;
+  color: #0d353e;
+}
+
+.tutor-lede {
+  margin: 10px 0 0;
+  color: #3a4952;
+  line-height: 1.5;
+  font-size: 15px;
+}
+
+.tutor-hero-metrics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.tutor-hero-metrics span {
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: rgba(13, 53, 62, 0.08);
+  font-size: 12px;
+  letter-spacing: 0.02em;
+  color: #0d353e;
+}
+
+.tutor-learning-topics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 22px;
+}
+
+.tutor-topic {
+  background: #ffffff;
+  border: 1px solid rgba(13, 53, 62, 0.08);
+  border-radius: 20px;
+  padding: 22px;
+  min-height: 210px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  box-shadow: 0 10px 34px rgba(13, 53, 62, 0.08);
+}
+
+.topic-label {
+  font-size: 12px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(13, 53, 62, 0.55);
+  margin: 0;
+}
+
+.tutor-topic h4 {
+  margin: 0;
+  font-size: 17px;
+  color: #0d353e;
+}
+
+.tutor-topic ul {
+  margin: 8px 0 0;
+  padding-left: 18px;
+  color: #42515c;
+  line-height: 1.5;
+}
+
+.tutor-topic li + li {
+  margin-top: 4px;
+}
+
+.tutor-topic .tutor-lesson-start {
+  margin-top: auto;
+  align-self: flex-start;
+  border: 1px solid #0d353e;
+  border-radius: 999px;
+  background: #0d353e;
+  color: #ffffff;
+  padding: 8px 18px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.tutor-topic .tutor-lesson-start:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(13, 53, 62, 0.2);
+}
+
+.tutor-topic .tutor-lesson-start:focus-visible {
+  outline: 2px solid #14707f;
+  outline-offset: 3px;
+}
+
+.tutor-print-mode {
+  background: #ffffff !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.tutor-panel-cta {
+  border-top: 1px solid rgba(13, 53, 62, 0.12);
+  padding-top: 18px;
+}
+
+.tutor-panel-cta .cta-label {
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.24em;
+  color: rgba(13, 53, 62, 0.55);
+  margin-bottom: 14px;
+}
+
+.tutor-panel-cta .tutor-cta-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.tutor-panel-cta .tutor-topic-switch {
+  border: none;
+  border-radius: 999px;
+  background: #0d353e;
+  color: #ffffff;
+  padding: 10px 22px;
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 12px 24px rgba(13, 53, 62, 0.2);
+}
+
+.tutor-panel-cta .tutor-topic-switch:hover {
+  transform: translateY(-2px);
+}
+
+.tutor-learning-panel .live-expert-choice-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.tutor-learning-panel .live-expert-choice {
+  border-radius: 999px;
+  padding: 11px 22px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.tutor-learning-panel .live-expert-choice[data-choice="connect"] {
+  background: linear-gradient(145deg, #0d353e, #14707f);
+  color: #ffffff;
+  box-shadow: 0 12px 30px rgba(20, 112, 127, 0.35);
+}
+
+.tutor-learning-panel .live-expert-choice.secondary {
+  background: #ffffff;
+  border: 1px solid rgba(13, 53, 62, 0.2);
+  color: #0d353e;
+}
+
+.tutor-learning-panel .live-expert-choice:hover {
+  transform: translateY(-2px);
+}
+
+.sffc-opportunities-wrapper .sffc-tutor-hint-trigger {
+  width: 38px;
+  height: 38px;
+  border: 1px solid rgba(13, 53, 62, 0.12);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.72);
+  color: rgba(13, 53, 62, 0.72);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.18s ease, color 0.18s ease, transform 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.sffc-opportunities-wrapper .sffc-tutor-hint-trigger:hover,
+.sffc-opportunities-wrapper .sffc-tutor-hint-trigger[aria-expanded="true"] {
+  background: rgba(209, 243, 224, 0.78);
+  color: #0d353e;
+  box-shadow: 0 8px 18px rgba(13, 53, 62, 0.1);
+  transform: translateY(-1px);
+}
+
+.sffc-opportunities-wrapper .sffc-tutor-hint-trigger:focus-visible {
+  outline: 2px solid rgba(20, 112, 127, 0.48);
+  outline-offset: 3px;
+}
+
+.sffc-opportunities-wrapper .sffc-tutor-hint-drawer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 9px 44px 0 8px;
+  padding: 6px;
+  width: fit-content;
+  max-width: calc(100% - 16px);
+  border: 1px solid rgba(13, 53, 62, 0.08);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.86);
+  box-shadow: 0 10px 26px rgba(13, 53, 62, 0.08);
+  backdrop-filter: blur(12px);
+}
+
+.sffc-opportunities-wrapper .sffc-tutor-hint-drawer[hidden] {
+  display: none;
+}
+
+.sffc-opportunities-wrapper .sffc-tutor-hint-drawer button {
+  border: 0;
+  border-radius: 999px;
+  background: rgba(13, 53, 62, 0.055);
+  color: rgba(13, 53, 62, 0.74);
+  padding: 7px 12px;
+  font-size: 12px;
+  font-weight: 650;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.18s ease, color 0.18s ease, transform 0.18s ease;
+}
+
+.sffc-opportunities-wrapper .sffc-tutor-hint-drawer button:hover {
+  background: rgba(13, 53, 62, 0.12);
+  color: #0d353e;
+  transform: translateY(-1px);
+}
+
+.sffc-opportunities-wrapper .sffc-tutor-hint-drawer button:focus-visible {
+  outline: 2px solid rgba(20, 112, 127, 0.42);
+  outline-offset: 2px;
+}
+
+@media (max-width: 640px) {
+  .sffc-opportunities-wrapper .sffc-tutor-hint-drawer {
+    margin-right: 8px;
+    border-radius: 18px;
+    flex-wrap: wrap;
+  }
+}
+@media (max-width: 1024px) {
+  .sffc-opportunities-wrapper .sffc-conversational-view {
+    border-radius: 20px;
+    padding: 18px;
+  }
+
+  .sffc-opportunities-wrapper .sffc-senna-conversation {
+    border-radius: 18px;
+  }
+
+  .sffc-opportunities-wrapper .senna-messages {
+    padding: 20px;
+  }
+}
+
+@media (max-width: 640px) {
+  .tutor-panel-hero {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .tutor-panel-hero .tutor-hero-avatar {
+    width: 64px;
+    height: 64px;
+  }
+
+  .tutor-panel-hero h3 {
+    font-size: 20px;
+  }
+
+  .tutor-lede {
+    font-size: 14px;
+  }
+
+  .tutor-hero-metrics span {
+    font-size: 11px;
+  }
+
+  .tutor-learning-topics {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .sffc-opportunities-wrapper .sffc-conversational-view {
+    padding: 14px;
+  }
+
+  .sffc-opportunities-wrapper .senna-message.wsj-style-message::before {
+    left: 26px;
+  }
+}

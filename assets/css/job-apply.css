@@ -1,0 +1,2190 @@
+/**
+ * Job Apply Styles
+ *
+ * Clean Skyscanner-inspired layout for job applications.
+ * Uses MENA Careers brand colors (no purple).
+ */
+
+:root {
+    --font-display: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+    --font-body: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+    --color-primary: #0f766e;
+    --color-secondary: #2563eb;
+    --color-warning: #f59e0b;
+    --job-apply-bg: #f5f7fb;
+    --job-apply-bg-alt: #f8fafc;
+    --job-apply-border: #e2e8f0;
+    --job-apply-text: #0f172a;
+    --job-apply-text-muted: #64748b;
+    --space-xs: 0.35rem;
+    --space-sm: 0.55rem;
+    --space-md: 0.85rem;
+    --space-lg: 1.2rem;
+    --space-xl: 1.8rem;
+    --space-2xl: 2.4rem;
+    --space-3xl: 3.2rem;
+}
+
+.sffc-job-apply {
+    font-family: var(--font-body);
+    color: var(--job-apply-text);
+    background: #fff;
+    border-radius: 24px;
+    padding: var(--space-2xl);
+    box-shadow: 0 25px 80px rgba(15, 23, 42, 0.08);
+    position: relative;
+    overflow: hidden;
+}
+
+.sffc-job-apply::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: radial-gradient(circle at top right, rgba(14, 165, 233, 0.15), transparent 45%),
+                radial-gradient(circle at 20% 20%, rgba(16, 185, 129, 0.15), transparent 40%);
+}
+
+.sffc-job-apply__header {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-xl);
+    padding-bottom: var(--space-2xl);
+    border-bottom: 1px solid var(--job-apply-border);
+}
+
+.sffc-job-apply__branding {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    min-width: 160px;
+}
+
+.sffc-job-apply__logo {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--color-primary);
+    letter-spacing: 0.08em;
+}
+
+.sffc-job-apply__tagline {
+    font-size: 0.85rem;
+    color: var(--job-apply-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.3em;
+}
+
+.sffc-job-apply__job-info {
+    flex: 1;
+}
+
+.sffc-job-apply__title {
+    font-family: var(--font-display);
+    font-size: clamp(2rem, 4vw, 2.75rem);
+    margin: 0 0 var(--space-sm);
+    letter-spacing: -0.02em;
+}
+
+.sffc-job-apply__location {
+    font-size: 1rem;
+    color: var(--job-apply-text-muted);
+}
+
+.sffc-job-apply__header-actions {
+    min-width: 140px;
+    text-align: right;
+}
+
+.sffc-job-apply__apply-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: var(--color-primary);
+    color: #fff;
+    border: none;
+    border-radius: 999px;
+    padding: 0.9rem 2.5rem;
+    font-weight: 600;
+    box-shadow: 0 15px 30px rgba(15, 118, 110, 0.3);
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.sffc-job-apply__apply-btn:hover {
+    background: #0d5b52;
+}
+
+.sffc-job-apply__body {
+    padding: var(--space-2xl) 0;
+    position: relative;
+}
+
+.sffc-job-apply__content {
+    line-height: 1.7;
+    color: #1e293b;
+}
+
+.sffc-job-apply__content p {
+    margin-bottom: var(--space-md);
+}
+
+.sffc-job-apply__content ul {
+    padding-left: 1.5rem;
+    margin-bottom: var(--space-md);
+}
+
+.sffc-job-apply__application {
+    padding: var(--space-3xl) 0;
+    background: var(--job-apply-bg-alt);
+    margin: var(--space-2xl) calc(-1 * var(--space-2xl));
+    padding-left: var(--space-2xl);
+    padding-right: var(--space-2xl);
+}
+
+.sffc-job-apply__application-head {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--space-2xl);
+    flex-wrap: wrap;
+    align-items: flex-start;
+}
+
+.sffc-job-apply__application-label {
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.28em;
+    color: var(--color-primary);
+    margin-bottom: 0.5rem;
+}
+
+.sffc-job-apply__application-head h2 {
+    margin: 0 0 var(--space-sm);
+    font-size: clamp(1.95rem, 3vw, 2.4rem);
+    line-height: 1.3;
+}
+
+.sffc-job-apply__application-h2-lead {
+    display: block;
+    font-weight: 500;
+    color: var(--job-apply-text);
+}
+
+.sffc-job-apply__application-h2-accent {
+    display: inline-block;
+    font-weight: 700;
+    color: #0f766e;
+    position: relative;
+    padding-left: 0.4rem;
+}
+
+.sffc-job-apply__application-h2-accent::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 4px;
+    height: 80%;
+    border-radius: 999px;
+    background: linear-gradient(180deg, #0f766e, #14b8a6);
+}
+
+.sffc-job-apply__application-head p {
+    margin: 0;
+    color: var(--job-apply-text-muted);
+}
+
+.sffc-job-apply__application-highlights {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    flex: 1;
+    display: grid;
+    gap: 0.65rem;
+}
+
+.sffc-job-apply__application-highlights li {
+    padding: 0.65rem 0.85rem;
+    border-radius: 12px;
+    background: rgba(15, 118, 110, 0.08);
+    color: #0f172a;
+    font-weight: 500;
+}
+
+.sffc-job-apply__wizard {
+    margin-top: var(--space-2xl);
+    background: #fff;
+    border-radius: 24px;
+    border: 1px solid rgba(15, 23, 42, 0.08);
+    padding: var(--space-2xl);
+    box-shadow: 0 20px 50px rgba(15, 23, 42, 0.08);
+}
+
+.sffc-job-apply__mode-choice {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: var(--space-md);
+    margin-bottom: var(--space-xl);
+}
+
+.sffc-job-apply__mode-card {
+    border: 1px solid rgba(148, 163, 184, 0.5);
+    border-radius: 18px;
+    padding: var(--space-lg);
+    background: #f8fafc;
+    text-align: left;
+    cursor: pointer;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+    position: relative;
+    display: block;
+}
+
+.sffc-job-apply__mode-input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.sffc-job-apply__mode-card::before {
+    content: '';
+    width: 20px;
+    height: 20px;
+    border: 2px solid rgba(148, 163, 184, 0.8);
+    border-radius: 50%;
+    position: absolute;
+    top: 22px;
+    left: 18px;
+    background: #fff;
+    transition: border-color 0.2s ease;
+}
+
+.sffc-job-apply__mode-card::after {
+    content: '';
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: transparent;
+    position: absolute;
+    top: 27px;
+    left: 23px;
+    transition: background 0.2s ease;
+}
+
+.sffc-job-apply__mode-card ul {
+    margin: var(--space-sm) 0 0;
+    padding-left: 1.2rem;
+    color: #475569;
+}
+
+.sffc-job-apply__mode-card-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+    padding-left: 32px;
+}
+
+.sffc-job-apply__mode-card-label {
+    font-weight: 600;
+    color: #0f172a;
+}
+
+.sffc-job-apply__mode-card-pill {
+    background: rgba(15, 118, 110, 0.12);
+    color: #0f766e;
+    font-size: 0.75rem;
+    padding: 0.2rem 0.7rem;
+    border-radius: 999px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.sffc-job-apply__mode-card.is-active {
+    border-color: #0f766e;
+    background: #fff;
+    box-shadow: 0 18px 45px rgba(15, 118, 110, 0.15);
+    transform: translateY(-2px);
+}
+.sffc-job-apply__mode-card.is-active::before {
+    border-color: #0f766e;
+}
+
+.sffc-job-apply__mode-card.is-active::after {
+    background: #0f766e;
+}
+
+.sffc-job-apply__progress {
+    margin-bottom: var(--space-2xl);
+}
+
+.sffc-job-apply__progress-track {
+    height: 6px;
+    background: rgba(15, 23, 42, 0.08);
+    border-radius: 999px;
+    overflow: hidden;
+}
+
+.sffc-job-apply__progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, #0f766e, #14b8a6);
+    border-radius: inherit;
+    transition: width 0.4s ease;
+}
+
+.sffc-job-apply__progress-labels {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 0.75rem;
+    font-size: 0.86rem;
+    color: var(--job-apply-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+}
+
+.sffc-job-apply__progress-labels span {
+    opacity: 0.5;
+}
+
+.sffc-job-apply__progress-labels span.is-active {
+    opacity: 1;
+    color: var(--color-primary);
+}
+
+.sffc-job-apply__progress-labels span.is-complete {
+    opacity: 0.85;
+    color: #0f172a;
+}
+
+.sffc-job-apply__wizard-step {
+    display: none;
+    animation: fadeIn 0.35s ease;
+}
+
+.sffc-job-apply__wizard-step.is-active {
+    display: block;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.sffc-job-apply__wizard-step-head {
+    display: flex;
+    gap: var(--space-md);
+    align-items: flex-start;
+    margin-bottom: var(--space-xl);
+}
+
+.sffc-job-apply__wizard-step-pill {
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.25em;
+    color: var(--job-apply-text-muted);
+}
+
+.sffc-job-apply__fields-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: var(--space-md);
+    margin-bottom: var(--space-xl);
+}
+
+.sffc-job-apply__fields-grid label {
+    display: flex;
+    flex-direction: column;
+    font-size: 0.9rem;
+    color: var(--job-apply-text-muted);
+    gap: 0.4rem;
+}
+
+.sffc-job-apply__fields-grid input {
+    border-radius: 12px;
+    border: 1px solid var(--job-apply-border);
+    padding: 0.85rem 1rem;
+    font-size: 1rem;
+    font-family: var(--font-body);
+}
+
+.sffc-job-apply__question-stack {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+    margin-bottom: var(--space-xl);
+}
+
+.sffc-job-apply__mode-questions {
+    display: none;
+}
+
+.sffc-job-apply__mode-questions.is-active {
+    display: block;
+}
+
+.sffc-job-plan-modal {
+    position: fixed;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+}
+
+.sffc-job-plan-modal.is-open {
+    display: flex;
+}
+
+.sffc-job-plan-modal__overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(4, 8, 20, 0.55);
+    z-index: 0;
+}
+
+.sffc-job-plan-modal__dialog {
+    position: relative;
+    background: #fefefe;
+    border-radius: 28px;
+    padding: clamp(1.5rem, 3vw, 2.75rem);
+    width: min(960px, 94vw);
+    max-height: 92vh;
+    overflow-y: auto;
+    box-shadow: 0 30px 80px rgba(15, 23, 42, 0.25);
+    z-index: 1;
+}
+
+.sffc-job-plan-modal__close {
+    position: absolute;
+    top: 18px;
+    right: 18px;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(15, 23, 42, 0.08);
+    font-size: 1.25rem;
+    cursor: pointer;
+}
+
+.sffc-job-plan-modal__header h3 {
+    font-size: clamp(1.5rem, 3vw, 2.1rem);
+    margin: 0 0 var(--space-sm);
+    color: #0f172a;
+}
+
+.sffc-job-plan-modal__eyebrow {
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.3em;
+    color: #0f766e;
+    margin: 0 0 0.5rem;
+}
+
+.sffc-job-plan-modal__subtext {
+    color: #475569;
+    margin: 0 0 var(--space-md);
+}
+
+.sffc-job-plan-modal__chips {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.sffc-job-plan-modal__chip {
+    background: rgba(15, 118, 110, 0.12);
+    color: #0f4e5e;
+    padding: 0.25rem 0.9rem;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.sffc-job-plan-modal__rating {
+    color: #0f172a;
+    font-size: 0.9rem;
+}
+
+.sffc-job-plan-modal__body {
+    margin-top: var(--space-xl);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xl);
+}
+
+.sffc-job-plan-modal__plans {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: var(--space-md);
+}
+
+.sffc-job-plan-card {
+    border: 1px solid rgba(148, 163, 184, 0.4);
+    border-radius: 20px;
+    padding: var(--space-lg);
+    background: #f8fafc;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    position: relative;
+}
+
+.sffc-job-plan-card--highlight {
+    border-color: #0f766e;
+    background: linear-gradient(135deg, rgba(14, 165, 233, 0.08), rgba(16, 185, 129, 0.08));
+}
+
+.sffc-job-plan-card.is-selected {
+    box-shadow: 0 20px 45px rgba(15, 23, 42, 0.15);
+}
+
+.sffc-job-plan-card__audience {
+    font-size: 0.8rem;
+    color: #0f766e;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.sffc-job-plan-card__price {
+    font-size: 1.1rem;
+    color: #0f172a;
+    margin: 0;
+}
+
+.sffc-job-plan-card__price span {
+    display: block;
+    font-size: 0.85rem;
+    color: #475569;
+}
+
+.sffc-job-plan-card__features {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.sffc-job-plan-card__features li svg {
+    width: 16px;
+    height: 16px;
+    color: #0f766e;
+}
+
+.sffc-job-plan-card__features li {
+    display: flex;
+    gap: 0.35rem;
+    align-items: center;
+    color: #1f2937;
+}
+
+.sffc-job-plan-card__cta {
+    margin-top: auto;
+    border: none;
+    border-radius: 14px;
+    padding: 0.9rem 1.25rem;
+    font-weight: 600;
+    background: #0f766e;
+    color: #fff;
+    cursor: pointer;
+    box-shadow: 0 15px 30px rgba(15, 118, 110, 0.25);
+}
+
+@media (max-width: 768px) {
+    .sffc-job-plan-modal__dialog {
+        padding: 1.5rem;
+        max-height: 100vh;
+        border-radius: 0;
+    }
+    .sffc-job-plan-modal__plans {
+        grid-template-columns: 1fr;
+    }
+}
+
+.sffc-job-plan-modal__checkout {
+    border: 1px solid rgba(148, 163, 184, 0.4);
+    border-radius: 18px;
+    padding: var(--space-lg);
+    background: #ffffff;
+}
+
+.sffc-job-plan-modal__form {
+    margin-top: var(--space-md);
+}
+
+.sffc-job-plan-modal__external {
+    margin-top: var(--space-md);
+}
+
+.sffc-job-plan-modal__external a {
+    color: #0f766e;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.sffc-job-plan-modal__footer {
+    margin-top: var(--space-lg);
+    text-align: center;
+    color: #475569;
+    font-size: 0.9rem;
+}
+
+body.sffc-job-plan-modal-open {
+    overflow: hidden;
+}
+
+.sffc-job-apply__question {
+    border: 1px solid rgba(15, 23, 42, 0.08);
+    border-radius: 20px;
+    padding: var(--space-xl);
+    background: #f9fafb;
+}
+
+.sffc-job-apply__question-head {
+    display: flex;
+    gap: var(--space-md);
+    align-items: flex-start;
+    margin-bottom: var(--space-md);
+}
+
+.sffc-job-apply__question-pill {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    background: rgba(20, 184, 166, 0.15);
+    color: #0f766e;
+    font-weight: 600;
+    display: grid;
+    place-items: center;
+}
+
+.sffc-job-apply__question-title {
+    margin: 0;
+    font-size: 1.05rem;
+}
+
+.sffc-job-apply__question-helper {
+    margin: 0.2rem 0 0;
+    color: var(--job-apply-text-muted);
+    font-size: 0.9rem;
+}
+
+.sffc-job-apply__choice-group,
+.sffc-job-apply__choice-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.65rem;
+}
+
+.sffc-job-apply__choice {
+    border: 1px solid var(--job-apply-border);
+    border-radius: 999px;
+    padding: 0.6rem 1.1rem;
+    font-weight: 500;
+    cursor: pointer;
+    color: #0f172a;
+    display: inline-flex;
+    gap: 0.4rem;
+    align-items: center;
+}
+
+.sffc-job-apply__choice input {
+    display: none;
+}
+
+.sffc-job-apply__choice input:checked + span,
+.sffc-job-apply__choice input:checked ~ span {
+    color: var(--color-primary);
+}
+
+.sffc-job-apply__input,
+.sffc-job-apply__textarea {
+    width: 100%;
+    border-radius: 14px;
+    border: 1px solid var(--job-apply-border);
+    padding: 0.85rem 1rem;
+    font-size: 1rem;
+    font-family: var(--font-body);
+}
+
+.sffc-job-apply__textarea {
+    min-height: 120px;
+    resize: vertical;
+}
+
+.sffc-job-apply__wizard-actions {
+    display: flex;
+    gap: var(--space-sm);
+}
+
+.sffc-job-apply__wizard-btn {
+    border-radius: 14px;
+    padding: 0.85rem 1.6rem;
+    border: 1px solid rgba(15, 23, 42, 0.15);
+    background: transparent;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.sffc-job-apply__wizard-btn--primary {
+    background: #0f766e;
+    color: #fff;
+    border-color: #0f766e;
+    box-shadow: 0 12px 30px rgba(15, 118, 110, 0.2);
+}
+
+.sffc-job-apply__no-question {
+    padding: 1rem 1.25rem;
+    border-radius: 14px;
+    background: rgba(15, 23, 42, 0.04);
+    color: var(--job-apply-text-muted);
+    margin-bottom: var(--space-xl);
+}
+
+.sffc-job-apply__result-card {
+    background: rgba(15, 118, 110, 0.05);
+    border-radius: 20px;
+    padding: var(--space-xl);
+    border: 1px solid rgba(15, 118, 110, 0.2);
+    margin-bottom: var(--space-xl);
+}
+
+.sffc-job-apply__result-score {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-md);
+}
+
+.sffc-job-apply__result-value {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.sffc-job-apply__result-state {
+    font-size: 0.95rem;
+    color: var(--job-apply-text-muted);
+}
+
+.sffc-job-apply__result-score.is-strong .sffc-job-apply__result-value {
+    color: #0f766e;
+}
+
+.sffc-job-apply__result-score.is-balanced .sffc-job-apply__result-value {
+    color: #2563eb;
+}
+
+.sffc-job-apply__result-score.is-light .sffc-job-apply__result-value,
+.sffc-job-apply__result-score.is-context .sffc-job-apply__result-value {
+    color: #b45309;
+}
+
+.sffc-job-apply__result-score.is-manual .sffc-job-apply__result-value {
+    color: #0f172a;
+}
+
+.sffc-job-apply__result-meter {
+    width: 100%;
+    height: 6px;
+    border-radius: 999px;
+    background: rgba(15, 23, 42, 0.08);
+    margin-top: 1rem;
+    overflow: hidden;
+}
+
+.sffc-job-apply__result-meter-bar {
+    height: 100%;
+    background: linear-gradient(90deg, #14b8a6, #0f766e);
+    width: 0;
+    transition: width 0.4s ease;
+}
+
+.sffc-job-apply__breakdown {
+    border-radius: 18px;
+    border: 1px solid rgba(15, 23, 42, 0.08);
+    padding: var(--space-xl);
+    background: #fff;
+    margin-bottom: var(--space-xl);
+}
+
+.sffc-job-apply__breakdown-placeholder {
+    margin: 0;
+    color: var(--job-apply-text-muted);
+}
+
+.sffc-job-apply__breakdown-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+}
+
+.sffc-job-apply__breakdown-list li {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    padding: 0.85rem 1rem;
+    border-radius: 14px;
+    border: 1px solid rgba(15, 23, 42, 0.08);
+}
+
+.sffc-job-apply__breakdown-list li.is-match {
+    border-color: rgba(20, 184, 166, 0.4);
+    background: rgba(20, 184, 166, 0.08);
+}
+
+.sffc-job-apply__breakdown-list li.is-gap {
+    border-color: rgba(180, 83, 9, 0.25);
+    background: rgba(249, 115, 22, 0.08);
+}
+
+.sffc-job-apply__breakdown-list strong {
+    font-size: 1rem;
+}
+
+.sffc-job-apply__breakdown-list span {
+    font-weight: 600;
+}
+
+.sffc-job-apply__breakdown-list small {
+    color: var(--job-apply-text-muted);
+    font-size: 0.85rem;
+}
+
+.sffc-job-apply__cta {
+    display: flex;
+    gap: var(--space-sm);
+    flex-wrap: wrap;
+    margin-bottom: var(--space-sm);
+}
+
+.sffc-job-apply__cta-btn {
+    border-radius: 16px;
+    padding: 0.95rem 1.8rem;
+    font-weight: 600;
+    border: 1px solid rgba(15, 23, 42, 0.15);
+    background: #fff;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.sffc-job-apply__cta-btn--primary {
+    background: #0f766e;
+    color: #fff;
+    border-color: #0f766e;
+    box-shadow: 0 15px 35px rgba(15, 118, 110, 0.25);
+}
+
+.sffc-job-apply__cta-btn--ghost {
+    background: transparent;
+}
+
+.sffc-job-apply__cta-btn.is-disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+.sffc-job-apply__cta-btn.is-loading {
+    pointer-events: none;
+    opacity: 0.7;
+}
+
+.sffc-job-apply__cta-btn:hover {
+    transform: translateY(-2px);
+}
+
+.sffc-job-apply__cta-note {
+    margin: 0;
+    font-size: 0.9rem;
+    color: var(--job-apply-text-muted);
+}
+
+.sffc-job-apply__flash {
+    border-radius: 12px;
+    padding: 0.85rem 1rem;
+    font-weight: 500;
+}
+
+.sffc-job-apply__flash.is-error {
+    background: rgba(248, 113, 113, 0.15);
+    color: #b91c1c;
+}
+
+.sffc-job-apply__flash.is-success {
+    background: rgba(16, 185, 129, 0.15);
+    color: #065f46;
+}
+
+@media (max-width: 992px) {
+    .sffc-job-apply__header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .sffc-job-apply__header-actions {
+        width: 100%;
+    }
+
+    .sffc-job-apply__apply-btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .sffc-job-apply__application-head {
+        flex-direction: column;
+    }
+
+    .sffc-job-apply__cta {
+        flex-direction: column;
+    }
+
+    .sffc-job-apply__cta-btn {
+        width: 100%;
+        text-align: center;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .sffc-job-apply-linkedin-modal,
+    .sffc-job-apply-user-modal,
+    .sffc-job-apply-email-modal,
+    .sffc-job-apply-linkedin-overlay,
+    .sffc-job-apply-user-overlay,
+    .sffc-job-apply-email-overlay,
+    .sffc-job-apply-linkedin-content,
+    .sffc-job-apply-user-content,
+    .sffc-job-apply-email-content {
+        animation: none !important;
+    }
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.sffc-job-apply-linkedin-close,
+.sffc-job-apply-user-close {
+    position: absolute;
+    top: var(--space-lg);
+    right: var(--space-lg);
+    background: rgba(15, 23, 42, 0.08);
+    border: 1px solid rgba(148, 163, 184, 0.4);
+    width: 42px;
+    height: 42px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+    line-height: 1;
+    cursor: pointer;
+    color: var(--job-apply-text-muted);
+    transition: all 0.25s ease;
+    z-index: 10;
+    backdrop-filter: blur(4px);
+}
+
+.sffc-job-apply-linkedin-close:hover,
+.sffc-job-apply-user-close:hover {
+    background: var(--job-apply-text);
+    color: #ffffff;
+    transform: translateY(-2px);
+    box-shadow: 0 12px 25px rgba(15, 23, 42, 0.25);
+}
+
+.sffc-job-apply-linkedin-header,
+.sffc-job-apply-user-header {
+    padding: clamp(1.5rem, 3vw, 2.75rem);
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.08), rgba(16, 185, 129, 0.06));
+    border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+    border-radius: 24px;
+}
+
+.sffc-job-apply-linkedin-header::after,
+.sffc-job-apply-user-header::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 10% -20%, rgba(59, 130, 246, 0.25), transparent 55%);
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+.sffc-job-apply-linkedin-pill,
+.sffc-job-apply-user-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: linear-gradient(135deg, var(--color-primary) 0%, #047857 100%);
+    color: #ffffff;
+    padding: 0.375rem 0.875rem;
+    border-radius: 20px;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: var(--space-md);
+    box-shadow: 0 2px 8px rgba(5, 150, 105, 0.3);
+}
+
+.sffc-job-apply-linkedin-pill::before {
+    content: "✨";
+    font-size: 0.875rem;
+}
+
+.sffc-job-apply-user-pill::before {
+    content: "👤";
+    font-size: 0.875rem;
+}
+
+.sffc-job-apply-linkedin-header h3,
+.sffc-job-apply-user-header h3 {
+    font-family: var(--font-display);
+    font-size: clamp(1.5rem, 2.2vw, 1.9rem);
+    font-weight: 700;
+    margin: 0 0 var(--space-sm) 0;
+    color: var(--job-apply-text);
+    letter-spacing: -0.02em;
+}
+
+.sffc-job-apply-linkedin-header p,
+.sffc-job-apply-user-header p {
+    margin: 0;
+    color: var(--job-apply-text-muted);
+    font-size: 0.95rem;
+    line-height: 1.5;
+}
+
+.sffc-job-apply-linkedin-body {
+    padding: clamp(1.5rem, 3vw, 2.5rem);
+    display: grid;
+    grid-template-columns: minmax(0, 3fr) minmax(220px, 2fr);
+    grid-template-areas:
+        'label tips'
+        'text tips';
+    gap: clamp(1.25rem, 2vw, 2.25rem);
+    background: #ffffff;
+    flex: 1;
+    overflow-y: auto;
+    border-radius: 24px;
+}
+
+.sffc-job-apply-linkedin-body label {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-xs);
+    font-weight: 600;
+    margin-bottom: var(--space-sm);
+    color: var(--job-apply-text);
+    font-size: 0.95rem;
+    grid-area: label;
+    align-self: flex-end;
+    padding: 0.5rem 0.875rem;
+    border-radius: 999px;
+    background: rgba(15, 23, 42, 0.05);
+}
+
+.sffc-job-apply-linkedin-textarea {
+    width: 100%;
+    padding: var(--space-lg);
+    border: 2px solid var(--job-apply-border);
+    border-radius: 12px;
+    font-family: var(--font-body);
+    font-size: 1rem;
+    line-height: 1.7;
+    resize: vertical;
+    min-height: 280px;
+    transition: all 0.2s ease;
+    background: linear-gradient(180deg, #f8fafc, #ffffff);
+    grid-area: text;
+}
+
+.sffc-job-apply-linkedin-textarea:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    background: #ffffff;
+    box-shadow: 0 0 0 4px rgba(5, 150, 105, 0.1);
+}
+
+.sffc-job-apply-linkedin-tips {
+    padding: var(--space-xl);
+    background: linear-gradient(150deg, rgba(255, 251, 235, 0.9), rgba(255, 249, 196, 0.95));
+    border-radius: 18px;
+    border: 1px solid rgba(251, 191, 36, 0.35);
+    box-shadow: 0 20px 45px rgba(251, 191, 36, 0.15);
+    grid-area: tips;
+}
+
+.sffc-job-apply-linkedin-tips-title {
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: var(--color-warning);
+    margin-bottom: var(--space-sm);
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+}
+
+.sffc-job-apply-linkedin-tips-title::before {
+    content: "💡";
+}
+
+.sffc-job-apply-linkedin-tips ul {
+    margin: 0;
+    padding-left: var(--space-lg);
+    font-size: 0.9rem;
+    color: #78350f;
+    line-height: 1.6;
+}
+
+.sffc-job-apply-linkedin-tips li {
+    margin-bottom: var(--space-xs);
+}
+
+.sffc-job-apply-linkedin-footer {
+    padding: clamp(1rem, 3vw, 2.25rem);
+    background: #f8fafc;
+    border-top: 1px solid rgba(15, 23, 42, 0.08);
+    display: flex;
+    gap: var(--space-md);
+    justify-content: space-between;
+    align-items: center;
+}
+
+.sffc-job-apply-linkedin-regenerate {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-sm);
+    background: none;
+    border: none;
+    color: var(--job-apply-text-muted);
+    font-weight: 600;
+    font-size: 0.9375rem;
+    cursor: pointer;
+    transition: color 0.2s ease;
+    padding: 0;
+}
+
+.sffc-job-apply-linkedin-regenerate:hover {
+    color: var(--color-primary);
+}
+
+.sffc-job-apply-linkedin-regenerate svg {
+    transition: transform 0.3s ease;
+}
+
+.sffc-job-apply-linkedin-regenerate:hover svg {
+    transform: rotate(180deg);
+}
+
+.sffc-job-apply-linkedin-footer .sffc-job-apply__option-btn {
+    margin: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-sm);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .sffc-job-apply-linkedin-content {
+        max-width: 100%;
+        border-radius: 12px 12px 0 0;
+        max-height: 90vh;
+    }
+
+    .sffc-job-apply-linkedin-header,
+    .sffc-job-apply-linkedin-body,
+    .sffc-job-apply-linkedin-footer {
+        padding: var(--space-lg);
+    }
+
+    .sffc-job-apply-linkedin-body {
+        grid-template-columns: 1fr;
+        grid-template-areas:
+            'label'
+            'text'
+            'tips';
+        gap: var(--space-lg);
+    }
+
+    .sffc-job-apply-linkedin-textarea {
+        min-height: 220px;
+    }
+
+    .sffc-job-apply-linkedin-footer {
+        flex-direction: column;
+        gap: var(--space-sm);
+    }
+
+    .sffc-job-apply-linkedin-regenerate {
+        align-self: flex-start;
+    }
+}
+
+/* ==========================================================================
+   Email Preview Modal
+   ========================================================================== */
+
+.sffc-job-apply-email-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.sffc-job-apply-email-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+}
+
+.sffc-job-apply-email-content {
+    position: relative;
+    background: #ffffff;
+    border-radius: 12px;
+    max-width: 600px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.sffc-job-apply-email-close {
+    position: absolute;
+    top: var(--space-md);
+    right: var(--space-md);
+    background: none;
+    border: none;
+    font-size: 2rem;
+    line-height: 1;
+    cursor: pointer;
+    color: var(--job-apply-text-muted);
+    transition: color 0.2s ease;
+}
+
+.sffc-job-apply-email-close:hover {
+    color: var(--job-apply-text);
+}
+
+.sffc-job-apply-email-header {
+    padding: var(--space-xl);
+    border-bottom: 1px solid var(--job-apply-border);
+}
+
+.sffc-job-apply-email-header h3 {
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 0 0 var(--space-xs) 0;
+}
+
+.sffc-job-apply-email-header p {
+    margin: 0;
+    color: var(--job-apply-text-muted);
+    font-size: 0.9375rem;
+}
+
+.sffc-job-apply-email-body {
+    padding: var(--space-xl);
+}
+
+.sffc-job-apply-email-field {
+    margin-bottom: var(--space-lg);
+}
+
+.sffc-job-apply-email-field:last-child {
+    margin-bottom: 0;
+}
+
+.sffc-job-apply-email-field label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: var(--space-sm);
+    color: var(--job-apply-text);
+}
+
+.sffc-job-apply-email-subject {
+    font-weight: 600;
+    color: var(--job-apply-text);
+}
+
+.sffc-job-apply-email-message {
+    background: var(--job-apply-bg-alt);
+    padding: var(--space-md);
+    border-radius: 8px;
+    white-space: pre-wrap;
+    line-height: 1.6;
+    color: var(--job-apply-text);
+}
+
+.sffc-job-apply-email-footer {
+    padding: var(--space-xl);
+    border-top: 1px solid var(--job-apply-border);
+    display: flex;
+    gap: var(--space-md);
+    justify-content: flex-end;
+}
+
+.sffc-job-apply-email-footer .sffc-job-apply__option-btn {
+    margin: 0;
+}
+
+/* ==========================================================================
+   Responsive Design
+   ========================================================================== */
+
+@media (max-width: 768px) {
+    .sffc-job-apply {
+        padding: var(--space-md);
+    }
+
+    .sffc-job-apply__title {
+        font-size: 1.875rem;
+    }
+
+    .sffc-job-apply__options {
+        margin-left: calc(-1 * var(--space-md));
+        margin-right: calc(-1 * var(--space-md));
+        padding-left: var(--space-md);
+        padding-right: var(--space-md);
+    }
+
+    .sffc-job-apply__options-grid {
+        grid-template-columns: 1fr;
+        gap: var(--space-lg);
+    }
+
+    .sffc-job-apply__options-title {
+        font-size: 1.5rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .sffc-job-apply__logo {
+        font-size: 1.5rem;
+    }
+
+    .sffc-job-apply__title {
+        font-size: 1.5rem;
+    }
+
+    .sffc-job-apply__apply-btn {
+        padding: 0.75rem 2rem;
+        font-size: 0.9375rem;
+    }
+}
+
+/* ============================================================================
+   User Details Modal
+   ========================================================================== */
+
+
+.sffc-job-apply-user-content {
+    width: min(600px, 94vw);
+}
+
+.sffc-job-apply-user-body {
+    padding: clamp(1.5rem, 3vw, 2.5rem);
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: var(--space-lg);
+    background: #ffffff;
+}
+
+.sffc-job-apply-user-field {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+    padding: var(--space-md);
+    border-radius: 16px;
+    background: linear-gradient(145deg, rgba(248, 250, 252, 0.9), rgba(255, 255, 255, 0.95));
+    border: 1px solid rgba(226, 232, 240, 0.9);
+    box-shadow: 0 20px 45px rgba(15, 23, 42, 0.08);
+}
+
+.sffc-job-apply-user-field label {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--job-apply-text);
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.sffc-required {
+    color: #dc2626;
+    font-weight: 700;
+}
+
+.sffc-job-apply-user-field input {
+    width: 100%;
+    padding: 0.85rem 1rem;
+    border: 1px solid rgba(148, 163, 184, 0.6);
+    border-radius: 10px;
+    font-size: 0.95rem;
+    font-family: var(--font-body);
+    color: var(--job-apply-text);
+    background: rgba(255, 255, 255, 0.9);
+    transition: all 0.2s ease;
+    box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.05);
+}
+
+.sffc-job-apply-user-field input:focus {
+    outline: none;
+    border-color: var(--color-secondary);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.18);
+}
+
+.sffc-job-apply-user-field input::placeholder {
+    color: var(--job-apply-text-muted);
+    opacity: 0.6;
+}
+
+.sffc-job-apply-user-footer {
+    padding: clamp(1.25rem, 3vw, 2.25rem);
+    border-top: 1px solid rgba(15, 23, 42, 0.08);
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--space-md);
+    background: #f8fafc;
+}
+
+.sffc-job-apply-user-footer .sffc-job-apply__option-btn {
+    margin: 0;
+    min-width: 120px;
+}
+
+.sffc-job-apply-user-footer .sffc-job-apply__option-btn svg {
+    margin-right: 0.5rem;
+}
+
+@media (max-width: 640px) {
+    .sffc-job-apply-user-content {
+        max-width: 100%;
+        border-radius: 12px;
+    }
+
+    .sffc-job-apply-user-header {
+        padding: var(--space-lg) var(--space-lg) var(--space-md);
+    }
+
+    .sffc-job-apply-user-header h3 {
+        font-size: 1.5rem;
+    }
+
+    .sffc-job-apply-user-body {
+        padding: var(--space-lg);
+    }
+
+    .sffc-job-apply-user-footer {
+        padding: var(--space-md) var(--space-lg);
+        flex-direction: column;
+    }
+
+    .sffc-job-apply-user-footer .sffc-job-apply__option-btn {
+        width: 100%;
+    }
+}
+
+/* ============================================================================
+   Email Modal (AI Generated)
+   ========================================================================== */
+
+.sffc-job-apply-email-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: clamp(1rem, 4vw, 2.75rem);
+    animation: fadeIn 0.35s ease;
+    isolation: isolate;
+    background: radial-gradient(circle at 15% 10%, rgba(59, 130, 246, 0.22), transparent 35%),
+                radial-gradient(circle at 80% 5%, rgba(16, 185, 129, 0.2), transparent 38%),
+                rgba(2, 6, 23, 0.78);
+}
+
+.sffc-job-apply-email-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(2, 6, 23, 0.65);
+    backdrop-filter: blur(22px) saturate(150%);
+}
+
+.sffc-job-apply-email-overlay::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+        linear-gradient(120deg, rgba(59, 130, 246, 0.25), rgba(16, 185, 129, 0.25) 45%, transparent 70%),
+        radial-gradient(circle at 25% 30%, rgba(255, 255, 255, 0.08), transparent 40%),
+        radial-gradient(circle at 75% 35%, rgba(16, 185, 129, 0.08), transparent 45%);
+    mix-blend-mode: screen;
+    opacity: 0.85;
+}
+
+.sffc-job-apply-email-content {
+    position: relative;
+    background: linear-gradient(165deg, rgba(255, 255, 255, 0.98), rgba(241, 245, 249, 0.94));
+    border-radius: 30px;
+    width: min(860px, 96vw);
+    max-height: 92vh;
+    overflow: hidden;
+    border: 1px solid rgba(15, 23, 42, 0.08);
+    box-shadow:
+        0 45px 110px rgba(15, 23, 42, 0.5),
+        0 0 0 1px rgba(255, 255, 255, 0.7) inset;
+    animation: slideUp 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+    display: flex;
+    flex-direction: column;
+    backdrop-filter: blur(12px);
+}
+
+.sffc-job-apply-email-content::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background:
+        linear-gradient(125deg, rgba(59, 130, 246, 0.08), rgba(16, 185, 129, 0.07)),
+        radial-gradient(circle at top, rgba(255, 255, 255, 0.45), transparent 55%);
+    opacity: 0.85;
+    z-index: 0;
+}
+
+.sffc-job-apply-email-content > * {
+    position: relative;
+    z-index: 1;
+}
+
+.sffc-job-apply-email-close {
+    position: absolute;
+    top: var(--space-lg);
+    right: var(--space-lg);
+    background: rgba(15, 23, 42, 0.08);
+    border: 1px solid rgba(148, 163, 184, 0.4);
+    width: 42px;
+    height: 42px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+    line-height: 1;
+    cursor: pointer;
+    color: var(--job-apply-text-muted);
+    transition: all 0.25s ease;
+    z-index: 10;
+    backdrop-filter: blur(4px);
+}
+
+.sffc-job-apply-email-close:hover {
+    background: var(--job-apply-text);
+    color: #ffffff;
+    transform: translateY(-2px);
+    box-shadow: 0 12px 25px rgba(15, 23, 42, 0.25);
+}
+
+.sffc-job-apply-email-header {
+    padding: clamp(1.5rem, 3vw, 2.75rem);
+    border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.08), rgba(16, 185, 129, 0.06));
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+}
+
+.sffc-job-apply-email-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: linear-gradient(135deg, var(--color-primary) 0%, #047857 100%);
+    color: #ffffff;
+    padding: 0.375rem 0.875rem;
+    border-radius: 20px;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: var(--space-md);
+    box-shadow: 0 2px 8px rgba(5, 150, 105, 0.3);
+}
+
+.sffc-job-apply-email-pill::before {
+    content: "✨";
+    font-size: 0.875rem;
+}
+
+.sffc-job-apply-email-header h3 {
+    font-family: var(--font-display);
+    font-size: clamp(1.5rem, 2.2vw, 1.9rem);
+    font-weight: 700;
+    color: var(--job-apply-text);
+    margin: 0 0 var(--space-sm);
+    line-height: 1.2;
+}
+
+.sffc-job-apply-email-header p {
+    font-size: 0.95rem;
+    color: var(--job-apply-text-muted);
+    margin: 0;
+    line-height: 1.5;
+}
+
+.sffc-job-apply-email-body {
+    padding: clamp(1.5rem, 3vw, 2.5rem);
+    overflow-y: auto;
+    flex: 1;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: var(--space-lg);
+    background: #ffffff;
+}
+
+.sffc-job-apply-email-field {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+    padding: var(--space-md);
+    border-radius: 16px;
+    background: linear-gradient(145deg, rgba(248, 250, 252, 0.92), rgba(255, 255, 255, 0.95));
+    border: 1px solid rgba(226, 232, 240, 0.9);
+    box-shadow: 0 20px 45px rgba(15, 23, 42, 0.08);
+}
+
+.sffc-job-apply-email-body .sffc-job-apply-email-field:nth-child(3) {
+    grid-column: 1 / -1;
+}
+
+.sffc-job-apply-email-field label {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--job-apply-text);
+}
+
+.sffc-job-apply-email-to,
+.sffc-job-apply-email-subject {
+    padding: 0.85rem 1rem;
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 10px;
+    font-size: 0.95rem;
+    color: var(--job-apply-text);
+    border: 1px solid rgba(148, 163, 184, 0.6);
+    box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.05);
+}
+
+.sffc-job-apply-email-textarea {
+    width: 100%;
+    min-height: 240px;
+    padding: 1rem;
+    border: 2px solid var(--job-apply-border);
+    border-radius: 12px;
+    font-size: 0.95rem;
+    font-family: var(--font-body);
+    color: var(--job-apply-text);
+    line-height: 1.6;
+    resize: vertical;
+    transition: all 0.2s ease;
+    background: linear-gradient(180deg, #f8fafc, #ffffff);
+}
+
+.sffc-job-apply-email-textarea:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 4px rgba(5, 150, 105, 0.1);
+}
+
+.sffc-job-apply-email-tips {
+    grid-column: 1 / -1;
+    padding: var(--space-xl);
+    background: linear-gradient(150deg, rgba(255, 251, 235, 0.9), rgba(255, 249, 196, 0.95));
+    border-radius: 18px;
+    border: 1px solid rgba(251, 191, 36, 0.35);
+    box-shadow: 0 20px 45px rgba(251, 191, 36, 0.15);
+}
+
+.sffc-job-apply-email-tips-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--color-warning);
+    margin-bottom: var(--space-sm);
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+}
+
+.sffc-job-apply-email-tips-title::before {
+    content: "💡";
+}
+
+.sffc-job-apply-email-tips ul {
+    margin: 0;
+    padding-left: var(--space-lg);
+    list-style: disc;
+    color: #78350f;
+    font-size: 0.9rem;
+}
+
+.sffc-job-apply-email-tips li {
+    font-size: 0.9rem;
+    color: #78350f;
+    margin-bottom: var(--space-xs);
+    line-height: 1.6;
+}
+
+.sffc-job-apply-email-footer {
+    padding: clamp(1rem, 3vw, 2.25rem);
+    border-top: 1px solid rgba(15, 23, 42, 0.08);
+    display: flex;
+    justify-content: space-between;
+    gap: var(--space-md);
+    align-items: center;
+    background: #f8fafc;
+}
+
+.sffc-job-apply-email-footer .sffc-job-apply__option-btn {
+    margin: 0;
+}
+
+.sffc-job-apply-email-footer .sffc-job-apply__option-btn svg {
+    margin-right: 0.5rem;
+}
+
+@media (max-width: 640px) {
+    .sffc-job-apply-email-content {
+        max-width: 100%;
+        border-radius: 16px;
+    }
+
+    .sffc-job-apply-email-header {
+        padding: var(--space-lg) var(--space-lg) var(--space-md);
+    }
+
+    .sffc-job-apply-email-body {
+        padding: var(--space-lg);
+        grid-template-columns: 1fr;
+    }
+
+    .sffc-job-apply-email-footer {
+        padding: var(--space-md) var(--space-lg);
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .sffc-job-apply-email-footer .sffc-job-apply__option-btn {
+        width: 100%;
+    }
+}
+
+/* Rating badges */
+.sffc-job-apply__rating {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    margin-bottom: 0.75rem;
+}
+
+.sffc-job-apply__stars {
+    display: flex;
+    gap: 0.25rem;
+    color: #fbbf24;
+}
+
+.sffc-job-apply__star {
+    width: 16px;
+    height: 16px;
+    color: #d1d5db;
+}
+
+.sffc-job-apply__star.is-filled {
+    color: #facc15;
+}
+
+.sffc-job-apply__star.is-half,
+.sffc-job-apply__star.is-muted {
+    color: #fde047;
+}
+
+.sffc-job-apply__rating-text {
+    font-size: 0.85rem;
+    color: #475569;
+}
+:root {
+    --font-display: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+    --font-body: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+    --color-primary: #0f766e;
+    --color-secondary: #2563eb;
+    --color-warning: #f59e0b;
+    --job-apply-bg: #f5f7fb;
+    --job-apply-bg-alt: #f8fafc;
+    --job-apply-border: #e2e8f0;
+    --job-apply-text: #0f172a;
+    --job-apply-text-muted: #64748b;
+    --space-xs: 0.35rem;
+    --space-sm: 0.55rem;
+    --space-md: 0.85rem;
+    --space-lg: 1.2rem;
+    --space-xl: 1.8rem;
+    --space-2xl: 2.4rem;
+    --space-3xl: 3.2rem;
+}
+
+.sffc-job-apply__hero {
+    display: none !important;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: var(--space-2xl);
+    padding: var(--space-3xl);
+    background: linear-gradient(180deg, #ffffff, #eef2ff);
+    border: 1px solid rgba(99, 102, 241, 0.15);
+    border-radius: 28px;
+    margin-bottom: var(--space-2xl);
+    position: relative;
+    overflow: hidden;
+}
+
+.sffc-job-apply__hero::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 15% 15%, rgba(79, 70, 229, 0.12), transparent 45%),
+                radial-gradient(circle at 85% 10%, rgba(14, 165, 233, 0.18), transparent 50%);
+    pointer-events: none;
+}
+
+.sffc-job-apply__hero-content,
+.sffc-job-apply__hero-role {
+    position: relative;
+    z-index: 1;
+}
+
+.sffc-job-apply__hero-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 1rem;
+    border-radius: 999px;
+    background: rgba(99, 102, 241, 0.1);
+    color: #4338ca;
+    font-size: 0.7rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: var(--space-sm);
+}
+
+.sffc-job-apply__hero-content h1 {
+    font-family: var(--font-display);
+    font-size: clamp(2rem, 3.5vw, 2.8rem);
+    margin: 0 0 var(--space-md);
+    line-height: 1.2;
+    color: #111827;
+}
+
+.sffc-job-apply__hero-subtext {
+    font-size: 1.05rem;
+    color: #4b5563;
+    margin-bottom: var(--space-lg);
+}
+
+.sffc-job-apply__hero-highlights {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 var(--space-xl);
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    color: #1f2937;
+}
+
+.sffc-job-apply__hero-highlights li::before {
+    content: '•';
+    margin-right: 0.35rem;
+    color: #0f766e;
+}
+
+.sffc-job-apply__hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-md);
+    align-items: center;
+}
+
+.sffc-job-apply__hero-cta {
+    background: var(--color-primary);
+    color: #fff;
+    padding: 0.85rem 2.4rem;
+    border-radius: 999px;
+    font-weight: 600;
+    text-decoration: none;
+    box-shadow: 0 15px 30px rgba(15, 118, 110, 0.25);
+}
+
+.sffc-job-apply__hero-rating {
+    font-size: 0.9rem;
+    color: #475569;
+}
+
+.sffc-job-apply__hero-role {
+    background: #fff;
+    padding: var(--space-xl);
+    border-radius: 18px;
+    border: 1px solid rgba(148, 163, 184, 0.4);
+    box-shadow: 0 10px 30px rgba(148, 163, 184, 0.15);
+}
+
+.sffc-job-apply__hero-role-head {
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.2em;
+    color: #6b7280;
+    margin-bottom: var(--space-xs);
+}
+
+.sffc-job-apply__hero-role-main {
+    margin-bottom: var(--space-md);
+}
+
+.sffc-job-apply__hero-role h3 {
+    margin: 0;
+    font-size: 1.35rem;
+    color: #0f172a;
+}
+
+.sffc-job-apply__hero-role p {
+    color: #475569;
+    margin: var(--space-xs) 0 var(--space-md);
+}
+
+.sffc-job-apply__hero-role ul {
+    list-style: none;
+    padding: 0;
+    margin: var(--space-md) 0;
+    color: #1f2937;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.sffc-job-apply__hero-role-list li {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+    color: #374151;
+}
+
+.sffc-job-apply__hero-role-list strong {
+    color: #111827;
+    font-weight: 600;
+}
+
+.sffc-job-apply__hero-role-option {
+    padding: var(--space-md);
+    border-radius: 12px;
+    border: 1px solid rgba(148, 163, 184, 0.5);
+    background: #f8fafc;
+    position: relative;
+}
+
+.sffc-job-apply__hero-role-option + .sffc-job-apply__hero-role-option {
+    margin-top: var(--space-sm);
+}
+
+.sffc-job-apply__hero-role-label {
+    font-weight: 600;
+    color: #0f172a;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.sffc-job-apply__hero-role-option p {
+    margin: 0.3rem 0 0;
+    color: #475569;
+}
+
+.sffc-job-apply__hero-role-option p span {
+    font-weight: 700;
+    color: #0f766e;
+}
+
+.sffc-job-apply__hero-role-option.is-winner {
+    border-color: #0f766e;
+    background: rgba(15, 118, 110, 0.08);
+    box-shadow: inset 0 0 0 1px rgba(15, 118, 110, 0.12);
+}
+
+.sffc-job-apply__hero-role-winner {
+    background: #0f766e;
+    color: #fff;
+    font-size: 0.7rem;
+    padding: 0.1rem 0.5rem;
+    border-radius: 999px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.sffc-job-apply__hero-role-note {
+    margin-top: var(--space-md);
+    padding: var(--space-sm) 0;
+    color: #1f2937;
+}
+
+.sffc-job-apply__hero-recruiter {
+    margin-top: var(--space-lg);
+    padding: var(--space-md);
+    border-radius: 12px;
+    border: 1px solid rgba(148, 163, 184, 0.4);
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+}
+.sffc-job-apply__hero-role-list li {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+    color: #374151;
+}
+
+.sffc-job-apply__hero-role-list strong {
+    color: #111827;
+    font-weight: 600;
+}
+
+.sffc-job-apply__hero-recruiter-avatar {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+.sffc-job-apply__hero-role-list li {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+    color: #374151;
+}
+
+.sffc-job-apply__hero-role-list strong {
+    color: #111827;
+    font-weight: 600;
+}
+
+.sffc-job-apply__hero-recruiter-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+.sffc-job-apply__hero-role-list li {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+    color: #374151;
+}
+
+.sffc-job-apply__hero-role-list strong {
+    color: #111827;
+    font-weight: 600;
+}
+
+.sffc-job-apply__hero-recruiter-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    font-size: 0.9rem;
+    color: #475569;
+}
+
+.sffc-job-apply__hero-role-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.6rem 1.5rem;
+    border-radius: 10px;
+    background: rgba(15, 118, 110, 0.1);
+    color: #0f766e;
+    font-weight: 600;
+    text-decoration: none;
+    border: 1px solid rgba(15, 118, 110, 0.2);
+}
+
+@media (max-width: 768px) {
+    .sffc-job-apply__hero {
+        grid-template-columns: 1fr;
+        padding: var(--space-2xl);
+    }
+}
+
+.sffc-job-apply__hero-capture {
+    margin-top: 2.5rem;
+    padding-top: 2rem;
+    border-top: 1px solid rgba(148, 163, 184, 0.25);
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.sffc-job-apply__hero-capture input {
+    padding: 0.8rem 1rem;
+    border-radius: 10px;
+    border: 1px solid rgba(148, 163, 184, 0.7);
+    font-size: 0.95rem;
+}
+
+.sffc-job-apply__hero-capture button {
+    border: none;
+    border-radius: 10px;
+    padding: 0.85rem 1rem;
+    background: #040a16;
+    color: #fff;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.sffc-job-apply__hero-capture small {
+    color: #6b7280;
+    font-size: 0.8rem;
+}
+
+/* MemberPress init decoy — visually hidden but live in the DOM so MemberPress
+   can find name="mepr_signup_form" / .mp_wrapper during its page-load scan. */
+.sffc-mepr-init-decoy {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+    pointer-events: none;
+}

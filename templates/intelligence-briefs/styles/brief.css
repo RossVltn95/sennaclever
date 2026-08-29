@@ -1,0 +1,886 @@
+/* Intelligence Brief PDF Styles */
+/* MENA Careers Finance - Professional Financial Intelligence Reports */
+
+/* ==========================================================================
+   CSS Variables & Brand Colors
+   ========================================================================== */
+:root {
+    /* Primary Brand Colors */
+    --color-primary: #007380;       /* Teal - section boxes, headers, accents */
+    --color-background: #FAF8F5;    /* Light cream - page background */
+    --color-navy: #0A1628;          /* Navy - text, dark accents */
+    --color-green: #1E6B4A;         /* Green - logo, success states */
+    --color-white: #FFFFFF;         /* White - content areas */
+
+    /* Secondary Colors */
+    --color-text: #2D3748;          /* Dark gray - body text */
+    --color-text-light: #718096;    /* Light gray - secondary text */
+    --color-border: #E2E8F0;        /* Border color */
+    --color-accent-light: #E6F4F5;  /* Light teal - highlights */
+
+    /* Risk/Status Colors */
+    --color-risk-high: #C53030;
+    --color-risk-medium: #D69E2E;
+    --color-risk-low: #38A169;
+
+    /* Confidence Colors */
+    --color-confidence-high: #38A169;
+    --color-confidence-medium: #D69E2E;
+    --color-confidence-low: #C53030;
+
+    /* Typography Scale */
+    --font-size-xs: 9pt;
+    --font-size-sm: 10pt;
+    --font-size-base: 11pt;
+    --font-size-md: 12pt;
+    --font-size-lg: 14pt;
+    --font-size-xl: 18pt;
+    --font-size-2xl: 24pt;
+    --font-size-3xl: 32pt;
+
+    /* Spacing */
+    --spacing-xs: 4pt;
+    --spacing-sm: 8pt;
+    --spacing-md: 12pt;
+    --spacing-lg: 16pt;
+    --spacing-xl: 24pt;
+    --spacing-2xl: 32pt;
+}
+
+/* ==========================================================================
+   Page Setup (Dompdf compatible)
+   ========================================================================== */
+@page {
+    size: A4 portrait;
+    margin: 0;
+}
+
+@page :first {
+    margin: 0;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Inter', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    font-size: var(--font-size-base);
+    line-height: 1.5;
+    color: var(--color-text);
+    background: var(--color-background);
+}
+
+/* ==========================================================================
+   Typography
+   ========================================================================== */
+
+/* Headers - Didot style (using Georgia as fallback for Dompdf) */
+h1, h2, h3, .heading-display {
+    font-family: 'Playfair Display', Georgia, 'Times New Roman', serif;
+    font-weight: 700;
+    color: var(--color-navy);
+    line-height: 1.2;
+}
+
+/* Subheaders - Futura style (using system sans-serif) */
+h4, h5, h6, .heading-section {
+    font-family: 'Poppins', 'Futura', 'Trebuchet MS', Arial, sans-serif;
+    font-weight: 600;
+    color: var(--color-navy);
+    text-transform: uppercase;
+    letter-spacing: 0.5pt;
+}
+
+h1 { font-size: var(--font-size-3xl); }
+h2 { font-size: var(--font-size-2xl); }
+h3 { font-size: var(--font-size-xl); }
+h4 { font-size: var(--font-size-lg); }
+h5 { font-size: var(--font-size-md); }
+h6 { font-size: var(--font-size-base); }
+
+p {
+    margin-bottom: var(--spacing-md);
+}
+
+/* Financial data typography */
+.data-value {
+    font-family: 'SF Mono', 'Consolas', 'Monaco', monospace;
+    font-variant-numeric: tabular-nums;
+    font-weight: 600;
+}
+
+.data-label {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-light);
+    text-transform: uppercase;
+    letter-spacing: 0.5pt;
+}
+
+/* ==========================================================================
+   Page Structure
+   ========================================================================== */
+.page {
+    width: 210mm;
+    min-height: 297mm;
+    padding: 15mm 18mm;
+    background: var(--color-background);
+    page-break-after: always;
+    position: relative;
+}
+
+.page:last-child {
+    page-break-after: auto;
+}
+
+/* Page header with logo */
+.page-header {
+    position: absolute;
+    top: 12mm;
+    left: 18mm;
+    right: 18mm;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.logo-mark {
+    width: 28pt;
+    height: 28pt;
+}
+
+.page-number {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-light);
+}
+
+/* Page content area */
+.page-content {
+    margin-top: 20mm;
+}
+
+/* ==========================================================================
+   Cover Page
+   ========================================================================== */
+.page-cover {
+    background: linear-gradient(135deg, var(--color-navy) 0%, #1a2d4a 100%);
+    color: var(--color-white);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 0;
+}
+
+.cover-header {
+    padding: 15mm 18mm;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.cover-logo {
+    width: 40pt;
+    height: 40pt;
+}
+
+.cover-badge {
+    background: var(--color-primary);
+    color: var(--color-white);
+    padding: 6pt 12pt;
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1pt;
+}
+
+.cover-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 0 18mm;
+}
+
+.cover-label {
+    font-family: 'Poppins', 'Futura', sans-serif;
+    font-size: var(--font-size-sm);
+    text-transform: uppercase;
+    letter-spacing: 2pt;
+    color: var(--color-primary);
+    margin-bottom: var(--spacing-md);
+}
+
+.cover-title {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 28pt;
+    font-weight: 700;
+    line-height: 1.15;
+    color: var(--color-white);
+    margin-bottom: var(--spacing-xl);
+    max-width: 85%;
+}
+
+.cover-meta {
+    display: flex;
+    gap: var(--spacing-xl);
+    font-size: var(--font-size-sm);
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.cover-meta-item {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+}
+
+.cover-footer {
+    padding: 15mm 18mm;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.cover-brand {
+    font-family: 'Poppins', 'Futura', sans-serif;
+    font-size: var(--font-size-md);
+    font-weight: 600;
+    letter-spacing: 1pt;
+}
+
+.cover-classification {
+    font-size: var(--font-size-xs);
+    color: rgba(255, 255, 255, 0.6);
+    text-transform: uppercase;
+    letter-spacing: 1pt;
+}
+
+/* ==========================================================================
+   Section Boxes (Teal Headers)
+   ========================================================================== */
+.section-box {
+    background: var(--color-primary);
+    color: var(--color-white);
+    padding: 8pt 14pt;
+    margin-bottom: var(--spacing-lg);
+    display: inline-block;
+}
+
+.section-box h2,
+.section-box h3,
+.section-box h4 {
+    font-family: 'Poppins', 'Futura', sans-serif;
+    font-size: var(--font-size-md);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1pt;
+    color: var(--color-white);
+    margin: 0;
+}
+
+/* Full-width section header */
+.section-header {
+    background: var(--color-primary);
+    color: var(--color-white);
+    padding: 10pt 14pt;
+    margin: 0 -18mm var(--spacing-lg) -18mm;
+    padding-left: 18mm;
+    padding-right: 18mm;
+}
+
+.section-header h2 {
+    font-family: 'Poppins', 'Futura', sans-serif;
+    font-size: var(--font-size-md);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1pt;
+    color: var(--color-white);
+    margin: 0;
+}
+
+/* ==========================================================================
+   Info Boxes & Callouts
+   ========================================================================== */
+.info-box {
+    background: var(--color-white);
+    border: 1px solid var(--color-border);
+    border-left: 4px solid var(--color-primary);
+    padding: var(--spacing-md) var(--spacing-lg);
+    margin-bottom: var(--spacing-lg);
+}
+
+.info-box-title {
+    font-family: 'Poppins', 'Futura', sans-serif;
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5pt;
+    color: var(--color-primary);
+    margin-bottom: var(--spacing-sm);
+}
+
+.highlight-box {
+    background: var(--color-accent-light);
+    border: 1px solid var(--color-primary);
+    padding: var(--spacing-md) var(--spacing-lg);
+    margin-bottom: var(--spacing-lg);
+}
+
+.callout {
+    background: var(--color-white);
+    border: 1px solid var(--color-border);
+    padding: var(--spacing-lg);
+    margin-bottom: var(--spacing-lg);
+    position: relative;
+}
+
+.callout-icon {
+    position: absolute;
+    top: var(--spacing-md);
+    left: var(--spacing-md);
+    width: 20pt;
+    height: 20pt;
+    color: var(--color-primary);
+}
+
+.callout-content {
+    margin-left: 28pt;
+}
+
+/* ==========================================================================
+   Metrics Grid
+   ========================================================================== */
+.metrics-grid {
+    display: table;
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: var(--spacing-lg);
+}
+
+.metrics-row {
+    display: table-row;
+}
+
+.metric-card {
+    display: table-cell;
+    width: 25%;
+    padding: var(--spacing-md);
+    background: var(--color-white);
+    border: 1px solid var(--color-border);
+    text-align: center;
+    vertical-align: top;
+}
+
+.metric-value {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: var(--font-size-2xl);
+    font-weight: 700;
+    color: var(--color-navy);
+    line-height: 1;
+    margin-bottom: var(--spacing-xs);
+}
+
+.metric-label {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-light);
+    text-transform: uppercase;
+    letter-spacing: 0.5pt;
+}
+
+.metric-change {
+    font-size: var(--font-size-xs);
+    margin-top: var(--spacing-xs);
+}
+
+.metric-change.positive { color: var(--color-risk-low); }
+.metric-change.negative { color: var(--color-risk-high); }
+
+/* ==========================================================================
+   Data Tables
+   ========================================================================== */
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: var(--spacing-lg);
+    font-size: var(--font-size-sm);
+}
+
+.data-table th {
+    background: var(--color-navy);
+    color: var(--color-white);
+    font-family: 'Poppins', 'Futura', sans-serif;
+    font-size: var(--font-size-xs);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5pt;
+    padding: 8pt 10pt;
+    text-align: left;
+}
+
+.data-table td {
+    padding: 8pt 10pt;
+    border-bottom: 1px solid var(--color-border);
+    background: var(--color-white);
+}
+
+.data-table tr:nth-child(even) td {
+    background: #F7FAFC;
+}
+
+.data-table .numeric {
+    text-align: right;
+    font-family: 'SF Mono', 'Consolas', monospace;
+    font-variant-numeric: tabular-nums;
+}
+
+.data-table .highlight-row td {
+    background: var(--color-accent-light);
+    font-weight: 600;
+}
+
+/* ==========================================================================
+   Company Profile Card
+   ========================================================================== */
+.company-card {
+    background: var(--color-white);
+    border: 1px solid var(--color-border);
+    padding: var(--spacing-lg);
+    margin-bottom: var(--spacing-lg);
+}
+
+.company-header {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--spacing-lg);
+    margin-bottom: var(--spacing-lg);
+    padding-bottom: var(--spacing-lg);
+    border-bottom: 1px solid var(--color-border);
+}
+
+.company-logo {
+    width: 60pt;
+    height: 60pt;
+    background: var(--color-accent-light);
+    border: 1px solid var(--color-border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--font-size-2xl);
+    font-weight: 700;
+    color: var(--color-primary);
+}
+
+.company-info h3 {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: var(--font-size-xl);
+    margin-bottom: var(--spacing-xs);
+}
+
+.company-tagline {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-light);
+}
+
+.company-facts {
+    display: table;
+    width: 100%;
+}
+
+.company-fact {
+    display: table-row;
+}
+
+.company-fact-label,
+.company-fact-value {
+    display: table-cell;
+    padding: 4pt 0;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.company-fact-label {
+    width: 120pt;
+    font-size: var(--font-size-sm);
+    color: var(--color-text-light);
+}
+
+.company-fact-value {
+    font-weight: 500;
+}
+
+/* ==========================================================================
+   Key Players Layout
+   ========================================================================== */
+.players-grid {
+    display: table;
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: var(--spacing-md);
+}
+
+.players-row {
+    display: table-row;
+}
+
+.player-card {
+    display: table-cell;
+    width: 50%;
+    background: var(--color-white);
+    border: 1px solid var(--color-border);
+    padding: var(--spacing-lg);
+    vertical-align: top;
+}
+
+.player-role {
+    font-family: 'Poppins', 'Futura', sans-serif;
+    font-size: var(--font-size-xs);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1pt;
+    color: var(--color-primary);
+    margin-bottom: var(--spacing-sm);
+}
+
+.player-name {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: var(--font-size-lg);
+    font-weight: 700;
+    color: var(--color-navy);
+    margin-bottom: var(--spacing-xs);
+}
+
+.player-description {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-light);
+}
+
+/* ==========================================================================
+   Risk Matrix
+   ========================================================================== */
+.risk-list {
+    list-style: none;
+}
+
+.risk-item {
+    background: var(--color-white);
+    border: 1px solid var(--color-border);
+    padding: var(--spacing-md) var(--spacing-lg);
+    margin-bottom: var(--spacing-sm);
+    display: flex;
+    align-items: flex-start;
+    gap: var(--spacing-md);
+}
+
+.risk-severity {
+    width: 8pt;
+    height: 8pt;
+    border-radius: 50%;
+    margin-top: 4pt;
+    flex-shrink: 0;
+}
+
+.risk-severity.high { background: var(--color-risk-high); }
+.risk-severity.medium { background: var(--color-risk-medium); }
+.risk-severity.low { background: var(--color-risk-low); }
+
+.risk-content {
+    flex: 1;
+}
+
+.risk-title {
+    font-weight: 600;
+    margin-bottom: 2pt;
+}
+
+.risk-description {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-light);
+}
+
+.risk-category {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-light);
+    text-transform: uppercase;
+    letter-spacing: 0.5pt;
+    background: var(--color-background);
+    padding: 2pt 6pt;
+    flex-shrink: 0;
+}
+
+/* ==========================================================================
+   Charts & Visualizations
+   ========================================================================== */
+.chart-container {
+    background: var(--color-white);
+    border: 1px solid var(--color-border);
+    padding: var(--spacing-lg);
+    margin-bottom: var(--spacing-lg);
+    text-align: center;
+}
+
+.chart-title {
+    font-family: 'Poppins', 'Futura', sans-serif;
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5pt;
+    color: var(--color-navy);
+    margin-bottom: var(--spacing-md);
+}
+
+.chart-image {
+    max-width: 100%;
+    height: auto;
+}
+
+.chart-source {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-light);
+    margin-top: var(--spacing-sm);
+    text-align: right;
+}
+
+/* ==========================================================================
+   Confidence Indicator
+   ========================================================================== */
+.confidence-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    font-size: var(--font-size-sm);
+}
+
+.confidence-dots {
+    display: flex;
+    gap: 3pt;
+}
+
+.confidence-dot {
+    width: 8pt;
+    height: 8pt;
+    border-radius: 50%;
+    background: var(--color-border);
+}
+
+.confidence-dot.filled { background: var(--color-primary); }
+
+.confidence-label {
+    color: var(--color-text-light);
+    text-transform: uppercase;
+    letter-spacing: 0.5pt;
+    font-size: var(--font-size-xs);
+}
+
+/* ==========================================================================
+   Timeline
+   ========================================================================== */
+.timeline {
+    position: relative;
+    padding-left: 20pt;
+}
+
+.timeline::before {
+    content: '';
+    position: absolute;
+    left: 6pt;
+    top: 0;
+    bottom: 0;
+    width: 2pt;
+    background: var(--color-border);
+}
+
+.timeline-item {
+    position: relative;
+    padding-bottom: var(--spacing-lg);
+}
+
+.timeline-item::before {
+    content: '';
+    position: absolute;
+    left: -17pt;
+    top: 4pt;
+    width: 10pt;
+    height: 10pt;
+    border-radius: 50%;
+    background: var(--color-primary);
+    border: 2pt solid var(--color-white);
+}
+
+.timeline-item.completed::before {
+    background: var(--color-green);
+}
+
+.timeline-item.pending::before {
+    background: var(--color-text-light);
+}
+
+.timeline-date {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-light);
+    text-transform: uppercase;
+    letter-spacing: 0.5pt;
+    margin-bottom: 2pt;
+}
+
+.timeline-title {
+    font-weight: 600;
+    margin-bottom: 2pt;
+}
+
+.timeline-description {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-light);
+}
+
+/* ==========================================================================
+   Sources & Citations
+   ========================================================================== */
+.source-list {
+    list-style: none;
+}
+
+.source-item {
+    padding: var(--spacing-sm) 0;
+    border-bottom: 1px solid var(--color-border);
+    font-size: var(--font-size-sm);
+}
+
+.source-item:last-child {
+    border-bottom: none;
+}
+
+.source-name {
+    font-weight: 500;
+}
+
+.source-url {
+    color: var(--color-primary);
+    word-break: break-all;
+}
+
+.source-date {
+    color: var(--color-text-light);
+    font-size: var(--font-size-xs);
+}
+
+/* ==========================================================================
+   Bullet Lists
+   ========================================================================== */
+.bullet-list {
+    list-style: none;
+    padding-left: 0;
+}
+
+.bullet-list li {
+    position: relative;
+    padding-left: 16pt;
+    margin-bottom: var(--spacing-sm);
+}
+
+.bullet-list li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 6pt;
+    width: 6pt;
+    height: 6pt;
+    background: var(--color-primary);
+}
+
+/* Numbered insights */
+.numbered-list {
+    list-style: none;
+    counter-reset: item;
+}
+
+.numbered-list li {
+    position: relative;
+    padding-left: 28pt;
+    margin-bottom: var(--spacing-md);
+    counter-increment: item;
+}
+
+.numbered-list li::before {
+    content: counter(item);
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 20pt;
+    height: 20pt;
+    background: var(--color-primary);
+    color: var(--color-white);
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    text-align: center;
+    line-height: 20pt;
+}
+
+/* ==========================================================================
+   Footer
+   ========================================================================== */
+.page-footer {
+    position: absolute;
+    bottom: 12mm;
+    left: 18mm;
+    right: 18mm;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: var(--font-size-xs);
+    color: var(--color-text-light);
+    padding-top: var(--spacing-md);
+    border-top: 1px solid var(--color-border);
+}
+
+.footer-brand {
+    font-weight: 600;
+    color: var(--color-navy);
+}
+
+.footer-confidential {
+    text-transform: uppercase;
+    letter-spacing: 1pt;
+}
+
+/* ==========================================================================
+   Utility Classes
+   ========================================================================== */
+.text-center { text-align: center; }
+.text-right { text-align: right; }
+.text-left { text-align: left; }
+
+.text-primary { color: var(--color-primary); }
+.text-navy { color: var(--color-navy); }
+.text-muted { color: var(--color-text-light); }
+
+.font-bold { font-weight: 700; }
+.font-semibold { font-weight: 600; }
+
+.mb-0 { margin-bottom: 0; }
+.mb-sm { margin-bottom: var(--spacing-sm); }
+.mb-md { margin-bottom: var(--spacing-md); }
+.mb-lg { margin-bottom: var(--spacing-lg); }
+.mb-xl { margin-bottom: var(--spacing-xl); }
+
+.mt-0 { margin-top: 0; }
+.mt-sm { margin-top: var(--spacing-sm); }
+.mt-md { margin-top: var(--spacing-md); }
+.mt-lg { margin-top: var(--spacing-lg); }
+
+.two-column {
+    display: table;
+    width: 100%;
+}
+
+.two-column > div {
+    display: table-cell;
+    width: 50%;
+    vertical-align: top;
+    padding-right: var(--spacing-lg);
+}
+
+.two-column > div:last-child {
+    padding-right: 0;
+    padding-left: var(--spacing-lg);
+}

@@ -1,0 +1,695 @@
+/**
+ * Learning Platform Styles
+ * Phase 2: Learning Tab UI
+ *
+ * Extends CRM LinkedIn styles for learning platform
+ * Reuses existing design system (cream/forest green/gold)
+ */
+
+/* ============================================
+   Learning Sub-Tabs Navigation
+   ============================================ */
+.sffc-crm-learning-sub-tabs {
+    display: flex;
+    gap: 8px;
+    padding: 16px 20px;
+    background: var(--linkedin-card);
+    border-bottom: 1px solid var(--linkedin-border);
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.sffc-crm-learning-sub-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    border: 1px solid var(--linkedin-border);
+    border-radius: 8px;
+    background: transparent;
+    color: var(--linkedin-text-muted);
+    font-size: 14px;
+    font-weight: 600;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.sffc-crm-learning-sub-tab svg {
+    width: 20px;
+    height: 20px;
+    stroke: currentColor;
+}
+
+.sffc-crm-learning-sub-tab:hover {
+    background: var(--linkedin-hover);
+    border-color: var(--senna-primary);
+    color: var(--senna-primary);
+}
+
+.sffc-crm-learning-sub-tab.active {
+    background: var(--senna-primary);
+    border-color: var(--senna-primary);
+    color: white;
+}
+
+.sffc-crm-learning-sub-tab.active svg {
+    stroke: white;
+}
+
+/* ============================================
+   Learning Content Areas
+   ============================================ */
+.sffc-crm-learning-content {
+    display: none;
+}
+
+.sffc-crm-learning-content.active {
+    display: block;
+}
+
+/* ============================================
+   Learning Composer (Reuse Feed Composer)
+   ============================================ */
+.sffc-crm-learning-composer {
+    margin: 20px;
+}
+
+.sffc-crm-learning-search {
+    width: 100%;
+}
+
+/* ============================================
+   Learning Filters
+   ============================================ */
+.sffc-crm-learning-filters {
+    display: flex;
+    gap: 12px;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--linkedin-border);
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.sffc-crm-filter-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    border: 1px solid var(--linkedin-border);
+    border-radius: 20px;
+    background: var(--linkedin-card);
+    color: var(--linkedin-text);
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.sffc-crm-filter-btn:hover {
+    background: var(--linkedin-hover);
+    border-color: var(--senna-primary);
+}
+
+.sffc-crm-filter-btn.active {
+    background: var(--senna-accent);
+    border-color: var(--senna-accent);
+    color: var(--senna-primary);
+}
+
+.sffc-crm-filter-btn svg {
+    width: 16px;
+    height: 16px;
+    stroke: currentColor;
+}
+
+/* ============================================
+   Course Grid
+   ============================================ */
+.sffc-crm-learning-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 20px;
+    padding: 20px;
+}
+
+/* ============================================
+   Course Card (Based on Feed Card Design)
+   ============================================ */
+.sffc-crm-course-card {
+    position: relative;
+    background: var(--linkedin-card);
+    border: 1px solid var(--linkedin-border);
+    border-radius: 8px;
+    padding: 20px;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.sffc-crm-course-card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    border-color: var(--senna-primary);
+    transform: translateY(-2px);
+}
+
+.sffc-crm-course-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+
+.sffc-crm-course-icon {
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--senna-accent);
+    border-radius: 8px;
+    flex-shrink: 0;
+}
+
+.sffc-crm-course-icon svg {
+    width: 24px;
+    height: 24px;
+    stroke: var(--senna-primary);
+}
+
+.sffc-crm-difficulty-badge {
+    padding: 4px 10px;
+    background: var(--linkedin-hover);
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.sffc-crm-difficulty-badge.beginner {
+    background: #D1FAE5;
+    color: #065F46;
+}
+
+.sffc-crm-difficulty-badge.intermediate {
+    background: #FEF3C7;
+    color: #92400E;
+}
+
+.sffc-crm-difficulty-badge.advanced {
+    background: #FEE2E2;
+    color: #991B1B;
+}
+
+.sffc-crm-difficulty-badge.expert {
+    background: #E0E7FF;
+    color: #3730A3;
+}
+
+.sffc-crm-course-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--linkedin-text);
+    margin: 12px 0 8px;
+    line-height: 1.3;
+}
+
+.sffc-crm-course-instructor {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: var(--linkedin-text-muted);
+    margin-bottom: 12px;
+}
+
+.sffc-crm-course-instructor svg {
+    width: 14px;
+    height: 14px;
+    stroke: currentColor;
+}
+
+.sffc-crm-course-meta {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 12px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--linkedin-border);
+}
+
+.sffc-crm-course-meta-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: var(--linkedin-text-muted);
+}
+
+.sffc-crm-course-meta-item svg {
+    width: 16px;
+    height: 16px;
+    stroke: currentColor;
+}
+
+.sffc-crm-course-description {
+    font-size: 14px;
+    color: var(--linkedin-text);
+    line-height: 1.5;
+    margin-bottom: 12px;
+}
+
+.sffc-crm-skills-taught {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 12px;
+}
+
+.sffc-crm-skill-tag {
+    padding: 4px 10px;
+    background: var(--senna-accent);
+    color: var(--senna-primary);
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.sffc-crm-course-progress {
+    margin-bottom: 12px;
+}
+
+.sffc-crm-progress-bar {
+    width: 100%;
+    height: 6px;
+    background: var(--linkedin-hover);
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 6px;
+}
+
+.sffc-crm-progress-fill {
+    height: 100%;
+    background: var(--senna-primary);
+    border-radius: 3px;
+    transition: width 0.3s ease;
+}
+
+.sffc-crm-progress-text {
+    font-size: 12px;
+    color: var(--linkedin-text-muted);
+}
+
+.sffc-crm-course-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.sffc-crm-course-actions .sffc-crm-btn {
+    flex: 1;
+}
+
+/* ============================================
+   Loading State
+   ============================================ */
+.sffc-crm-loading-spinner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 20px;
+}
+
+.sffc-crm-loading-spinner .spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid var(--linkedin-border);
+    border-top-color: var(--senna-primary);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.sffc-crm-loading-spinner p {
+    margin-top: 16px;
+    color: var(--linkedin-text-muted);
+    font-size: 14px;
+}
+
+/* ============================================
+   Load More Button
+   ============================================ */
+.sffc-crm-learning-load-more {
+    padding: 20px;
+    text-align: center;
+}
+
+/* ============================================
+   My Learning Dashboard
+   ============================================ */
+.sffc-crm-my-learning-dashboard {
+    padding: 20px;
+}
+
+.sffc-crm-learning-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 32px;
+}
+
+.sffc-crm-stat-card {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 20px;
+    background: var(--linkedin-card);
+    border: 1px solid var(--linkedin-border);
+    border-radius: 8px;
+}
+
+.sffc-crm-stat-icon {
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--senna-accent);
+    border-radius: 8px;
+    font-size: 24px;
+}
+
+.sffc-crm-stat-icon svg {
+    width: 24px;
+    height: 24px;
+    stroke: var(--senna-primary);
+}
+
+.sffc-crm-stat-content {
+    display: flex;
+    flex-direction: column;
+}
+
+.sffc-crm-stat-value {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--linkedin-text);
+    line-height: 1;
+}
+
+.sffc-crm-stat-label {
+    font-size: 13px;
+    color: var(--linkedin-text-muted);
+    margin-top: 4px;
+}
+
+.sffc-crm-learning-sections {
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+}
+
+.sffc-crm-learning-section h3 {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--linkedin-text);
+    margin-bottom: 16px;
+}
+
+.sffc-crm-progress-courses,
+.sffc-crm-completed-courses {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.sffc-crm-progress-course-card {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px;
+    background: var(--linkedin-card);
+    border: 1px solid var(--linkedin-border);
+    border-radius: 8px;
+}
+
+.sffc-crm-progress-course-info {
+    flex: 1;
+}
+
+.sffc-crm-progress-course-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--linkedin-text);
+    margin-bottom: 4px;
+}
+
+.sffc-crm-progress-course-meta {
+    font-size: 13px;
+    color: var(--linkedin-text-muted);
+}
+
+/* ============================================
+   Mock Interview Hub
+   ============================================ */
+.sffc-crm-mock-interview-hub {
+    padding: 20px;
+}
+
+.sffc-crm-interview-header {
+    margin-bottom: 32px;
+}
+
+.sffc-crm-interview-header h2 {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--linkedin-text);
+    margin-bottom: 8px;
+}
+
+.sffc-crm-interview-header p {
+    font-size: 15px;
+    color: var(--linkedin-text-muted);
+}
+
+.sffc-crm-interview-types {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 20px;
+    margin-bottom: 40px;
+}
+
+.sffc-crm-interview-card {
+    padding: 24px;
+    background: var(--linkedin-card);
+    border: 2px solid var(--linkedin-border);
+    border-radius: 12px;
+    text-align: center;
+    transition: all 0.2s ease;
+}
+
+.sffc-crm-interview-card:hover {
+    border-color: var(--senna-primary);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+}
+
+.sffc-crm-interview-icon {
+    width: 80px;
+    height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--senna-accent);
+    border-radius: 16px;
+    margin: 0 auto 16px;
+}
+
+.sffc-crm-interview-icon svg {
+    stroke: var(--senna-primary);
+}
+
+.sffc-crm-interview-card h3 {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--linkedin-text);
+    margin-bottom: 8px;
+}
+
+.sffc-crm-interview-card p {
+    font-size: 14px;
+    color: var(--linkedin-text-muted);
+    margin-bottom: 16px;
+}
+
+.sffc-crm-interview-history {
+    margin-top: 40px;
+}
+
+.sffc-crm-interview-history h3 {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--linkedin-text);
+    margin-bottom: 16px;
+}
+
+/* ============================================
+   Certificates Gallery
+   ============================================ */
+.sffc-crm-certificates-gallery {
+    padding: 20px;
+}
+
+.sffc-crm-certificates-header {
+    margin-bottom: 32px;
+}
+
+.sffc-crm-certificates-header h2 {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--linkedin-text);
+    margin-bottom: 8px;
+}
+
+.sffc-crm-certificates-header p {
+    font-size: 15px;
+    color: var(--linkedin-text-muted);
+}
+
+.sffc-crm-certs-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 24px;
+}
+
+.sffc-crm-cert-card {
+    padding: 24px;
+    background: var(--linkedin-card);
+    border: 2px solid var(--linkedin-border);
+    border-radius: 12px;
+    text-align: center;
+    transition: all 0.2s ease;
+}
+
+.sffc-crm-cert-card:hover {
+    border-color: var(--senna-primary);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+}
+
+.sffc-crm-cert-preview {
+    width: 100%;
+    aspect-ratio: 1.4;
+    background: linear-gradient(135deg, var(--senna-accent) 0%, var(--linkedin-card) 100%);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 16px;
+    border: 3px solid var(--senna-primary);
+}
+
+.sffc-crm-cert-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--linkedin-text);
+    margin-bottom: 8px;
+}
+
+.sffc-crm-cert-date {
+    font-size: 13px;
+    color: var(--linkedin-text-muted);
+    margin-bottom: 16px;
+}
+
+.sffc-crm-cert-actions {
+    display: flex;
+    gap: 8px;
+}
+
+/* ============================================
+   Empty States
+   ============================================ */
+.sffc-crm-empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--linkedin-text-muted);
+    font-size: 15px;
+}
+
+/* ============================================
+   Mobile Responsive
+   ============================================ */
+@media (max-width: 768px) {
+    .sffc-crm-learning-sub-tabs {
+        gap: 6px;
+        padding: 12px 16px;
+    }
+
+    .sffc-crm-learning-sub-tab {
+        padding: 8px 12px;
+        font-size: 13px;
+    }
+
+    .sffc-crm-learning-sub-tab svg {
+        width: 16px;
+        height: 16px;
+    }
+
+    .sffc-crm-learning-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+        padding: 16px;
+    }
+
+    .sffc-crm-learning-stats {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+    }
+
+    .sffc-crm-stat-card {
+        padding: 16px;
+    }
+
+    .sffc-crm-stat-value {
+        font-size: 24px;
+    }
+
+    .sffc-crm-interview-types {
+        grid-template-columns: 1fr;
+    }
+
+    .sffc-crm-certs-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ============================================
+   Sidebar Stats Context Switching
+   ============================================ */
+.sffc-crm-profile-stats[data-stats="default"].hidden,
+.sffc-crm-profile-stats[data-stats="learning"].hidden {
+    display: none;
+}
+
+@media (max-width: 640px) {
+    .sffc-crm-learning-filters {
+        gap: 8px;
+        padding: 12px 16px;
+    }
+
+    .sffc-crm-filter-btn {
+        padding: 6px 12px;
+        font-size: 12px;
+    }
+
+    .sffc-crm-course-meta {
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .sffc-crm-learning-stats {
+        grid-template-columns: 1fr;
+    }
+}

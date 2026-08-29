@@ -1,0 +1,1435 @@
+{
+    "lbo_modeling": {
+        "canonical": "LBO Modeling",
+        "variations": [
+            "leveraged buyout model",
+            "leveraged buyout modeling",
+            "LBO model",
+            "LBO analysis",
+            "buyout modeling",
+            "leveraged acquisition model",
+            "LBO"
+        ]
+    },
+    "due_diligence": {
+        "canonical": "Due Diligence",
+        "variations": [
+            "DD",
+            "diligence",
+            "due-diligence",
+            "financial due diligence",
+            "commercial due diligence",
+            "operational due diligence",
+            "FDD",
+            "CDD",
+            "ODD",
+            "tax due diligence",
+            "legal due diligence",
+            "technical due diligence",
+            "IT due diligence",
+            "HR due diligence",
+            "environmental due diligence"
+        ]
+    },
+    "financial_modeling": {
+        "canonical": "Financial Modeling",
+        "variations": [
+            "financial models",
+            "DCF model",
+            "valuation model",
+            "3-statement model",
+            "three statement model",
+            "integrated financial model",
+            "operating model",
+            "financial analysis",
+            "Excel modeling",
+            "forecasting model",
+            "budgeting model"
+        ]
+    },
+    "dcf": {
+        "canonical": "DCF",
+        "variations": [
+            "discounted cash flow",
+            "discounted cashflow",
+            "DCF analysis",
+            "DCF valuation",
+            "DCF model",
+            "intrinsic valuation",
+            "present value analysis"
+        ]
+    },
+    "valuation": {
+        "canonical": "Valuation",
+        "variations": [
+            "company valuation",
+            "business valuation",
+            "enterprise value",
+            "EV",
+            "equity value",
+            "valuation analysis",
+            "comparable company analysis",
+            "comps",
+            "precedent transactions",
+            "trading multiples",
+            "transaction comps",
+            "public comps",
+            "CCA",
+            "sum of the parts",
+            "SOTP"
+        ]
+    },
+    "mergers_acquisitions": {
+        "canonical": "M&A",
+        "variations": [
+            "mergers and acquisitions",
+            "mergers & acquisitions",
+            "M and A",
+            "merger",
+            "acquisition",
+            "buy-side",
+            "sell-side",
+            "strategic transaction",
+            "corporate development",
+            "inorganic growth",
+            "business combination"
+        ]
+    },
+    "private_equity": {
+        "canonical": "Private Equity",
+        "variations": [
+            "PE",
+            "PE fund",
+            "buyout",
+            "growth equity",
+            "middle market PE",
+            "sponsor",
+            "financial sponsor",
+            "LBO fund",
+            "buyout fund",
+            "private investment"
+        ]
+    },
+    "venture_capital": {
+        "canonical": "Venture Capital",
+        "variations": [
+            "VC",
+            "venture",
+            "early stage",
+            "seed funding",
+            "series A",
+            "series B",
+            "growth stage",
+            "late stage",
+            "startup investing",
+            "venture investing"
+        ]
+    },
+    "investment_banking": {
+        "canonical": "Investment Banking",
+        "variations": [
+            "IB",
+            "IBD",
+            "bulge bracket",
+            "boutique",
+            "coverage",
+            "origination",
+            "execution",
+            "corporate finance",
+            "advisory"
+        ]
+    },
+    "portfolio_management": {
+        "canonical": "Portfolio Management",
+        "variations": [
+            "portfolio company",
+            "portco",
+            "portfolio operations",
+            "value creation",
+            "operational improvement",
+            "EBITDA improvement",
+            "portfolio monitoring",
+            "portfolio oversight"
+        ]
+    },
+    "deal_execution": {
+        "canonical": "Deal Execution",
+        "variations": [
+            "transaction execution",
+            "deal process",
+            "deal management",
+            "live deal",
+            "deal team",
+            "transaction experience",
+            "deal closing",
+            "transaction management"
+        ]
+    },
+    "deal_sourcing": {
+        "canonical": "Deal Sourcing",
+        "variations": [
+            "origination",
+            "deal flow",
+            "pipeline development",
+            "proprietary deals",
+            "sourcing",
+            "business development",
+            "deal hunting",
+            "investment sourcing",
+            "opportunity identification"
+        ]
+    },
+    "investment_committee": {
+        "canonical": "Investment Committee",
+        "variations": [
+            "IC",
+            "IC materials",
+            "IC memo",
+            "investment memorandum",
+            "IC presentation",
+            "investment decision",
+            "investment approval"
+        ]
+    },
+    "fundraising": {
+        "canonical": "Fundraising",
+        "variations": [
+            "capital raising",
+            "LP relations",
+            "investor relations",
+            "fund formation",
+            "placement",
+            "fund marketing",
+            "capital commitments",
+            "fund closing"
+        ]
+    },
+    "excel": {
+        "canonical": "Excel",
+        "variations": [
+            "Microsoft Excel",
+            "spreadsheet",
+            "VBA",
+            "macros",
+            "pivot tables",
+            "advanced Excel",
+            "Excel modeling",
+            "spreadsheet modeling"
+        ]
+    },
+    "powerpoint": {
+        "canonical": "PowerPoint",
+        "variations": [
+            "PPT",
+            "presentation",
+            "pitch book",
+            "pitchbook",
+            "deck",
+            "slides",
+            "investor presentation",
+            "board deck",
+            "management presentation"
+        ]
+    },
+    "capital_markets": {
+        "canonical": "Capital Markets",
+        "variations": [
+            "ECM",
+            "DCM",
+            "equity capital markets",
+            "debt capital markets",
+            "IPO",
+            "public offering",
+            "bond issuance",
+            "equity offering",
+            "debt financing",
+            "capital structure"
+        ]
+    },
+    "restructuring": {
+        "canonical": "Restructuring",
+        "variations": [
+            "RX",
+            "distressed",
+            "turnaround",
+            "bankruptcy",
+            "chapter 11",
+            "special situations",
+            "distressed investing",
+            "workout",
+            "creditor advisory",
+            "debtor advisory"
+        ]
+    },
+    "credit_analysis": {
+        "canonical": "Credit Analysis",
+        "variations": [
+            "credit",
+            "leverage",
+            "debt analysis",
+            "credit metrics",
+            "credit underwriting",
+            "loan analysis",
+            "credit risk",
+            "credit assessment",
+            "lending analysis"
+        ]
+    },
+    "ebitda": {
+        "canonical": "EBITDA",
+        "variations": [
+            "adjusted EBITDA",
+            "pro forma EBITDA",
+            "run-rate EBITDA",
+            "normalized EBITDA",
+            "EBITDA margin",
+            "EBITDA growth"
+        ]
+    },
+    "irr": {
+        "canonical": "IRR",
+        "variations": [
+            "internal rate of return",
+            "gross IRR",
+            "net IRR",
+            "return analysis",
+            "returns",
+            "fund returns",
+            "realized IRR",
+            "unrealized IRR"
+        ]
+    },
+    "moic": {
+        "canonical": "MOIC",
+        "variations": [
+            "multiple of invested capital",
+            "money multiple",
+            "CoC",
+            "cash on cash",
+            "cash-on-cash",
+            "multiple on invested capital",
+            "investment multiple"
+        ]
+    },
+    "industry_research": {
+        "canonical": "Industry Research",
+        "variations": [
+            "sector research",
+            "market research",
+            "industry analysis",
+            "market analysis",
+            "competitive analysis",
+            "market sizing",
+            "industry dynamics",
+            "sector trends"
+        ]
+    },
+    "management_presentation": {
+        "canonical": "Management Presentation",
+        "variations": [
+            "management meeting",
+            "management call",
+            "expert call",
+            "expert network",
+            "diligence call",
+            "expert interview",
+            "management interview"
+        ]
+    },
+    "data_room": {
+        "canonical": "Data Room",
+        "variations": [
+            "VDR",
+            "virtual data room",
+            "information memorandum",
+            "IM",
+            "CIM",
+            "confidential information memorandum",
+            "deal room"
+        ]
+    },
+    "bloomberg": {
+        "canonical": "Bloomberg",
+        "variations": [
+            "Bloomberg Terminal",
+            "BBG",
+            "Bloomberg data",
+            "Bloomberg Professional"
+        ]
+    },
+    "capital_iq": {
+        "canonical": "Capital IQ",
+        "variations": [
+            "CapIQ",
+            "S&P Capital IQ",
+            "CIQ",
+            "Capital IQ Pro"
+        ]
+    },
+    "pitchbook_software": {
+        "canonical": "PitchBook",
+        "variations": [
+            "Pitchbook data",
+            "PB",
+            "PitchBook Data"
+        ]
+    },
+    "leadership": {
+        "canonical": "Leadership",
+        "variations": [
+            "led",
+            "managed",
+            "directed",
+            "headed",
+            "oversaw",
+            "supervised",
+            "team management",
+            "people management",
+            "team leadership"
+        ]
+    },
+    "client_relationship": {
+        "canonical": "Client Relationship",
+        "variations": [
+            "client management",
+            "client facing",
+            "stakeholder management",
+            "relationship management",
+            "account management",
+            "client service",
+            "client coverage"
+        ]
+    },
+    "board_experience": {
+        "canonical": "Board Experience",
+        "variations": [
+            "board member",
+            "board seat",
+            "board observer",
+            "board materials",
+            "board reporting",
+            "board presentation",
+            "board governance"
+        ]
+    },
+    "strategic_planning": {
+        "canonical": "Strategic Planning",
+        "variations": [
+            "strategy",
+            "strategic analysis",
+            "strategic initiative",
+            "growth strategy",
+            "business planning",
+            "strategic review",
+            "corporate strategy"
+        ]
+    },
+    "cross_border": {
+        "canonical": "Cross-Border",
+        "variations": [
+            "international",
+            "global",
+            "multi-geography",
+            "cross border transactions",
+            "international deals",
+            "multinational",
+            "global transactions"
+        ]
+    },
+    "carve_out": {
+        "canonical": "Carve-Out",
+        "variations": [
+            "carveout",
+            "spin-off",
+            "spinoff",
+            "divestiture",
+            "separation",
+            "corporate carve-out",
+            "business separation"
+        ]
+    },
+    "add_on_acquisition": {
+        "canonical": "Add-On Acquisition",
+        "variations": [
+            "bolt-on",
+            "tuck-in",
+            "add-on",
+            "platform build",
+            "buy and build",
+            "bolt-on acquisition",
+            "roll-up",
+            "consolidation"
+        ]
+    },
+    "lp": {
+        "canonical": "Limited Partner",
+        "variations": [
+            "LP",
+            "limited partners",
+            "institutional investor",
+            "pension fund",
+            "endowment",
+            "sovereign wealth fund",
+            "fund investor",
+            "anchor investor"
+        ]
+    },
+    "gp": {
+        "canonical": "General Partner",
+        "variations": [
+            "GP",
+            "fund manager",
+            "investment manager",
+            "fund sponsor"
+        ]
+    },
+    "working_capital": {
+        "canonical": "Working Capital",
+        "variations": [
+            "NWC",
+            "net working capital",
+            "cash conversion",
+            "receivables",
+            "payables",
+            "inventory management",
+            "working capital analysis",
+            "cash flow cycle"
+        ]
+    },
+    "synergies": {
+        "canonical": "Synergies",
+        "variations": [
+            "cost synergies",
+            "revenue synergies",
+            "synergy analysis",
+            "synergy capture",
+            "synergy realization",
+            "cost savings"
+        ]
+    },
+    "integration": {
+        "canonical": "Integration",
+        "variations": [
+            "post-merger integration",
+            "PMI",
+            "merger integration",
+            "integration planning",
+            "post-acquisition integration",
+            "day one planning"
+        ]
+    },
+    "exit_planning": {
+        "canonical": "Exit Planning",
+        "variations": [
+            "exit strategy",
+            "exit analysis",
+            "exit multiple",
+            "exit process",
+            "sale process",
+            "IPO preparation",
+            "liquidity event"
+        ]
+    },
+    "thesis_development": {
+        "canonical": "Thesis Development",
+        "variations": [
+            "investment thesis",
+            "deal thesis",
+            "value creation thesis",
+            "thesis",
+            "investment rationale",
+            "deal rationale"
+        ]
+    },
+    "modeling_sensitivity": {
+        "canonical": "Sensitivity Analysis",
+        "variations": [
+            "scenario analysis",
+            "sensitivity",
+            "downside case",
+            "upside case",
+            "base case",
+            "stress testing",
+            "what-if analysis"
+        ]
+    },
+    "accretion_dilution": {
+        "canonical": "Accretion/Dilution",
+        "variations": [
+            "accretion dilution",
+            "accretion analysis",
+            "dilution analysis",
+            "EPS impact",
+            "earnings impact",
+            "pro forma EPS"
+        ]
+    },
+    "leveraged_finance": {
+        "canonical": "Leveraged Finance",
+        "variations": [
+            "LevFin",
+            "leveraged lending",
+            "high yield",
+            "leveraged loans",
+            "sponsor finance",
+            "acquisition finance",
+            "debt financing"
+        ]
+    },
+    "project_finance": {
+        "canonical": "Project Finance",
+        "variations": [
+            "infrastructure finance",
+            "PF",
+            "project financing",
+            "non-recourse financing",
+            "limited recourse",
+            "infrastructure investing"
+        ]
+    },
+    "real_estate_pe": {
+        "canonical": "Real Estate Private Equity",
+        "variations": [
+            "REPE",
+            "real estate investing",
+            "property investment",
+            "real estate fund",
+            "RE private equity"
+        ]
+    },
+    "hedge_fund": {
+        "canonical": "Hedge Fund",
+        "variations": [
+            "HF",
+            "alternative investment",
+            "alt",
+            "long/short",
+            "event driven",
+            "macro",
+            "activist investing"
+        ]
+    },
+    "asset_management": {
+        "canonical": "Asset Management",
+        "variations": [
+            "AM",
+            "investment management",
+            "portfolio management",
+            "wealth management",
+            "fund management",
+            "AUM"
+        ]
+    },
+    "equity_research": {
+        "canonical": "Equity Research",
+        "variations": [
+            "ER",
+            "sell-side research",
+            "buy-side research",
+            "stock research",
+            "investment research",
+            "research analyst"
+        ]
+    },
+    "sales_trading": {
+        "canonical": "Sales & Trading",
+        "variations": [
+            "S&T",
+            "trading",
+            "sales",
+            "market making",
+            "execution",
+            "flow trading",
+            "institutional sales"
+        ]
+    },
+    "consulting": {
+        "canonical": "Management Consulting",
+        "variations": [
+            "consulting",
+            "strategy consulting",
+            "operations consulting",
+            "business consulting",
+            "advisory",
+            "professional services"
+        ]
+    },
+    "python": {
+        "canonical": "Python",
+        "variations": [
+            "Python programming",
+            "Python scripting",
+            "pandas",
+            "numpy",
+            "Python data analysis"
+        ]
+    },
+    "sql": {
+        "canonical": "SQL",
+        "variations": [
+            "Structured Query Language",
+            "database queries",
+            "SQL Server",
+            "MySQL",
+            "PostgreSQL",
+            "data querying"
+        ]
+    },
+    "tableau": {
+        "canonical": "Tableau",
+        "variations": [
+            "Tableau Desktop",
+            "data visualization",
+            "Tableau Server",
+            "dashboard creation"
+        ]
+    },
+    "power_bi": {
+        "canonical": "Power BI",
+        "variations": [
+            "Microsoft Power BI",
+            "PowerBI",
+            "BI dashboards",
+            "business intelligence"
+        ]
+    },
+    "factset": {
+        "canonical": "FactSet",
+        "variations": [
+            "FactSet Research",
+            "FactSet data"
+        ]
+    },
+    "refinitiv": {
+        "canonical": "Refinitiv",
+        "variations": [
+            "Refinitiv Eikon",
+            "Eikon",
+            "Thomson Reuters",
+            "Datastream"
+        ]
+    },
+    "preqin": {
+        "canonical": "Preqin",
+        "variations": [
+            "Preqin data",
+            "Preqin Pro",
+            "private markets data"
+        ]
+    },
+    "salesforce": {
+        "canonical": "Salesforce",
+        "variations": [
+            "SFDC",
+            "Salesforce CRM",
+            "CRM",
+            "deal tracking"
+        ]
+    },
+    "dealcloud": {
+        "canonical": "DealCloud",
+        "variations": [
+            "Deal Cloud",
+            "deal management software",
+            "pipeline CRM"
+        ]
+    },
+    "affinity": {
+        "canonical": "Affinity",
+        "variations": [
+            "Affinity CRM",
+            "relationship intelligence"
+        ]
+    },
+    "cap_table": {
+        "canonical": "Cap Table",
+        "variations": [
+            "capitalization table",
+            "ownership structure",
+            "equity structure",
+            "shareholding",
+            "cap table analysis"
+        ]
+    },
+    "waterfall": {
+        "canonical": "Waterfall",
+        "variations": [
+            "distribution waterfall",
+            "waterfall analysis",
+            "equity waterfall",
+            "promote structure",
+            "carried interest"
+        ]
+    },
+    "term_sheet": {
+        "canonical": "Term Sheet",
+        "variations": [
+            "terms sheet",
+            "indicative terms",
+            "LOI",
+            "letter of intent",
+            "non-binding offer"
+        ]
+    },
+    "definitive_agreement": {
+        "canonical": "Definitive Agreement",
+        "variations": [
+            "SPA",
+            "stock purchase agreement",
+            "APA",
+            "asset purchase agreement",
+            "purchase agreement",
+            "merger agreement"
+        ]
+    },
+    "representations_warranties": {
+        "canonical": "Representations & Warranties",
+        "variations": [
+            "reps and warranties",
+            "R&W",
+            "reps & warranties",
+            "rep and warranty"
+        ]
+    },
+    "earnout": {
+        "canonical": "Earnout",
+        "variations": [
+            "earn-out",
+            "contingent consideration",
+            "deferred consideration",
+            "performance payments"
+        ]
+    },
+    "escrow": {
+        "canonical": "Escrow",
+        "variations": [
+            "escrow account",
+            "holdback",
+            "indemnity escrow"
+        ]
+    },
+    "management_equity": {
+        "canonical": "Management Equity",
+        "variations": [
+            "MIP",
+            "management incentive plan",
+            "management rollover",
+            "equity participation",
+            "co-invest",
+            "co-investment"
+        ]
+    },
+    "quality_of_earnings": {
+        "canonical": "Quality of Earnings",
+        "variations": [
+            "QofE",
+            "Q of E",
+            "earnings quality",
+            "QoE report",
+            "QoE analysis"
+        ]
+    },
+    "revenue_analysis": {
+        "canonical": "Revenue Analysis",
+        "variations": [
+            "revenue build",
+            "revenue bridge",
+            "top-line analysis",
+            "sales analysis",
+            "revenue drivers"
+        ]
+    },
+    "cost_analysis": {
+        "canonical": "Cost Analysis",
+        "variations": [
+            "cost structure",
+            "cost bridge",
+            "expense analysis",
+            "margin analysis",
+            "cost drivers"
+        ]
+    },
+    "100_day_plan": {
+        "canonical": "100-Day Plan",
+        "variations": [
+            "first 100 days",
+            "onboarding plan",
+            "value creation plan",
+            "post-close plan",
+            "first hundred days"
+        ]
+    },
+    "add_back": {
+        "canonical": "Add-Back",
+        "variations": [
+            "addback",
+            "EBITDA adjustment",
+            "one-time adjustment",
+            "normalization adjustment",
+            "pro forma adjustment"
+        ]
+    },
+    "teaser": {
+        "canonical": "Teaser",
+        "variations": [
+            "deal teaser",
+            "one-pager",
+            "executive summary",
+            "opportunity overview"
+        ]
+    },
+    "blind_teaser": {
+        "canonical": "Blind Teaser",
+        "variations": [
+            "no-name teaser",
+            "anonymous teaser"
+        ]
+    },
+    "nda": {
+        "canonical": "NDA",
+        "variations": [
+            "non-disclosure agreement",
+            "confidentiality agreement",
+            "CA",
+            "mutual NDA"
+        ]
+    },
+    "exclusivity": {
+        "canonical": "Exclusivity",
+        "variations": [
+            "no-shop",
+            "exclusive period",
+            "no shop clause"
+        ]
+    },
+    "breakup_fee": {
+        "canonical": "Breakup Fee",
+        "variations": [
+            "break-up fee",
+            "termination fee",
+            "break fee"
+        ]
+    },
+    "debt_covenant": {
+        "canonical": "Debt Covenant",
+        "variations": [
+            "covenant",
+            "financial covenant",
+            "maintenance covenant",
+            "incurrence covenant",
+            "leverage covenant"
+        ]
+    },
+    "revolver": {
+        "canonical": "Revolver",
+        "variations": [
+            "revolving credit facility",
+            "RCF",
+            "revolving line",
+            "credit line",
+            "working capital facility"
+        ]
+    },
+    "term_loan": {
+        "canonical": "Term Loan",
+        "variations": [
+            "TL",
+            "Term Loan A",
+            "Term Loan B",
+            "TLA",
+            "TLB",
+            "senior secured"
+        ]
+    },
+    "mezzanine": {
+        "canonical": "Mezzanine",
+        "variations": [
+            "mezz",
+            "mezzanine debt",
+            "subordinated debt",
+            "junior debt",
+            "second lien"
+        ]
+    },
+    "unitranche": {
+        "canonical": "Unitranche",
+        "variations": [
+            "uni-tranche",
+            "single tranche",
+            "blended facility"
+        ]
+    },
+    "pik": {
+        "canonical": "PIK",
+        "variations": [
+            "payment in kind",
+            "PIK interest",
+            "PIK toggle",
+            "accruing interest"
+        ]
+    },
+    "dividend_recap": {
+        "canonical": "Dividend Recap",
+        "variations": [
+            "dividend recapitalization",
+            "recap",
+            "special dividend",
+            "capital return"
+        ]
+    },
+    "refinancing": {
+        "canonical": "Refinancing",
+        "variations": [
+            "refi",
+            "debt refinancing",
+            "repricing",
+            "liability management"
+        ]
+    },
+    "aml": {
+        "canonical": "AML",
+        "variations": [
+            "anti-money laundering",
+            "anti money laundering",
+            "AML/KYC"
+        ]
+    },
+    "kyc": {
+        "canonical": "KYC",
+        "variations": [
+            "know your customer",
+            "know your client",
+            "customer due diligence"
+        ]
+    },
+    "esg": {
+        "canonical": "ESG",
+        "variations": [
+            "environmental social governance",
+            "ESG investing",
+            "sustainable investing",
+            "responsible investing",
+            "impact investing"
+        ]
+    },
+    "dei": {
+        "canonical": "DEI",
+        "variations": [
+            "diversity equity inclusion",
+            "diversity and inclusion",
+            "D&I",
+            "inclusive practices"
+        ]
+    },
+    "operations": {
+        "canonical": "Operations",
+        "variations": [
+            "ops",
+            "operational",
+            "operating company",
+            "operating model",
+            "operations management"
+        ]
+    },
+    "kpi": {
+        "canonical": "KPI",
+        "variations": [
+            "key performance indicator",
+            "performance metrics",
+            "operating metrics",
+            "business metrics"
+        ]
+    },
+    "okr": {
+        "canonical": "OKR",
+        "variations": [
+            "objectives and key results",
+            "OKRs",
+            "goal setting framework"
+        ]
+    },
+    "procurement": {
+        "canonical": "Procurement",
+        "variations": [
+            "sourcing",
+            "vendor management",
+            "supplier management",
+            "purchasing",
+            "supply management"
+        ]
+    },
+    "supply_chain": {
+        "canonical": "Supply Chain",
+        "variations": [
+            "supply chain management",
+            "SCM",
+            "logistics",
+            "distribution",
+            "fulfillment"
+        ]
+    },
+    "manufacturing": {
+        "canonical": "Manufacturing",
+        "variations": [
+            "production",
+            "fabrication",
+            "assembly",
+            "plant operations",
+            "factory operations"
+        ]
+    },
+    "lean": {
+        "canonical": "Lean",
+        "variations": [
+            "lean manufacturing",
+            "lean operations",
+            "lean principles",
+            "continuous improvement",
+            "kaizen"
+        ]
+    },
+    "six_sigma_ops": {
+        "canonical": "Six Sigma",
+        "variations": [
+            "6 sigma",
+            "DMAIC",
+            "process improvement",
+            "quality management"
+        ]
+    },
+    "saas_metrics": {
+        "canonical": "SaaS Metrics",
+        "variations": [
+            "software metrics",
+            "subscription metrics",
+            "recurring revenue metrics"
+        ]
+    },
+    "arr": {
+        "canonical": "ARR",
+        "variations": [
+            "annual recurring revenue",
+            "annualized recurring revenue"
+        ]
+    },
+    "mrr": {
+        "canonical": "MRR",
+        "variations": [
+            "monthly recurring revenue"
+        ]
+    },
+    "nrr": {
+        "canonical": "NRR",
+        "variations": [
+            "net revenue retention",
+            "net dollar retention",
+            "NDR"
+        ]
+    },
+    "grr": {
+        "canonical": "GRR",
+        "variations": [
+            "gross revenue retention",
+            "gross dollar retention"
+        ]
+    },
+    "churn": {
+        "canonical": "Churn",
+        "variations": [
+            "churn rate",
+            "customer churn",
+            "revenue churn",
+            "logo churn",
+            "attrition"
+        ]
+    },
+    "cac": {
+        "canonical": "CAC",
+        "variations": [
+            "customer acquisition cost",
+            "acquisition cost"
+        ]
+    },
+    "ltv": {
+        "canonical": "LTV",
+        "variations": [
+            "lifetime value",
+            "customer lifetime value",
+            "CLV",
+            "CLTV"
+        ]
+    },
+    "rule_of_40": {
+        "canonical": "Rule of 40",
+        "variations": [
+            "rule of forty",
+            "40 rule",
+            "growth + margin"
+        ]
+    },
+    "magic_number": {
+        "canonical": "Magic Number",
+        "variations": [
+            "sales efficiency",
+            "CAC payback"
+        ]
+    },
+    "gross_margin": {
+        "canonical": "Gross Margin",
+        "variations": [
+            "GP margin",
+            "gross profit margin",
+            "GM"
+        ]
+    },
+    "contribution_margin": {
+        "canonical": "Contribution Margin",
+        "variations": [
+            "CM",
+            "unit economics",
+            "variable margin"
+        ]
+    },
+    "tam_sam_som": {
+        "canonical": "TAM/SAM/SOM",
+        "variations": [
+            "total addressable market",
+            "serviceable addressable market",
+            "serviceable obtainable market",
+            "market sizing"
+        ]
+    },
+    "product_market_fit": {
+        "canonical": "Product-Market Fit",
+        "variations": [
+            "PMF",
+            "market fit",
+            "product fit"
+        ]
+    },
+    "go_to_market": {
+        "canonical": "Go-to-Market",
+        "variations": [
+            "GTM",
+            "GTM strategy",
+            "market entry",
+            "commercialization"
+        ]
+    },
+    "land_expand": {
+        "canonical": "Land & Expand",
+        "variations": [
+            "land and expand",
+            "net expansion",
+            "account expansion",
+            "upsell cross-sell"
+        ]
+    },
+    "freemium": {
+        "canonical": "Freemium",
+        "variations": [
+            "free trial",
+            "try before buy",
+            "product-led growth",
+            "PLG"
+        ]
+    },
+    "enterprise_sales": {
+        "canonical": "Enterprise Sales",
+        "variations": [
+            "enterprise",
+            "B2B sales",
+            "field sales",
+            "direct sales",
+            "named accounts"
+        ]
+    },
+    "smb": {
+        "canonical": "SMB",
+        "variations": [
+            "small and medium business",
+            "small business",
+            "mid-market",
+            "commercial segment"
+        ]
+    },
+    "inside_sales": {
+        "canonical": "Inside Sales",
+        "variations": [
+            "inbound sales",
+            "SDR",
+            "BDR",
+            "sales development",
+            "demand generation"
+        ]
+    },
+    "channel_sales": {
+        "canonical": "Channel Sales",
+        "variations": [
+            "partner sales",
+            "indirect sales",
+            "reseller",
+            "VAR",
+            "distributor"
+        ]
+    },
+    "bookings": {
+        "canonical": "Bookings",
+        "variations": [
+            "new bookings",
+            "TCV",
+            "total contract value",
+            "ACV",
+            "annual contract value"
+        ]
+    },
+    "pipeline": {
+        "canonical": "Pipeline",
+        "variations": [
+            "sales pipeline",
+            "opportunity pipeline",
+            "deal pipeline",
+            "funnel"
+        ]
+    },
+    "quota": {
+        "canonical": "Quota",
+        "variations": [
+            "sales quota",
+            "target",
+            "quota attainment",
+            "hitting numbers"
+        ]
+    },
+    "forecast": {
+        "canonical": "Forecast",
+        "variations": [
+            "sales forecast",
+            "revenue forecast",
+            "projection",
+            "guidance"
+        ]
+    },
+    "customer_success": {
+        "canonical": "Customer Success",
+        "variations": [
+            "CS",
+            "CSM",
+            "customer success management",
+            "account management",
+            "client success"
+        ]
+    },
+    "implementation": {
+        "canonical": "Implementation",
+        "variations": [
+            "onboarding",
+            "deployment",
+            "rollout",
+            "go-live",
+            "professional services"
+        ]
+    },
+    "technical_skills": {
+        "canonical": "Technical Skills",
+        "variations": [
+            "technical proficiency",
+            "technical abilities",
+            "hard skills",
+            "technical competencies"
+        ]
+    },
+    "soft_skills": {
+        "canonical": "Soft Skills",
+        "variations": [
+            "interpersonal skills",
+            "communication skills",
+            "people skills",
+            "emotional intelligence"
+        ]
+    },
+    "presentation_skills": {
+        "canonical": "Presentation Skills",
+        "variations": [
+            "public speaking",
+            "presenting",
+            "client presentations",
+            "executive presentations"
+        ]
+    },
+    "negotiation": {
+        "canonical": "Negotiation",
+        "variations": [
+            "negotiating",
+            "deal negotiation",
+            "contract negotiation",
+            "pricing negotiation"
+        ]
+    },
+    "problem_solving": {
+        "canonical": "Problem Solving",
+        "variations": [
+            "analytical thinking",
+            "critical thinking",
+            "solution oriented",
+            "troubleshooting"
+        ]
+    },
+    "project_management": {
+        "canonical": "Project Management",
+        "variations": [
+            "PM",
+            "program management",
+            "project delivery",
+            "project coordination"
+        ]
+    },
+    "time_management": {
+        "canonical": "Time Management",
+        "variations": [
+            "prioritization",
+            "deadline management",
+            "multi-tasking",
+            "workload management"
+        ]
+    },
+    "attention_to_detail": {
+        "canonical": "Attention to Detail",
+        "variations": [
+            "detail oriented",
+            "detail-oriented",
+            "meticulous",
+            "thorough",
+            "accuracy"
+        ]
+    },
+    "teamwork": {
+        "canonical": "Teamwork",
+        "variations": [
+            "collaboration",
+            "team player",
+            "cross-functional",
+            "working in teams"
+        ]
+    },
+    "mentoring": {
+        "canonical": "Mentoring",
+        "variations": [
+            "coaching",
+            "training",
+            "developing talent",
+            "junior development",
+            "staff development"
+        ]
+    },
+    "entrepreneurial": {
+        "canonical": "Entrepreneurial",
+        "variations": [
+            "entrepreneurship",
+            "startup experience",
+            "founder",
+            "self-starter",
+            "initiative"
+        ]
+    }
+}

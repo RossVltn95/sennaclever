@@ -1,0 +1,365 @@
+/**
+ * Premium Interface Fixes
+ * Corrects font sizes, layouts, and rendering issues
+ */
+
+/* ========================================
+   GLOBAL FONT SIZE FIXES
+   ======================================== */
+
+/* Reset any overly large font sizes */
+body,
+html {
+    font-size: 16px !important; /* Base font size */
+}
+
+/* Prevent inheritance of large fonts */
+/* .sffc-shortlist-floating removed */
+.sffc-comparison-modal *,
+.sffc-strategy-dashboard * {
+    font-size: inherit;
+}
+
+/* ========================================
+   SHORTLIST FLOATING PANEL FIXES - REMOVED
+   ======================================== */
+
+/* Fix export controls sizing */
+.sffc-export-controls {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.sffc-export-btn {
+    flex: 1;
+    padding: 10px 14px !important;
+    font-size: 10px !important;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+/* Fix analyze button */
+.sffc-analyze-btn {
+    padding: 14px 20px !important;
+    font-size: 11px !important;
+}
+
+/* Shortlist items styles removed */
+
+/* Fix priority badge */
+.sffc-priority-badge {
+    font-size: 9px !important;
+    padding: 3px 8px !important;
+}
+
+/* ========================================
+   JOB COMPARISON MODAL FIXES
+   ======================================== */
+
+/* Add step-based navigation */
+.sffc-comparison-modal .comparison-container {
+    position: relative;
+}
+
+/* Step indicator */
+.comparison-steps {
+    display: flex;
+    justify-content: center;
+    padding: 20px 0;
+    border-bottom: 1px solid rgba(212, 175, 55, 0.1);
+    background: rgba(255, 255, 255, 0.5);
+}
+
+.comparison-step {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 20px;
+    font-family: 'Inter', sans-serif;
+    font-size: 12px !important;
+    color: #999;
+    position: relative;
+}
+
+.comparison-step.active {
+    color: #1A3028;
+    font-weight: 600;
+}
+
+.comparison-step::after {
+    content: '→';
+    position: absolute;
+    right: -16px;
+    color: #D4AF37;
+}
+
+.comparison-step:last-child::after {
+    display: none;
+}
+
+/* Fix comparison header size */
+.comparison-header h2 {
+    font-size: 32px !important;
+}
+
+.comparison-subtitle {
+    font-size: 11px !important;
+}
+
+/* Step-based content display */
+.comparison-selector {
+    min-height: 400px;
+}
+
+.comparison-content.step-hidden {
+    display: none;
+}
+
+/* Next/Previous buttons */
+.comparison-navigation {
+    position: absolute;
+    bottom: 40px;
+    right: 40px;
+    display: flex;
+    gap: 16px;
+}
+
+.btn-comparison-next,
+.btn-comparison-prev {
+    padding: 14px 32px;
+    background: #1A3028;
+    color: #F8F4ED;
+    border: none;
+    border-radius: 24px;
+    font-size: 12px !important;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-comparison-next:hover,
+.btn-comparison-prev:hover {
+    background: #D4AF37;
+    color: #1A3028;
+    transform: translateY(-2px);
+}
+
+/* ========================================
+   STRATEGY DASHBOARD FIXES
+   ======================================== */
+
+/* Fix oversized strategy header */
+.strategy-header {
+    padding: 24px 60px !important;
+    max-height: 160px !important;
+}
+
+.strategy-logo {
+    font-size: 32px !important;
+    letter-spacing: 6px !important;
+}
+
+.strategy-tagline {
+    font-size: 10px !important;
+}
+
+/* Fix navigation sizing */
+.strategy-nav {
+    padding: 3px !important;
+}
+
+.nav-item {
+    padding: 12px 24px !important;
+    font-size: 11px !important;
+}
+
+.nav-icon {
+    font-size: 14px !important;
+}
+
+/* Fix feature headline */
+.feature-headline {
+    font-size: 42px !important;
+}
+
+.feature-lead {
+    font-size: 16px !important;
+}
+
+/* Fix metric cards */
+.metric-value {
+    font-size: 36px !important;
+}
+
+.metric-label {
+    font-size: 10px !important;
+}
+
+/* Fix strategy cards */
+.card-title {
+    font-size: 20px !important;
+}
+
+.card-description {
+    font-size: 13px !important;
+}
+
+.card-action {
+    padding: 14px !important;
+    font-size: 10px !important;
+}
+
+/* Fix pipeline title */
+.pipeline-title {
+    font-size: 28px !important;
+}
+
+/* Fix timeline title */
+.timeline-title {
+    font-size: 36px !important;
+}
+
+.timeline-subtitle {
+    font-size: 11px !important;
+}
+
+/* ========================================
+   CHAT INTERFACE HTML RENDERING FIX
+   ======================================== */
+
+/* Fix HTML rendering in MENA Careers Ultimate chat */
+.ultimate-message-content h5,
+.ultimate-message-content h6,
+.sffc-message-text h5,
+.sffc-message-text h6 {
+    font-size: 16px !important;
+    font-weight: 600;
+    margin: 16px 0 8px 0 !important;
+    color: #1A3028;
+}
+
+.ultimate-message-content .insight-box,
+.sffc-message-text .insight-box {
+    background: linear-gradient(135deg, 
+        rgba(212, 175, 55, 0.05) 0%, 
+        rgba(212, 175, 55, 0.02) 100%);
+    border-left: 3px solid #D4AF37;
+    padding: 16px;
+    margin: 12px 0;
+    border-radius: 8px;
+}
+
+.ultimate-message-content .insight-box h6,
+.sffc-message-text .insight-box h6 {
+    font-size: 14px !important;
+    color: #D4AF37;
+    margin-bottom: 8px !important;
+}
+
+.ultimate-message-content .highlight,
+.sffc-message-text .highlight {
+    color: #D4AF37;
+    font-weight: 600;
+    background: rgba(212, 175, 55, 0.1);
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+/* Ensure proper HTML rendering */
+.ultimate-message-content {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+/* Fix message formatting */
+.ultimate-message-content ul,
+.sffc-message-text ul {
+    margin: 12px 0;
+    padding-left: 24px;
+}
+
+.ultimate-message-content li,
+.sffc-message-text li {
+    margin-bottom: 8px;
+    line-height: 1.6;
+}
+
+/* ========================================
+   EXPORT BUTTON LABELS
+   ======================================== */
+
+/* Ensure export buttons show correct text */
+.sffc-export-btn[onclick*="docx"]::after {
+    content: ' (.docx)';
+    font-size: 9px;
+    opacity: 0.7;
+}
+
+.sffc-export-btn[onclick*="xlsx"]::after {
+    content: ' (.xlsx)';
+    font-size: 9px;
+    opacity: 0.7;
+}
+
+/* ========================================
+   MOBILE RESPONSIVE FIXES
+   ======================================== */
+
+@media (max-width: 768px) {
+    .strategy-header {
+        padding: 16px 24px !important;
+        max-height: 120px !important;
+    }
+    
+    .strategy-logo {
+        font-size: 24px !important;
+        letter-spacing: 4px !important;
+    }
+    
+    .feature-headline {
+        font-size: 28px !important;
+    }
+    
+    .comparison-header h2 {
+        font-size: 24px !important;
+    }
+    
+    /* Shortlist rules removed */
+}
+
+/* ========================================
+   Z-INDEX HIERARCHY FIX
+   ======================================== */
+
+/* Shortlist rules removed */
+
+.sffc-comparison-modal {
+    z-index: 99999;
+}
+
+.sffc-strategy-dashboard {
+    z-index: 99998;
+}
+
+.ultimate-chat-overlay {
+    z-index: 99997;
+}
+
+/* ========================================
+   PERFORMANCE OPTIMIZATIONS
+   ======================================== */
+
+/* Reduce animation complexity for better performance */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}

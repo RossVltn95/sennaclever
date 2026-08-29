@@ -1,0 +1,460 @@
+/**
+ * Match Donut Chart CSS
+ * Mini pie/donut chart for job card match scores
+ */
+
+/* =====================================================
+   CSS Variables for Match Colors
+   ===================================================== */
+:root {
+    --match-skills: #3B82F6;      /* Blue - Technical Skills (40%) */
+    --match-experience: #10B981;   /* Green - Experience (30%) */
+    --match-industry: #8B5CF6;     /* Purple - Industry/Domain (20%) */
+    --match-location: #F59E0B;     /* Amber - Location (10%) */
+    --match-bg: #E5E7EB;           /* Grey background */
+    --match-locked: #9CA3AF;       /* Grey for locked state */
+}
+
+/* =====================================================
+   Donut Chart Container
+   ===================================================== */
+.sffc-match-donut {
+    position: relative;
+    width: 52px;
+    height: 52px;
+    flex-shrink: 0;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.sffc-match-donut:hover {
+    transform: scale(1.08);
+}
+
+/* SVG Container */
+.sffc-match-donut svg {
+    width: 100%;
+    height: 100%;
+    transform: rotate(-90deg);
+}
+
+/* Background circle */
+.sffc-match-donut .donut-bg {
+    fill: none;
+    stroke: var(--match-bg);
+    stroke-width: 5;
+}
+
+/* Segment styles */
+.sffc-match-donut .donut-segment {
+    fill: none;
+    stroke-width: 5;
+    stroke-linecap: round;
+    transition: stroke-dasharray 0.5s ease, opacity 0.3s ease;
+}
+
+.sffc-match-donut .segment-skills {
+    stroke: var(--match-skills);
+}
+
+.sffc-match-donut .segment-experience {
+    stroke: var(--match-experience);
+}
+
+.sffc-match-donut .segment-industry {
+    stroke: var(--match-industry);
+}
+
+.sffc-match-donut .segment-location {
+    stroke: var(--match-location);
+}
+
+/* Center score display */
+.sffc-match-donut .donut-center {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    pointer-events: none;
+}
+
+.sffc-match-donut .donut-score {
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: #1a3028;
+    line-height: 1;
+}
+
+.sffc-match-donut .donut-score-small {
+    font-size: 0.625rem;
+    font-weight: 500;
+    color: #666;
+}
+
+/* =====================================================
+   User State Variations
+   ===================================================== */
+
+/* State: Logged out, no profile - Show lock */
+.sffc-match-donut.state-locked .donut-segment {
+    opacity: 0.6;
+    filter: blur(2px);
+}
+
+.sffc-match-donut.state-locked .segment-skills {
+    stroke: var(--match-skills);
+    stroke-dasharray: 30 83 !important;
+}
+
+.sffc-match-donut.state-locked .segment-experience {
+    stroke: var(--match-experience);
+    stroke-dasharray: 20 93 !important;
+}
+
+.sffc-match-donut.state-locked .segment-industry {
+    stroke: var(--match-industry);
+    stroke-dasharray: 15 98 !important;
+}
+
+.sffc-match-donut.state-locked .segment-location {
+    stroke: var(--match-location);
+    stroke-dasharray: 8 105 !important;
+}
+
+.sffc-match-donut.state-locked .donut-bg {
+    stroke: #F3F4F6;
+}
+
+.sffc-match-donut.state-locked .donut-lock {
+    display: flex;
+}
+
+.sffc-match-donut.state-locked .donut-score {
+    display: none;
+}
+
+.sffc-match-donut .donut-lock {
+    display: none;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 24px;
+    height: 24px;
+    background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%);
+    border-radius: 50%;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 6px rgba(59, 130, 246, 0.4);
+}
+
+.sffc-match-donut .donut-lock svg {
+    width: 12px;
+    height: 12px;
+    color: white;
+    transform: rotate(0deg);
+}
+
+/* Lock tooltip hint */
+.sffc-match-donut.state-locked::after {
+    content: 'Sign in to see match';
+    position: absolute;
+    bottom: -20px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 0.5625rem;
+    color: #6B7280;
+    white-space: nowrap;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    pointer-events: none;
+}
+
+.sffc-match-donut.state-locked:hover::after {
+    opacity: 1;
+}
+
+/* State: Has localStorage profile but logged out - Show faded score with badge */
+.sffc-match-donut.state-preview .donut-segment {
+    opacity: 0.5;
+}
+
+.sffc-match-donut.state-preview .donut-badge {
+    display: flex;
+}
+
+.sffc-match-donut .donut-badge {
+    display: none;
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    width: 16px;
+    height: 16px;
+    background: var(--match-locked);
+    border-radius: 50%;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+
+.sffc-match-donut .donut-badge svg {
+    width: 10px;
+    height: 10px;
+    color: white;
+    transform: none;
+}
+
+/* State: Logged in, incomplete profile - Pulsing empty */
+.sffc-match-donut.state-incomplete {
+    animation: pulse-ring 2s infinite;
+}
+
+.sffc-match-donut.state-incomplete .donut-segment {
+    stroke: var(--match-bg);
+    stroke-dasharray: 0 100;
+}
+
+.sffc-match-donut.state-incomplete .donut-center {
+    display: none;
+}
+
+.sffc-match-donut.state-incomplete .donut-cta {
+    display: block;
+}
+
+.sffc-match-donut .donut-cta {
+    display: none;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 0.5rem;
+    font-weight: 600;
+    color: #666;
+    text-align: center;
+    line-height: 1.2;
+    white-space: nowrap;
+}
+
+@keyframes pulse-ring {
+    0% {
+        box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4);
+    }
+    70% {
+        box-shadow: 0 0 0 6px rgba(59, 130, 246, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
+    }
+}
+
+/* State: Below threshold - Muted colors */
+.sffc-match-donut.state-below-threshold .donut-segment {
+    opacity: 0.4;
+    filter: saturate(0.5);
+}
+
+.sffc-match-donut.state-below-threshold .donut-score {
+    color: #9CA3AF;
+}
+
+/* =====================================================
+   Hover Tooltip
+   ===================================================== */
+.sffc-match-tooltip {
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1a3028;
+    color: white;
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    font-size: 0.75rem;
+    white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s ease, visibility 0.2s ease;
+    z-index: 100;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    pointer-events: none;
+}
+
+.sffc-match-tooltip::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 6px solid transparent;
+    border-top-color: #1a3028;
+}
+
+.sffc-match-donut:hover .sffc-match-tooltip {
+    opacity: 1;
+    visibility: visible;
+}
+
+.sffc-match-tooltip .tooltip-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.25rem 0;
+}
+
+.sffc-match-tooltip .tooltip-row:not(:last-child) {
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.sffc-match-tooltip .tooltip-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.sffc-match-tooltip .tooltip-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+}
+
+.sffc-match-tooltip .tooltip-dot.skills { background: var(--match-skills); }
+.sffc-match-tooltip .tooltip-dot.experience { background: var(--match-experience); }
+.sffc-match-tooltip .tooltip-dot.industry { background: var(--match-industry); }
+.sffc-match-tooltip .tooltip-dot.location { background: var(--match-location); }
+
+.sffc-match-tooltip .tooltip-value {
+    font-weight: 600;
+}
+
+.sffc-match-tooltip .tooltip-bar {
+    width: 40px;
+    height: 4px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.sffc-match-tooltip .tooltip-bar-fill {
+    height: 100%;
+    border-radius: 2px;
+    transition: width 0.3s ease;
+}
+
+/* =====================================================
+   Job Card Integration
+   ===================================================== */
+.sffc-jb-match-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+    margin-top: 0.5rem;
+}
+
+.sffc-jb-match-label {
+    font-size: 0.625rem;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 500;
+}
+
+/* Match strength badges */
+.sffc-match-strength {
+    font-size: 0.625rem;
+    font-weight: 600;
+    padding: 0.125rem 0.375rem;
+    border-radius: 4px;
+    margin-top: 0.25rem;
+}
+
+.sffc-match-strength.excellent {
+    background: rgba(16, 185, 129, 0.1);
+    color: #059669;
+}
+
+.sffc-match-strength.strong {
+    background: rgba(59, 130, 246, 0.1);
+    color: #2563EB;
+}
+
+.sffc-match-strength.good {
+    background: rgba(245, 158, 11, 0.1);
+    color: #D97706;
+}
+
+.sffc-match-strength.fair {
+    background: rgba(156, 163, 175, 0.1);
+    color: #6B7280;
+}
+
+/* =====================================================
+   Mobile Responsive
+   ===================================================== */
+@media (max-width: 768px) {
+    .sffc-match-donut {
+        width: 44px;
+        height: 44px;
+    }
+
+    .sffc-match-donut .donut-score {
+        font-size: 0.75rem;
+    }
+
+    .sffc-match-tooltip {
+        display: none;
+    }
+
+    /* On mobile, tap to show tooltip as bottom sheet - handled in JS */
+}
+
+/* =====================================================
+   Animation for loading state
+   ===================================================== */
+.sffc-match-donut.loading .donut-segment {
+    animation: donut-spin 1.5s linear infinite;
+}
+
+@keyframes donut-spin {
+    0% {
+        stroke-dasharray: 0 100;
+        stroke-dashoffset: 0;
+    }
+    50% {
+        stroke-dasharray: 50 50;
+        stroke-dashoffset: -25;
+    }
+    100% {
+        stroke-dasharray: 0 100;
+        stroke-dashoffset: -100;
+    }
+}
+
+/* =====================================================
+   Accessibility
+   ===================================================== */
+.sffc-match-donut:focus {
+    outline: 2px solid var(--match-skills);
+    outline-offset: 2px;
+    border-radius: 50%;
+}
+
+.sffc-match-donut[aria-label] {
+    cursor: pointer;
+}
+
+/* Screen reader only text */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}

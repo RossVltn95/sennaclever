@@ -1,0 +1,663 @@
+/* Professional Profile Settings - Modern Design System */
+
+@import url("https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Inter:wght@400;500;600&display=swap");
+
+:root {
+  /* Neutrals & Surface */
+  --jp-porcelain: #f5f3ee;
+  --jp-porcelain-deep: #ebe6dc;
+  --jp-shell: #f9f7f2;
+  --jp-white: #ffffff;
+
+  /* Core Brand */
+  --jp-navy: #0f2834;
+  --jp-navy-soft: #173a49;
+  --jp-charcoal: #181a1f;
+  --jp-steel: #666b73;
+
+  /* Accents */
+  --jp-gold: #c9a35a;
+  --jp-gold-soft: #d9bc7a;
+  --jp-sand: #b9aa92;
+
+  /* Borders & Dividers */
+  --jp-border-subtle: #e1dbcf;
+  --jp-border-strong: #cbc3b2;
+
+  /* Shadows (very restrained) */
+  --shadow-soft: 0 1px 2px rgba(0, 0, 0, 0.06);
+  --shadow-card: 0 10px 30px rgba(0, 0, 0, 0.07);
+
+  /* Radii */
+  --radius-card: 10px;
+  --radius-subtle: 6px;
+  --radius-pill: 999px;
+
+  /* Spacing scale */
+  --space-2xs: 0.25rem;
+  --space-xs: 0.4rem;
+  --space-sm: 0.65rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2rem;
+  --space-2xl: 2.75rem;
+  --space-3xl: 3.5rem;
+
+  /* Transitions */
+  --transition-fast: 0.18s ease-out;
+  --transition-med: 0.24s ease-out;
+}
+
+/* Layout */
+.jp-settings-container {
+    min-height: 100vh;
+    background: radial-gradient(
+        circle at top left,
+        #f8f5ef 0,
+        var(--jp-porcelain) 46%,
+        #efe9dd 100%
+    );
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    color: var(--jp-charcoal);
+    -webkit-font-smoothing: antialiased;
+}
+
+.jp-container {
+    width: min(1160px, 92vw);
+    margin: 0 auto;
+}
+
+/* Header */
+.jp-settings-header {
+    background: var(--jp-white);
+    border-bottom: 2px solid var(--jp-navy);
+    padding: 2rem 0;
+    box-shadow: var(--shadow-sm);
+}
+
+.jp-settings-title {
+    font-family: var(--font-serif);
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--jp-gold);
+    margin-bottom: 0.5rem;
+    line-height: 1.2;
+}
+
+.jp-settings-subtitle {
+    font-size: 1.125rem;
+    color: var(--jp-navy);
+    margin: 0;
+}
+
+/* Content Layout */
+.jp-settings-content {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: 3rem;
+    padding: 3rem 0;
+    min-height: calc(100vh - 200px);
+}
+
+/* Sidebar */
+.jp-settings-sidebar {
+    background: var(--jp-white);
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: var(--shadow-base);
+    height: fit-content;
+    border: 1px solid var(--jp-border-subtle);
+}
+
+.jp-settings-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.jp-settings-nav-item {
+    display: flex;
+    align-items: center;
+    padding: 0.875rem 1rem;
+    border-radius: 8px;
+    text-decoration: none;
+    color: var(--jp-steel);
+    font-weight: 500;
+    transition: all 0.2s ease;
+    border: 1px solid transparent;
+}
+
+.jp-settings-nav-item:hover {
+    background: var(--jp-cream-light);
+    color: var(--jp-navy);
+    border-color: var(--jp-navy);
+}
+
+.jp-settings-nav-item.active {
+    background: var(--jp-navy);
+    color: var(--jp-white);
+    box-shadow: var(--shadow-sm);
+}
+
+.jp-nav-icon {
+    margin-right: 0.75rem;
+    font-size: 1.1rem;
+}
+
+/* Main Content */
+.jp-settings-main {
+    background: var(--jp-white);
+    border-radius: 12px;
+    box-shadow: var(--shadow-base);
+    border: 1px solid var(--jp-border-subtle);
+}
+
+.jp-settings-section {
+    display: none;
+    padding: 2.5rem;
+}
+
+.jp-settings-section.active {
+    display: block;
+}
+
+.jp-section-header {
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid var(--jp-porcelain);
+}
+
+.jp-section-header h2 {
+    font-family: var(--font-serif);
+    font-size: 1.875rem;
+    font-weight: 700;
+    color: var(--jp-gold);
+    margin-bottom: 0.5rem;
+}
+
+.jp-section-header p {
+    color: var(--jp-navy);
+    font-size: 1.1rem;
+}
+
+/* Forms */
+.jp-form-group {
+    margin-bottom: 1.5rem;
+}
+
+.jp-form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.jp-form-label {
+    display: block;
+    font-weight: 600;
+    color: var(--jp-charcoal);
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+    letter-spacing: 0.02em;
+}
+
+.jp-form-input,
+.jp-form-select,
+.jp-form-textarea {
+    width: 100%;
+    padding: 0.875rem 1rem;
+    border: 2px solid var(--jp-border-subtle);
+    border-radius: 8px;
+    font-size: 1rem;
+    font-family: var(--font-sans);
+    background: var(--jp-white);
+    transition: all 0.2s ease;
+}
+
+.jp-form-input:focus,
+.jp-form-select:focus,
+.jp-form-textarea:focus {
+    outline: none;
+    border-color: var(--jp-navy);
+    box-shadow: 0 0 0 3px rgba(139, 69, 19, 0.1);
+}
+
+.jp-form-textarea {
+    resize: vertical;
+    min-height: 100px;
+}
+
+.jp-form-section {
+    background: var(--jp-cream-light);
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin: 1.5rem 0;
+    border: 1px solid var(--jp-border-subtle);
+}
+
+.jp-form-section h3 {
+    font-family: var(--font-serif);
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--jp-gold);
+    margin-bottom: 1rem;
+}
+
+/* Checkboxes */
+.jp-checkbox-label {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    font-weight: 500;
+    color: var(--jp-charcoal);
+}
+
+.jp-checkbox-label input[type="checkbox"] {
+    display: none;
+}
+
+.jp-checkbox-custom {
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--jp-navy);
+    border-radius: 4px;
+    margin-right: 0.75rem;
+    position: relative;
+    transition: all 0.2s ease;
+}
+
+.jp-checkbox-label input[type="checkbox"]:checked + .jp-checkbox-custom {
+    background: var(--jp-navy);
+    border-color: var(--jp-navy);
+}
+
+.jp-checkbox-label input[type="checkbox"]:checked + .jp-checkbox-custom::after {
+    content: '✓';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: var(--jp-white);
+    font-weight: bold;
+    font-size: 12px;
+}
+
+/* Buttons */
+.jp-btn {
+    padding: 0.875rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: none;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    letter-spacing: 0.02em;
+}
+
+.jp-btn-primary {
+    background: var(--jp-gold);
+    color: var(--jp-white);
+    box-shadow: var(--shadow-sm);
+}
+
+.jp-btn-primary:hover {
+    background: var(--jp-maroon-dark);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+}
+
+.jp-btn-outline {
+    background: transparent;
+    color: var(--jp-navy);
+    border: 2px solid var(--jp-navy);
+}
+
+.jp-btn-outline:hover {
+    background: var(--jp-navy);
+    color: var(--jp-white);
+}
+
+.jp-btn-text {
+    background: transparent;
+    color: var(--jp-steel);
+    padding: 0.5rem 1rem;
+}
+
+.jp-btn-text:hover {
+    color: var(--jp-gold);
+    background: var(--jp-cream-light);
+}
+
+.jp-form-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--jp-border-subtle);
+}
+
+/* Profile Picture Section */
+.jp-profile-picture-section {
+    background: var(--jp-cream-light);
+    border-radius: 12px;
+    padding: 1.5rem;
+    text-align: center;
+    border: 1px solid var(--jp-border-subtle);
+}
+
+.jp-profile-picture-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+}
+
+.jp-profile-picture-preview {
+    width: 120px;
+    height: 120px;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 3px solid var(--jp-navy);
+    box-shadow: var(--shadow-base);
+}
+
+.jp-profile-picture-preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.jp-profile-placeholder {
+    width: 100%;
+    height: 100%;
+    background: var(--jp-navy);
+    color: var(--jp-white);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3rem;
+    font-weight: 700;
+    font-family: var(--font-serif);
+}
+
+.jp-profile-picture-actions {
+    display: flex;
+    gap: 1rem;
+}
+
+/* Expertise Manager */
+.jp-expertise-manager {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+}
+
+.jp-current-expertise,
+.jp-add-expertise {
+    background: var(--jp-cream-light);
+    border-radius: 12px;
+    padding: 1.5rem;
+    border: 1px solid var(--jp-border-subtle);
+}
+
+.jp-current-expertise h3,
+.jp-add-expertise h3 {
+    font-family: var(--font-serif);
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--jp-gold);
+    margin-bottom: 1rem;
+}
+
+.jp-expertise-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.jp-expertise-item {
+    background: var(--jp-white);
+    border-radius: 8px;
+    padding: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border: 1px solid var(--jp-border-subtle);
+    box-shadow: var(--shadow-sm);
+}
+
+.jp-expertise-content h4 {
+    font-weight: 600;
+    color: var(--jp-gold);
+    margin-bottom: 0.25rem;
+}
+
+.jp-expertise-content p {
+    color: var(--jp-steel);
+    font-size: 0.875rem;
+}
+
+.jp-expertise-remove {
+    background: var(--jp-border-subtle);
+    color: var(--jp-steel);
+    border: none;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+}
+
+.jp-expertise-remove:hover {
+    background: var(--jp-gold);
+    color: var(--jp-white);
+}
+
+.jp-no-expertise {
+    color: var(--jp-steel);
+    text-align: center;
+    padding: 2rem;
+    font-style: italic;
+}
+
+/* Subscription Cards */
+.jp-current-subscription {
+    margin-bottom: 2rem;
+}
+
+.jp-subscription-card {
+    background: var(--jp-cream-light);
+    border: 2px solid var(--jp-navy);
+    border-radius: 12px;
+    padding: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.jp-subscription-info h3 {
+    font-family: var(--font-serif);
+    font-size: 1.375rem;
+    font-weight: 600;
+    color: var(--jp-gold);
+    margin-bottom: 0.5rem;
+}
+
+.jp-status-active {
+    color: #22c55e;
+    font-weight: 600;
+}
+
+.jp-subscription-details {
+    color: var(--jp-navy);
+}
+
+/* Plans Grid */
+.jp-plans-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+}
+
+.jp-plan-card {
+    background: var(--jp-white);
+    border: 2px solid var(--jp-border-subtle);
+    border-radius: 12px;
+    padding: 1.5rem;
+    text-align: center;
+    transition: all 0.2s ease;
+    box-shadow: var(--shadow-sm);
+}
+
+.jp-plan-card:hover {
+    border-color: var(--jp-navy);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.jp-plan-card h4 {
+    font-family: var(--font-serif);
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--jp-gold);
+    margin-bottom: 1rem;
+}
+
+.jp-plan-price {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--jp-navy);
+    margin-bottom: 1rem;
+}
+
+.jp-plan-price span {
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--jp-steel);
+}
+
+/* Career Opportunities */
+.jp-career-preferences {
+    background: var(--jp-cream-light);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    border: 1px solid var(--jp-border-subtle);
+}
+
+.jp-opportunities-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 1.5rem;
+}
+
+.jp-opportunity-card {
+    background: var(--jp-white);
+    border: 1px solid var(--jp-border-subtle);
+    border-radius: 12px;
+    padding: 1.5rem;
+    transition: all 0.2s ease;
+    box-shadow: var(--shadow-sm);
+}
+
+.jp-opportunity-card:hover {
+    border-color: var(--jp-navy);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-base);
+}
+
+.jp-opportunity-card h4 {
+    font-family: var(--font-serif);
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--jp-gold);
+    margin-bottom: 0.5rem;
+}
+
+.jp-opportunity-company {
+    font-weight: 600;
+    color: var(--jp-navy);
+    margin-bottom: 0.25rem;
+}
+
+.jp-opportunity-location {
+    color: var(--jp-steel);
+    margin-bottom: 1rem;
+}
+
+.jp-opportunity-excerpt {
+    color: var(--jp-charcoal);
+    line-height: 1.5;
+    margin-bottom: 1rem;
+}
+
+.jp-opportunity-actions {
+    display: flex;
+    gap: 1rem;
+}
+
+.jp-no-opportunities {
+    text-align: center;
+    padding: 2rem;
+    color: var(--jp-steel);
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+    .jp-settings-content {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+    }
+    
+    .jp-settings-sidebar {
+        order: 2;
+    }
+    
+    .jp-settings-nav {
+        flex-direction: row;
+        overflow-x: auto;
+        gap: 1rem;
+    }
+    
+    .jp-settings-nav-item {
+        white-space: nowrap;
+    }
+}
+
+@media (max-width: 768px) {
+    .jp-container {
+        padding: 0 1rem;
+    }
+    
+    .jp-form-row {
+        grid-template-columns: 1fr;
+    }
+    
+    .jp-expertise-manager {
+        grid-template-columns: 1fr;
+    }
+    
+    .jp-plans-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .jp-opportunities-list {
+        grid-template-columns: 1fr;
+    }
+    
+    .jp-settings-section {
+        padding: 1.5rem;
+    }
+    
+    .jp-settings-title {
+        font-size: 2rem;
+    }
+}

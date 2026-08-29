@@ -1,0 +1,380 @@
+/**
+ * Smart Filters for Career Opportunities
+ * Premium filtering system with AI-powered suggestions
+ */
+
+/* Smart Filters Container - Aligned with Content */
+.sffc-smart-filters {
+    position: relative;
+    max-width: 1400px;
+    margin: 0 auto 24px auto;
+    padding: 0 20px;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-radius: 30px;
+    box-shadow: 
+        0 10px 40px rgba(26, 48, 40, 0.08),
+        0 0 0 1px rgba(201, 169, 97, 0.08);
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    animation: slideDown 0.5s ease;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateX(-50%) translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
+}
+
+/* Filter Pills */
+.sffc-filter-pill {
+    background: var(--cream);
+    border: 1px solid rgba(201, 169, 97, 0.2);
+    border-radius: 20px;
+    padding: 8px 16px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--dark-green);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+    position: relative;
+    overflow: hidden;
+}
+
+.sffc-filter-pill::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(201, 169, 97, 0.1), transparent);
+    transition: left 0.5s ease;
+}
+
+.sffc-filter-pill:hover::before {
+    left: 100%;
+}
+
+.sffc-filter-pill:hover {
+    background: var(--gold);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(201, 169, 97, 0.3);
+}
+
+.sffc-filter-pill.active {
+    background: var(--dark-green);
+    color: white;
+    border-color: var(--dark-green);
+}
+
+.sffc-filter-icon {
+    width: 14px;
+    height: 14px;
+    opacity: 0.7;
+}
+
+/* Filter Dropdown */
+.sffc-filter-dropdown {
+    position: relative;
+}
+
+.sffc-filter-dropdown-toggle {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+}
+
+.sffc-filter-dropdown-menu {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(26, 48, 40, 0.12);
+    padding: 8px;
+    min-width: 200px;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    z-index: 10;
+}
+
+.sffc-filter-dropdown.open .sffc-filter-dropdown-menu {
+    opacity: 1;
+    visibility: visible;
+}
+
+.sffc-filter-option {
+    padding: 10px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 13px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.sffc-filter-option:hover {
+    background: var(--cream);
+}
+
+.sffc-filter-option.selected {
+    background: rgba(201, 169, 97, 0.1);
+    font-weight: 500;
+}
+
+.sffc-filter-count {
+    font-size: 11px;
+    color: var(--sage);
+    background: rgba(139, 155, 136, 0.1);
+    padding: 2px 6px;
+    border-radius: 10px;
+}
+
+/* AI Filter Suggestions */
+.sffc-ai-suggestion {
+    background: linear-gradient(135deg, rgba(201, 169, 97, 0.05), rgba(201, 169, 97, 0.1));
+    border: 1px solid var(--gold);
+    position: relative;
+    overflow: hidden;
+}
+
+.sffc-ai-suggestion::after {
+    content: 'AI';
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    background: var(--gold);
+    color: white;
+    font-size: 9px;
+    padding: 2px 4px;
+    border-radius: 0 12px 0 8px;
+    font-weight: 600;
+}
+
+/* Salary Range Slider */
+.sffc-salary-filter {
+    padding: 12px;
+    min-width: 280px;
+}
+
+.sffc-salary-range {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 12px;
+    font-size: 13px;
+}
+
+.sffc-salary-min, .sffc-salary-max {
+    font-weight: 600;
+    color: var(--dark-green);
+}
+
+.sffc-salary-slider {
+    position: relative;
+    height: 6px;
+    background: var(--light-gold);
+    border-radius: 3px;
+    margin: 20px 0;
+}
+
+.sffc-salary-slider-fill {
+    position: absolute;
+    height: 100%;
+    background: linear-gradient(90deg, var(--gold), var(--sage));
+    border-radius: 3px;
+    left: 20%;
+    right: 20%;
+}
+
+.sffc-salary-handle {
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    background: white;
+    border: 2px solid var(--gold);
+    border-radius: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    cursor: grab;
+    box-shadow: 0 2px 8px rgba(201, 169, 97, 0.3);
+    transition: transform 0.2s ease;
+}
+
+.sffc-salary-handle:active {
+    cursor: grabbing;
+    transform: translate(-50%, -50%) scale(1.2);
+}
+
+.sffc-salary-handle.min {
+    left: 20%;
+}
+
+.sffc-salary-handle.max {
+    left: 80%;
+}
+
+/* Premium Match Strength Bar */
+.sffc-match-badge {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 16px;
+    border-radius: 24px;
+    margin-bottom: 16px;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(250, 248, 243, 0.95));
+    border: 1px solid rgba(201, 169, 97, 0.15);
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+    overflow: hidden;
+}
+
+.sffc-match-badge:hover {
+    transform: scale(1.02);
+    box-shadow: 0 6px 20px rgba(201, 169, 97, 0.2);
+}
+
+.sffc-match-strength {
+    position: relative;
+    height: 6px;
+    background: rgba(232, 220, 196, 0.3);
+    border-radius: 3px;
+    flex: 1;
+    max-width: 100px;
+    overflow: hidden;
+}
+
+.sffc-match-strength-fill {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    border-radius: 3px;
+    transition: width 1.5s cubic-bezier(0.23, 1, 0.32, 1);
+    position: relative;
+}
+
+/* Animated gradient fill based on match score */
+.sffc-match-strength-fill::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: -2px;
+    width: 4px;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.8);
+    animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+    0%, 100% { opacity: 0; }
+    50% { opacity: 1; }
+}
+
+/* Match levels with distinct colors */
+.sffc-match-exceptional .sffc-match-strength-fill {
+    background: linear-gradient(90deg, #C9A961, #D4AF37);
+    width: 90%;
+}
+
+.sffc-match-strong .sffc-match-strength-fill {
+    background: linear-gradient(90deg, #8B9B88, #A3B39F);
+    width: 75%;
+}
+
+.sffc-match-good .sffc-match-strength-fill {
+    background: linear-gradient(90deg, #B8C5B8, #C8D5C8);
+    width: 60%;
+}
+
+.sffc-match-moderate .sffc-match-strength-fill {
+    background: linear-gradient(90deg, #D8D4CC, #E8E4DC);
+    width: 45%;
+}
+
+.sffc-match-indicator {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    position: relative;
+    z-index: 1;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { 
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(201, 169, 97, 0.4);
+    }
+    50% { 
+        transform: scale(1.1);
+        box-shadow: 0 0 0 4px rgba(201, 169, 97, 0);
+    }
+}
+
+.sffc-match-text {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--dark-green);
+    position: relative;
+    z-index: 1;
+}
+
+/* Mobile Optimization */
+@media (max-width: 768px) {
+    .sffc-smart-filters {
+        top: 10px;
+        left: 10px;
+        right: 10px;
+        transform: none;
+        max-width: none;
+        padding: 10px;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    
+    .sffc-filter-pill {
+        font-size: 11px;
+        padding: 6px 12px;
+    }
+    
+    /* Shortlist styles removed */
+    
+    .sffc-match-badge {
+        padding: 8px 12px;
+    }
+    
+    .sffc-match-strength {
+        max-width: 80px;
+    }
+}
+
+/* Tablet Optimization */
+@media (min-width: 769px) and (max-width: 1024px) {
+    /* Shortlist styles removed */
+    
+    .sffc-smart-filters {
+        max-width: 80%;
+        padding: 10px 16px;
+    }
+}

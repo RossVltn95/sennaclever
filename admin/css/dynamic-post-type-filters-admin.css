@@ -1,0 +1,598 @@
+/**
+ * Dynamic Post Type Filters Admin CSS
+ * 
+ * @package SkillFarmFinance
+ * @since 10.20.0
+ */
+
+.sffc-admin-container { 
+    display: flex; 
+    gap: 20px; 
+    margin-top: 20px; 
+}
+
+.sffc-admin-main { 
+    flex: 1; 
+}
+
+.sffc-admin-sidebar { 
+    width: 300px; 
+}
+
+.sffc-card { 
+    background: #fff; 
+    padding: 20px; 
+    border: 1px solid #ccd0d4; 
+    box-shadow: 0 1px 1px rgba(0,0,0,.04); 
+    margin-bottom: 20px; 
+}
+
+.sffc-card h3, .sffc-card h4 { 
+    margin-top: 0; 
+    color: #23282d; 
+}
+
+.sffc-card-header { 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    margin-bottom: 20px; 
+}
+
+.color-indicator { 
+    display: inline-block; 
+    width: 12px; 
+    height: 12px; 
+    border-radius: 2px; 
+    margin-right: 5px; 
+}
+
+.status-badge { 
+    padding: 3px 6px; 
+    border-radius: 3px; 
+    font-size: 11px; 
+}
+
+.status-badge.active { 
+    background: #00a32a; 
+    color: white; 
+}
+
+.status-badge.inactive { 
+    background: #dba617; 
+    color: white; 
+}
+
+.error-text { 
+    color: #dc3232; 
+    font-size: 12px; 
+}
+
+.no-items { 
+    text-align: center; 
+    padding: 40px; 
+    color: #666; 
+}
+
+.sffc-modal { 
+    position: fixed; 
+    top: 0; 
+    left: 0; 
+    width: 100%; 
+    height: 100%; 
+    background: rgba(0,0,0,0.5); 
+    z-index: 9999; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+}
+
+.sffc-modal-content { 
+    background: white; 
+    width: 700px; 
+    max-width: 90vw; 
+    max-height: 90vh; 
+    border-radius: 4px; 
+    overflow: hidden; 
+}
+
+.sffc-modal-content.large { 
+    width: 900px; 
+}
+
+.sffc-modal-header { 
+    padding: 20px; 
+    border-bottom: 1px solid #ddd; 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    background: #f9f9f9; 
+}
+
+.sffc-modal-close { 
+    background: none; 
+    border: none; 
+    font-size: 20px; 
+    cursor: pointer; 
+}
+
+.sffc-form-columns { 
+    display: flex; 
+    gap: 30px; 
+    padding: 20px; 
+}
+
+.sffc-form-column { 
+    flex: 1; 
+}
+
+.sffc-form-row { 
+    margin-bottom: 15px; 
+}
+
+.sffc-form-row label { 
+    display: block; 
+    margin-bottom: 5px; 
+    font-weight: 600; 
+}
+
+.sffc-form-row input, .sffc-form-row select { 
+    width: 100%; 
+    padding: 8px; 
+    border: 1px solid #ddd; 
+    border-radius: 4px; 
+}
+
+.sffc-form-row small { 
+    color: #666; 
+    font-size: 12px; 
+    margin-top: 3px; 
+    display: block; 
+}
+
+.sffc-form-actions { 
+    padding: 20px; 
+    border-top: 1px solid #ddd; 
+    text-align: right; 
+    background: #f9f9f9; 
+}
+
+#test-results-content { 
+    padding: 20px; 
+    max-height: 60vh; 
+    overflow-y: auto; 
+}
+
+/* Manual defaults creation */
+.create-defaults-section {
+    background: #fff3cd;
+    border: 1px solid #ffeaa7;
+    padding: 15px;
+    margin-bottom: 20px;
+    border-radius: 4px;
+}
+
+.create-defaults-section h3 {
+    margin-top: 0;
+    color: #856404;
+}
+
+.create-defaults-btn {
+    background: #007cba;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.create-defaults-btn:hover {
+    background: #005a87;
+}
+
+.create-defaults-btn:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+}
+
+.defaults-status {
+    margin-top: 10px;
+    padding: 10px;
+    border-radius: 4px;
+}
+
+.defaults-status.success {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.defaults-status.error {
+    background: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+/* Sortable table styling */
+.filter-row {
+    transition: all 0.2s ease;
+}
+
+.filter-row.ui-sortable-helper {
+    background: #f0f8ff;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+
+.reorder-handle {
+    background: #f9f9f9;
+    border-right: 1px solid #ddd;
+}
+
+.reorder-handle:hover {
+    background: #e9e9e9;
+    cursor: move;
+}
+
+.sortable-placeholder {
+    height: 50px;
+    background: #fff3cd;
+    border: 2px dashed #ffc107;
+    visibility: visible !important;
+}
+
+.sortable-placeholder td {
+    border: none !important;
+}
+
+/* Bulk actions styling */
+.bulk-actions-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    border-radius: 4px;
+}
+
+.bulk-actions-bar label {
+    margin: 0;
+    font-weight: 600;
+}
+
+.bulk-actions-info {
+    font-style: italic;
+    font-size: 12px;
+}
+
+.filter-checkbox {
+    margin: 0 5px 0 0 !important;
+}
+
+/* Status badges */
+.status-badge {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 3px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.status-badge.active {
+    background: #00a32a;
+    color: white;
+}
+
+.status-badge.inactive {
+    background: #dba617;
+    color: white;
+}
+
+/* Table improvements */
+#filters-table {
+    border-collapse: collapse;
+}
+
+#filters-table th {
+    background: #f9f9f9;
+    font-weight: 600;
+    padding: 12px 8px;
+}
+
+#filters-table td {
+    padding: 12px 8px;
+    vertical-align: middle;
+}
+
+.filter-row:hover {
+    background: #f8f9fa;
+}
+
+/* Color indicators */
+.color-indicator {
+    width: 14px;
+    height: 14px;
+    border-radius: 2px;
+    border: 1px solid rgba(0,0,0,0.1);
+}
+
+/* Action buttons */
+.filter-row .button {
+    margin: 0 2px;
+}
+
+/* Row actions */
+.row-actions {
+    margin-top: 5px;
+    font-size: 12px;
+    color: #666;
+}
+
+.row-actions span {
+    margin-right: 10px;
+}
+
+/* Icon picker styling */
+.icon-input-container {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.icon-input-container input {
+    flex: 1;
+}
+
+.icon-picker-btn {
+    white-space: nowrap;
+}
+
+.icon-preview {
+    margin-top: 10px;
+    padding: 10px;
+    background: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.preview-label {
+    font-weight: 600;
+    color: #666;
+}
+
+.preview-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    background: #fff;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.icon-picker-content {
+    padding: 20px;
+    max-height: 70vh;
+    overflow-y: auto;
+}
+
+.icon-picker-tabs {
+    display: flex;
+    gap: 5px;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 10px;
+}
+
+.icon-tab {
+    padding: 8px 16px;
+    background: #f9f9f9;
+    border: 1px solid #ddd;
+    border-bottom: none;
+    cursor: pointer;
+    border-radius: 4px 4px 0 0;
+    transition: all 0.2s;
+}
+
+.icon-tab.active {
+    background: #fff;
+    border-bottom: 1px solid #fff;
+    position: relative;
+    z-index: 1;
+}
+
+.icon-tab:hover {
+    background: #f0f0f0;
+}
+
+.icon-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.icon-option {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 15px;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: #fff;
+}
+
+.icon-option:hover {
+    border-color: #007cba;
+    background: #f8f9fa;
+}
+
+.icon-option.selected {
+    border-color: #007cba;
+    background: #e7f3ff;
+}
+
+.icon-option svg {
+    margin-bottom: 8px;
+    color: #555;
+}
+
+.icon-option span {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: #666;
+    text-align: center;
+}
+
+.text-icon-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.text-icon-option {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px;
+    border: 2px solid #ddd;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: #fff;
+    font-weight: 600;
+    font-size: 14px;
+    color: #333;
+    min-height: 45px;
+}
+
+.text-icon-option:hover {
+    border-color: #007cba;
+    background: #f8f9fa;
+}
+
+.text-icon-option.selected {
+    border-color: #007cba;
+    background: #e7f3ff;
+}
+
+.custom-text-input {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid #ddd;
+}
+
+.custom-text-input input {
+    flex: 1;
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+#custom-svg-input {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-family: monospace;
+    font-size: 12px;
+    resize: vertical;
+}
+
+.custom-svg-preview {
+    margin: 15px 0;
+    padding: 10px;
+    background: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+#custom-svg-preview-area {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    background: #fff;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.icon-tab-content {
+    animation: fadeIn 0.2s ease-in;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Text icon styling */
+.text-icon {
+    font-weight: 600;
+    font-size: 12px;
+    color: #333;
+    display: inline-block;
+    padding: 2px 4px;
+    background: #f0f0f0;
+    border-radius: 2px;
+    border: 1px solid #ddd;
+}
+
+/* Icon picker button styling */
+.icon-picker-btn {
+    background: #f0f0f0;
+    border: 1px solid #ddd;
+    padding: 8px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.icon-picker-btn:hover {
+    background: #e0e0e0;
+}
+
+/* Custom SVG validation styles */
+.custom-svg-preview .error {
+    color: #dc3545;
+    font-size: 12px;
+    font-style: italic;
+}
+
+.custom-svg-preview .success {
+    color: #28a745;
+    font-size: 12px;
+    font-style: italic;
+}
+
+/* Icon option hover improvements */
+.icon-option:hover svg,
+.text-icon-option:hover {
+    transform: scale(1.1);
+    transition: transform 0.2s ease;
+}
+
+/* Modal overlay improvements */
+.sffc-modal {
+    backdrop-filter: blur(2px);
+}
+
+/* Tab content transitions */
+.icon-tab-content {
+    min-height: 300px;
+}

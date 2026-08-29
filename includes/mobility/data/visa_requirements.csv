@@ -1,0 +1,32 @@
+country,work_visa_type,difficulty,processing_time_weeks,sponsorship_required,minimum_salary_requirement,intra_company_transfer,skilled_worker_points,renewal_years,path_to_pr_years,notes,source
+United States,H-1B,Difficult,12-26,Yes,Prevailing wage,L-1 available,No points system,3,5-10,Annual lottery system with 85k cap,USCIS 2024
+United Kingdom,Skilled Worker,Moderate,3-8,Yes,26200 GBP,ICT available,70 points required,5,5,Points-based system reformed 2024,UK Gov 2024
+Germany,EU Blue Card,Easy,4-8,Yes,45300 EUR,ICT available,No points system,4,21 months,Fast-track for shortage occupations,BAMF 2024
+France,Passeport Talent,Moderate,4-12,Yes,53836 EUR,ICT available,No points system,4,5,Simplified for high-skilled,France Visas 2024
+Switzerland,L Permit,Moderate,4-12,Yes,Market rate,L permit,Quota system,1,10,Annual quotas for non-EU,SEM 2024
+Netherlands,Highly Skilled Migrant,Easy,2-4,Yes,46107 EUR,ICT available,No points system,5,5,30% tax ruling available,IND 2024
+Singapore,Employment Pass,Moderate,3-8,Yes,5000 SGD,EP available,Points framework,2,2,Minimum salary increased 2024,MOM 2024
+Hong Kong,Employment Visa,Easy,4-6,Yes,Market rate,General visa,No points system,2,7,Talent schemes available,ImmD 2024
+Japan,Engineer/HSP,Moderate,4-12,Yes,Market rate,Intra-company,Points for HSP,5,10,High Skilled Professional fast-track,ISA 2024
+Australia,Skilled Worker 482,Moderate,8-16,Yes,70000 AUD,ICT available,Points for PR,4,4,SkillSelect points system,DHA 2024
+Canada,Express Entry,Moderate,6-12,No,LMIA exempt jobs,ICT available,CRS points,Open,3,Comprehensive ranking system,IRCC 2024
+Ireland,Critical Skills,Easy,2-4,Yes,64000 EUR,ICT available,No points system,2,2,Critical skills occupation list,ISD 2024
+Luxembourg,EU Blue Card,Easy,3-6,Yes,1.5x avg salary,ICT available,No points system,4,5,Fast processing in EU,MAEE 2024
+Spain,Highly Qualified,Moderate,4-10,Yes,40000 EUR,ICT available,No points system,2,5,Digital nomad visa available,MITRAMISS 2024
+Italy,EU Blue Card,Moderate,6-12,Yes,1.5x avg salary,ICT available,No points system,2,5,Quota system applies,MIT 2024
+Belgium,Single Permit,Moderate,4-8,Yes,46959 EUR,ICT available,No points system,1,5,Regional variations apply,ONEM 2024
+Austria,Red-White-Red Card,Moderate,8-16,No,2988 EUR/month,ICT available,Points required,2,5,Points for skilled workers,BMI 2024
+Sweden,Work Permit,Easy,4-12,Yes,SEK equivalent,ICT available,No points system,2,4,Union agreements important,Migrationsverket 2024
+Denmark,Pay Limit Scheme,Moderate,4-8,Yes,DKK 478000,ICT available,No points system,4,4,Fast-track for high earners,SIRI 2024
+Norway,Skilled Worker,Moderate,8-16,Yes,NOK 548600,ICT available,No points system,3,3,EEA/EU priority,UDI 2024
+Finland,Specialist Permit,Easy,4-8,Yes,Market rate,ICT available,No points system,4,4,Fast-track available,Migri 2024
+United Arab Emirates,Employment Visa,Easy,2-4,Yes,No minimum,Work permit,No points system,2,10,Golden visa for high-skilled,ICP 2024
+India,Employment Visa,Moderate,4-8,Yes,$25000 USD,Intra-company,No points system,1-5,No PR,Annual salary threshold,MHA 2024
+China,Work Permit,Difficult,8-16,Yes,Market rate,Intra-company,Points system,1,No PR,Tier A/B/C classification,SAFEA 2024
+South Korea,E-7 Visa,Moderate,4-8,Yes,GNI per capita,D-7 available,Points for F-2,3,5,Point system for residence,Immigration 2024
+Brazil,Work Visa,Difficult,8-16,Yes,Market rate,Intra-company,No points system,2,4,Labor market test required,Federal Police 2024
+Mexico,Temporary Resident,Easy,4-8,No,Points/offer,Work permit,Points available,1-4,4,Economic activity permit,INM 2024
+South Africa,Critical Skills,Moderate,8-20,No,On critical list,Intra-company,No points system,5,5,Critical skills list,DHA 2024
+Poland,Work Permit,Easy,4-8,Yes,Market rate,ICT available,No points system,3,5,EU Blue Card available,UDSC 2024
+Czech Republic,Employee Card,Easy,4-8,Yes,Market rate,ICT available,No points system,2,5,EU Blue Card available,OAMP 2024
+Portugal,Work Visa,Easy,4-8,Yes,Market rate,Work permit,No points system,2,5,Tech visa program,SEF 2024

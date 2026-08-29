@@ -1,0 +1,1256 @@
+/**
+ * Relocation Shortcodes CSS
+ * Institutional-grade design - KKR/JP Morgan research style
+ *
+ * @package SFFC_Careers
+ * @since 11.2.0
+ */
+
+/* ==========================================================================
+   CSS Variables - Institutional Finance Palette
+   ========================================================================== */
+
+:root {
+    /* Primary Colors */
+    --sffc-navy: #1a1f36;
+    --sffc-navy-light: #2d3348;
+    --sffc-charcoal: #2d2d2d;
+
+    /* Accent */
+    --sffc-gold: #b8960b;
+    --sffc-gold-light: #d4af37;
+    --sffc-gold-muted: #c9a227;
+
+    /* Neutral Tones */
+    --sffc-text: #1a1a1a;
+    --sffc-text-secondary: #4a4a4a;
+    --sffc-text-muted: #737373;
+    --sffc-text-light: #999999;
+
+    /* Backgrounds */
+    --sffc-bg-white: #ffffff;
+    --sffc-bg-cream: #fafaf8;
+    --sffc-bg-warm: #f5f4f0;
+    --sffc-bg-light: #f8f8f6;
+
+    /* Borders */
+    --sffc-border: #e5e5e5;
+    --sffc-border-dark: #d0d0d0;
+    --sffc-border-light: #eeeeee;
+
+    /* Status Colors */
+    --sffc-positive: #1e7b46;
+    --sffc-negative: #b91c1c;
+    --sffc-neutral: #666666;
+
+    /* Typography */
+    --sffc-font-display: 'RecifeDisplay', 'NotoSerif-TC', 'NotoSerif-SC', 'Georgia', 'Times New Roman', serif;
+    --sffc-font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --sffc-font-mono: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Mono', monospace;
+
+    /* Spacing */
+    --sffc-space-xs: 0.25rem;
+    --sffc-space-sm: 0.5rem;
+    --sffc-space-md: 1rem;
+    --sffc-space-lg: 1.5rem;
+    --sffc-space-xl: 2rem;
+    --sffc-space-2xl: 3rem;
+    --sffc-space-3xl: 4rem;
+
+    /* Layout */
+    --sffc-max-width: 1140px;
+    --sffc-content-width: 720px;
+}
+
+/* ==========================================================================
+   Base Styles
+   ========================================================================== */
+
+.sffc-relocation-page,
+.sffc-relocation-archive {
+    font-family: var(--sffc-font-body);
+    color: var(--sffc-text);
+    line-height: 1.7;
+    box-sizing: border-box;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+.sffc-relocation-page *,
+.sffc-relocation-archive * {
+    box-sizing: border-box;
+}
+
+/* ==========================================================================
+   Hero Section - Institutional Header
+   ========================================================================== */
+
+.sffc-hero {
+    background: var(--sffc-navy);
+    color: var(--sffc-bg-white);
+    padding: var(--sffc-space-3xl) var(--sffc-space-xl);
+    margin-bottom: var(--sffc-space-2xl);
+    position: relative;
+}
+
+.sffc-hero::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: var(--sffc-gold);
+}
+
+.sffc-hero-archive {
+    padding: var(--sffc-space-3xl) var(--sffc-space-xl) calc(var(--sffc-space-3xl) + 0.5rem);
+    text-align: center;
+}
+
+.sffc-hero-inner {
+    max-width: var(--sffc-max-width);
+    margin: 0 auto;
+}
+
+.sffc-breadcrumb {
+    font-family: var(--sffc-font-body);
+    font-size: 0.8125rem;
+    letter-spacing: 0.02em;
+    margin-bottom: var(--sffc-space-lg);
+    opacity: 0.7;
+    text-transform: uppercase;
+}
+
+.sffc-breadcrumb a {
+    color: var(--sffc-bg-white);
+    text-decoration: none;
+    transition: opacity 0.2s ease;
+}
+
+.sffc-breadcrumb a:hover {
+    opacity: 1;
+    text-decoration: underline;
+}
+
+.sffc-breadcrumb-sep {
+    margin: 0 0.75rem;
+    opacity: 0.5;
+}
+
+.sffc-hero-title {
+    font-family: var(--sffc-font-display);
+    font-size: 3.75rem;
+    font-weight: 400;
+    color: #ffffff;
+    margin: 0 0 var(--sffc-space-md);
+    line-height: 1.15;
+    letter-spacing: -0.01em;
+}
+
+.sffc-highlight {
+    color: var(--sffc-gold-light) !important;
+    font-size: 0.95em !important;
+}
+
+.sffc-hero-subtitle {
+    font-size: 1.125rem;
+    font-weight: 400;
+    opacity: 0.85;
+    margin: 0 0 var(--sffc-space-2xl);
+    max-width: 600px;
+    line-height: 1.6;
+}
+
+.sffc-hero-archive .sffc-hero-subtitle {
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.sffc-hero-stats {
+    display: flex;
+    justify-content: flex-start;
+    gap: var(--sffc-space-3xl);
+    flex-wrap: wrap;
+    padding-top: var(--sffc-space-xl);
+    border-top: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.sffc-hero-archive .sffc-hero-stats {
+    justify-content: center;
+}
+
+.sffc-hero-stat {
+    text-align: left;
+}
+
+.sffc-hero-archive .sffc-hero-stat {
+    text-align: center;
+}
+
+.sffc-stat-value {
+    display: block;
+    font-family: var(--sffc-font-display);
+    font-size: 2.25rem;
+    font-weight: 400;
+    color: var(--sffc-gold-light);
+    line-height: 1;
+}
+
+.sffc-stat-label {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 500;
+    opacity: 0.7;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-top: var(--sffc-space-xs);
+}
+
+/* ==========================================================================
+   Content Layout
+   ========================================================================== */
+
+.sffc-relocation-content,
+.sffc-archive-content {
+    max-width: var(--sffc-max-width);
+    margin: 0 auto;
+    padding: 0 var(--sffc-space-lg);
+}
+
+.sffc-relocation-content {
+    display: grid;
+    grid-template-columns: 1fr 300px;
+    gap: var(--sffc-space-3xl);
+}
+
+.sffc-relocation-main {
+    min-width: 0;
+}
+
+/* ==========================================================================
+   Quick Navigation - Research Report Style
+   ========================================================================== */
+
+.sffc-quick-nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--sffc-space-xs);
+    padding: var(--sffc-space-md) 0;
+    margin-bottom: var(--sffc-space-xl);
+    border-bottom: 1px solid var(--sffc-border);
+    position: sticky;
+    top: 0;
+    background: var(--sffc-bg-white);
+    z-index: 10;
+}
+
+.sffc-quick-nav a {
+    padding: var(--sffc-space-sm) var(--sffc-space-md);
+    text-decoration: none;
+    color: var(--sffc-text-secondary);
+    font-size: 0.8125rem;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    transition: all 0.2s ease;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+}
+
+.sffc-quick-nav a:hover {
+    color: var(--sffc-navy);
+    border-bottom-color: var(--sffc-gold);
+}
+
+/* ==========================================================================
+   Sections - Clean Research Report Panels
+   ========================================================================== */
+
+.sffc-section {
+    background: var(--sffc-bg-white);
+    padding: var(--sffc-space-xl) 0;
+    margin-bottom: var(--sffc-space-xl);
+    border-bottom: 1px solid var(--sffc-border-light);
+}
+
+.sffc-section:last-child {
+    border-bottom: none;
+}
+
+.sffc-section h2 {
+    font-family: var(--sffc-font-display);
+    font-size: 1.5rem;
+    font-weight: 400;
+    color: var(--sffc-navy);
+    margin: 0 0 var(--sffc-space-lg);
+    padding-bottom: var(--sffc-space-md);
+    border-bottom: 2px solid var(--sffc-navy);
+    display: block;
+}
+
+.sffc-section h3 {
+    font-family: var(--sffc-font-display);
+    font-size: 1.125rem;
+    font-weight: 400;
+    color: var(--sffc-charcoal);
+    margin: var(--sffc-space-xl) 0 var(--sffc-space-md);
+}
+
+.sffc-section-desc {
+    color: var(--sffc-text-secondary);
+    margin: 0 0 var(--sffc-space-xl);
+    font-size: 1rem;
+}
+
+/* ==========================================================================
+   Article Content - Editorial Typography
+   ========================================================================== */
+
+.sffc-article-content {
+    font-size: 1.0625rem;
+    line-height: 1.8;
+    color: var(--sffc-text);
+}
+
+.sffc-article-content h2 {
+    font-family: var(--sffc-font-display);
+    font-size: 1.5rem;
+    font-weight: 400;
+    color: var(--sffc-navy);
+    margin: var(--sffc-space-2xl) 0 var(--sffc-space-md);
+    padding-bottom: var(--sffc-space-sm);
+    border-bottom: 1px solid var(--sffc-border);
+}
+
+.sffc-article-content h3 {
+    font-family: var(--sffc-font-display);
+    font-size: 1.25rem;
+    font-weight: 400;
+    color: var(--sffc-charcoal);
+    margin: var(--sffc-space-xl) 0 var(--sffc-space-sm);
+}
+
+.sffc-article-content p {
+    margin-bottom: var(--sffc-space-md);
+}
+
+.sffc-article-content ul,
+.sffc-article-content ol {
+    margin: var(--sffc-space-md) 0;
+    padding-left: var(--sffc-space-lg);
+}
+
+.sffc-article-content li {
+    margin-bottom: var(--sffc-space-sm);
+}
+
+.sffc-article-content strong {
+    font-weight: 600;
+    color: var(--sffc-charcoal);
+}
+
+/* ==========================================================================
+   Route Finder - Executive Search Tool
+   ========================================================================== */
+
+.sffc-route-finder {
+    background: var(--sffc-bg-warm);
+    border: 1px solid var(--sffc-border);
+    padding: var(--sffc-space-xl);
+    margin-bottom: var(--sffc-space-2xl);
+}
+
+.sffc-route-finder h2 {
+    font-family: var(--sffc-font-display);
+    font-size: 1.25rem;
+    font-weight: 400;
+    color: var(--sffc-navy);
+    margin: 0 0 var(--sffc-space-lg);
+    padding-bottom: var(--sffc-space-sm);
+    border-bottom: 2px solid var(--sffc-navy);
+    display: block;
+}
+
+.sffc-route-form {
+    margin-top: var(--sffc-space-md);
+}
+
+.sffc-form-row {
+    display: flex;
+    align-items: flex-end;
+    gap: var(--sffc-space-md);
+    flex-wrap: wrap;
+}
+
+.sffc-form-group {
+    flex: 1;
+    min-width: 200px;
+}
+
+.sffc-form-group label {
+    display: block;
+    font-weight: 500;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: var(--sffc-space-sm);
+    color: var(--sffc-text-secondary);
+}
+
+.sffc-form-group select {
+    width: 100%;
+    padding: 0.875rem var(--sffc-space-md);
+    border: 1px solid var(--sffc-border-dark);
+    background: var(--sffc-bg-white);
+    font-size: 1rem;
+    font-family: var(--sffc-font-body);
+    color: var(--sffc-text);
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23666' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 1rem center;
+    cursor: pointer;
+}
+
+.sffc-form-group select:focus {
+    outline: none;
+    border-color: var(--sffc-navy);
+}
+
+.sffc-form-arrow {
+    font-size: 1.25rem;
+    color: var(--sffc-text-muted);
+    padding-bottom: 0.875rem;
+    font-weight: 300;
+}
+
+/* ==========================================================================
+   Buttons - Institutional Style
+   ========================================================================== */
+
+.sffc-btn {
+    display: inline-block;
+    padding: 0.875rem 1.75rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    font-family: var(--sffc-font-body);
+    text-decoration: none;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: center;
+}
+
+.sffc-btn-primary {
+    background: var(--sffc-navy);
+    color: var(--sffc-bg-white);
+}
+
+.sffc-btn-primary:hover {
+    background: var(--sffc-navy-light);
+    color: var(--sffc-bg-white);
+}
+
+.sffc-btn-secondary {
+    background: transparent;
+    color: var(--sffc-navy);
+    border: 1px solid var(--sffc-navy);
+}
+
+.sffc-btn-secondary:hover {
+    background: var(--sffc-navy);
+    color: var(--sffc-bg-white);
+}
+
+.sffc-btn-gold {
+    background: var(--sffc-gold);
+    color: var(--sffc-bg-white);
+}
+
+.sffc-btn-gold:hover {
+    background: var(--sffc-gold-muted);
+    color: var(--sffc-bg-white);
+}
+
+.sffc-btn-light {
+    background: var(--sffc-bg-white);
+    color: var(--sffc-navy);
+}
+
+.sffc-btn-light:hover {
+    background: var(--sffc-bg-cream);
+}
+
+.sffc-btn-large {
+    padding: 1.125rem 2.5rem;
+    font-size: 0.9375rem;
+}
+
+/* ==========================================================================
+   Routes Grid - Data Cards
+   ========================================================================== */
+
+.sffc-popular-routes,
+.sffc-featured-routes {
+    margin-bottom: var(--sffc-space-3xl);
+}
+
+.sffc-popular-routes h2,
+.sffc-featured-routes h2 {
+    font-family: var(--sffc-font-display);
+    font-size: 1.5rem;
+    font-weight: 400;
+    color: var(--sffc-navy);
+    margin: 0 0 var(--sffc-space-sm);
+}
+
+.sffc-routes-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: var(--sffc-space-md);
+}
+
+.sffc-route-card {
+    display: block;
+    background: var(--sffc-bg-white);
+    padding: var(--sffc-space-lg);
+    text-decoration: none;
+    border: 1px solid var(--sffc-border);
+    transition: all 0.2s ease;
+}
+
+.sffc-route-card:hover {
+    border-color: var(--sffc-navy);
+    background: var(--sffc-bg-light);
+}
+
+.sffc-route-locations {
+    display: flex;
+    align-items: center;
+    gap: var(--sffc-space-sm);
+    margin-bottom: var(--sffc-space-xs);
+}
+
+.sffc-route-from,
+.sffc-route-to {
+    color: var(--sffc-navy);
+    font-weight: 500;
+    font-size: 0.9375rem;
+}
+
+.sffc-route-arrow {
+    color: var(--sffc-gold);
+    font-weight: 300;
+}
+
+.sffc-route-type {
+    font-size: 0.75rem;
+    color: var(--sffc-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+/* ==========================================================================
+   Regions Grid - Geographic Overview
+   ========================================================================== */
+
+.sffc-regions {
+    margin-bottom: var(--sffc-space-3xl);
+}
+
+.sffc-regions h2 {
+    font-family: var(--sffc-font-display);
+    font-size: 1.5rem;
+    font-weight: 400;
+    color: var(--sffc-navy);
+    margin: 0 0 var(--sffc-space-xl);
+}
+
+.sffc-regions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: var(--sffc-space-lg);
+}
+
+.sffc-region-card {
+    background: var(--sffc-bg-white);
+    border: 1px solid var(--sffc-border);
+    padding: var(--sffc-space-lg);
+}
+
+.sffc-region-card h3 {
+    font-family: var(--sffc-font-display);
+    font-size: 1rem;
+    font-weight: 400;
+    color: var(--sffc-navy);
+    margin: 0 0 var(--sffc-space-md);
+    padding-bottom: var(--sffc-space-sm);
+    border-bottom: 2px solid var(--sffc-gold);
+}
+
+.sffc-destination-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.sffc-destination-list li {
+    padding: var(--sffc-space-sm) 0;
+    border-bottom: 1px solid var(--sffc-border-light);
+}
+
+.sffc-destination-list li:last-child {
+    border-bottom: none;
+}
+
+.sffc-destination-list strong {
+    display: block;
+    color: var(--sffc-text);
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.sffc-cities {
+    font-size: 0.75rem;
+    color: var(--sffc-text-muted);
+    line-height: 1.5;
+}
+
+/* ==========================================================================
+   Featured Routes - Premium Highlight
+   ========================================================================== */
+
+.sffc-featured-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: var(--sffc-space-md);
+}
+
+.sffc-featured-card {
+    display: block;
+    background: var(--sffc-navy);
+    color: var(--sffc-bg-white);
+    padding: var(--sffc-space-lg);
+    text-decoration: none;
+    transition: all 0.2s ease;
+    position: relative;
+}
+
+.sffc-featured-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background: var(--sffc-gold);
+}
+
+.sffc-featured-card:hover {
+    background: var(--sffc-navy-light);
+    color: var(--sffc-bg-white);
+}
+
+.sffc-featured-route {
+    font-family: var(--sffc-font-display);
+    font-size: 1rem;
+    font-weight: 400;
+    margin-bottom: var(--sffc-space-sm);
+}
+
+.sffc-featured-benefit {
+    font-size: 0.75rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--sffc-gold-light);
+}
+
+/* ==========================================================================
+   Jobs Grid - Opportunity Cards
+   ========================================================================== */
+
+.sffc-jobs-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: var(--sffc-space-md);
+    margin-bottom: var(--sffc-space-lg);
+}
+
+.sffc-job-card {
+    background: var(--sffc-bg-light);
+    padding: var(--sffc-space-lg);
+    border: 1px solid var(--sffc-border);
+    transition: all 0.2s ease;
+}
+
+.sffc-job-card:hover {
+    border-color: var(--sffc-navy);
+    background: var(--sffc-bg-white);
+}
+
+.sffc-job-title {
+    font-size: 0.9375rem;
+    font-weight: 500;
+    margin: 0 0 var(--sffc-space-sm);
+    line-height: 1.4;
+}
+
+.sffc-job-title a {
+    color: var(--sffc-navy);
+    text-decoration: none;
+}
+
+.sffc-job-title a:hover {
+    color: var(--sffc-gold-muted);
+}
+
+.sffc-job-company {
+    font-size: 0.8125rem;
+    color: var(--sffc-text-secondary);
+    margin-bottom: var(--sffc-space-xs);
+}
+
+.sffc-job-location,
+.sffc-job-salary {
+    font-size: 0.75rem;
+    color: var(--sffc-text-muted);
+}
+
+.sffc-jobs-cta {
+    text-align: left;
+    padding-top: var(--sffc-space-md);
+}
+
+/* ==========================================================================
+   Sidebar - Executive Summary Panel
+   ========================================================================== */
+
+.sffc-sidebar {
+    position: sticky;
+    top: var(--sffc-space-xl);
+    height: fit-content;
+}
+
+.sffc-sidebar-cta {
+    background: var(--sffc-navy);
+    color: var(--sffc-bg-white);
+    padding: var(--sffc-space-xl);
+    margin-bottom: var(--sffc-space-lg);
+    position: relative;
+}
+
+.sffc-sidebar-cta::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--sffc-gold);
+}
+
+.sffc-sidebar-cta h3 {
+    font-family: var(--sffc-font-display);
+    margin: 0 0 var(--sffc-space-sm);
+    font-size: 1.125rem;
+    font-weight: 400;
+    color: var(--sffc-bg-white);
+}
+
+.sffc-sidebar-cta p {
+    margin: 0 0 var(--sffc-space-md);
+    opacity: 0.85;
+    font-size: 0.875rem;
+    line-height: 1.5;
+}
+
+.sffc-sidebar-box {
+    background: var(--sffc-bg-white);
+    border: 1px solid var(--sffc-border);
+    padding: var(--sffc-space-lg);
+    margin-bottom: var(--sffc-space-lg);
+}
+
+.sffc-sidebar-box h3 {
+    font-family: var(--sffc-font-display);
+    font-size: 0.9375rem;
+    font-weight: 400;
+    color: var(--sffc-navy);
+    margin: 0 0 var(--sffc-space-md);
+    padding-bottom: var(--sffc-space-sm);
+    border-bottom: 1px solid var(--sffc-border);
+}
+
+.sffc-quick-facts {
+    margin: 0;
+}
+
+.sffc-fact-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--sffc-space-sm) 0;
+    border-bottom: 1px solid var(--sffc-border-light);
+}
+
+.sffc-fact-row:last-child {
+    border-bottom: none;
+}
+
+.sffc-fact-row dt {
+    color: var(--sffc-text-muted);
+    font-size: 0.8125rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.sffc-fact-row dd {
+    color: var(--sffc-navy);
+    font-weight: 500;
+    margin: 0;
+    font-size: 0.875rem;
+}
+
+/* ==========================================================================
+   Newsletter Form - Subscription Module
+   ========================================================================== */
+
+.sffc-newsletter-box p {
+    font-size: 0.8125rem;
+    color: var(--sffc-text-secondary);
+    margin: 0 0 var(--sffc-space-md);
+    line-height: 1.5;
+}
+
+.sffc-newsletter-form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sffc-space-sm);
+}
+
+.sffc-newsletter-form input[type="email"] {
+    padding: 0.75rem var(--sffc-space-md);
+    border: 1px solid var(--sffc-border-dark);
+    font-size: 0.875rem;
+    font-family: var(--sffc-font-body);
+}
+
+.sffc-newsletter-form input[type="email"]:focus {
+    outline: none;
+    border-color: var(--sffc-navy);
+}
+
+.sffc-newsletter-form input[type="email"]::placeholder {
+    color: var(--sffc-text-light);
+}
+
+.sffc-newsletter-message {
+    font-size: 0.75rem;
+    padding: var(--sffc-space-sm);
+    text-align: center;
+    display: none;
+}
+
+.sffc-newsletter-message.sffc-success {
+    display: block;
+    background: #e8f5e9;
+    color: var(--sffc-positive);
+    border: 1px solid #c8e6c9;
+}
+
+.sffc-newsletter-message.sffc-error {
+    display: block;
+    background: #ffebee;
+    color: var(--sffc-negative);
+    border: 1px solid #ffcdd2;
+}
+
+/* ==========================================================================
+   Tax & Visa Insights - Key Information Lists
+   ========================================================================== */
+
+.sffc-tax-insights ul,
+.sffc-visa-tips ul {
+    list-style: none;
+    padding: 0;
+    margin: var(--sffc-space-md) 0 0;
+}
+
+.sffc-tax-insights li,
+.sffc-visa-tips li {
+    padding: var(--sffc-space-sm) 0 var(--sffc-space-sm) var(--sffc-space-lg);
+    position: relative;
+    color: var(--sffc-text-secondary);
+    font-size: 0.9375rem;
+    border-bottom: 1px solid var(--sffc-border-light);
+}
+
+.sffc-tax-insights li:last-child,
+.sffc-visa-tips li:last-child {
+    border-bottom: none;
+}
+
+.sffc-tax-insights li::before,
+.sffc-visa-tips li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 1rem;
+    width: 6px;
+    height: 1px;
+    background: var(--sffc-gold);
+}
+
+/* ==========================================================================
+   Cost of Living Summary
+   ========================================================================== */
+
+.sffc-col-summary {
+    background: var(--sffc-bg-warm);
+    border-left: 3px solid var(--sffc-gold);
+    padding: var(--sffc-space-md) var(--sffc-space-lg);
+    margin-bottom: var(--sffc-space-xl);
+}
+
+.sffc-col-summary p {
+    margin: 0;
+    font-size: 1rem;
+    color: var(--sffc-text-secondary);
+}
+
+.sffc-col-summary strong {
+    color: var(--sffc-navy);
+    font-weight: 600;
+}
+
+/* ==========================================================================
+   Archive CTA - Call to Action Section
+   ========================================================================== */
+
+.sffc-archive-cta {
+    background: var(--sffc-bg-warm);
+    border: 1px solid var(--sffc-border);
+    padding: var(--sffc-space-3xl);
+    text-align: center;
+    margin-top: var(--sffc-space-2xl);
+}
+
+.sffc-archive-cta h2 {
+    font-family: var(--sffc-font-display);
+    font-size: 1.5rem;
+    font-weight: 400;
+    color: var(--sffc-navy);
+    margin: 0 0 var(--sffc-space-sm);
+}
+
+.sffc-archive-cta p {
+    color: var(--sffc-text-secondary);
+    margin-bottom: var(--sffc-space-lg);
+    font-size: 1rem;
+}
+
+/* ==========================================================================
+   Related Routes
+   ========================================================================== */
+
+.sffc-related-routes .sffc-routes-grid {
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+}
+
+.sffc-related-routes .sffc-route-card {
+    padding: var(--sffc-space-md);
+}
+
+/* ==========================================================================
+   Error State
+   ========================================================================== */
+
+.sffc-error {
+    background: #ffebee;
+    border: 1px solid #ffcdd2;
+    padding: var(--sffc-space-lg);
+    text-align: center;
+    color: var(--sffc-negative);
+}
+
+.sffc-error p {
+    margin: 0;
+    font-size: 0.9375rem;
+}
+
+/* ==========================================================================
+   Comparison Wrapper
+   ========================================================================== */
+
+.sffc-comparison-wrapper {
+    margin: var(--sffc-space-xl) 0;
+}
+
+/* ==========================================================================
+   Data Metrics - KPI Display
+   ========================================================================== */
+
+.sffc-metrics-row {
+    display: flex;
+    gap: var(--sffc-space-md);
+    flex-wrap: wrap;
+    margin-bottom: var(--sffc-space-lg);
+}
+
+.sffc-metric-card {
+    flex: 1;
+    min-width: 120px;
+    background: var(--sffc-bg-light);
+    border: 1px solid var(--sffc-border);
+    padding: var(--sffc-space-md);
+    text-align: center;
+}
+
+.sffc-metric-value {
+    font-family: var(--sffc-font-display);
+    font-size: 1.5rem;
+    font-weight: 400;
+    color: var(--sffc-navy);
+    display: block;
+}
+
+.sffc-metric-label {
+    font-size: 0.6875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--sffc-text-muted);
+    margin-top: var(--sffc-space-xs);
+    display: block;
+}
+
+.sffc-metric-change {
+    font-size: 0.75rem;
+    font-weight: 500;
+    margin-top: var(--sffc-space-xs);
+    display: block;
+}
+
+.sffc-metric-change.positive {
+    color: var(--sffc-positive);
+}
+
+.sffc-metric-change.negative {
+    color: var(--sffc-negative);
+}
+
+.sffc-metric-change.neutral {
+    color: var(--sffc-neutral);
+}
+
+/* ==========================================================================
+   Responsive Styles
+   ========================================================================== */
+
+@media (max-width: 1024px) {
+    .sffc-relocation-content {
+        grid-template-columns: 1fr;
+        gap: var(--sffc-space-xl);
+    }
+
+    .sffc-sidebar {
+        position: static;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: var(--sffc-space-md);
+    }
+
+    .sffc-sidebar-box,
+    .sffc-sidebar-cta {
+        margin-bottom: 0;
+    }
+}
+
+@media (max-width: 768px) {
+    :root {
+        --sffc-space-xl: 1.5rem;
+        --sffc-space-2xl: 2rem;
+        --sffc-space-3xl: 2.5rem;
+    }
+
+    .sffc-hero {
+        padding: var(--sffc-space-2xl) var(--sffc-space-md);
+    }
+
+    .sffc-hero-title {
+        font-size: 2.75rem;
+    }
+
+    .sffc-hero-stats {
+        gap: var(--sffc-space-xl);
+    }
+
+    .sffc-stat-value {
+        font-size: 1.75rem;
+    }
+
+    .sffc-section {
+        padding: var(--sffc-space-lg) 0;
+    }
+
+    .sffc-quick-nav {
+        position: static;
+        overflow-x: auto;
+        flex-wrap: nowrap;
+        padding-bottom: var(--sffc-space-md);
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .sffc-quick-nav a {
+        white-space: nowrap;
+    }
+
+    .sffc-form-row {
+        flex-direction: column;
+    }
+
+    .sffc-form-group {
+        width: 100%;
+        min-width: 100%;
+    }
+
+    .sffc-form-arrow {
+        transform: rotate(90deg);
+        padding: var(--sffc-space-sm) 0;
+        text-align: center;
+        width: 100%;
+    }
+
+    .sffc-btn {
+        width: 100%;
+    }
+
+    .sffc-routes-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .sffc-archive-cta {
+        padding: var(--sffc-space-xl) var(--sffc-space-md);
+    }
+
+    .sffc-route-finder {
+        padding: var(--sffc-space-lg);
+    }
+}
+
+@media (max-width: 480px) {
+    .sffc-hero-title {
+        font-size: 2.25rem;
+    }
+
+    .sffc-hero-subtitle {
+        font-size: 1rem;
+    }
+
+    .sffc-relocation-content,
+    .sffc-archive-content {
+        padding: 0 var(--sffc-space-md);
+    }
+}
+
+/* ==========================================================================
+   Print Styles - Research Report Format
+   ========================================================================== */
+
+@media print {
+    .sffc-hero {
+        background: none !important;
+        color: var(--sffc-text) !important;
+        padding: var(--sffc-space-md) 0;
+        border-bottom: 2px solid var(--sffc-navy);
+    }
+
+    .sffc-hero::after {
+        display: none;
+    }
+
+    .sffc-highlight {
+        color: var(--sffc-navy) !important;
+    }
+
+    .sffc-hero-stats {
+        border-top-color: var(--sffc-border);
+    }
+
+    .sffc-stat-value {
+        color: var(--sffc-navy) !important;
+    }
+
+    .sffc-quick-nav,
+    .sffc-sidebar,
+    .sffc-newsletter-form,
+    .sffc-btn,
+    .sffc-archive-cta,
+    .sffc-route-finder {
+        display: none !important;
+    }
+
+    .sffc-relocation-content {
+        grid-template-columns: 1fr;
+    }
+
+    .sffc-section {
+        border: none;
+        padding: var(--sffc-space-md) 0;
+        page-break-inside: avoid;
+    }
+
+    .sffc-section h2 {
+        border-bottom-color: var(--sffc-navy);
+    }
+
+    .sffc-featured-card {
+        background: none !important;
+        color: var(--sffc-text) !important;
+        border: 1px solid var(--sffc-border);
+    }
+
+    .sffc-featured-card::before {
+        display: none;
+    }
+
+    .sffc-sidebar-cta {
+        display: none;
+    }
+}
+
+/* ==========================================================================
+   Utility Classes
+   ========================================================================== */
+
+.sffc-text-gold {
+    color: var(--sffc-gold);
+}
+
+.sffc-text-navy {
+    color: var(--sffc-navy);
+}
+
+.sffc-text-muted {
+    color: var(--sffc-text-muted);
+}
+
+.sffc-border-gold {
+    border-color: var(--sffc-gold);
+}
+
+.sffc-bg-warm {
+    background: var(--sffc-bg-warm);
+}
+
+.sffc-uppercase {
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.sffc-font-display {
+    font-family: var(--sffc-font-display);
+}

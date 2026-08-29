@@ -1,0 +1,385 @@
+/**
+ * Recruiter Introduction Admin Styles
+ */
+
+.sffc-intro-admin {
+    max-width: 1400px;
+}
+
+/* Stats */
+.sffc-intro-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin: 20px 0;
+}
+
+.sffc-intro-stat {
+    background: #fff;
+    border: 1px solid #c3c4c7;
+    border-radius: 4px;
+    padding: 20px;
+    text-align: center;
+}
+
+.sffc-intro-stat-value {
+    display: block;
+    font-size: 32px;
+    font-weight: 600;
+    color: #1d2327;
+}
+
+.sffc-intro-stat-label {
+    display: block;
+    font-size: 12px;
+    color: #50575e;
+    text-transform: uppercase;
+    margin-top: 4px;
+}
+
+/* Filters */
+.sffc-intro-filters {
+    background: #fff;
+    border: 1px solid #c3c4c7;
+    border-radius: 4px;
+    padding: 16px;
+    margin-bottom: 20px;
+}
+
+.sffc-intro-filters form {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.sffc-intro-filters select,
+.sffc-intro-filters input[type="search"] {
+    min-width: 150px;
+}
+
+/* Table */
+.sffc-intro-table {
+    background: #fff;
+}
+
+.sffc-intro-table th {
+    font-weight: 600;
+}
+
+.sffc-intro-table .column-candidate {
+    width: 25%;
+}
+
+.sffc-intro-table .column-job {
+    width: 25%;
+}
+
+.sffc-intro-table .column-score {
+    width: 10%;
+    text-align: center;
+}
+
+.sffc-intro-table .column-status {
+    width: 15%;
+}
+
+.sffc-intro-table .column-date {
+    width: 12%;
+}
+
+.sffc-intro-table .column-actions {
+    width: 13%;
+}
+
+.sffc-intro-email,
+.sffc-intro-company {
+    font-size: 12px;
+    color: #50575e;
+}
+
+.sffc-intro-empty {
+    text-align: center;
+    padding: 40px !important;
+    color: #50575e;
+}
+
+/* Score badges */
+.sffc-intro-score {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.sffc-intro-score-high {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.sffc-intro-score-medium {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.sffc-intro-score-low {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+/* Status badges */
+.sffc-intro-status {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.sffc-intro-status-pending_review {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.sffc-intro-status-approved {
+    background: #dbeafe;
+    color: #1e40af;
+}
+
+.sffc-intro-status-sent {
+    background: #e0e7ff;
+    color: #3730a3;
+}
+
+.sffc-intro-status-awaiting_response {
+    background: #fce7f3;
+    color: #9d174d;
+}
+
+.sffc-intro-status-accepted {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.sffc-intro-status-rejected {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.sffc-intro-status-expired {
+    background: #f3f4f6;
+    color: #6b7280;
+}
+
+/* Single Request View */
+.sffc-intro-single h1 a {
+    text-decoration: none;
+    margin-right: 8px;
+}
+
+.sffc-intro-detail-grid {
+    display: grid;
+    grid-template-columns: 1fr 350px;
+    gap: 24px;
+    margin-top: 20px;
+}
+
+.sffc-intro-card {
+    background: #fff;
+    border: 1px solid #c3c4c7;
+    border-radius: 4px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.sffc-intro-card h3 {
+    margin: 0 0 16px 0;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #e5e7eb;
+    font-size: 14px;
+    text-transform: uppercase;
+    color: #50575e;
+}
+
+.sffc-intro-card h4 {
+    margin: 20px 0 8px 0;
+    font-size: 13px;
+    color: #1d2327;
+}
+
+/* Candidate display */
+.sffc-intro-candidate {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.sffc-intro-candidate img {
+    border-radius: 50%;
+}
+
+.sffc-intro-candidate-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.sffc-intro-candidate-info strong {
+    font-size: 16px;
+}
+
+.sffc-intro-candidate-info span {
+    font-size: 13px;
+    color: #50575e;
+}
+
+/* Message display */
+.sffc-intro-message,
+.sffc-intro-pitch,
+.sffc-intro-response,
+.sffc-intro-feedback {
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 4px;
+    padding: 16px;
+    font-size: 14px;
+    line-height: 1.6;
+    white-space: pre-wrap;
+}
+
+.sffc-intro-pitch {
+    background: #eff6ff;
+    border-color: #bfdbfe;
+}
+
+/* Job display */
+.sffc-intro-job {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.sffc-intro-job strong {
+    font-size: 16px;
+}
+
+.sffc-intro-job span {
+    color: #50575e;
+}
+
+.sffc-intro-job .button {
+    align-self: flex-start;
+    margin-top: 8px;
+}
+
+/* Status actions */
+.sffc-intro-status-actions {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid #e5e7eb;
+}
+
+.sffc-intro-status-actions label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    font-size: 12px;
+    color: #50575e;
+}
+
+.sffc-intro-status-actions .button {
+    display: block;
+    width: 100%;
+    margin-bottom: 8px;
+    text-align: center;
+}
+
+/* Forms in sidebar */
+.sffc-intro-pitch-form,
+.sffc-intro-response-form {
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px solid #e5e7eb;
+}
+
+.sffc-intro-pitch-form label,
+.sffc-intro-response-form label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    font-size: 12px;
+    color: #50575e;
+}
+
+.sffc-intro-pitch-form textarea,
+.sffc-intro-response-form textarea {
+    width: 100%;
+    margin-bottom: 12px;
+    resize: vertical;
+}
+
+.sffc-intro-response-btns {
+    display: flex;
+    gap: 8px;
+}
+
+.sffc-intro-response-btns .button {
+    flex: 1;
+}
+
+/* Timeline */
+.sffc-intro-timeline {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.sffc-intro-timeline li {
+    padding: 12px 0;
+    border-bottom: 1px solid #e5e7eb;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.sffc-intro-timeline li:last-child {
+    border-bottom: none;
+}
+
+.sffc-intro-timeline-date {
+    font-size: 11px;
+    color: #6b7280;
+}
+
+.sffc-intro-timeline-event {
+    font-size: 13px;
+    font-weight: 500;
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+    .sffc-intro-stats {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .sffc-intro-detail-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 782px) {
+    .sffc-intro-stats {
+        grid-template-columns: 1fr;
+    }
+
+    .sffc-intro-filters form {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .sffc-intro-table .column-score,
+    .sffc-intro-table .column-date {
+        display: none;
+    }
+}

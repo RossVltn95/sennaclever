@@ -1,0 +1,407 @@
+/**
+ * Premium Authentication Form Styles
+ * Elegant login/signup UI with cream, forest green, and gold theme
+ */
+
+/* ============================================
+   COLOR PALETTE
+   ============================================ */
+:root {
+    --auth-cream: #FBF7F0;
+    --auth-dark-cream: #F5EFE6;
+    --auth-forest-green: #1A3028;
+    --auth-dark-forest: #0F1F18;
+    --auth-gold: #C9A961;
+    --auth-dark-gold: #B8935A;
+    --auth-light-gold: #E5D4A1;
+}
+
+/* ============================================
+   OVERLAY
+   ============================================ */
+.premium-auth-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(26, 48, 40, 0.8);
+    backdrop-filter: blur(10px);
+    z-index: 100000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.premium-auth-overlay.active {
+    opacity: 1;
+}
+
+/* ============================================
+   PANEL
+   ============================================ */
+.premium-auth-panel {
+    background: var(--auth-cream);
+    border-radius: 24px;
+    width: 90%;
+    max-width: 520px;
+    box-shadow: 
+        0 30px 80px rgba(26, 48, 40, 0.35),
+        0 10px 40px rgba(201, 169, 97, 0.15);
+    position: relative;
+    transform: translateY(20px);
+    transition: transform 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+    overflow: hidden;
+    border: 1px solid rgba(201, 169, 97, 0.2);
+}
+
+.premium-auth-overlay.active .premium-auth-panel {
+    transform: translateY(0);
+}
+
+/* Gold accent border */
+.premium-auth-panel::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--auth-gold) 0%, var(--auth-light-gold) 50%, var(--auth-gold) 100%);
+    background-size: 200% auto;
+    animation: shimmerGradient 3s ease-in-out infinite;
+}
+
+@keyframes shimmerGradient {
+    0% { background-position: 0% center; }
+    50% { background-position: 100% center; }
+    100% { background-position: 0% center; }
+}
+
+/* ============================================
+   CLOSE BUTTON
+   ============================================ */
+.auth-close {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(26, 48, 40, 0.05);
+    border: 1px solid rgba(201, 169, 97, 0.15);
+    border-radius: 50%;
+    font-size: 22px;
+    color: var(--auth-forest-green);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    z-index: 10;
+}
+
+.auth-close:hover {
+    background: var(--auth-gold);
+    border-color: var(--auth-gold);
+    color: white;
+    transform: rotate(90deg);
+}
+
+/* ============================================
+   CONTENT
+   ============================================ */
+.auth-content {
+    padding: 56px 48px 32px;
+}
+
+.auth-avatar {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 28px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--auth-gold) 0%, var(--auth-dark-gold) 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 
+        0 8px 24px rgba(201, 169, 97, 0.25),
+        0 4px 12px rgba(201, 169, 97, 0.15);
+    position: relative;
+    overflow: hidden;
+}
+
+.auth-avatar::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(45deg, 
+        transparent 30%, 
+        rgba(255, 255, 255, 0.3) 50%, 
+        transparent 70%);
+    animation: shimmerAvatar 3s ease-in-out infinite;
+}
+
+@keyframes shimmerAvatar {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.auth-avatar svg {
+    width: 48px;
+    height: 48px;
+    color: white;
+    position: relative;
+    z-index: 1;
+}
+
+/* ============================================
+   MESSAGE
+   ============================================ */
+.auth-message {
+    text-align: center;
+    margin-bottom: 36px;
+}
+
+.auth-title {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--auth-forest-green);
+    margin: 0 0 12px 0;
+    letter-spacing: -0.5px;
+}
+
+.auth-message p {
+    font-size: 16px;
+    line-height: 1.6;
+    color: var(--auth-forest-green);
+    opacity: 0.85;
+    margin: 0;
+}
+
+/* ============================================
+   ACTIONS
+   ============================================ */
+.auth-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin-bottom: 32px;
+}
+
+.auth-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 16px 24px;
+    border: none;
+    border-radius: 14px;
+    font-size: 16px;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.auth-btn svg {
+    width: 20px;
+    height: 20px;
+    transition: transform 0.3s ease;
+}
+
+.auth-btn.primary {
+    background: linear-gradient(135deg, var(--auth-gold) 0%, var(--auth-dark-gold) 100%);
+    color: white;
+    box-shadow: 
+        0 4px 16px rgba(201, 169, 97, 0.25),
+        0 2px 8px rgba(201, 169, 97, 0.15);
+}
+
+.auth-btn.primary::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, 
+        transparent, 
+        rgba(255, 255, 255, 0.3), 
+        transparent);
+    transition: left 0.5s ease;
+}
+
+.auth-btn.primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 
+        0 8px 24px rgba(201, 169, 97, 0.35),
+        0 4px 12px rgba(201, 169, 97, 0.25);
+    background: linear-gradient(135deg, var(--auth-dark-gold) 0%, var(--auth-gold) 100%);
+}
+
+.auth-btn.primary:hover::before {
+    left: 100%;
+}
+
+.auth-btn.primary:hover svg {
+    transform: translateX(3px);
+}
+
+.auth-btn.secondary {
+    background: var(--auth-forest-green);
+    color: var(--auth-cream);
+    border: 2px solid var(--auth-forest-green);
+    box-shadow: 0 2px 8px rgba(26, 48, 40, 0.1);
+}
+
+.auth-btn.secondary:hover {
+    background: var(--auth-dark-forest);
+    border-color: var(--auth-dark-forest);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(26, 48, 40, 0.2);
+}
+
+.auth-btn.secondary:hover svg {
+    transform: scale(1.1);
+}
+
+/* ============================================
+   BENEFITS
+   ============================================ */
+.auth-benefits {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 24px;
+    background: linear-gradient(135deg, 
+        rgba(201, 169, 97, 0.05) 0%, 
+        rgba(201, 169, 97, 0.08) 100%);
+    border-radius: 16px;
+    border: 1px solid rgba(201, 169, 97, 0.12);
+}
+
+.benefit-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 14px;
+    color: var(--auth-forest-green);
+}
+
+.benefit-item svg {
+    width: 16px;
+    height: 16px;
+    color: var(--auth-gold);
+    flex-shrink: 0;
+}
+
+/* ============================================
+   FOOTER
+   ============================================ */
+.auth-footer {
+    padding: 20px 48px;
+    background: linear-gradient(180deg, 
+        transparent 0%, 
+        var(--auth-dark-cream) 100%);
+    border-top: 1px solid rgba(201, 169, 97, 0.1);
+}
+
+.auth-security {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--auth-forest-green);
+    opacity: 0.7;
+}
+
+.auth-security svg {
+    width: 14px;
+    height: 14px;
+    color: var(--auth-gold);
+}
+
+/* ============================================
+   ANIMATIONS
+   ============================================ */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.auth-content > * {
+    animation: fadeInUp 0.5s ease forwards;
+    animation-fill-mode: both;
+}
+
+.auth-avatar {
+    animation-delay: 0.1s;
+}
+
+.auth-message {
+    animation-delay: 0.2s;
+}
+
+.auth-actions {
+    animation-delay: 0.3s;
+}
+
+.auth-benefits {
+    animation-delay: 0.4s;
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+@media (max-width: 540px) {
+    .premium-auth-panel {
+        width: 95%;
+        margin: 16px;
+        border-radius: 20px;
+    }
+    
+    .auth-content {
+        padding: 48px 32px 24px;
+    }
+    
+    .auth-title {
+        font-size: 24px;
+    }
+    
+    .auth-message p {
+        font-size: 15px;
+    }
+    
+    .auth-btn {
+        padding: 14px 20px;
+        font-size: 15px;
+    }
+    
+    .auth-avatar {
+        width: 72px;
+        height: 72px;
+    }
+    
+    .auth-avatar svg {
+        width: 40px;
+        height: 40px;
+    }
+    
+    .auth-footer {
+        padding: 16px 32px;
+    }
+}

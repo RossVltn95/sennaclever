@@ -1,0 +1,364 @@
+/**
+ * Mobile Chat Edge-to-Edge Layout
+ * Makes chat content fill the entire screen like Kindle reading experience
+ * ONLY affects mobile - desktop remains unchanged
+ */
+
+@media (max-width: 768px) {
+  /* ========================================
+       EDGE-TO-EDGE MESSAGE LAYOUT
+       ======================================== */
+
+  /* Add comfortable padding from screen edges for messages */
+  body.mobile-interface-v2 .sffc-message,
+  body.mobile-interface-v2 .senna-message {
+    padding: 0 20px !important; /* Add side padding to prevent edge touching */
+    margin: 0 !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Specific override for MENA Careers messages */
+  body.mobile-interface-v2 .sffc-message-senna {
+    padding: 0 20px !important; /* Consistent padding for MENA Careers messages */
+    margin-bottom: 20px !important;
+    position: relative !important; /* For avatar positioning */
+    display: block !important;
+  }
+
+  /* MENA Careers avatar positioning for mobile-interface-v2 */
+  body.mobile-interface-v2 .sffc-message-senna .senna-avatar {
+    position: absolute !important;
+    left: 20px !important; /* Account for message padding */
+    top: 0 !important;
+    width: 48px !important;
+    height: 48px !important;
+    z-index: 1 !important;
+  }
+
+  /* Message content - maintain avatar alignment */
+  body.mobile-interface-v2 .message-content,
+  body.mobile-interface-v2 .sffc-message-content {
+    padding: 24px 0 !important; /* Only vertical padding for separation */
+    margin: 0 !important;
+    width: 100% !important;
+  }
+
+  /* MENA Careers message content needs avatar alignment */
+  body.mobile-interface-v2 .sffc-message-senna .sffc-message-content {
+    margin-left: 4px !important; /* Avatar alignment - same as desktop */
+    padding: 0 !important;
+  }
+
+  /* MENA Careers message content alignment fix for mobile */
+  body.mobile-interface-v2 .sffc-message-senna .message-text,
+  body.mobile-interface-v2 .sffc-message-senna .job-cards-container,
+  body.mobile-interface-v2 .sffc-message-senna .jobs-grid,
+  body.mobile-interface-v2 .sffc-message-senna .option-cards,
+  body.mobile-interface-v2 .sffc-message-senna .quick-options {
+    margin-left: -64px !important;
+    padding-left: 64px !important;
+    padding-right: 4px !important;
+  }
+
+  /* Message text - comfortable padding for readability */
+  body.mobile-interface-v2 .message-text,
+  body.mobile-interface-v2 .sffc-message-text {
+    padding: 0 4px !important; /* Minimal additional padding since message already has 20px */
+    margin: 0 !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+
+    /* Larger, more readable text */
+    font-size: 20px !important; /* Increased from 18px */
+    line-height: 1.9 !important; /* More generous line height */
+    font-family: "Georgia", "Cambria", "Charter", serif !important;
+    color: #1a1a1a !important; /* Darker for better contrast */
+    letter-spacing: 0.2px !important;
+    word-spacing: 0.3px !important;
+    text-rendering: optimizeLegibility !important;
+    -webkit-font-smoothing: antialiased !important;
+  }
+
+  /* Paragraphs within messages */
+  body.mobile-interface-v2 .message-text p {
+    margin: 0 0 16px 0 !important; /* Increased paragraph spacing */
+    font-size: 20px !important;
+    line-height: 1.9 !important;
+  }
+
+  /* Headers in messages - make them stand out */
+  body.mobile-interface-v2 .message-text h1,
+  body.mobile-interface-v2 .message-text h2,
+  body.mobile-interface-v2 .message-text h3 {
+    padding: 0 16px !important;
+    margin: 24px 0 16px 0 !important;
+    font-weight: 700 !important;
+    color: #0d353e !important;
+    line-height: 1.3 !important;
+  }
+
+  body.mobile-interface-v2 .message-text h1 {
+    font-size: 28px !important;
+  }
+  body.mobile-interface-v2 .message-text h2 {
+    font-size: 24px !important;
+  }
+  body.mobile-interface-v2 .message-text h3 {
+    font-size: 22px !important;
+  }
+
+  /* Lists - better spacing and alignment */
+  body.mobile-interface-v2 .message-text ul,
+  body.mobile-interface-v2 .message-text ol {
+    margin: 16px 0 !important;
+    padding-left: 36px !important; /* Indent for readability */
+    padding-right: 16px !important;
+  }
+
+  body.mobile-interface-v2 .message-text li {
+    margin: 8px 0 !important;
+    font-size: 20px !important;
+    line-height: 1.9 !important;
+  }
+
+  /* ========================================
+       VISUAL COMPONENTS - EDGE TO EDGE
+       ======================================== */
+
+  /* Job cards - full width bleed */
+  body.mobile-interface-v2 .sffc-match-card,
+  body.mobile-interface-v2 .job-card,
+  body.mobile-interface-v2 .job-card-vogue,
+  body.mobile-interface-v2 article.job-card {
+    margin: 0 0 2px 0 !important; /* Minimal vertical gap */
+    padding: 20px 16px !important;
+    border-radius: 0 !important; /* Remove rounded corners */
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Images and media - full bleed */
+  body.mobile-interface-v2 .message-text img,
+  body.mobile-interface-v2 .message-content img {
+    width: 100vw !important;
+    max-width: 100vw !important;
+    margin-left: -16px !important; /* Compensate for text padding */
+    margin-right: -16px !important;
+    height: auto !important;
+    display: block !important;
+    margin-top: 16px !important;
+    margin-bottom: 16px !important;
+  }
+
+  /* Code blocks - edge to edge with background */
+  body.mobile-interface-v2 .message-text pre {
+    margin: 16px -16px !important; /* Negative margin for full width */
+    padding: 16px !important;
+    border-radius: 0 !important;
+    background: #f8f9fa !important;
+    border-left: 4px solid #1a472a !important;
+    overflow-x: auto !important;
+    font-size: 16px !important;
+  }
+
+  body.mobile-interface-v2 .message-text code {
+    font-size: 16px !important;
+    padding: 3px 6px !important;
+    background: rgba(30, 58, 95, 0.06) !important;
+  }
+
+  /* Blockquotes - magazine style */
+  body.mobile-interface-v2 .message-text blockquote {
+    margin: 20px 0 !important;
+    padding: 16px !important;
+    padding-left: 24px !important;
+    border-left: 4px solid #d4af37 !important;
+    background: rgba(212, 175, 55, 0.05) !important;
+    font-style: italic !important;
+    font-size: 19px !important;
+  }
+
+  /* Tables - responsive and edge-to-edge */
+  body.mobile-interface-v2 .message-text table {
+    width: calc(100% + 32px) !important;
+    margin: 16px -16px !important;
+    border-collapse: collapse !important;
+    font-size: 18px !important;
+  }
+
+  body.mobile-interface-v2 .message-text th,
+  body.mobile-interface-v2 .message-text td {
+    padding: 12px 16px !important;
+    border-bottom: 1px solid rgba(30, 58, 95, 0.1) !important;
+    text-align: left !important;
+  }
+
+  body.mobile-interface-v2 .message-text th {
+    background: rgba(30, 58, 95, 0.05) !important;
+    font-weight: 600 !important;
+  }
+
+  /* ========================================
+       SPECIAL CONTENT TYPES
+       ======================================== */
+
+  /* User messages - subtle distinction without padding */
+  body.mobile-interface-v2 .senna-message.user .message-content {
+    border-left: 3px solid #1a472a !important;
+    padding-left: 0 !important; /* Changed to 0 to match assistant messages */
+    margin-left: 0 !important;
+  }
+
+  /* User message text - add padding to text instead of container */
+  body.mobile-interface-v2 .senna-message.user .message-text {
+    padding-left: 16px !important;
+  }
+
+  /* Assistant messages - no special treatment */
+  body.mobile-interface-v2 .senna-message.assistant .message-content {
+    border-left: none !important;
+    padding-left: 0 !important;
+  }
+
+  /* Typing indicator - edge aligned */
+  body.mobile-interface-v2 .typing-indicator {
+    padding: 16px !important;
+    margin: 0 !important;
+  }
+
+  /* Loading messages */
+  body.mobile-interface-v2 .sffc-loading {
+    padding: 24px 16px !important;
+    margin: 0 !important;
+  }
+
+  /* ========================================
+       BUTTONS AND INTERACTIVE ELEMENTS
+       ======================================== */
+
+  /* Buttons in messages - full width */
+  body.mobile-interface-v2 .message-text button,
+  body.mobile-interface-v2 .message-content button,
+  body.mobile-interface-v2 .message-text .btn,
+  body.mobile-interface-v2 .message-content .btn {
+    width: calc(100% - 32px) !important;
+    margin: 12px 16px !important;
+    padding: 16px !important;
+    font-size: 18px !important;
+    border-radius: 8px !important;
+  }
+
+  /* Option cards - edge to edge */
+  body.mobile-interface-v2 .option-cards {
+    margin: 0 !important;
+    padding: 0 !important;
+    gap: 2px !important;
+  }
+
+  body.mobile-interface-v2 .option-card {
+    margin: 0 !important;
+    border-radius: 0 !important;
+    padding: 16px !important;
+  }
+
+  /* ========================================
+       SEPARATORS AND DIVIDERS
+       ======================================== */
+
+  /* Horizontal rules - full width */
+  body.mobile-interface-v2 .message-text hr {
+    margin: 24px -16px !important;
+    border: none !important;
+    border-top: 1px solid rgba(30, 58, 95, 0.1) !important;
+  }
+
+  /* Message separators */
+  body.mobile-interface-v2 .sffc-message + .sffc-message {
+    border-top: 1px solid rgba(30, 58, 95, 0.05) !important;
+  }
+
+  /* ========================================
+       SCROLL CONTAINER ADJUSTMENTS
+       ======================================== */
+
+  /* Messages container - ensure no horizontal padding */
+  body.mobile-interface-v2 #senna-messages {
+    padding: 10px 0 80px 0 !important; /* Reduced top padding to show first message */
+    margin: 0 !important;
+    width: 100% !important;
+    overflow-x: hidden !important;
+  }
+
+  /* First message - ensure visibility */
+  body.mobile-interface-v2 #senna-messages .senna-message:first-child {
+    margin-top: 0 !important;
+    padding-top: 5px !important;
+  }
+
+  /* Conversation wrapper */
+  body.mobile-interface-v2 .sffc-senna-conversation,
+  body.mobile-interface-v2 .mobile-senna-conversation {
+    padding: 65px 0 0 0 !important; /* Reduced top padding to prevent overlap */
+    margin: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  /* ========================================
+       EMPHASIS AND HIGHLIGHTS
+       ======================================== */
+
+  /* Strong text - more prominent */
+  body.mobile-interface-v2 .message-text strong,
+  body.mobile-interface-v2 .message-text b {
+    font-weight: 700 !important;
+    color: #0d353e !important;
+    font-size: inherit !important;
+  }
+
+  /* Emphasized text */
+  body.mobile-interface-v2 .message-text em,
+  body.mobile-interface-v2 .message-text i {
+    font-style: italic !important;
+    color: inherit !important;
+  }
+
+  /* Links - more readable */
+  body.mobile-interface-v2 .message-text a {
+    color: #1a472a !important;
+    text-decoration: underline !important;
+    text-decoration-thickness: 1px !important;
+    text-underline-offset: 2px !important;
+    font-weight: 500 !important;
+  }
+
+  /* ========================================
+       RESPONSIVE ADJUSTMENTS
+       ======================================== */
+
+  /* Very small screens (iPhone SE, etc.) */
+  @media (max-width: 375px) {
+    body.mobile-interface-v2 .message-text {
+      font-size: 18px !important;
+      line-height: 1.8 !important;
+    }
+
+    body.mobile-interface-v2 .message-text p {
+      font-size: 18px !important;
+    }
+  }
+
+  /* Larger phones (iPhone Plus, etc.) */
+  @media (min-width: 414px) {
+    body.mobile-interface-v2 .message-text {
+      font-size: 21px !important;
+      line-height: 2 !important;
+    }
+
+    body.mobile-interface-v2 .message-text p {
+      font-size: 21px !important;
+    }
+  }
+}

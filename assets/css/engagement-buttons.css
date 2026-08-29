@@ -1,0 +1,218 @@
+/**
+ * Engagement Buttons Styling
+ * Professional, subtle button styles
+ */
+
+/* Above message buttons - subtle placement */
+.sffc-above-message-buttons {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 8px;
+    opacity: 0.7;
+    transition: opacity 0.3s ease;
+}
+
+.sffc-message-wrapper:hover .sffc-above-message-buttons {
+    opacity: 1;
+}
+
+/* Below message buttons - contextual actions */
+.sffc-below-message-buttons {
+    display: flex;
+    gap: 10px;
+    margin-top: 12px;
+    flex-wrap: wrap;
+}
+
+/* Engagement button base styles */
+.sffc-engagement-btn {
+    padding: 8px 16px;
+    border: 1px solid #e0e0e0;
+    background: #ffffff;
+    color: #333333;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+}
+
+.sffc-engagement-btn:hover {
+    background: #f8f9fa;
+    border-color: #0066cc;
+    color: #0066cc;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 102, 204, 0.1);
+}
+
+/* Subtle style for above buttons */
+.sffc-engagement-btn.sffc-btn-subtle {
+    background: transparent;
+    border: 1px solid #d0d0d0;
+    color: #666666;
+    font-size: 12px;
+    padding: 6px 12px;
+}
+
+.sffc-engagement-btn.sffc-btn-subtle:hover {
+    background: #f0f0f0;
+    border-color: #999999;
+    color: #333333;
+}
+
+/* Primary style for main actions */
+.sffc-engagement-btn.sffc-btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+}
+
+.sffc-engagement-btn.sffc-btn-primary:hover {
+    background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+}
+
+/* Mini engagement buttons */
+.sffc-mini-engagement-buttons {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+    justify-content: flex-end;
+}
+
+.sffc-mini-btn {
+    padding: 4px 10px;
+    border: 1px solid #e5e5e5;
+    background: #fafafa;
+    color: #666666;
+    border-radius: 12px;
+    font-size: 11px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.sffc-mini-btn:hover {
+    background: #0066cc;
+    color: white;
+    border-color: #0066cc;
+}
+
+.sffc-mini-btn.active {
+    background: #28a745;
+    color: white;
+    border-color: #28a745;
+}
+
+/* Name capture input */
+.sffc-name-capture {
+    display: flex;
+    gap: 10px;
+    margin-top: 12px;
+    padding: 12px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid #e0e0e0;
+}
+
+.sffc-name-input {
+    flex: 1;
+    padding: 8px 12px;
+    border: 1px solid #d0d0d0;
+    border-radius: 6px;
+    font-size: 14px;
+    transition: border-color 0.3s ease;
+}
+
+.sffc-name-input:focus {
+    outline: none;
+    border-color: #0066cc;
+    box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.1);
+}
+
+.sffc-name-input.error {
+    border-color: #dc3545;
+    animation: shake 0.5s;
+}
+
+.sffc-name-submit {
+    padding: 8px 20px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.sffc-name-submit:hover {
+    background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+}
+
+/* Notification styles */
+.sffc-notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    z-index: 10000;
+    animation: slideIn 0.3s ease;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.sffc-notification-success {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.sffc-notification-error {
+    background: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+/* Animations */
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+    .sffc-below-message-buttons {
+        flex-direction: column;
+    }
+    
+    .sffc-engagement-btn {
+        width: 100%;
+        text-align: center;
+    }
+    
+    .sffc-above-message-buttons {
+        justify-content: space-between;
+    }
+    
+    .sffc-mini-engagement-buttons {
+        justify-content: center;
+    }
+}

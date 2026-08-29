@@ -1,0 +1,741 @@
+/**
+ * Job Intelligence Package - Magazine Style
+ * Mobile-first responsive design
+ * @since 10.5.0
+ */
+
+/* ===================================
+   BASE STYLES - MOBILE FIRST
+   =================================== */
+
+.intelligence-package {
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: #FFFFFF;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+    animation: slideUp 0.4s ease-out;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Hero Section - WSJ Style */
+.intel-hero {
+    background: #FFFFFF;
+    padding: 24px 16px;
+    border-bottom: 4px double #000000;
+    position: relative;
+}
+
+.intel-company {
+    font-size: 12px;
+    font-weight: 600;
+    color: #003366;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 8px;
+    font-family: 'Georgia', serif;
+}
+
+.intel-role {
+    font-size: 32px;
+    font-weight: 300;
+    line-height: 1.1;
+    margin-bottom: 12px;
+    color: #000000;
+    font-family: 'Georgia', serif;
+}
+
+.intel-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    font-size: 12px;
+    color: #666666;
+    font-family: Arial, sans-serif;
+    border-top: 1px solid #E5E5E5;
+    padding-top: 12px;
+    margin-top: 12px;
+}
+
+.intel-meta-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.intel-meta-icon {
+    width: 16px;
+    height: 16px;
+    opacity: 0.8;
+}
+
+/* Executive Summary - WSJ Style */
+.intel-summary {
+    padding: 20px 16px;
+    border-bottom: 1px solid #DDDDDD;
+    background: #F7F7F7;
+}
+
+.intel-summary-text {
+    font-size: 16px;
+    line-height: 1.7;
+    color: #333333;
+    font-weight: 400;
+    font-family: 'Georgia', serif;
+}
+
+.intel-summary-highlight {
+    font-weight: 700;
+    color: #000000;
+}
+
+/* Section Headers - WSJ Style */
+.intel-section {
+    padding: 24px 16px;
+    border-bottom: 1px solid #DDDDDD;
+    background: #FFFFFF;
+}
+
+.intel-section:last-child {
+    border-bottom: none;
+}
+
+.intel-section-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: #000000;
+    margin-bottom: 16px;
+    font-family: 'Georgia', serif;
+    border-bottom: 2px solid #000000;
+    padding-bottom: 8px;
+}
+
+/* Opportunity Section - WSJ Style */
+.intel-opportunity-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.intel-opportunity-item {
+    padding: 12px 0;
+    border-bottom: 1px solid #EEEEEE;
+    font-size: 15px;
+    color: #333333;
+    line-height: 1.6;
+    font-family: Arial, sans-serif;
+}
+
+.intel-opportunity-item:last-child {
+    border-bottom: none;
+}
+
+.intel-opportunity-item::before {
+    content: '•';
+    color: #003366;
+    font-weight: 700;
+    margin-right: 8px;
+}
+
+.intel-opportunity-highlight {
+    color: #000000;
+    font-weight: 700;
+    font-style: italic;
+}
+
+/* Strategic Analysis - WSJ Style */
+.intel-analysis-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.intel-analysis-card {
+    background: #FAFAFA;
+    padding: 20px;
+    border-left: 3px solid #003366;
+}
+
+.intel-analysis-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: #000000;
+    margin-bottom: 12px;
+    font-family: 'Georgia', serif;
+}
+
+.intel-analysis-icon {
+    display: none;
+}
+
+.intel-analysis-content {
+    font-size: 13px;
+    color: #4B5563;
+    line-height: 1.5;
+}
+
+.intel-analysis-list {
+    list-style: none;
+    margin: 8px 0 0 0;
+    padding: 0;
+}
+
+.intel-analysis-list li {
+    padding: 6px 0;
+    padding-left: 20px;
+    position: relative;
+    font-size: 13px;
+    color: #374151;
+}
+
+.intel-analysis-list li::before {
+    content: '•';
+    position: absolute;
+    left: 0;
+    color: #3A7A85;
+    font-weight: 700;
+}
+
+/* Battle Plan - WSJ Style */
+.intel-battle-plan {
+    background: #FFFFFF;
+}
+
+.intel-step {
+    margin-bottom: 24px;
+    padding-left: 40px;
+    position: relative;
+}
+
+.intel-step-number {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 28px;
+    height: 28px;
+    background: #FFFFFF;
+    color: #003366;
+    border: 2px solid #003366;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 700;
+    font-family: 'Georgia', serif;
+}
+
+.intel-step-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: #000000;
+    margin-bottom: 10px;
+    font-family: 'Georgia', serif;
+}
+
+.intel-step-actions {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.intel-step-action {
+    padding: 4px 0;
+    font-size: 13px;
+    color: #4B5563;
+    padding-left: 16px;
+    position: relative;
+}
+
+.intel-step-action::before {
+    content: '→';
+    position: absolute;
+    left: 0;
+    color: #3A7A85;
+}
+
+/* Quick Stats Bar - WSJ Style */
+.intel-stats-bar {
+    background: #F7F7F7;
+    padding: 20px 16px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    border-top: 1px solid #DDDDDD;
+    border-bottom: 1px solid #DDDDDD;
+}
+
+.intel-stat {
+    text-align: center;
+    padding: 12px;
+    background: #FFFFFF;
+    border: 1px solid #DDDDDD;
+}
+
+.intel-stat-value {
+    font-size: 24px;
+    font-weight: 700;
+    color: #000000;
+    margin-bottom: 4px;
+    display: block;
+    font-family: 'Georgia', serif;
+}
+
+.intel-stat-label {
+    font-size: 11px;
+    color: #666666;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-family: Arial, sans-serif;
+}
+
+/* Special stat colors - WSJ Style */
+.intel-stat.match-score .intel-stat-value {
+    color: #008800;
+}
+
+.intel-stat.high-competition .intel-stat-value {
+    color: #003366;
+}
+
+.intel-stat.established-company .intel-stat-value {
+    color: #000088;
+}
+
+.intel-stat.quick-apply .intel-stat-value {
+    color: #008800;
+}
+
+/* Action Center - WSJ Style */
+.intel-actions {
+    padding: 20px 16px;
+    background: #FFFFFF;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    border-top: 2px solid #000000;
+}
+
+.intel-action-btn {
+    width: 100%;
+    padding: 14px 20px;
+    border-radius: 0;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-family: Arial, sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.intel-action-primary {
+    background: #228B22;
+    color: white;
+    border: 2px solid #228B22;
+}
+
+.intel-action-primary:active {
+    background: #1F5F1F;
+    transform: scale(0.98);
+}
+
+.intel-action-secondary {
+    background: white;
+    color: #003366;
+    border: 2px solid #003366;
+}
+
+.intel-action-secondary:active {
+    background: #F0F0F0;
+    transform: scale(0.98);
+}
+
+.intel-action-tertiary {
+    background: #F7F7F7;
+    color: #666666;
+    border: 1px solid #DDDDDD;
+}
+
+.intel-action-tertiary:active {
+    background: #EEEEEE;
+    transform: scale(0.98);
+}
+
+/* Loading State */
+.intel-loading {
+    padding: 60px 20px;
+    text-align: center;
+}
+
+.intel-loading-spinner {
+    width: 48px;
+    height: 48px;
+    margin: 0 auto 16px;
+    border: 3px solid #E5E7EB;
+    border-top-color: #0D353E;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.intel-loading-text {
+    font-size: 14px;
+    color: #6B7280;
+    font-weight: 500;
+}
+
+/* Comparison Modal - Mobile */
+.intel-comparison-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: flex-end;
+    z-index: 10000;
+    padding: 0;
+}
+
+.intel-comparison-content {
+    background: white;
+    width: 100%;
+    max-height: 85vh;
+    border-radius: 24px 24px 0 0;
+    overflow-y: auto;
+    padding: 24px 16px;
+}
+
+.intel-comparison-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.intel-comparison-close {
+    width: 32px;
+    height: 32px;
+    background: #F3F4F6;
+    border: none;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+/* ===================================
+   TABLET STYLES (768px+)
+   =================================== */
+
+@media (min-width: 768px) {
+    .intelligence-package {
+        max-width: 720px;
+        margin: 0 auto;
+        border-radius: 20px;
+    }
+    
+    .intel-hero {
+        padding: 32px 28px;
+    }
+    
+    .intel-role {
+        font-size: 32px;
+    }
+    
+    .intel-meta {
+        gap: 20px;
+        font-size: 14px;
+    }
+    
+    .intel-section {
+        padding: 28px;
+    }
+    
+    .intel-summary-text {
+        font-size: 16px;
+        line-height: 1.7;
+    }
+    
+    /* Analysis Grid - 2 columns on tablet */
+    .intel-analysis-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+    }
+    
+    /* Stats Bar - 4 columns on tablet */
+    .intel-stats-bar {
+        grid-template-columns: repeat(4, 1fr);
+        padding: 24px;
+    }
+    
+    /* Actions - Horizontal on tablet */
+    .intel-actions {
+        flex-direction: row;
+        padding: 24px;
+    }
+    
+    .intel-action-btn {
+        flex: 1;
+    }
+}
+
+/* ===================================
+   DESKTOP STYLES (1024px+)
+   =================================== */
+
+@media (min-width: 1024px) {
+    .intelligence-package {
+        max-width: 800px;
+        margin: 20px auto;
+    }
+    
+    .intel-hero {
+        padding: 40px;
+    }
+    
+    .intel-role {
+        font-size: 36px;
+    }
+    
+    .intel-section {
+        padding: 32px 40px;
+    }
+    
+    /* Analysis Grid - 3 columns on desktop */
+    .intel-analysis-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 24px;
+    }
+    
+    .intel-analysis-card {
+        padding: 20px;
+    }
+    
+    /* Hover effects on desktop - WSJ Style */
+    .intel-action-btn {
+        transition: all 0.3s ease;
+    }
+    
+    .intel-action-primary:hover {
+        background: #1F5F1F;
+        transform: translateY(-1px);
+        box-shadow: 0 2px 8px rgba(34, 139, 34, 0.25);
+    }
+    
+    .intel-action-secondary:hover {
+        background: #003366;
+        color: #FFFFFF;
+        transform: translateY(-1px);
+        box-shadow: 0 2px 8px rgba(0, 51, 102, 0.2);
+    }
+    
+    .intel-action-tertiary:hover {
+        background: #EEEEEE;
+        border-color: #999999;
+    }
+    
+    /* Comparison Modal - Centered on desktop */
+    .intel-comparison-modal {
+        align-items: center;
+        padding: 20px;
+    }
+    
+    .intel-comparison-content {
+        max-width: 900px;
+        max-height: 90vh;
+        border-radius: 20px;
+        padding: 40px;
+    }
+}
+
+/* ===================================
+   LOCKED CONTENT STYLES
+   =================================== */
+
+.intel-locked {
+    position: relative;
+    overflow: hidden;
+}
+
+.intel-lock-icon {
+    margin-left: 8px;
+    font-size: 18px;
+    opacity: 0.7;
+}
+
+.intel-locked-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(245, 245, 245, 0.98));
+    backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+}
+
+.intel-locked-content {
+    text-align: center;
+    padding: 40px 20px;
+    max-width: 400px;
+}
+
+.intel-locked-content .lock-icon {
+    color: #6B7280;
+    margin-bottom: 20px;
+}
+
+.intel-locked-content h3 {
+    font-size: 20px;
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 12px;
+    font-family: 'Georgia', serif;
+}
+
+.intel-locked-content p {
+    color: #6B7280;
+    margin-bottom: 20px;
+    font-size: 14px;
+}
+
+.intel-locked-content ul {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 24px 0;
+    text-align: left;
+}
+
+.intel-locked-content li {
+    padding: 8px 0;
+    color: #374151;
+    font-size: 13px;
+}
+
+.intel-unlock-btn {
+    background: linear-gradient(135deg, #10B981, #059669);
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.intel-unlock-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+    background: linear-gradient(135deg, #059669, #047857);
+}
+
+/* Personalized Insights */
+.intel-personalized-insights {
+    display: grid;
+    gap: 16px;
+    margin-top: 20px;
+}
+
+.intel-insight-card {
+    background: linear-gradient(135deg, #F0FDF4, #DCFCE7);
+    border: 1px solid #BBF7D0;
+    border-radius: 12px;
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+}
+
+.intel-insight-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background: #10B981;
+}
+
+.intel-insight-card h3 {
+    font-size: 16px;
+    font-weight: 700;
+    color: #064E3B;
+    margin-bottom: 10px;
+    font-family: 'Georgia', serif;
+}
+
+.intel-insight-card p {
+    font-size: 14px;
+    line-height: 1.6;
+    color: #374151;
+    margin: 0;
+}
+
+.intel-insight-action {
+    margin-top: 12px !important;
+    padding-top: 12px;
+    border-top: 1px solid #BBF7D0;
+    color: #059669;
+    font-weight: 600;
+    font-size: 13px;
+}
+
+/* ===================================
+   PRINT STYLES
+   =================================== */
+
+@media print {
+    .intelligence-package {
+        box-shadow: none;
+        border: 1px solid #E5E7EB;
+    }
+    
+    .intel-actions {
+        display: none;
+    }
+    
+    .intel-hero {
+        background: none;
+        color: #000;
+        border-bottom: 2px solid #0D353E;
+    }
+    
+    .intel-stats-bar {
+        background: #F9FAFB;
+        color: #000;
+    }
+    
+    .intel-stat-value {
+        color: #000 !important;
+    }
+}
+

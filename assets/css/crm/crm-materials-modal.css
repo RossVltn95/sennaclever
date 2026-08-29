@@ -1,0 +1,205 @@
+/**
+ * Materials Request Modal Styles
+ */
+
+.sffc-materials-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 999999;
+    display: none;
+}
+
+.sffc-materials-modal[aria-hidden="false"] {
+    display: block;
+}
+
+.sffc-materials-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+}
+
+.sffc-materials-dialog {
+    position: relative;
+    max-width: 600px;
+    margin: 5% auto;
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    z-index: 1;
+    max-height: 85vh;
+    overflow-y: auto;
+}
+
+.sffc-materials-close {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 6px;
+    transition: background 0.2s ease;
+    z-index: 10;
+}
+
+.sffc-materials-close:hover {
+    background: rgba(0, 0, 0, 0.05);
+}
+
+.sffc-materials-close svg {
+    display: block;
+    color: #6B7280;
+}
+
+.sffc-materials-content {
+    padding: 2.5rem 2rem 2rem;
+}
+
+.sffc-materials-title {
+    font-family: "Amplitude-Regular", -apple-system, sans-serif;
+    font-size: 1.75rem;
+    font-weight: 500;
+    color: #0d353e;
+    margin: 0 0 0.5rem 0;
+}
+
+.sffc-materials-subtitle {
+    font-size: 0.9375rem;
+    color: #6B7280;
+    margin: 0 0 2rem 0;
+}
+
+.sffc-materials-email-box {
+    background: #F9FAFB;
+    border: 1px solid #E5E7EB;
+    border-radius: 8px;
+    padding: 1.5rem;
+    position: relative;
+    margin-bottom: 2rem;
+}
+
+.sffc-materials-email-content {
+    font-family: monospace;
+    font-size: 0.875rem;
+    line-height: 1.7;
+    color: #374151;
+    white-space: pre-wrap;
+    margin-bottom: 1rem;
+}
+
+.sffc-materials-copy-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    background: #0d353e;
+    color: #ffffff;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.sffc-materials-copy-btn:hover {
+    background: #0a2a33;
+}
+
+.sffc-materials-copy-btn svg {
+    flex-shrink: 0;
+}
+
+.sffc-materials-divider {
+    height: 1px;
+    background: #E5E7EB;
+    margin: 2rem 0;
+}
+
+.sffc-materials-section-title {
+    font-family: "Amplitude-Regular", -apple-system, sans-serif;
+    font-size: 1.25rem;
+    font-weight: 500;
+    color: #0d353e;
+    margin: 0 0 0.5rem 0;
+}
+
+.sffc-materials-note {
+    font-size: 0.875rem;
+    color: #6B7280;
+    margin: 0 0 1.5rem 0;
+}
+
+.sffc-materials-options {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+.sffc-materials-option {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    padding: 1.5rem 1rem;
+    background: #ffffff;
+    border: 2px solid #E5E7EB;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 0.9375rem;
+    font-weight: 500;
+    color: #374151;
+}
+
+.sffc-materials-option:hover {
+    border-color: #0d353e;
+    background: #F9FAFB;
+}
+
+.sffc-materials-option svg {
+    flex-shrink: 0;
+    color: #0d353e;
+}
+
+.sffc-materials-option.is-loading {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.sffc-materials-option:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Body scroll lock when modal is open */
+body.sffc-modal-open {
+    overflow: hidden;
+}
+
+/* Mobile responsive */
+@media (max-width: 640px) {
+    .sffc-materials-dialog {
+        margin: 0;
+        border-radius: 0;
+        max-height: 100vh;
+        height: 100vh;
+    }
+
+    .sffc-materials-content {
+        padding: 2rem 1.5rem;
+    }
+
+    .sffc-materials-options {
+        grid-template-columns: 1fr;
+    }
+}

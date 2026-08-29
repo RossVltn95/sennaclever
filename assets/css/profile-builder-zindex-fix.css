@@ -1,0 +1,55 @@
+/**
+ * Profile Builder Z-Index Fix
+ * Ensures profile builder appears above all other interfaces
+ */
+
+/* Profile Builder must be above everything */
+.sffc-profile-builder.fullscreen {
+    z-index: 10000001 !important; /* Higher than application interfaces */
+}
+
+#profile-builder {
+    z-index: 10000001 !important;
+}
+
+.profile-builder-overlay {
+    z-index: 10000000 !important;
+}
+
+/* Application interfaces */
+.apply-mode-section {
+    z-index: 9999999 !important; /* Below profile builder */
+}
+
+.apply-mode-panel {
+    z-index: 9999998 !important;
+}
+
+/* Application readiness panel */
+.readiness-panel-overlay {
+    z-index: 9999997 !important;
+}
+
+.readiness-panel {
+    z-index: 9999996 !important;
+}
+
+/* Sequential collector */
+.sequential-collector-overlay {
+    z-index: 9999995 !important;
+}
+
+/* MENA Careers ultimate container */
+.senna-ultimate-container {
+    z-index: 999999 !important;
+}
+
+/* When profile builder is active, push other elements back */
+.sffc-profile-builder.active ~ * {
+    z-index: 1 !important;
+}
+
+body.profile-builder-active .apply-mode-section,
+body.profile-builder-active .readiness-panel-overlay {
+    z-index: 1 !important;
+}

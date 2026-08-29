@@ -1,0 +1,614 @@
+/**
+ * WSJ-Style CV Display Component
+ * Premium, professional CV rendering with Wall Street Journal aesthetic
+ * Mobile-first, fully responsive design
+ * Brand colors: #2d6a4f (forest green), #faf7f2 (cream)
+ */
+
+/* ============================================
+   ROOT VARIABLES & TYPOGRAPHY
+   ============================================ */
+
+:root {
+    /* Brand Colors */
+    --wsj-primary-green: #2d6a4f;
+    --wsj-dark-green: #1a472a;
+    --wsj-cream-bg: #faf7f2;
+    --wsj-paper-white: #ffffff;
+    --wsj-text-primary: #1a1a1a;
+    --wsj-text-secondary: #505050;
+    --wsj-text-muted: #757575;
+    --wsj-border-light: rgba(45, 106, 79, 0.12);
+    --wsj-shadow-soft: 0 2px 8px rgba(26, 71, 42, 0.08);
+    --wsj-shadow-hover: 0 4px 16px rgba(26, 71, 42, 0.12);
+    
+    /* Typography */
+    --wsj-font-serif: 'Playfair Display', Georgia, 'Times New Roman', serif;
+    --wsj-font-sans: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif;
+    --wsj-font-mono: 'SF Mono', Monaco, 'Courier New', monospace;
+    
+    /* Spacing */
+    --wsj-space-xs: 4px;
+    --wsj-space-sm: 8px;
+    --wsj-space-md: 16px;
+    --wsj-space-lg: 24px;
+    --wsj-space-xl: 32px;
+    --wsj-space-2xl: 48px;
+    --wsj-space-3xl: 64px;
+}
+
+/* ============================================
+   CONTAINER & WRAPPER
+   ============================================ */
+
+.wsj-cv-wrapper {
+    position: relative;
+    width: 100%;
+    min-height: 100vh;
+    background: var(--wsj-cream-bg);
+    padding: 0;
+    margin: 0;
+    font-family: var(--wsj-font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Mobile-first full width */
+.wsj-cv-container {
+    width: 100%;
+    max-width: 100%;
+    margin: 0 auto;
+    padding: 0;
+    animation: wsjFadeIn 0.6s ease-out;
+}
+
+/* ============================================
+   THE PAPER - Star of the Show
+   ============================================ */
+
+.wsj-cv-paper {
+    background: var(--wsj-paper-white);
+    width: 100%;
+    min-height: 100vh;
+    margin: 0;
+    padding: var(--wsj-space-xl) var(--wsj-space-md);
+    position: relative;
+    overflow-x: hidden;
+    box-shadow: none;
+    
+    /* Subtle texture for premium feel */
+    background-image: 
+        repeating-linear-gradient(
+            90deg,
+            transparent,
+            transparent 100px,
+            rgba(45, 106, 79, 0.02) 100px,
+            rgba(45, 106, 79, 0.02) 100.5px
+        );
+}
+
+/* ============================================
+   CV HEADER SECTION
+   ============================================ */
+
+.wsj-cv-header {
+    text-align: center;
+    padding-bottom: var(--wsj-space-xl);
+    border-bottom: 2px solid var(--wsj-border-light);
+    margin-bottom: var(--wsj-space-xl);
+    position: relative;
+}
+
+/* Name - The Statement Piece */
+.wsj-cv-name {
+    font-family: var(--wsj-font-serif);
+    font-size: 32px;
+    font-weight: 700;
+    line-height: 1.2;
+    color: var(--wsj-dark-green);
+    margin: 0 0 var(--wsj-space-md) 0;
+    letter-spacing: -0.02em;
+    position: relative;
+    
+    /* Subtle animation on load */
+    animation: wsjSlideDown 0.8s ease-out;
+}
+
+/* Professional Title */
+.wsj-cv-title {
+    font-family: var(--wsj-font-sans);
+    font-size: 14px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--wsj-text-secondary);
+    margin: 0 0 var(--wsj-space-lg) 0;
+}
+
+/* Contact Information */
+.wsj-cv-contact {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--wsj-space-md);
+    font-size: 13px;
+    color: var(--wsj-text-secondary);
+}
+
+.wsj-cv-contact-item {
+    display: flex;
+    align-items: center;
+    gap: var(--wsj-space-xs);
+    white-space: nowrap;
+}
+
+.wsj-cv-contact-item::before {
+    content: '';
+    display: inline-block;
+    width: 3px;
+    height: 3px;
+    background: var(--wsj-primary-green);
+    border-radius: 50%;
+    opacity: 0.6;
+}
+
+.wsj-cv-contact-item:first-child::before {
+    display: none;
+}
+
+/* ============================================
+   SECTION STYLES
+   ============================================ */
+
+.wsj-cv-section {
+    margin-bottom: var(--wsj-space-2xl);
+    opacity: 0;
+    animation: wsjFadeInUp 0.6s ease-out forwards;
+    animation-delay: 0.2s;
+}
+
+/* Section Headers - WSJ Style */
+.wsj-cv-section-title {
+    font-family: var(--wsj-font-sans);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--wsj-primary-green);
+    margin: 0 0 var(--wsj-space-lg) 0;
+    padding-bottom: var(--wsj-space-sm);
+    border-bottom: 1px solid var(--wsj-border-light);
+    position: relative;
+}
+
+/* Professional Summary */
+.wsj-cv-summary {
+    font-size: 15px;
+    line-height: 1.7;
+    color: var(--wsj-text-primary);
+    margin-bottom: var(--wsj-space-lg);
+    font-style: italic;
+    border-left: 3px solid var(--wsj-primary-green);
+    padding-left: var(--wsj-space-md);
+}
+
+/* ============================================
+   EXPERIENCE ENTRIES
+   ============================================ */
+
+.wsj-cv-experience-item {
+    margin-bottom: var(--wsj-space-xl);
+    padding-bottom: var(--wsj-space-xl);
+    border-bottom: 1px solid rgba(45, 106, 79, 0.08);
+}
+
+.wsj-cv-experience-item:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+/* Company and Role Header */
+.wsj-cv-job-header {
+    display: flex;
+    flex-direction: column;
+    gap: var(--wsj-space-xs);
+    margin-bottom: var(--wsj-space-md);
+}
+
+.wsj-cv-company {
+    font-weight: 700;
+    font-size: 16px;
+    color: var(--wsj-text-primary);
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: var(--wsj-space-sm);
+}
+
+.wsj-cv-location {
+    font-weight: 400;
+    font-size: 14px;
+    color: var(--wsj-text-secondary);
+    font-style: italic;
+}
+
+.wsj-cv-role {
+    font-size: 14px;
+    color: var(--wsj-text-secondary);
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: var(--wsj-space-sm);
+}
+
+.wsj-cv-dates {
+    font-size: 13px;
+    color: var(--wsj-text-muted);
+    font-family: var(--wsj-font-mono);
+    letter-spacing: 0.02em;
+}
+
+/* Bullet Points - Clean & Professional */
+.wsj-cv-bullets {
+    list-style: none;
+    padding: 0;
+    margin: var(--wsj-space-md) 0 0 0;
+}
+
+.wsj-cv-bullet {
+    position: relative;
+    padding-left: var(--wsj-space-lg);
+    margin-bottom: var(--wsj-space-sm);
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--wsj-text-primary);
+}
+
+.wsj-cv-bullet::before {
+    content: '▪';
+    position: absolute;
+    left: 0;
+    color: var(--wsj-primary-green);
+    font-size: 12px;
+    line-height: 1.6;
+}
+
+/* Highlight metrics and achievements */
+.wsj-cv-metric {
+    font-weight: 600;
+    color: var(--wsj-dark-green);
+    background: linear-gradient(120deg, transparent 0%, rgba(45, 106, 79, 0.05) 50%, transparent 100%);
+    padding: 0 2px;
+    border-radius: 2px;
+}
+
+/* ============================================
+   EDUCATION SECTION
+   ============================================ */
+
+.wsj-cv-education-item {
+    margin-bottom: var(--wsj-space-lg);
+}
+
+.wsj-cv-institution {
+    font-weight: 700;
+    font-size: 15px;
+    color: var(--wsj-text-primary);
+    margin-bottom: var(--wsj-space-xs);
+}
+
+.wsj-cv-degree {
+    font-size: 14px;
+    color: var(--wsj-text-secondary);
+    margin-bottom: var(--wsj-space-xs);
+}
+
+.wsj-cv-edu-details {
+    font-size: 13px;
+    color: var(--wsj-text-muted);
+    font-style: italic;
+}
+
+/* ============================================
+   SKILLS SECTION
+   ============================================ */
+
+.wsj-cv-skills-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--wsj-space-sm);
+}
+
+.wsj-cv-skill {
+    display: inline-flex;
+    align-items: center;
+    padding: var(--wsj-space-xs) var(--wsj-space-md);
+    background: var(--wsj-cream-bg);
+    border: 1px solid var(--wsj-border-light);
+    border-radius: 20px;
+    font-size: 13px;
+    color: var(--wsj-text-primary);
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.wsj-cv-skill:hover {
+    background: var(--wsj-paper-white);
+    border-color: var(--wsj-primary-green);
+    color: var(--wsj-primary-green);
+    transform: translateY(-1px);
+}
+
+/* ============================================
+   ANIMATIONS
+   ============================================ */
+
+@keyframes wsjFadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes wsjFadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes wsjSlideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ============================================
+   TABLET STYLES (768px+)
+   ============================================ */
+
+@media (min-width: 768px) {
+    .wsj-cv-container {
+        padding: var(--wsj-space-lg);
+    }
+    
+    .wsj-cv-paper {
+        max-width: 850px;
+        margin: 0 auto;
+        padding: var(--wsj-space-3xl) var(--wsj-space-2xl);
+        border-radius: 8px;
+        box-shadow: var(--wsj-shadow-soft);
+        min-height: auto;
+    }
+    
+    .wsj-cv-name {
+        font-size: 42px;
+    }
+    
+    .wsj-cv-title {
+        font-size: 16px;
+    }
+    
+    .wsj-cv-contact {
+        font-size: 14px;
+    }
+    
+    .wsj-cv-job-header {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: baseline;
+    }
+    
+    .wsj-cv-company {
+        font-size: 17px;
+    }
+    
+    .wsj-cv-role {
+        font-size: 15px;
+    }
+    
+    .wsj-cv-bullet {
+        font-size: 15px;
+    }
+    
+    /* Two column layout for skills on tablet+ */
+    .wsj-cv-skills-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: var(--wsj-space-md);
+    }
+}
+
+/* ============================================
+   DESKTOP STYLES (1024px+)
+   ============================================ */
+
+@media (min-width: 1024px) {
+    .wsj-cv-container {
+        padding: var(--wsj-space-2xl);
+    }
+    
+    .wsj-cv-paper {
+        padding: 80px 72px;
+        box-shadow: 
+            0 4px 16px rgba(26, 71, 42, 0.08),
+            0 1px 3px rgba(26, 71, 42, 0.04);
+    }
+    
+    .wsj-cv-name {
+        font-size: 48px;
+    }
+    
+    /* Hover effects for desktop */
+    .wsj-cv-paper:hover {
+        box-shadow: var(--wsj-shadow-hover);
+        transition: box-shadow 0.3s ease;
+    }
+    
+    /* Enhanced bullet point interaction */
+    .wsj-cv-bullet:hover {
+        padding-left: calc(var(--wsj-space-lg) + 4px);
+        transition: padding-left 0.2s ease;
+    }
+}
+
+/* ============================================
+   PRINT STYLES
+   ============================================ */
+
+@media print {
+    .wsj-cv-wrapper {
+        background: white;
+    }
+    
+    .wsj-cv-paper {
+        box-shadow: none;
+        padding: 0;
+        max-width: 100%;
+    }
+    
+    .wsj-cv-section {
+        break-inside: avoid;
+    }
+    
+    .wsj-cv-experience-item {
+        break-inside: avoid;
+    }
+}
+
+/* ============================================
+   LOADING STATE
+   ============================================ */
+
+.wsj-cv-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 400px;
+    color: var(--wsj-text-muted);
+}
+
+.wsj-cv-loading::after {
+    content: '';
+    display: inline-block;
+    width: 24px;
+    height: 24px;
+    border: 3px solid var(--wsj-border-light);
+    border-top-color: var(--wsj-primary-green);
+    border-radius: 50%;
+    animation: wsjSpin 1s linear infinite;
+}
+
+@keyframes wsjSpin {
+    to { transform: rotate(360deg); }
+}
+
+/* ============================================
+   EDITABLE STATES
+   ============================================ */
+
+.wsj-cv-editable {
+    position: relative;
+    cursor: text;
+    transition: background-color 0.2s ease;
+}
+
+.wsj-cv-editable:hover {
+    background: rgba(45, 106, 79, 0.03);
+    border-radius: 4px;
+}
+
+.wsj-cv-editable:focus {
+    outline: 2px solid var(--wsj-primary-green);
+    outline-offset: 4px;
+    background: rgba(45, 106, 79, 0.05);
+}
+
+/* Edit indicator */
+.wsj-cv-editable::after {
+    content: '✎';
+    position: absolute;
+    right: -20px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 12px;
+    color: var(--wsj-primary-green);
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.wsj-cv-editable:hover::after {
+    opacity: 0.5;
+}
+
+/* ============================================
+   SUCCESS STATES
+   ============================================ */
+
+.wsj-cv-success {
+    animation: wsjPulse 0.6s ease;
+}
+
+@keyframes wsjPulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.02); }
+    100% { transform: scale(1); }
+}
+
+/* ============================================
+   MOBILE OPTIMIZATIONS
+   ============================================ */
+
+/* Ensure full width on small screens */
+@media (max-width: 480px) {
+    .wsj-cv-paper {
+        padding: var(--wsj-space-lg) var(--wsj-space-md);
+        border-radius: 0;
+    }
+    
+    .wsj-cv-name {
+        font-size: 28px;
+    }
+    
+    .wsj-cv-contact {
+        flex-direction: column;
+        align-items: center;
+        gap: var(--wsj-space-xs);
+    }
+    
+    .wsj-cv-contact-item::before {
+        display: none;
+    }
+    
+    .wsj-cv-job-header {
+        gap: var(--wsj-space-sm);
+    }
+    
+    .wsj-cv-bullet {
+        padding-left: var(--wsj-space-md);
+        font-size: 13px;
+    }
+}
+
+/* Touch-friendly tap targets */
+@media (hover: none) {
+    .wsj-cv-skill {
+        padding: var(--wsj-space-sm) var(--wsj-space-md);
+        min-height: 44px;
+    }
+    
+    .wsj-cv-editable {
+        min-height: 44px;
+        display: flex;
+        align-items: center;
+    }
+}

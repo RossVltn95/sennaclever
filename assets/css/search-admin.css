@@ -1,0 +1,383 @@
+/**
+ * Search Administration Styles
+ * Premium professional styling for search management interface
+ */
+
+/* Main Container */
+.sffc-search-admin {
+    max-width: 1200px;
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.sffc-search-admin h1 {
+    color: #1e3a5f;
+    font-size: 2rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.sffc-search-admin > p {
+    color: #64748b;
+    font-size: 1.1rem;
+    margin-bottom: 2rem;
+}
+
+/* Admin Grid Layout */
+.sffc-admin-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 1.5rem;
+    margin-top: 2rem;
+}
+
+/* Admin Cards */
+.sffc-admin-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    transition: box-shadow 0.2s ease;
+}
+
+.sffc-admin-card:hover {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+}
+
+.sffc-admin-card h2 {
+    color: #1e3a5f;
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin: 0 0 1rem 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.sffc-admin-card h3 {
+    color: #334155;
+    font-size: 1rem;
+    font-weight: 600;
+    margin: 1.5rem 0 0.75rem 0;
+}
+
+/* Status Statistics */
+.sffc-status-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.sffc-stat {
+    text-align: center;
+    padding: 1rem;
+    background: #f8fafc;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+}
+
+.sffc-stat-number {
+    display: block;
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #1e3a5f;
+    line-height: 1;
+    margin-bottom: 0.25rem;
+}
+
+.sffc-stat-label {
+    display: block;
+    font-size: 0.875rem;
+    color: #64748b;
+    font-weight: 500;
+}
+
+/* Post Type Breakdown */
+.sffc-post-type-breakdown {
+    background: #f8fafc;
+    border-radius: 8px;
+    padding: 1rem;
+    border: 1px solid #e2e8f0;
+}
+
+.sffc-breakdown-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.sffc-breakdown-item:last-child {
+    border-bottom: none;
+}
+
+.sffc-breakdown-type {
+    font-weight: 500;
+    color: #334155;
+}
+
+.sffc-breakdown-count {
+    font-weight: 600;
+    color: #1e3a5f;
+    background: #ffffff;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.875rem;
+}
+
+/* Index Management */
+.sffc-rebuild-actions {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.sffc-rebuild-actions .button-large {
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+    font-weight: 600;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+.sffc-rebuild-actions .button-primary {
+    background: #1e3a5f;
+    border-color: #1e3a5f;
+    box-shadow: 0 2px 4px rgba(30, 58, 95, 0.2);
+}
+
+.sffc-rebuild-actions .button-primary:hover {
+    background: #2c4a69;
+    border-color: #2c4a69;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(30, 58, 95, 0.3);
+}
+
+/* Progress Bar */
+.sffc-progress-container {
+    margin: 1rem 0;
+    padding: 1rem;
+    background: #f8fafc;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+}
+
+.sffc-progress-bar {
+    width: 100%;
+    height: 8px;
+    background: #e2e8f0;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 0.75rem;
+}
+
+.sffc-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #1e3a5f 0%, #4a6fa5 100%);
+    width: 0%;
+    transition: width 0.3s ease;
+    border-radius: 4px;
+}
+
+.sffc-progress-text {
+    font-size: 0.875rem;
+    color: #64748b;
+    font-weight: 500;
+    text-align: center;
+}
+
+/* Results Container */
+.sffc-results-container {
+    margin-top: 1rem;
+}
+
+.sffc-results-container .notice {
+    margin: 0;
+    border-radius: 6px;
+}
+
+/* Form Styles */
+.sffc-admin-card .form-table {
+    margin-top: 0;
+}
+
+.sffc-admin-card .form-table th {
+    color: #334155;
+    font-weight: 600;
+    padding-left: 0;
+}
+
+.sffc-admin-card .form-table td {
+    padding-right: 0;
+}
+
+.sffc-admin-card input[type="number"],
+.sffc-admin-card select {
+    border-radius: 6px;
+    border: 1px solid #e2e8f0;
+    font-size: 0.875rem;
+}
+
+.sffc-admin-card input[type="number"]:focus,
+.sffc-admin-card select:focus {
+    border-color: #1e3a5f;
+    box-shadow: 0 0 0 2px rgba(30, 58, 95, 0.1);
+}
+
+.sffc-admin-card input[type="checkbox"] {
+    margin-right: 0.5rem;
+    transform: scale(1.1);
+}
+
+.sffc-admin-card .description {
+    font-size: 0.8125rem;
+    color: #64748b;
+    margin-top: 0.25rem;
+}
+
+/* Analytics Styles */
+.sffc-analytics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.sffc-analytics-stat {
+    text-align: center;
+    padding: 1rem;
+    background: linear-gradient(135deg, #1e3a5f 0%, #2c4a69 100%);
+    color: #ffffff;
+    border-radius: 8px;
+}
+
+.sffc-analytics-stat .sffc-stat-number {
+    color: #ffffff;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.sffc-analytics-stat .sffc-stat-label {
+    color: rgba(255, 255, 255, 0.9);
+}
+
+/* Top Queries */
+.sffc-top-queries {
+    background: #f8fafc;
+    border-radius: 8px;
+    padding: 1rem;
+    border: 1px solid #e2e8f0;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.sffc-query-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.sffc-query-item:last-child {
+    border-bottom: none;
+}
+
+.sffc-query-text {
+    font-weight: 500;
+    color: #334155;
+    flex: 1;
+}
+
+.sffc-query-count {
+    font-size: 0.875rem;
+    color: #64748b;
+    background: #ffffff;
+    padding: 0.25rem 0.5rem;
+    border-radius: 12px;
+    font-weight: 500;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .sffc-admin-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .sffc-admin-card {
+        padding: 1rem;
+    }
+    
+    .sffc-status-grid,
+    .sffc-analytics-grid {
+        grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+        gap: 0.75rem;
+    }
+    
+    .sffc-rebuild-actions {
+        flex-direction: column;
+    }
+    
+    .sffc-rebuild-actions .button {
+        width: 100%;
+        text-align: center;
+    }
+    
+    .sffc-query-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.25rem;
+    }
+}
+
+/* Loading States */
+.button:disabled {
+    opacity: 0.7;
+    cursor: not-allowed !important;
+}
+
+/* Success/Error Messages */
+.notice.notice-success {
+    border-left-color: #10b981;
+    background: #f0fdf4;
+}
+
+.notice.notice-error {
+    border-left-color: #ef4444;
+    background: #fef2f2;
+}
+
+/* Dark Mode Support */
+@media (prefers-color-scheme: dark) {
+    .sffc-admin-card {
+        background: #1e293b;
+        border-color: #334155;
+        color: #e2e8f0;
+    }
+    
+    .sffc-admin-card h2,
+    .sffc-admin-card h3 {
+        color: #f1f5f9;
+    }
+    
+    .sffc-stat,
+    .sffc-post-type-breakdown,
+    .sffc-progress-container,
+    .sffc-top-queries {
+        background: #334155;
+        border-color: #475569;
+    }
+    
+    .sffc-stat-number {
+        color: #f1f5f9;
+    }
+    
+    .sffc-stat-label,
+    .sffc-progress-text {
+        color: #cbd5e1;
+    }
+}

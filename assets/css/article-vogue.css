@@ -1,0 +1,398 @@
+/**
+ * Vogue Business Style Article Template
+ * Sophisticated, lifestyle-focused design with emphasis on imagery
+ */
+
+/* Vogue Base Layout */
+.vogue-article {
+    font-family: 'Helvetica Neue', -apple-system, BlinkMacSystemFont, sans-serif;
+    max-width: 1400px;
+    margin: 0 auto;
+    background: #fff;
+}
+
+/* Hero Section */
+.vogue-hero {
+    position: relative;
+    margin-bottom: 60px;
+}
+
+.vogue-hero .hero-image-container {
+    position: relative;
+    width: 100%;
+    height: 85vh;
+    min-height: 600px;
+    overflow: hidden;
+}
+
+.vogue-hero-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+}
+
+.hero-image-container .image-credit {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Header Content */
+.vogue-header-content {
+    max-width: 900px;
+    margin: -120px auto 0;
+    position: relative;
+    background: white;
+    padding: 50px 60px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+}
+
+.article-category {
+    margin-bottom: 20px;
+}
+
+.category-label {
+    display: inline-block;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: #000;
+    border-bottom: 2px solid #000;
+    padding-bottom: 5px;
+}
+
+/* Vogue Headline */
+.vogue-headline {
+    font-family: 'Playfair Display', 'Didot', serif;
+    font-size: 72px;
+    line-height: 1.1;
+    font-weight: 900;
+    margin: 30px 0;
+    letter-spacing: -1px;
+    color: #000;
+}
+
+@media (max-width: 768px) {
+    .vogue-headline {
+        font-size: 42px;
+    }
+}
+
+/* Standfirst */
+.vogue-standfirst {
+    font-size: 22px;
+    line-height: 1.5;
+    color: #333;
+    margin: 30px 0;
+    font-weight: 300;
+}
+
+/* Article Meta */
+.article-meta {
+    display: flex;
+    gap: 30px;
+    font-size: 14px;
+    color: #666;
+    padding-top: 20px;
+    border-top: 1px solid #e0e0e0;
+}
+
+.article-meta .byline {
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Article Body */
+.vogue-article-body {
+    display: grid;
+    grid-template-columns: 1fr 350px;
+    gap: 60px;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 40px;
+}
+
+@media (max-width: 1024px) {
+    .vogue-article-body {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Content Styling */
+.vogue-article-body .article-content {
+    font-size: 18px;
+    line-height: 1.8;
+    color: #1a1a1a;
+}
+
+.article-content p {
+    margin-bottom: 28px;
+}
+
+/* Drop Cap */
+.article-content > p:first-of-type::first-letter {
+    float: left;
+    font-family: 'Playfair Display', serif;
+    font-size: 120px;
+    line-height: 100px;
+    padding-right: 15px;
+    margin-top: -10px;
+    font-weight: 700;
+}
+
+/* Pull Quotes */
+.vogue-pull-quote {
+    margin: 60px -60px;
+    padding: 40px 0;
+    border-top: 3px solid #000;
+    border-bottom: 1px solid #000;
+    text-align: center;
+}
+
+.vogue-pull-quote blockquote {
+    font-family: 'Playfair Display', serif;
+    font-size: 36px;
+    line-height: 1.3;
+    font-style: italic;
+    margin: 0;
+    color: #000;
+}
+
+.vogue-pull-quote cite {
+    display: block;
+    margin-top: 20px;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-style: normal;
+}
+
+/* Image Galleries */
+.vogue-gallery {
+    margin: 60px -40px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+.vogue-gallery img {
+    width: 100%;
+    height: 400px;
+    object-fit: cover;
+}
+
+/* Sidebar */
+.vogue-sidebar {
+    position: sticky;
+    top: 40px;
+    height: fit-content;
+}
+
+.vogue-trending {
+    margin-bottom: 50px;
+}
+
+.vogue-sidebar h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 24px;
+    margin-bottom: 30px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid #000;
+}
+
+.trending-item {
+    margin-bottom: 30px;
+    transition: transform 0.3s ease;
+}
+
+.trending-item:hover {
+    transform: translateX(5px);
+}
+
+.trending-item img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    margin-bottom: 15px;
+}
+
+.trending-item h4 {
+    font-size: 16px;
+    line-height: 1.4;
+    font-weight: 600;
+}
+
+/* Newsletter Box */
+.vogue-newsletter {
+    background: #f8f8f8;
+    padding: 40px 30px;
+    text-align: center;
+}
+
+.vogue-newsletter h3 {
+    border: none;
+    padding: 0;
+    margin-bottom: 15px;
+}
+
+.vogue-newsletter p {
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 25px;
+}
+
+.vogue-newsletter input[type="email"] {
+    width: 100%;
+    padding: 15px;
+    border: 1px solid #000;
+    font-size: 14px;
+    margin-bottom: 15px;
+}
+
+.vogue-newsletter button {
+    width: 100%;
+    padding: 15px;
+    background: #000;
+    color: #fff;
+    border: none;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+.vogue-newsletter button:hover {
+    background: #333;
+}
+
+/* Article Footer */
+.vogue-article-footer {
+    max-width: 900px;
+    margin: 80px auto;
+    padding: 40px;
+}
+
+/* Tags */
+.article-tags {
+    margin-bottom: 40px;
+    padding-bottom: 40px;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.article-tags span {
+    display: inline-block;
+    padding: 8px 20px;
+    margin: 5px;
+    border: 1px solid #000;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transition: all 0.3s ease;
+}
+
+.article-tags span:hover {
+    background: #000;
+    color: #fff;
+}
+
+/* Social Sharing */
+.social-sharing {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin: 40px 0;
+}
+
+.social-sharing a {
+    display: inline-block;
+    width: 50px;
+    height: 50px;
+    border: 2px solid #000;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.social-sharing a:hover {
+    background: #000;
+    color: #fff;
+}
+
+/* Author Bio */
+.author-bio {
+    display: flex;
+    gap: 30px;
+    padding: 40px;
+    background: #f8f8f8;
+}
+
+.author-bio img {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.author-bio-content h4 {
+    font-family: 'Playfair Display', serif;
+    font-size: 24px;
+    margin-bottom: 10px;
+}
+
+.author-bio-content p {
+    font-size: 16px;
+    line-height: 1.6;
+    color: #666;
+}
+
+/* Lifestyle Elements for Day-in-Life Articles */
+.lifestyle-callout {
+    margin: 60px 0;
+    padding: 40px;
+    background: linear-gradient(135deg, #f5f5f5 0%, #fff 100%);
+    border-left: 4px solid #000;
+}
+
+.lifestyle-callout h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 28px;
+    margin-bottom: 20px;
+}
+
+.lifestyle-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 30px;
+    margin: 40px 0;
+}
+
+.lifestyle-item {
+    text-align: center;
+}
+
+.lifestyle-item .icon {
+    font-size: 48px;
+    margin-bottom: 15px;
+}
+
+.lifestyle-item h4 {
+    font-size: 18px;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.lifestyle-item p {
+    font-size: 14px;
+    color: #666;
+}

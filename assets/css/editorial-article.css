@@ -1,0 +1,304 @@
+.sffc-editorial-article {
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: 32px 18px;
+    font-family: "Inter", "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+    color: #121417;
+    line-height: 1.6;
+}
+
+.sffc-editorial-article__layout {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 16px;
+    padding: 32px;
+    box-shadow: 0 20px 35px rgba(15, 23, 42, 0.08);
+}
+
+.sffc-editorial-article__header {
+    margin-bottom: 28px;
+}
+
+.sffc-editorial-article__eyebrow {
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #4b5563;
+    margin: 0 0 12px 0;
+}
+
+.sffc-editorial-article__title {
+    font-size: clamp(2rem, 3vw, 2.75rem);
+    line-height: 1.15;
+    margin: 0 0 16px 0;
+}
+
+.sffc-editorial-article__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    align-items: center;
+    font-size: 0.95rem;
+    color: #4b5563;
+}
+
+.sffc-editorial-article__meta span,
+.sffc-editorial-article__meta time {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.sffc-editorial-article__reading-time {
+    background: #f3f4f6;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-weight: 600;
+    color: #111827;
+}
+
+.sffc-editorial-article__hero {
+    margin: 24px 0 0 0;
+    border-radius: 18px;
+    overflow: hidden;
+    border: 1px solid #f1f5f9;
+}
+
+.sffc-editorial-article__hero img {
+    display: block;
+    width: 100%;
+    height: auto;
+}
+
+.sffc-editorial-article__body {
+    font-size: 1.05rem;
+    color: #1f2933;
+}
+
+.sffc-editorial-article__body p {
+    margin: 0 0 1.6em 0;
+}
+
+.sffc-editorial-article__body h2,
+.sffc-editorial-article__body h3,
+.sffc-editorial-article__body h4 {
+    margin-top: 2em;
+    margin-bottom: 0.75em;
+    line-height: 1.25;
+}
+
+.sffc-editorial-article__body blockquote {
+    margin: 24px 0;
+    padding: 18px 24px;
+    border-left: 4px solid #0f766e;
+    background: #f0fdfa;
+    border-radius: 0 12px 12px 0;
+    font-style: italic;
+    color: #065f46;
+}
+
+.sffc-editorial-article__sidebar {
+    margin-top: 28px;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 20px;
+    background: #f9fafb;
+}
+
+.sffc-editorial-article__sidebar-title {
+    margin: 0 0 12px 0;
+    font-size: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #0f172a;
+}
+
+.sffc-editorial-article__highlights {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 12px;
+}
+
+.sffc-editorial-article__highlights li {
+    position: relative;
+    padding-left: 18px;
+    color: #1f2933;
+    font-weight: 500;
+}
+
+.sffc-editorial-article__highlights li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 8px;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #2563eb;
+}
+
+@media (min-width: 992px) {
+    .sffc-editorial-article {
+        padding: 48px 0;
+    }
+
+    .sffc-editorial-article__layout {
+        padding: 48px 56px;
+    }
+
+    .sffc-editorial-article__content-wrapper {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 280px;
+        gap: 32px;
+        align-items: flex-start;
+    }
+
+    .sffc-editorial-article__sidebar {
+        position: sticky;
+        top: 120px;
+    }
+}
+
+/* Professional Author Bio Box - Google News Optimized */
+.sffc-editorial-article__author-bio {
+    margin-top: 32px;
+    padding: 24px;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+}
+
+.sffc-author-bio__avatar {
+    flex-shrink: 0;
+}
+
+.sffc-author-bio__avatar img {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    border: 3px solid #e2e8f0;
+    object-fit: cover;
+}
+
+.sffc-author-bio__content {
+    flex: 1;
+}
+
+.sffc-author-bio__name {
+    margin: 0 0 4px 0;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #0f172a;
+}
+
+.sffc-author-bio__title {
+    margin: 0 0 12px 0;
+    font-size: 0.9rem;
+    color: #059669;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.sffc-author-bio__description {
+    margin: 0 0 16px 0;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: #374151;
+}
+
+.sffc-author-bio__description p {
+    margin: 0 0 8px 0;
+}
+
+.sffc-author-bio__expertise {
+    font-style: italic;
+    color: #6b7280;
+}
+
+.sffc-author-bio__credentials {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.sffc-credential {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 12px;
+    background: #ffffff;
+    border: 1px solid #d1d5db;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: #374151;
+}
+
+/* Enhanced Meta Section for Google News */
+.sffc-editorial-article__byline {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.sffc-editorial-article__author {
+    font-weight: 600;
+    color: #0f172a;
+}
+
+.sffc-editorial-article__publication {
+    color: #6b7280;
+    font-size: 0.9rem;
+}
+
+.sffc-editorial-article__publication::before {
+    content: "•";
+    margin: 0 6px;
+    color: #d1d5db;
+}
+
+.sffc-editorial-article__timestamps {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+@media (max-width: 640px) {
+    .sffc-editorial-article__layout {
+        padding: 24px;
+    }
+
+    .sffc-editorial-article__meta {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    /* Mobile Responsive Author Bio */
+    .sffc-editorial-article__author-bio {
+        flex-direction: column;
+        text-align: center;
+        gap: 16px;
+    }
+    
+    .sffc-author-bio__credentials {
+        justify-content: center;
+    }
+    
+    .sffc-editorial-article__byline {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+    }
+    
+    .sffc-editorial-article__publication::before {
+        display: none;
+    }
+}

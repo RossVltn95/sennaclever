@@ -1,0 +1,142 @@
+{
+    "experience_gap": {
+        "rule": "required_years - candidate_years > 2",
+        "severity": "dealbreaker",
+        "title": "Experience Gap",
+        "exceptions": [
+            "If candidate has equivalent seniority from adjacent field (IB → PE)",
+            "If JD says 'or equivalent experience'",
+            "If candidate has accelerated trajectory (early promotions)"
+        ],
+        "fallback_advice": "This is typically a hard filter. Consider: (1) targeting roles 1 level below, (2) networking for warm introduction to bypass ATS, (3) gaining missing years before applying.",
+        "fix_strategies": [
+            "Target VP-level roles instead of Director",
+            "Network for warm introduction to bypass initial screen",
+            "Emphasize accelerated career progression in cover letter",
+            "Highlight equivalent experience from adjacent roles"
+        ]
+    },
+    "missing_required_credential": {
+        "rule": "JD requires credential AND candidate lacks it AND JD uses 'required/must have'",
+        "severity": "dealbreaker",
+        "title": "Missing Required Credential",
+        "exceptions": [
+            "If JD says 'preferred' instead of 'required'",
+            "If candidate is 'in progress' (CFA L2/L3, studying for exam)",
+            "If role description elsewhere suggests flexibility"
+        ],
+        "fallback_advice": "Many firms use credentials as ATS filters. If you're in progress, state clearly: 'CFA Level II Candidate (June 2025 exam)'. If not started, this role may require you to begin the qualification.",
+        "fix_strategies": [
+            "Start credential immediately and mention in application",
+            "Explicitly state progress: 'CFA Level II Candidate (Exam June 2025)'",
+            "Address directly in cover letter first paragraph"
+        ]
+    },
+    "geographic_mismatch": {
+        "rule": "JD location does not match CV location AND JD says 'must be based'",
+        "severity": "dealbreaker",
+        "title": "Location Mismatch",
+        "exceptions": [
+            "Candidate explicitly states willingness to relocate",
+            "JD mentions visa sponsorship available",
+            "Role is remote/hybrid with occasional travel"
+        ],
+        "fallback_advice": "Address in cover letter paragraph 1: 'I am actively relocating to [City] and available to start [date].' Without this, ATS/recruiter assumes you're not serious.",
+        "fix_strategies": [
+            "State relocation plans explicitly in cover letter opening",
+            "Mention specific move date if known",
+            "Reference any connections to target city (family, prior residence)"
+        ]
+    },
+    "sector_mismatch": {
+        "rule": "JD requires specific sector AND candidate has no experience in that sector",
+        "severity": "critical",
+        "title": "Sector Experience Gap",
+        "exceptions": [
+            "Transferable sectors (see industries.json transferable_from)",
+            "Generalist roles that value diverse exposure",
+            "Role explicitly says 'sector experience not required'"
+        ],
+        "fallback_advice": "Sector specialists are preferred for most senior roles. Highlight any tangential exposure or transferable knowledge. Consider targeting generalist roles or firms known for sector transitions.",
+        "fix_strategies": [
+            "Highlight any projects in the target sector",
+            "Reference transferable subsector experience",
+            "Demonstrate sector knowledge through networking/research"
+        ]
+    },
+    "seniority_mismatch": {
+        "rule": "JD seniority level is 2+ levels above candidate's current level",
+        "severity": "dealbreaker",
+        "title": "Seniority Gap",
+        "exceptions": [
+            "Exceptional performance with documented early promotions",
+            "Startup/smaller firm experience that involved senior responsibilities"
+        ],
+        "fallback_advice": "Targeting roles 2+ levels above your current position is rarely successful. Focus on the next level up and plan your career progression.",
+        "fix_strategies": [
+            "Target roles one level up instead",
+            "Emphasize any acting/interim senior responsibilities",
+            "Network for stretch opportunities rather than cold applying"
+        ]
+    },
+    "visa_sponsorship": {
+        "rule": "JD says 'no visa sponsorship' AND candidate requires sponsorship",
+        "severity": "dealbreaker",
+        "title": "Visa Requirement",
+        "exceptions": [
+            "Candidate already has work authorization",
+            "Candidate will have authorization by start date"
+        ],
+        "fallback_advice": "If a JD explicitly states no sponsorship, the company has likely made a policy decision. Focus on roles at sponsors-friendly firms or consider obtaining work authorization independently.",
+        "fix_strategies": [
+            "Target firms known for visa sponsorship",
+            "Explore visa options independently (investor visa, etc.)",
+            "Consider roles in your home country or where you have authorization"
+        ]
+    },
+    "language_requirement": {
+        "rule": "JD requires language AND candidate does not speak it fluently",
+        "severity": "critical",
+        "title": "Language Requirement",
+        "exceptions": [
+            "Candidate is actively learning (intermediate level+)",
+            "JD says 'preferred' rather than 'required'"
+        ],
+        "fallback_advice": "Language requirements are usually non-negotiable for client-facing or specific geographic roles. Begin learning if this is a target sector/region.",
+        "fix_strategies": [
+            "Begin intensive language study",
+            "Target roles in your fluent language regions",
+            "Mention any existing proficiency level honestly"
+        ]
+    },
+    "deal_size_mismatch": {
+        "rule": "JD requires large-cap deal experience AND candidate only has small/mid-cap",
+        "severity": "critical",
+        "title": "Deal Size Gap",
+        "exceptions": [
+            "Candidate led deals at smaller firm (equivalent responsibility)",
+            "Role is at smaller fund where mid-cap experience is relevant"
+        ],
+        "fallback_advice": "Large-cap and small-cap deal dynamics differ significantly. Your experience may translate, but you'll need to address this gap explicitly.",
+        "fix_strategies": [
+            "Emphasize complexity of deals regardless of size",
+            "Highlight any exposure to larger transactions",
+            "Target mid-market focused firms"
+        ]
+    },
+    "fund_size_mismatch": {
+        "rule": "JD is at megafund AND candidate only has experience at small funds",
+        "severity": "critical",
+        "title": "Fund Size Gap",
+        "exceptions": [
+            "Role is explicitly for someone to bring different perspective",
+            "Candidate has bulge bracket IB experience"
+        ],
+        "fallback_advice": "Megafunds typically hire from other megafunds, elite boutiques, or top consulting. Your path may require an intermediate step.",
+        "fix_strategies": [
+            "Consider mid-sized fund as intermediate step",
+            "Leverage IB/consulting background if applicable",
+            "Network aggressively for warm introductions"
+        ]
+    }
+}

@@ -1,0 +1,213 @@
+/**
+ * Conversation Centering Fix
+ * Ensures MENA Careers conversation is perfectly centered regardless of sidebar
+ * Includes search bar toggle and improved message positioning
+ */
+
+/* Hide the message search bar by default */
+.sffc-message-search {
+    display: none !important;
+    position: fixed !important;
+    top: 70px !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    width: 90% !important;
+    max-width: 600px !important;
+    z-index: 1000 !important;
+    background: white !important;
+    border-radius: 12px !important;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15) !important;
+    padding: 12px !important;
+    transition: all 0.3s ease !important;
+}
+
+/* Show search bar when active */
+.sffc-message-search.active {
+    display: block !important;
+    animation: slideDown 0.3s ease !important;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateX(-50%) translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
+}
+
+/* Floating search icon */
+.floating-search-icon {
+    position: fixed !important;
+    bottom: 80px !important;
+    right: 20px !important;
+    width: 56px !important;
+    height: 56px !important;
+    border-radius: 50% !important;
+    background: linear-gradient(135deg, #1A3028 0%, #2A4038 100%) !important;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    cursor: pointer !important;
+    z-index: 999 !important;
+    transition: all 0.3s ease !important;
+}
+
+.floating-search-icon:hover {
+    transform: scale(1.1) !important;
+    box-shadow: 0 6px 16px rgba(0,0,0,0.3) !important;
+}
+
+.floating-search-icon svg {
+    width: 24px !important;
+    height: 24px !important;
+    color: white !important;
+}
+
+/* Override sidebar offset for conversation view - REDUCED PADDING */
+.sffc-conversational-view .sffc-main-container {
+    margin-left: 280px !important;
+    width: calc(100% - 280px) !important;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: flex-start !important;
+    padding: 20px 0 !important;  /* Reduced from 80px to bring content up */
+}
+
+/* Center the conversation wrapper - EXPANDED WIDTH */
+.sffc-conversational-view .sffc-senna-conversation {
+    width: 100% !important;
+    max-width: 1400px !important;
+    margin: -20px auto 40px auto !important;  /* Negative top margin to pull up */
+    padding: 20px 40px !important;  /* Reduced top padding */
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+}
+
+/* Messages container centering - EXPANDED WIDTH */
+.sffc-conversational-view .senna-messages,
+.sffc-conversational-view #senna-messages {
+    width: 100% !important;
+    max-width: 1400px !important;
+    margin: 0 auto 40px !important;  /* Reduced bottom margin */
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    padding: 15px 20px !important;  /* Reduced top padding */
+    min-height: auto !important;  /* Remove any min-height */
+}
+
+/* Remove excessive top spacing from messages */
+.sffc-conversational-view #senna-messages > :first-child {
+    margin-top: 0 !important;
+}
+
+/* Individual messages centering - EXPANDED WIDTH */
+.sffc-conversational-view .senna-message,
+.sffc-conversational-view .user-message {
+    width: 100% !important;
+    max-width: 1200px !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+}
+
+/* Ensure conversation content is centered */
+.sffc-conversational-view .sffc-conversation-content {
+    width: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+}
+
+/* Job cards within conversation - but NOT in grid */
+.sffc-conversational-view .job-card-vogue:not(.job-cards-in-chat .job-card-vogue),
+.sffc-conversational-view .sffc-match-card:not(.job-cards-in-chat .sffc-match-card) {
+    margin: 20px auto !important;
+    max-width: 650px !important;
+}
+
+/* Option cards centering */
+.sffc-conversational-view .option-cards {
+    justify-content: center !important;
+    max-width: 700px !important;
+    margin: 0 auto !important;
+}
+
+/* Input area positioning */
+.sffc-conversational-view 
+
+.sffc-conversational-view .senna-input-wrapper {
+    width: 100% !important;
+    max-width: 700px !important;
+    margin: 0 auto !important;
+}
+
+/* Tablet responsive */
+@media (max-width: 1024px) {
+    .sffc-conversational-view .sffc-main-container {
+        margin-left: 0 !important;
+        width: 100% !important;
+        padding: 60px 0 !important;
+    }
+    
+    .sffc-conversational-view 
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+    .sffc-conversational-view .sffc-main-container {
+        padding: 10px 0 !important;  /* Less padding on mobile */
+    }
+    
+    .sffc-conversational-view .sffc-senna-conversation {
+        padding: 10px 20px !important;
+        margin: -10px auto 30px auto !important;  /* Less negative margin */
+    }
+    
+    .sffc-conversational-view .senna-messages,
+    .sffc-conversational-view #senna-messages {
+        padding: 10px 15px !important;
+        margin: 0 auto 30px !important;
+    }
+    
+    .sffc-conversational-view .senna-message,
+    .sffc-conversational-view .user-message {
+        max-width: 100% !important;
+    }
+    
+    .floating-search-icon {
+        bottom: 70px !important;
+        right: 15px !important;
+        width: 48px !important;
+        height: 48px !important;
+    }
+    
+    .floating-search-icon svg {
+        width: 20px !important;
+        height: 20px !important;
+    }
+    
+    .sffc-message-search {
+        width: 95% !important;
+        top: 60px !important;
+    }
+}
+
+/* Ultra-wide screens */
+@media (min-width: 1920px) {
+    .sffc-conversational-view .sffc-main-container {
+        padding: 100px 0 !important;
+    }
+    
+    .sffc-conversational-view .sffc-senna-conversation {
+        max-width: 1600px !important;
+    }
+    
+    .sffc-conversational-view .senna-messages {
+        max-width: 1200px !important;
+    }
+}

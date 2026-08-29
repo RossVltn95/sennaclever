@@ -1,0 +1,1516 @@
+.sffc-member-pricing {
+  --member-bg: #153540;
+  --member-bg-deep: #112c36;
+  --member-overlay: rgba(11, 28, 34, 0.24);
+  --member-text: #f7f6f1;
+  --member-muted: rgba(247, 246, 241, 0.74);
+  --member-accent: #8ef5c9;
+  --member-accent-hover: #79ebbb;
+  --member-panel: #ffffff;
+  --member-panel-soft: #fbf7ef;
+  --member-border: rgba(16, 24, 40, 0.08);
+  --member-shadow: 0 28px 70px rgba(8, 20, 25, 0.16);
+  --member-font-serif: "Goudy Old Style", "Palatino Linotype", "Book Antiqua", Georgia, serif;
+  --member-font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at top center, rgba(146, 243, 193, 0.12), transparent 22%),
+    linear-gradient(180deg, rgba(226, 234, 241, 0.72), rgba(248, 243, 234, 0.92)),
+    linear-gradient(135deg, #d4dce7 0%, #eee3d3 100%);
+  color: #121826;
+  font-family: var(--member-font-sans);
+}
+
+/* Rebuilt first step: quiet career-stage selector. */
+.sffc-member-pricing .sffc-member-pricing__hero-step {
+  min-height: 100vh;
+  background: #202a48;
+}
+
+.sffc-member-pricing__stage-shell {
+  min-height: 100vh;
+  position: relative;
+  display: grid;
+  place-items: center;
+  padding: clamp(28px, 5vw, 86px);
+}
+
+.sffc-member-pricing__stage-card {
+  width: min(100%, 1418px);
+  min-height: min(76vh, 760px);
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  padding: clamp(54px, 7vw, 118px) clamp(24px, 5vw, 72px);
+  background: #ddddd4;
+  color: #1d2229;
+  box-shadow: 0 36px 90px rgba(9, 15, 31, 0.22);
+  overflow: hidden;
+}
+
+.sffc-member-pricing__stage-rule {
+  width: min(100%, 1275px);
+  height: 1px;
+  margin-bottom: clamp(42px, 5vw, 66px);
+  background: rgba(31, 36, 42, 0.22);
+}
+
+.sffc-member-pricing__stage-kicker {
+  margin: 0 0 8px;
+  color: #5d625d;
+  font-size: 15px;
+  line-height: 1.2;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.sffc-member-pricing__stage-card h1 {
+  margin: 0;
+  color: #1f2329;
+  font-family: var(--member-font-sans);
+  font-size: clamp(50px, 5.6vw, 78px);
+  line-height: 1.04;
+  font-weight: 400;
+  letter-spacing: 0;
+  text-align: center;
+}
+
+.sffc-member-pricing__stage-subtitle {
+  margin: 18px 0 0;
+  color: #20242a;
+  font-size: clamp(17px, 1.5vw, 22px);
+  line-height: 1.45;
+  text-align: center;
+}
+
+.sffc-member-pricing__stage-options {
+  width: min(100%, 1180px);
+  display: grid;
+  grid-template-columns: repeat(4, minmax(150px, 1fr));
+  gap: clamp(24px, 4vw, 54px);
+  align-items: start;
+  justify-content: center;
+  margin-top: clamp(44px, 5vw, 66px);
+}
+
+.sffc-member-pricing__stage-option {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  padding: 0;
+  cursor: pointer;
+  display: grid;
+  justify-items: center;
+  gap: 16px;
+  min-width: 0;
+}
+
+.sffc-member-pricing__stage-image {
+  width: clamp(142px, 12vw, 196px);
+  aspect-ratio: 1;
+  display: block;
+  padding: 4px;
+  border: 2px solid rgba(27, 33, 39, 0.82);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.24);
+  transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+}
+
+.sffc-member-pricing__stage-image img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+  border-radius: inherit;
+}
+
+.sffc-member-pricing__stage-option:hover .sffc-member-pricing__stage-image,
+.sffc-member-pricing__stage-option:focus-visible .sffc-member-pricing__stage-image {
+  transform: translateY(-4px);
+  border-color: #0a66c2;
+  box-shadow: 0 18px 34px rgba(17, 24, 39, 0.16);
+}
+
+.sffc-member-pricing__stage-option:focus-visible {
+  outline: 3px solid rgba(10, 102, 194, 0.38);
+  outline-offset: 8px;
+  border-radius: 999px;
+}
+
+.sffc-member-pricing__stage-label {
+  max-width: 190px;
+  color: #2e3237;
+  font-size: clamp(13px, 1.2vw, 16px);
+  line-height: 1.25;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  text-align: center;
+}
+
+.sffc-member-pricing__stage-arrows {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 28px;
+}
+
+.sffc-member-pricing__stage-arrows button {
+  width: 78px;
+  min-height: 42px;
+  border: 1px solid rgba(34, 38, 44, 0.78);
+  border-radius: 999px;
+  background: transparent;
+  color: #20242a;
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.sffc-member-pricing__stage-arrows button:hover,
+.sffc-member-pricing__stage-arrows button:focus-visible {
+  border-color: #0a66c2;
+  color: #0a66c2;
+  outline: none;
+}
+
+@media (max-width: 860px) {
+  .sffc-member-pricing__stage-shell {
+    padding: 18px 16px 22px;
+    place-items: stretch;
+  }
+
+  .sffc-member-pricing__stage-card {
+    min-height: calc(100vh - 40px);
+    padding: 34px 18px 38px;
+  }
+
+  .sffc-member-pricing__stage-rule {
+    margin-bottom: 34px;
+  }
+
+  .sffc-member-pricing__stage-card h1 {
+    font-size: clamp(38px, 11vw, 54px);
+  }
+
+  .sffc-member-pricing__stage-options {
+    width: 100%;
+    display: flex;
+    gap: 22px;
+    justify-content: flex-start;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    padding: 4px 12px 12px;
+    margin-top: 38px;
+  }
+
+  .sffc-member-pricing__stage-option {
+    flex: 0 0 150px;
+    scroll-snap-align: center;
+  }
+
+  .sffc-member-pricing__stage-image {
+    width: 136px;
+  }
+
+  .sffc-member-pricing__stage-label {
+    font-size: 13px;
+  }
+
+  .sffc-member-pricing__stage-arrows button {
+    width: 68px;
+    min-height: 38px;
+  }
+}
+
+.sffc-member-pricing__step[hidden] {
+  display: none !important;
+}
+
+.sffc-member-pricing__hero-step {
+  position: relative;
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at top center, rgba(255, 255, 255, 0.18), transparent 28%),
+    linear-gradient(180deg, rgba(221, 231, 239, 0.22), rgba(236, 227, 216, 0.12)),
+    linear-gradient(135deg, #d3dde7 0%, #eadfce 100%);
+}
+
+.sffc-member-pricing__hero-shell {
+  position: relative;
+  z-index: 2;
+  min-height: 100vh;
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: 42px 42px 72px;
+  display: flex;
+  flex-direction: column;
+}
+
+.sffc-member-pricing__hero-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: min(100%, 1460px);
+  margin: 0 auto;
+}
+
+.sffc-member-pricing__brand,
+.sffc-member-pricing__signin {
+  text-decoration: none;
+}
+
+.sffc-member-pricing__brand span {
+  display: inline-block;
+  color: #17343f;
+  font-family: var(--member-font-serif);
+  font-size: clamp(34px, 3.6vw, 56px);
+  font-weight: 500;
+  letter-spacing: -0.05em;
+}
+
+.sffc-member-pricing__signin {
+  padding: 12px 18px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(25, 56, 67, 0.1);
+  color: #193843;
+  font-size: 14px;
+  font-weight: 700;
+  box-shadow: 0 10px 22px rgba(17, 32, 40, 0.06);
+}
+
+.sffc-member-pricing__join-shell {
+  width: min(100%, 1460px);
+  margin: auto;
+}
+
+.sffc-member-pricing__join-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1.18fr) minmax(380px, 0.82fr);
+  gap: 46px;
+  align-items: start;
+  padding: 42px;
+  border-radius: 30px;
+  background: linear-gradient(180deg, rgba(247, 250, 252, 0.74), rgba(250, 245, 236, 0.88));
+  box-shadow: 0 32px 84px rgba(18, 28, 43, 0.14);
+}
+
+.sffc-member-pricing__join-kicker {
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+  padding: 0 14px;
+  border-radius: 999px;
+  background: rgba(23, 52, 63, 0.08);
+  color: #17343f;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.sffc-member-pricing__join-benefits h1 {
+  margin: 18px 0 0;
+  color: #0f1822;
+  font-size: clamp(44px, 4.8vw, 72px);
+  line-height: 1.02;
+  letter-spacing: -0.06em;
+  font-weight: 500;
+  font-family: var(--member-font-serif);
+}
+
+.sffc-member-pricing__join-subheadline {
+  width: min(100%, 760px);
+  margin: 18px 0 0;
+  color: #2f4653;
+  font-size: clamp(18px, 1.7vw, 22px);
+  line-height: 1.62;
+}
+
+.sffc-member-pricing__join-markets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 24px;
+}
+
+.sffc-member-pricing__join-markets span,
+.sffc-member-pricing__outcome-list span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 38px;
+  padding: 0 14px;
+  border-radius: 999px;
+  background: rgba(23, 52, 63, 0.08);
+  border: 1px solid rgba(23, 52, 63, 0.08);
+  color: #17343f;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.sffc-member-pricing__join-points {
+  display: grid;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.sffc-member-pricing__join-points p {
+  position: relative;
+  margin: 0;
+  padding-left: 18px;
+  color: #4d6270;
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+.sffc-member-pricing__join-points p::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.72em;
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: #8ef5c9;
+}
+
+.sffc-member-pricing__join-benefit-list {
+  display: grid;
+  gap: 18px;
+  margin-top: 30px;
+}
+
+.sffc-member-pricing__join-benefit h2 {
+  margin: 0;
+  color: #101928;
+  font-size: clamp(22px, 2vw, 30px);
+  line-height: 1.1;
+  letter-spacing: -0.04em;
+  font-weight: 500;
+  font-family: var(--member-font-serif);
+}
+
+.sffc-member-pricing__join-benefit p {
+  width: min(100%, 760px);
+  margin: 8px 0 0;
+  color: #4b6070;
+  font-size: 16px;
+  line-height: 1.62;
+}
+
+.sffc-member-pricing__hero-proof {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 28px;
+}
+
+.sffc-member-pricing__hero-proof-item {
+  padding: 18px 18px 16px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.56);
+  border: 1px solid rgba(20, 39, 52, 0.08);
+}
+
+.sffc-member-pricing__hero-proof-item strong {
+  display: block;
+  color: #17343f;
+  font-size: 22px;
+  line-height: 1.1;
+  letter-spacing: -0.04em;
+  font-weight: 800;
+}
+
+.sffc-member-pricing__hero-proof-item span {
+  display: block;
+  margin-top: 7px;
+  color: #5b6971;
+  font-size: 13px;
+  line-height: 1.5;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.sffc-member-pricing__join-formcard {
+  padding: 30px 30px 28px;
+  border-radius: 24px;
+  background: linear-gradient(180deg, rgba(21, 53, 64, 0.985), rgba(17, 44, 54, 0.99));
+  box-shadow: 0 24px 52px rgba(16, 36, 42, 0.2);
+  position: sticky;
+  top: 26px;
+}
+
+.sffc-member-pricing__join-formhead h2 {
+  margin: 10px 0 0;
+  color: #f7f6f1;
+  font-size: clamp(34px, 3vw, 42px);
+  line-height: 1.02;
+  letter-spacing: -0.05em;
+  font-weight: 500;
+  font-family: var(--member-font-serif);
+}
+
+.sffc-member-pricing__join-formhead p {
+  margin: 12px 0 0;
+  color: var(--member-muted);
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.sffc-member-pricing__join-formkicker {
+  color: var(--member-accent);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.sffc-member-pricing__hero-form {
+  width: 100%;
+  margin: 0;
+  text-align: left;
+}
+
+.sffc-member-pricing__hero-prompt {
+  margin: 22px 0 12px;
+  color: rgba(247, 246, 241, 0.94);
+  font-size: 13px;
+  line-height: 1.5;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+.sffc-member-pricing__hero-controls {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+}
+
+.sffc-member-pricing__hero-controls input {
+  min-width: 0;
+  height: 66px;
+  padding: 0 22px;
+  border-radius: 12px;
+  border: 0;
+  background: rgba(255, 255, 255, 0.98);
+  color: #10222a;
+  font-size: 20px;
+  font-family: var(--member-font-sans);
+}
+
+.sffc-member-pricing__hero-controls input::placeholder {
+  color: rgba(16, 34, 42, 0.46);
+}
+
+.sffc-member-pricing__hero-controls button,
+.sffc-member-pricing__primary,
+.sffc-member-pricing__plan-cta {
+  border: 0;
+  border-radius: 14px;
+  background: var(--member-accent);
+  color: #fff;
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  cursor: pointer;
+  transition: transform 160ms ease, background 160ms ease, box-shadow 160ms ease;
+}
+
+.sffc-member-pricing__hero-controls button {
+  width: 100%;
+  min-width: 0;
+  min-height: 66px;
+  padding: 0 32px;
+  color: #13242b;
+  background: linear-gradient(135deg, #92f3bb 0%, #97f6d6 100%);
+  box-shadow: 0 18px 30px rgba(118, 238, 185, 0.16);
+}
+
+.sffc-member-pricing__hero-controls button:hover,
+.sffc-member-pricing__primary:hover,
+.sffc-member-pricing__plan-cta:hover {
+  background: var(--member-accent-hover);
+  transform: translateY(-1px);
+}
+
+.sffc-member-pricing__form-error {
+  margin: 14px 0 0;
+  color: #ffb8b0;
+  font-size: 15px;
+  text-align: left;
+}
+
+.sffc-member-pricing__hero-price {
+  margin: 18px 0 0;
+  color: rgba(247, 246, 241, 0.72);
+  font-size: 12px;
+  line-height: 1.55;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+.sffc-member-pricing__join-note {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  color: rgba(247, 246, 241, 0.76);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.sffc-member-pricing__panel-step {
+  padding: 58px 18px 84px;
+}
+
+.sffc-member-pricing__panel-shell {
+  max-width: 1420px;
+  margin: 0 auto;
+  padding: 38px 36px 42px;
+  border-radius: 28px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(250, 246, 239, 0.98));
+  box-shadow: 0 24px 60px rgba(16, 24, 40, 0.08);
+}
+
+.sffc-member-pricing__step-kicker {
+  color: #3e6f5a;
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+.sffc-member-pricing__panel-shell h2 {
+  margin: 8px 0 0;
+  color: #101828;
+  font-size: clamp(34px, 4vw, 52px);
+  line-height: 1.04;
+  letter-spacing: -0.05em;
+  font-weight: 500;
+  font-family: var(--member-font-serif);
+}
+
+.sffc-member-pricing__step-copy {
+  width: min(100%, 860px);
+  margin: 16px 0 0;
+  color: #586273;
+  font-size: 19px;
+  line-height: 1.64;
+}
+
+.sffc-member-pricing__checklist {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 32px;
+}
+
+.sffc-member-pricing__check-card,
+.sffc-member-pricing__plan {
+  background: var(--member-panel);
+  border: 1px solid var(--member-border);
+  border-radius: 24px;
+  box-shadow: var(--member-shadow);
+}
+
+.sffc-member-pricing__check-card {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+  padding: 24px;
+  background: linear-gradient(180deg, rgba(249, 252, 250, 0.92), rgba(255, 255, 255, 0.98));
+}
+
+.sffc-member-pricing__check-icon {
+  width: 32px;
+  height: 32px;
+  color: #14835f;
+  flex: 0 0 auto;
+}
+
+.sffc-member-pricing__check-icon svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.sffc-member-pricing__check-copy h3 {
+  margin: 0;
+  color: #121826;
+  font-size: 19px;
+  line-height: 1.16;
+  letter-spacing: -0.04em;
+  font-weight: 700;
+}
+
+.sffc-member-pricing__check-copy p {
+  margin: 10px 0 0;
+  color: #5f6877;
+  font-size: 16px;
+  line-height: 1.62;
+}
+
+.sffc-member-pricing__outcomes {
+  margin-top: 26px;
+  padding: 24px;
+  border-radius: 22px;
+  background: rgba(23, 52, 63, 0.04);
+  border: 1px solid rgba(23, 52, 63, 0.08);
+}
+
+.sffc-member-pricing__outcomes h3 {
+  margin: 0;
+  color: #10222a;
+  font-size: clamp(24px, 2vw, 32px);
+  line-height: 1.08;
+  letter-spacing: -0.04em;
+  font-weight: 500;
+  font-family: var(--member-font-serif);
+}
+
+.sffc-member-pricing__outcome-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.sffc-member-pricing__actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 14px;
+  margin-top: 28px;
+}
+
+.sffc-member-pricing__ghost,
+.sffc-member-pricing__primary {
+  min-height: 60px;
+  padding: 0 24px;
+  border-radius: 14px;
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.sffc-member-pricing__ghost {
+  border: 1px solid rgba(16, 24, 40, 0.14);
+  background: #fff;
+  color: #111827;
+  cursor: pointer;
+}
+
+.sffc-member-pricing__plans {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 22px;
+  margin-top: 26px;
+}
+
+.sffc-member-pricing__panel-shell--plans {
+  max-width: 1480px;
+}
+
+.sffc-member-pricing__plan-intro {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 26px;
+}
+
+.sffc-member-pricing__plan-intro > div {
+  padding: 18px 18px 16px;
+  border-radius: 20px;
+  background: rgba(23, 52, 63, 0.05);
+  border: 1px solid rgba(23, 52, 63, 0.08);
+}
+
+.sffc-member-pricing__plan-intro strong {
+  display: block;
+  color: #17343f;
+  font-size: 15px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.sffc-member-pricing__plan-intro span {
+  display: block;
+  margin-top: 7px;
+  color: #5c6871;
+  font-size: 15px;
+  line-height: 1.58;
+}
+
+.sffc-member-pricing__plan {
+  position: relative;
+  overflow: hidden;
+}
+
+.sffc-member-pricing__plan.is-selected {
+  border-color: rgba(22, 73, 90, 0.24);
+  box-shadow: 0 28px 70px rgba(20, 52, 63, 0.12);
+}
+
+.sffc-member-pricing__plan-top {
+  min-height: 122px;
+  padding: 24px 24px 22px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  color: #fff;
+}
+
+.sffc-member-pricing__plan-top.is-indigo {
+  background: linear-gradient(135deg, #17343f 0%, #215061 100%);
+}
+
+.sffc-member-pricing__plan-top.is-violet {
+  background: linear-gradient(135deg, #19404d 0%, #2f6b5d 100%);
+}
+
+.sffc-member-pricing__plan-top.is-sunset {
+  background: linear-gradient(135deg, #153540 0%, #35585f 50%, #5f7d72 100%);
+}
+
+.sffc-member-pricing__plan-top h3 {
+  margin: 0;
+  font-size: 28px;
+  line-height: 1.02;
+  letter-spacing: -0.05em;
+  font-weight: 700;
+}
+
+.sffc-member-pricing__plan-top span {
+  display: block;
+  margin-top: 10px;
+  max-width: 270px;
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.sffc-member-pricing__plan-check {
+  width: 24px;
+  height: 24px;
+  color: #fff;
+  flex: 0 0 auto;
+}
+
+.sffc-member-pricing__plan-check svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.sffc-member-pricing__plan-specs {
+  margin: 0;
+  padding: 18px 24px 24px;
+}
+
+.sffc-member-pricing__plan-specs div {
+  padding: 15px 0;
+  border-bottom: 1px solid rgba(16, 24, 40, 0.1);
+}
+
+.sffc-member-pricing__plan-specs div:last-child {
+  border-bottom: 0;
+}
+
+.sffc-member-pricing__plan-specs dt {
+  margin: 0;
+  color: #5d6675;
+  font-size: 13px;
+  line-height: 1.45;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+}
+
+.sffc-member-pricing__plan-specs dd {
+  margin: 6px 0 0;
+  color: #101828;
+  font-size: 17px;
+  line-height: 1.46;
+  font-weight: 700;
+}
+
+.sffc-member-pricing__plan-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 58px;
+  margin: 0 24px 24px;
+  padding: 0 22px;
+  text-decoration: none;
+  color: #13242b;
+  background: linear-gradient(135deg, #92f3bb 0%, #97f6d6 100%);
+  font-size: 17px;
+}
+
+@media (max-width: 1080px) {
+  .sffc-member-pricing__join-card {
+    grid-template-columns: 1fr;
+    gap: 28px;
+  }
+
+  .sffc-member-pricing__join-formcard {
+    max-width: 720px;
+    position: static;
+  }
+
+  .sffc-member-pricing__plans {
+    grid-template-columns: 1fr;
+  }
+
+  .sffc-member-pricing__checklist {
+    grid-template-columns: 1fr;
+  }
+
+  .sffc-member-pricing__hero-proof,
+  .sffc-member-pricing__plan-intro {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 720px) {
+  .sffc-member-pricing__hero-shell {
+    padding: 18px 18px 42px;
+  }
+
+  .sffc-member-pricing__brand span {
+    font-size: 34px;
+  }
+
+  .sffc-member-pricing__signin {
+    padding: 9px 14px;
+    font-size: 14px;
+  }
+
+  .sffc-member-pricing__join-card {
+    padding: 24px 18px;
+    border-radius: 22px;
+  }
+
+  .sffc-member-pricing__join-benefits h1 {
+    font-size: 42px;
+  }
+
+  .sffc-member-pricing__join-subheadline {
+    font-size: 16px;
+  }
+
+  .sffc-member-pricing__join-markets span,
+  .sffc-member-pricing__outcome-list span {
+    min-height: 34px;
+    font-size: 13px;
+  }
+
+  .sffc-member-pricing__hero-prompt {
+    font-size: 12px;
+  }
+
+  .sffc-member-pricing__join-benefit h2 {
+    font-size: 26px;
+  }
+
+  .sffc-member-pricing__hero-controls input,
+  .sffc-member-pricing__hero-controls button {
+    min-width: 0;
+    min-height: 58px;
+    font-size: 18px;
+  }
+
+  .sffc-member-pricing__hero-proof-item strong {
+    font-size: 19px;
+  }
+
+  .sffc-member-pricing__panel-step {
+    padding: 34px 14px 48px;
+  }
+
+  .sffc-member-pricing__panel-shell {
+    padding: 24px 18px 28px;
+    border-radius: 20px;
+  }
+
+  .sffc-member-pricing__step-kicker {
+    font-size: 15px;
+  }
+
+  .sffc-member-pricing__step-copy {
+    font-size: 16px;
+  }
+
+  .sffc-member-pricing__check-card {
+    padding: 18px;
+  }
+
+  .sffc-member-pricing__outcomes {
+    padding: 18px;
+  }
+
+  .sffc-member-pricing__check-copy h3 {
+    font-size: 18px;
+  }
+
+  .sffc-member-pricing__actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .sffc-member-pricing__ghost,
+  .sffc-member-pricing__primary {
+    width: 100%;
+  }
+
+  .sffc-member-pricing__plan-top {
+    min-height: 108px;
+    padding: 18px;
+  }
+
+  .sffc-member-pricing__plan-top h3 {
+    font-size: 28px;
+  }
+
+  .sffc-member-pricing__plan-top span {
+    font-size: 14px;
+  }
+
+  .sffc-member-pricing__plan-specs {
+    padding: 10px 18px 18px;
+  }
+
+  .sffc-member-pricing__plan-specs dd {
+    font-size: 16px;
+  }
+
+  .sffc-member-pricing__plan-cta {
+    width: calc(100% - 36px);
+    margin: 0 18px 18px;
+  }
+}
+
+.sffc-member-pricing .sffc-member-pricing__hero-step[data-member-pricing-step="1"] {
+  min-height: 100vh !important;
+  background: #202a48 !important;
+}
+
+.sffc-member-pricing__panel-step[data-member-pricing-step="2"] {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  background: #ddddd4;
+}
+
+.sffc-member-pricing__panel-shell--identity {
+  width: 100%;
+  min-height: 100vh;
+  display: grid;
+  align-content: center;
+  padding: clamp(44px, 6vw, 86px) clamp(24px, 6vw, 96px);
+  border: 0;
+  border-radius: 0;
+  background: #ddddd4;
+  box-shadow: none;
+}
+
+.sffc-member-pricing__identity-intro {
+  width: min(100%, 1180px);
+  margin: 0 auto;
+  padding-top: clamp(28px, 4vw, 54px);
+  border-top: 1px solid rgba(31, 36, 42, 0.22);
+  text-align: center;
+}
+
+.sffc-member-pricing__panel-shell--identity .sffc-member-pricing__step-kicker {
+  color: #5d625d;
+  font-size: 13px;
+  letter-spacing: 0.08em;
+}
+
+.sffc-member-pricing__panel-shell--identity h2 {
+  margin-top: 12px;
+  color: #1f2329;
+  font-family: var(--member-font-sans);
+  font-size: clamp(38px, 4.7vw, 68px);
+  line-height: 1.04;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+
+.sffc-member-pricing__identity-grid {
+  width: min(100%, 1060px);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 420px);
+  gap: clamp(24px, 4vw, 54px);
+  align-items: center;
+  margin: clamp(34px, 5vw, 58px) auto 0;
+}
+
+.sffc-member-pricing__panel-shell--identity .sffc-member-pricing__checklist {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  margin: 0;
+}
+
+.sffc-member-pricing__panel-shell--identity .sffc-member-pricing__check-card {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 14px;
+  align-items: center;
+  min-height: 58px;
+  padding: 14px 16px;
+  border: 1px solid rgba(32, 36, 42, 0.1);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.46);
+  box-shadow: none;
+}
+
+.sffc-member-pricing__panel-shell--identity .sffc-member-pricing__check-icon {
+  width: 24px;
+  height: 24px;
+  color: #0a66c2;
+}
+
+.sffc-member-pricing__panel-shell--identity .sffc-member-pricing__check-copy h3 {
+  color: #20242a;
+  font-size: clamp(15px, 1.25vw, 18px);
+  line-height: 1.25;
+  letter-spacing: 0;
+}
+
+.sffc-member-pricing__identity-form {
+  display: grid;
+  gap: 16px;
+  padding: 24px;
+  border: 1px solid rgba(32, 36, 42, 0.12);
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.62);
+  box-shadow: 0 18px 44px rgba(17, 24, 39, 0.08);
+}
+
+.sffc-member-pricing__identity-formhead h3 {
+  margin: 0;
+  color: #1f2329;
+  font-size: 24px;
+  line-height: 1.15;
+  letter-spacing: 0;
+}
+
+.sffc-member-pricing__identity-formhead p {
+  margin: 8px 0 0;
+  color: #5d625d;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.sffc-member-pricing__identity-form label {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+}
+
+.sffc-member-pricing__identity-form label span {
+  color: #3b4148;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.sffc-member-pricing__identity-form input {
+  width: 100%;
+  min-height: 54px;
+  padding: 0 16px;
+  border: 1px solid rgba(32, 36, 42, 0.16);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.94);
+  color: #1f2329;
+  font: inherit;
+  font-size: 16px;
+  outline: none;
+}
+
+.sffc-member-pricing__identity-form input:focus {
+  border-color: #0a66c2;
+  box-shadow: 0 0 0 4px rgba(10, 102, 194, 0.12);
+}
+
+.sffc-member-pricing__identity-form .sffc-member-pricing__form-error {
+  margin: 0;
+  color: #b42318;
+  font-size: 13px;
+}
+
+.sffc-member-pricing__identity-form .sffc-member-pricing__actions {
+  justify-content: stretch;
+  gap: 10px;
+  margin-top: 2px;
+}
+
+.sffc-member-pricing__identity-form .sffc-member-pricing__ghost,
+.sffc-member-pricing__identity-form .sffc-member-pricing__primary {
+  flex: 1 1 0;
+  min-height: 52px;
+  border-radius: 999px;
+  font-size: 15px;
+  letter-spacing: 0;
+}
+
+.sffc-member-pricing__identity-form .sffc-member-pricing__primary {
+  background: #0a66c2;
+  color: #ffffff;
+  box-shadow: 0 14px 28px rgba(10, 102, 194, 0.18);
+}
+
+.sffc-member-pricing__identity-form .sffc-member-pricing__primary:hover {
+  background: #0857a6;
+}
+
+@media (max-width: 900px) {
+  .sffc-member-pricing__panel-step[data-member-pricing-step="2"] {
+    padding: 0;
+  }
+
+  .sffc-member-pricing__panel-shell--identity {
+    min-height: 100vh;
+    padding: 34px 18px 38px;
+  }
+
+  .sffc-member-pricing__identity-intro {
+    padding-top: 34px;
+  }
+
+  .sffc-member-pricing__identity-grid {
+    grid-template-columns: 1fr;
+    gap: 22px;
+    margin-top: 30px;
+  }
+
+  .sffc-member-pricing__identity-form {
+    padding: 18px;
+  }
+}
+
+.sffc-member-pricing__panel-step[data-member-pricing-step="3"] {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: clamp(20px, 3vw, 42px) clamp(18px, 3vw, 38px);
+  background: #ffffff;
+}
+
+.sffc-member-pricing__panel-shell--plans {
+  width: min(100%, 1280px);
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.sffc-member-pricing__plans-heading {
+  width: min(100%, 720px);
+  margin: 0 auto;
+  text-align: center;
+}
+
+.sffc-member-pricing__plans-heading h2 {
+  margin: 0;
+  color: #0b0b0d;
+  font-family: var(--member-font-sans);
+  font-size: clamp(42px, 4.6vw, 64px);
+  line-height: 1.02;
+  font-weight: 800;
+  letter-spacing: 0;
+}
+
+.sffc-member-pricing__plans-heading p {
+  width: min(100%, 610px);
+  margin: 12px auto 0;
+  color: #5f6368;
+  font-size: clamp(15px, 1.25vw, 18px);
+  line-height: 1.38;
+}
+
+.sffc-member-pricing__billing-toggle {
+  width: max-content;
+  max-width: 100%;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 18px;
+  padding: 5px;
+  border: 1px solid #d8dce3;
+  border-radius: 999px;
+  background: #f6f7f9;
+}
+
+.sffc-member-pricing__billing-toggle button {
+  min-height: 34px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 15px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: #33363b;
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.sffc-member-pricing__billing-toggle button.is-active {
+  background: #0b0b0d;
+  color: #ffffff;
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.12);
+}
+
+.sffc-member-pricing__billing-toggle span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 21px;
+  padding: 0 8px;
+  border-radius: 999px;
+  background: #e8f3ff;
+  color: #0a66c2;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.sffc-member-pricing__plans {
+  display: none;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+  align-items: stretch;
+  width: min(100%, 1120px);
+  margin: clamp(24px, 3vw, 38px) auto 0;
+}
+
+.sffc-member-pricing__plans.is-active {
+  display: grid;
+}
+
+.sffc-member-pricing__panel-shell--plans .sffc-member-pricing__plan {
+  display: flex;
+  flex-direction: column;
+  min-height: 330px;
+  padding: 20px;
+  border: 1px solid #e5e7eb;
+  border-radius: 20px;
+  background: #ffffff;
+  box-shadow: 0 16px 44px rgba(15, 23, 42, 0.08);
+  overflow: visible;
+}
+
+.sffc-member-pricing__panel-shell--plans .sffc-member-pricing__plan.is-selected {
+  border-color: #dfe5ef;
+  box-shadow: 0 20px 54px rgba(15, 23, 42, 0.12);
+}
+
+.sffc-member-pricing__plan-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.sffc-member-pricing__plan-titleline {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.sffc-member-pricing__plan-icon {
+  width: 23px;
+  height: 23px;
+  color: #111827;
+  flex: 0 0 auto;
+}
+
+.sffc-member-pricing__plan-icon svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.sffc-member-pricing__panel-shell--plans .sffc-member-pricing__plan h3 {
+  margin: 0;
+  color: #111111;
+  font-size: clamp(20px, 1.7vw, 26px);
+  line-height: 1.08;
+  font-weight: 850;
+  letter-spacing: 0;
+}
+
+.sffc-member-pricing__plan-badge {
+  min-height: 24px;
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+  padding: 0 8px;
+  border: 1px solid #b8c8e8;
+  border-radius: 7px;
+  color: #0a4ea3;
+  background: #f6f9ff;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.sffc-member-pricing__plan-divider {
+  height: 1px;
+  margin: 18px 0 14px;
+  background: #e9eaee;
+}
+
+.sffc-member-pricing__plan-price span {
+  display: block;
+  color: #5f6368;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.sffc-member-pricing__plan-price strong {
+  display: block;
+  margin-top: 6px;
+  color: #0b0b0d;
+  font-size: clamp(24px, 2vw, 31px);
+  line-height: 1.08;
+  font-weight: 850;
+  letter-spacing: 0;
+}
+
+.sffc-member-pricing__plan-price em {
+  display: block;
+  margin-top: 4px;
+  color: #111827;
+  font-size: 14px;
+  line-height: 1.35;
+  font-style: normal;
+  font-weight: 750;
+}
+
+.sffc-member-pricing__plan-list {
+  display: grid;
+  gap: 9px;
+  margin: 16px 0 18px;
+  padding: 0;
+  list-style: none;
+}
+
+.sffc-member-pricing__plan-list li {
+  position: relative;
+  margin: 0;
+  padding-left: 22px;
+  color: #1f2329;
+  font-size: 13.5px;
+  line-height: 1.32;
+}
+
+.sffc-member-pricing__plan-list li::before {
+  content: "✓";
+  position: absolute;
+  left: 0;
+  top: 0;
+  color: #2f7d48;
+  font-weight: 900;
+}
+
+.sffc-member-pricing__panel-shell--plans .sffc-member-pricing__plan-cta {
+  width: 100%;
+  min-height: 46px;
+  margin: auto 0 0;
+  border-radius: 999px;
+  background: #2f66d5;
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: 850;
+  letter-spacing: 0;
+  text-decoration: none;
+  box-shadow: none;
+}
+
+.sffc-member-pricing__panel-shell--plans .sffc-member-pricing__plan-cta:hover {
+  background: #2459c7;
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+.sffc-member-pricing__plans-note {
+  margin: clamp(18px, 2.5vw, 30px) 0 0;
+  color: #5f6368;
+  font-size: clamp(14px, 1.3vw, 17px);
+  line-height: 1.4;
+  text-align: center;
+}
+
+.sffc-member-pricing__actions--plans {
+  justify-content: center;
+  margin-top: 10px;
+}
+
+.sffc-member-pricing__actions--plans .sffc-member-pricing__ghost {
+  min-height: 44px;
+  border-radius: 999px;
+  background: #ffffff;
+}
+
+@media (max-width: 980px) {
+  .sffc-member-pricing__panel-step[data-member-pricing-step="3"] {
+    padding: 32px 16px 46px;
+    place-items: start center;
+  }
+
+  .sffc-member-pricing__plans {
+    grid-template-columns: 1fr;
+    width: min(100%, 430px);
+    margin-top: 34px;
+  }
+
+  .sffc-member-pricing__panel-shell--plans .sffc-member-pricing__plan {
+    min-height: 0;
+  }
+}
+
+@media (max-width: 560px) {
+  .sffc-member-pricing__plans-heading h2 {
+    font-size: 42px;
+  }
+
+  .sffc-member-pricing__plans-heading p {
+    font-size: 16px;
+  }
+
+  .sffc-member-pricing__billing-toggle {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .sffc-member-pricing__billing-toggle button {
+    flex: 1 1 0;
+    justify-content: center;
+    padding: 0 10px;
+  }
+
+  .sffc-member-pricing__billing-toggle span {
+    display: none;
+  }
+
+  .sffc-member-pricing__panel-shell--plans .sffc-member-pricing__plan {
+    padding: 22px;
+  }
+}

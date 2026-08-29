@@ -1,0 +1,202 @@
+/**
+ * Feed Manager Styles
+ */
+
+.sffc-feed-section {
+    background: white;
+    padding: 20px;
+    margin: 20px 0;
+    border: 1px solid #ccd0d4;
+    box-shadow: 0 1px 1px rgba(0,0,0,.04);
+}
+
+.sffc-feed-section h2 {
+    margin-top: 0;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #e1e1e1;
+}
+
+.sffc-feed-section h3 {
+    margin-top: 30px;
+    color: #23282d;
+}
+
+.sffc-progressive-fetch {
+    display: grid;
+    grid-template-columns: auto auto 1fr;
+    gap: 10px 12px;
+    align-items: center;
+    margin: 0 0 14px;
+    padding: 12px;
+    background: #f6f7f7;
+    border: 1px solid #dcdcde;
+    border-radius: 4px;
+}
+
+.sffc-progressive-fetch.is-running {
+    background: #f0f6fc;
+    border-color: #72aee6;
+}
+
+.sffc-progressive-fetch__status {
+    color: #50575e;
+    font-weight: 600;
+}
+
+.sffc-progressive-fetch__bar {
+    grid-column: 1 / -1;
+    height: 10px;
+    overflow: hidden;
+    background: #dcdcde;
+    border-radius: 999px;
+}
+
+.sffc-progressive-fetch__bar span {
+    display: block;
+    width: 0;
+    height: 100%;
+    background: #2271b1;
+    border-radius: inherit;
+    transition: width 180ms ease;
+}
+
+.sffc-feed-row-running {
+    outline: 2px solid #72aee6;
+    outline-offset: -2px;
+}
+
+.sffc-feed-row-success .job-count {
+    color: #008a20;
+}
+
+.sffc-feed-row-error .job-count {
+    color: #b32d2e;
+}
+
+.feed-form {
+    max-width: 700px;
+    margin-top: 20px;
+    padding: 20px;
+    background: #f8f9fa;
+    border: 1px solid #e1e1e1;
+    border-radius: 4px;
+}
+
+.feed-form .form-table th {
+    width: 150px;
+    padding: 15px 10px;
+    font-weight: 600;
+}
+
+.feed-form input[type="text"],
+.feed-form input[type="url"],
+.feed-form select {
+    width: 100%;
+    max-width: 400px;
+}
+
+.feed-status {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 3px;
+    font-size: 12px;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.status-working {
+    background: #d4edda;
+    color: #155724;
+}
+
+.status-error {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.status-untested {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.status-disabled {
+    background: #e2e3e5;
+    color: #383d41;
+}
+
+.wp-list-table code {
+    font-size: 11px;
+    background: #f0f0f1;
+    padding: 2px 4px;
+    word-break: break-all;
+}
+
+.wp-list-table .button {
+    margin-right: 5px;
+    margin-bottom: 3px;
+}
+
+.job-count {
+    font-weight: bold;
+    color: #2271b1;
+}
+
+#feed-test-results {
+    background: white;
+    padding: 20px;
+    margin: 20px 0;
+    border: 1px solid #ccd0d4;
+    box-shadow: 0 1px 1px rgba(0,0,0,.04);
+}
+
+#test-output {
+    padding: 15px;
+    background: #f6f7f7;
+    border: 1px solid #e1e1e1;
+    border-radius: 4px;
+    font-family: monospace;
+    font-size: 13px;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+#test-output h4 {
+    margin-top: 0;
+    color: #23282d;
+}
+
+#test-output ul {
+    margin: 10px 0;
+    padding-left: 20px;
+}
+
+#test-output li {
+    margin: 5px 0;
+    list-style-type: disc;
+}
+
+/* Loading states */
+.button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Responsive */
+@media screen and (max-width: 782px) {
+    .sffc-progressive-fetch {
+        grid-template-columns: 1fr;
+    }
+
+    .wp-list-table {
+        font-size: 12px;
+    }
+    
+    .wp-list-table .button {
+        padding: 3px 8px;
+        font-size: 11px;
+    }
+    
+    .feed-form {
+        padding: 15px;
+    }
+}

@@ -1,0 +1,5092 @@
+.sffc-member-signup {
+  width: 100vw;
+  min-height: 100vh;
+  min-height: 100svh;
+  margin: 0;
+  margin-left: calc(50% - 50vw);
+  padding: clamp(24px, 4vw, 48px);
+  background: #f3f2ef;
+  color: #111827;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
+  box-sizing: border-box;
+}
+
+.sffc-member-signup [hidden] {
+  display: none !important;
+}
+
+/* MemberPress init decoy: visually hidden but still present in the live DOM so
+   MemberPress can find and initialise its signup form markup on page load. */
+.sffc-mepr-init-decoy {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+  pointer-events: none;
+}
+
+body:has(.sffc-member-signup:not(.sffc-member-signup--overlay-panel)) {
+  margin: 0;
+  overflow-x: hidden;
+  background: #f3f2ef;
+}
+
+body:has(.sffc-member-signup:not(.sffc-member-signup--overlay-panel))
+  .entry-content,
+body:has(.sffc-member-signup:not(.sffc-member-signup--overlay-panel))
+  .wp-block-post-content,
+body:has(.sffc-member-signup:not(.sffc-member-signup--overlay-panel))
+  .site-main,
+body:has(.sffc-member-signup:not(.sffc-member-signup--overlay-panel))
+  .content-area {
+  max-width: none !important;
+  width: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.has-sffc-job-signup-overlay {
+  overflow: hidden;
+}
+
+.sffc-member-signup-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+}
+
+.sffc-member-signup-overlay__backdrop {
+  position: absolute;
+  inset: 0;
+  background: #f3f2ef;
+  backdrop-filter: blur(4px);
+}
+
+.sffc-member-signup-overlay__dialog {
+  position: relative;
+  z-index: 1;
+  width: min(100%, 1440px);
+  max-height: calc(100vh - 32px);
+  margin: 16px auto;
+  overflow: auto;
+  border-radius: 20px;
+}
+
+.sffc-member-signup-overlay__close {
+  position: sticky;
+  top: 16px;
+  left: calc(100% - 64px);
+  z-index: 2;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(17, 24, 39, 0.88);
+  color: #ffffff;
+  font-size: 26px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.sffc-member-signup-overlay__body {
+  margin-top: -28px;
+}
+
+.sffc-member-signup-overlay__loading,
+.sffc-member-signup-overlay__error {
+  margin: 80px auto 0;
+  width: min(100%, 610px);
+  padding: 28px 32px;
+  border-radius: 16px;
+  background: #ffffff;
+  box-shadow: 0 16px 44px rgba(15, 23, 42, 0.12);
+  color: #111827;
+  text-align: center;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.sffc-member-signup--overlay-panel {
+  width: 100%;
+  min-height: 0;
+  margin: 0;
+  padding: 24px;
+  background: transparent;
+}
+
+.sffc-member-signup--overlay-panel .sffc-member-signup__brand {
+  width: min(100%, 1180px);
+}
+
+.sffc-member-signup__brand {
+  width: min(100%, 1320px);
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #111827;
+}
+
+.sffc-member-signup__brand-mark {
+  width: 48px;
+  height: 48px;
+  border-radius: 13px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #123943;
+  position: relative;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.sffc-member-signup__brand-glyph {
+  color: #f8fbff;
+  font-family: "Goudy Old Style", "Palatino Linotype", "Book Antiqua", Georgia,
+    serif;
+  font-size: 49px;
+  line-height: 0.84;
+  font-weight: 400;
+  letter-spacing: -0.06em;
+  transform: translate(-2px, 1px);
+}
+
+.sffc-member-signup__brand-dot {
+  position: absolute;
+  right: 1px;
+  top: 14px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #16e0c6;
+  box-shadow: 0 0 0 4px rgba(22, 224, 198, 0.08);
+}
+
+.sffc-member-signup__brand-copy {
+  display: flex;
+  flex-direction: column;
+}
+
+.sffc-member-signup__brand-copy strong {
+  color: #111827;
+  font-family: Arial, system-ui, sans-serif;
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: -0.025em;
+}
+
+.sffc-member-signup__brand-copy span {
+  display: block;
+  color: #6a7280;
+  font-size: 12px;
+  line-height: 1.2;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.sffc-member-signup__brand-signin {
+  margin-left: auto;
+  min-height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 16px;
+  border: 1px solid #d1d5db;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #123943;
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.sffc-member-signup__brand-signin:hover {
+  border-color: #123943;
+  color: #123943;
+}
+
+.sffc-member-signup__brand-account {
+  position: relative;
+  margin-left: auto;
+}
+
+.sffc-member-signup__brand-avatar-toggle {
+  min-height: 44px;
+  padding: 4px 8px 4px 4px;
+  border: 1px solid #d1d5db;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #123943;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.sffc-member-signup__brand-avatar-toggle:hover,
+.sffc-member-signup__brand-avatar-toggle:focus-visible {
+  border-color: #123943;
+  outline: none;
+}
+
+.sffc-member-signup__brand-avatar-toggle svg {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+}
+
+.sffc-member-signup__brand-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: linear-gradient(135deg, #17364a 0%, #234866 100%);
+  color: #ffffff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 800;
+  flex: 0 0 auto;
+}
+
+.sffc-member-signup__brand-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.sffc-member-signup__brand-account-menu {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  min-width: 200px;
+  padding: 10px;
+  border: 1px solid rgba(17, 24, 39, 0.08);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.98);
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.12);
+  backdrop-filter: blur(10px);
+  display: grid;
+  gap: 4px;
+  z-index: 25;
+}
+
+.sffc-member-signup__brand-account-menu[hidden] {
+  display: none !important;
+}
+
+.sffc-member-signup__brand-account-item {
+  min-height: 42px;
+  padding: 0 14px;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none !important;
+  color: #17364a;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.sffc-member-signup__brand-account-item:hover,
+.sffc-member-signup__brand-account-item:focus-visible {
+  background: #f4f7fb;
+  outline: none;
+}
+
+.sffc-member-signup__brand-account-item.is-logout {
+  color: #9f1239;
+}
+
+.sffc-member-signup__shell {
+  width: min(100%, 1180px);
+  margin: clamp(28px, 5vw, 54px) auto 0;
+  display: grid;
+  justify-items: center;
+  position: relative;
+}
+
+.sffc-member-signup__entry,
+.sffc-member-signup__card,
+.sffc-member-signup__plans,
+.sffc-member-signup__checkout {
+  position: relative;
+  transition:
+    transform 0.32s cubic-bezier(0.2, 0.8, 0.2, 1),
+    opacity 0.28s ease,
+    box-shadow 0.28s ease;
+  will-change: transform, opacity;
+}
+
+.sffc-member-signup.is-transitioning .sffc-member-signup__entry:not([hidden]),
+.sffc-member-signup.is-transitioning .sffc-member-signup__card:not([hidden]),
+.sffc-member-signup.is-transitioning .sffc-member-signup__plans:not([hidden]),
+.sffc-member-signup.is-transitioning .sffc-member-signup__checkout:not([hidden]) {
+  transform: translateY(6px) scale(0.992);
+  opacity: 0.82;
+}
+
+.sffc-member-signup.is-transitioning .sffc-member-signup__entry:not([hidden])::after,
+.sffc-member-signup.is-transitioning .sffc-member-signup__card:not([hidden])::after,
+.sffc-member-signup.is-transitioning .sffc-member-signup__plans:not([hidden])::after,
+.sffc-member-signup.is-transitioning .sffc-member-signup__checkout:not([hidden])::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background:
+    linear-gradient(
+      110deg,
+      rgba(255, 255, 255, 0) 0%,
+      rgba(255, 255, 255, 0.42) 28%,
+      rgba(255, 255, 255, 0.68) 48%,
+      rgba(255, 255, 255, 0.18) 66%,
+      rgba(255, 255, 255, 0) 100%
+    );
+  transform: translateX(-120%);
+  animation: sffcMemberSignupShimmer 0.72s ease;
+  pointer-events: none;
+}
+
+@keyframes sffcMemberSignupShimmer {
+  from {
+    transform: translateX(-120%);
+  }
+  to {
+    transform: translateX(120%);
+  }
+}
+
+.sffc-member-signup__entry {
+  width: min(100%, 1020px);
+  margin: 18px auto 26px;
+}
+
+.sffc-member-signup__entry-head {
+  width: 100%;
+  margin: 0 0 18px;
+}
+
+.sffc-member-signup__entry-head h2 {
+  margin: 0;
+  color: #0c2844;
+  font-family: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Georgia, serif;
+  font-size: 32px;
+  font-weight: 300;
+  letter-spacing: -0.04em;
+  line-height: 1;
+  text-align: center;
+}
+
+.sffc-member-signup__entry-grid {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.sffc-member-signup__entry--recruiter-contact {
+  width: min(100%, 920px);
+}
+
+.sffc-member-signup__entry--recruiter-contact .sffc-member-signup__entry-head {
+  margin-bottom: 18px;
+}
+
+.sffc-member-signup__contact-preview-card .sffc-member-signup__entry-head {
+  margin: 0 0 18px;
+}
+
+.sffc-member-signup__entry--recruiter-contact .sffc-member-signup__entry-head p {
+  max-width: 620px;
+  margin: 10px auto 0;
+  color: #5f6368;
+  font-size: 14px;
+  line-height: 1.4;
+  text-align: center;
+  font-weight: 500;
+}
+
+.sffc-member-signup__contact-card {
+  display: grid;
+  gap: 0;
+  border: 1px solid rgba(17, 24, 39, 0.08);
+  border-radius: 8px;
+  background: #fff;
+  overflow: hidden;
+  box-shadow: 0 18px 36px rgba(15, 23, 42, 0.07);
+}
+
+.sffc-member-signup__contact-card-hero {
+  position: relative;
+  min-height: 0;
+  padding: 28px 32px 20px;
+  display: grid;
+  align-content: start;
+  justify-items: stretch;
+  background:
+    radial-gradient(circle at 78% 22%, rgba(253, 240, 222, 0.96), transparent 24%),
+    linear-gradient(135deg, #eef4ff 0%, #f8fbff 52%, #fffdfa 100%);
+}
+
+.sffc-member-signup__contact-chip {
+  position: absolute;
+  top: 20px;
+  left: 24px;
+  padding: 11px 18px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #eef4ff, #f7f8ff);
+  color: #0a66c2;
+  font-size: 15px;
+  line-height: 1;
+  font-weight: 800;
+}
+
+.sffc-member-signup__contact-preview-card {
+  width: min(100%, 820px);
+  margin-top: 56px;
+  padding: 10px;
+  backdrop-filter: blur(8px);
+}
+
+.sffc-member-signup__route-reveal-card--preview {
+  gap: 10px;
+  margin-top: 0;
+  padding: 12px;
+  border-radius: 16px;
+}
+
+.sffc-member-signup__route-reveal-card--preview .sffc-member-signup__route-reveal-profile {
+  gap: 12px;
+}
+
+.sffc-member-signup__route-reveal-card--preview .sffc-member-signup__route-reveal-avatar {
+  width: 50px;
+  height: 50px;
+  flex-basis: 50px;
+  font-size: 18px;
+}
+
+.sffc-member-signup__route-reveal-card--preview .sffc-member-signup__route-reveal-copy {
+  gap: 2px;
+}
+
+.sffc-member-signup__route-reveal-card--preview .sffc-member-signup__route-reveal-copy-verified {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #182762;
+  font-size: 16px !important;
+  line-height: 1.3;
+  font-weight: 800;
+}
+
+.sffc-member-signup__route-reveal-card--preview .sffc-member-signup__route-reveal-copy-verified::before {
+  content: "✓";
+  width: 18px;
+  height: 18px;
+  flex: 0 0 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: #2f8a54;
+  box-shadow: 0 2px 6px rgba(47, 138, 84, 0.18);
+  color: #fff;
+  font-size: 11px;
+  line-height: 1;
+  font-weight: 900;
+}
+
+.sffc-member-signup__contact-preview-verifications {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.sffc-member-signup__contact-preview-verification {
+  position: relative;
+  width: 42px;
+  height: 42px;
+  flex: 0 0 42px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: inset 0 0 0 1px rgba(18, 34, 76, 0.08);
+  color: #123943;
+}
+
+.sffc-member-signup__contact-preview-verification svg,
+.sffc-member-signup__contact-preview-verification img {
+  width: 22px;
+  height: 22px;
+  display: block;
+  object-fit: contain;
+}
+
+.sffc-member-signup__contact-preview-verification--mail img {
+  width: 24px;
+  height: 24px;
+}
+
+.sffc-member-signup__contact-preview-verification--linkedin img {
+  width: 22px;
+  height: 22px;
+}
+
+.sffc-member-signup__contact-preview-verification.has-image img {
+  width: 26px;
+  height: 26px;
+  object-fit: contain;
+}
+
+.sffc-member-signup__contact-preview-verification--company {
+  width: 48px;
+  height: 48px;
+  flex-basis: 48px;
+}
+
+.sffc-member-signup__contact-preview-verification--company.has-image img {
+  width: 30px;
+  height: 30px;
+}
+
+.sffc-member-signup__contact-preview-verification::after {
+  content: "✓";
+  position: absolute;
+  right: -4px;
+  bottom: -4px;
+  width: 16px;
+  height: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: #2f8a54;
+  box-shadow: 0 2px 6px rgba(47, 138, 84, 0.16);
+  color: #fff;
+  font-size: 10px;
+  line-height: 1;
+  font-weight: 900;
+}
+
+.sffc-member-signup__route-reveal-card--preview .sffc-member-signup__route-reveal-copy strong {
+  font-size: 16px;
+}
+
+.sffc-member-signup__route-reveal-card--preview .sffc-member-signup__route-reveal-copy span,
+.sffc-member-signup__route-reveal-card--preview .sffc-member-signup__route-reveal-copy em {
+  font-size: 12px;
+}
+
+.sffc-member-signup__route-reveal-card--preview .sffc-member-signup__route-reveal-lock {
+  padding: 6px 9px;
+  font-size: 10px;
+}
+
+.sffc-member-signup__route-reveal-card--preview .sffc-member-signup__route-reveal-details {
+  gap: 8px;
+}
+
+.sffc-member-signup__route-reveal-card--preview .sffc-member-signup__route-reveal-row {
+  padding: 10px 12px;
+  border-radius: 12px;
+}
+
+.sffc-member-signup__route-reveal-card--preview .sffc-member-signup__route-reveal-row span,
+.sffc-member-signup__route-reveal-card--preview .sffc-member-signup__route-reveal-row strong,
+.sffc-member-signup__route-reveal-card--preview .sffc-member-signup__route-reveal-row a {
+  font-size: 12px;
+}
+
+.sffc-member-signup__contact-card-body {
+  padding: 22px 28px 26px;
+}
+
+.sffc-member-signup__contact-entry-form {
+  width: min(100%, 740px);
+  margin: 0 auto;
+  gap: 14px;
+}
+
+.sffc-member-signup__contact-entry-form .sffc-member-signup__field {
+  gap: 7px;
+}
+
+.sffc-member-signup__contact-entry-form label {
+  color: #1f2937;
+  font-size: 15px;
+  line-height: 1.2;
+  font-weight: 700;
+}
+
+.sffc-member-signup__contact-entry-form input {
+  min-height: 54px;
+  border-color: rgba(75, 85, 99, 0.78);
+  border-radius: 10px;
+  padding: 0 16px;
+}
+
+.sffc-member-signup__contact-entry-form .sffc-member-signup__primary {
+  margin-top: 4px;
+}
+
+.sffc-member-signup__contact-entry-form .sffc-member-signup__route-note {
+  margin-top: 2px;
+  color: #5f6368;
+  font-size: 14px;
+  line-height: 1.45;
+  text-align: center;
+}
+
+.sffc-member-signup__entry-card {
+  width: 100%;
+  padding: 0;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  border: 1px solid rgba(17, 24, 39, 0.08);
+  border-radius: 20px;
+  background: #ffffff;
+  overflow: hidden;
+  box-shadow: 0 14px 28px rgba(15, 23, 42, 0.06);
+  text-align: left;
+  cursor: pointer;
+  transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
+}
+
+.sffc-member-signup__entry-card:hover,
+.sffc-member-signup__entry-card:focus-visible,
+.sffc-member-signup__entry-card.is-active {
+  transform: translateY(-2px);
+  border-color: rgba(58, 107, 196, 0.28);
+  box-shadow: 0 18px 34px rgba(37, 64, 97, 0.1);
+  outline: none;
+}
+
+.sffc-member-signup__entry-card.is-active {
+  background: linear-gradient(180deg, #ffffff 0%, #f5f9ff 100%);
+}
+
+.sffc-member-signup__entry-image {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  display: block;
+  background: #d9e1ea;
+}
+
+.sffc-member-signup__entry-image img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
+
+.sffc-member-signup__entry-body {
+  padding: 15px 18px 14px;
+  display: grid;
+  gap: 6px;
+}
+
+.sffc-member-signup__entry-body strong {
+  color: #171721;
+  font-family: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Georgia, serif;
+  font-size: clamp(18px, 1.7vw, 26px);
+  font-weight: 400;
+  letter-spacing: -0.035em;
+  line-height: 1.04;
+}
+
+.sffc-member-signup__entry-body span {
+  color: #5b6270;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.sffc-member-signup__entry-action {
+  padding: 14px 18px 15px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border-top: 1px solid rgba(17, 24, 39, 0.12);
+  color: #111827;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.sffc-member-signup__entry-action svg {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+.sffc-member-signup__steps {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  max-width: 100%;
+  margin: 0 0 18px;
+  padding: 5px;
+  list-style: none;
+  border: 1px solid #d6dce4;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.78);
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.04);
+}
+
+.sffc-member-signup__steps li {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 32px;
+  padding: 0 14px;
+  border-radius: 999px;
+  color: #5f6368;
+  font-size: 13px;
+  font-weight: 750;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.sffc-member-signup__steps li + li {
+  margin-left: 18px;
+}
+
+.sffc-member-signup__steps li + li::before {
+  content: "";
+  position: absolute;
+  left: -12px;
+  width: 6px;
+  height: 6px;
+  border-top: 1.5px solid #8f98a8;
+  border-right: 1.5px solid #8f98a8;
+  transform: rotate(45deg);
+}
+
+.sffc-member-signup__steps li.is-active {
+  background: #eef3f8;
+  color: #0a66c2;
+}
+
+.sffc-member-signup__shell > h1 {
+  margin: 0;
+  color: #111111;
+  font-size: 52px;
+  line-height: 1.08;
+  font-weight: 450;
+  letter-spacing: 0;
+  text-align: center;
+}
+
+.sffc-member-signup h1,
+.sffc-member-signup .h1,
+.sffc-member-signup h2,
+.sffc-member-signup .h2,
+.sffc-member-signup h3,
+.sffc-member-signup .h3,
+.sffc-member-signup h4,
+.sffc-member-signup .h4,
+.sffc-member-signup h5,
+.sffc-member-signup .h5,
+.sffc-member-signup h6,
+.sffc-member-signup .h6 {
+  margin-top: 0 !important;
+  margin-bottom: 0.5rem !important;
+  font-weight: 500 !important;
+  line-height: 1.2 !important;
+  color: rgb(18 34 76) !important;
+}
+
+.sffc-member-signup h2 {
+  margin-top: 0 !important;
+  margin-bottom: 0.5rem !important;
+  font-weight: 500 !important;
+  line-height: 1.2 !important;
+  color: rgb(18 34 76) !important;
+  text-align: center;
+}
+
+.sffc-member-signup__subtitle {
+  width: min(100%, 820px);
+  margin: 10px 0 30px;
+  color: #5f6368;
+  font-size: 15px;
+  line-height: 1.4;
+  text-align: center;
+  font-weight: 500;
+}
+
+.sffc-member-signup.is-job-pricing .sffc-member-signup__steps,
+.sffc-member-signup.is-job-flow-active .sffc-member-signup__shell > h1,
+.sffc-member-signup.is-job-flow-active .sffc-member-signup__subtitle,
+.sffc-member-signup.is-job-pricing .sffc-member-signup__shell > h1,
+.sffc-member-signup.is-job-pricing .sffc-member-signup__subtitle {
+  display: none;
+}
+
+@media (min-width: 900px) {
+  .sffc-member-signup__subtitle {
+    white-space: nowrap;
+  }
+}
+
+.sffc-member-signup:not(.sffc-member-signup--overlay-panel) .sffc-member-signup__card,
+.sffc-member-signup:not(.sffc-member-signup--overlay-panel) .sffc-member-signup__checkout {
+  width: min(100%, 910px);
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.08), 0 8px 28px rgba(0, 0, 0, 0.05);
+}
+
+.sffc-member-signup__card {
+  padding: 34px 36px 36px;
+}
+
+.sffc-member-signup:not(.sffc-member-signup--overlay-panel).is-progressing
+  .sffc-member-signup__card {
+  width: min(100%, 1160px);
+  padding: 42px 48px 46px;
+}
+
+.sffc-member-signup--overlay-panel .sffc-member-signup__card,
+.sffc-member-signup--overlay-panel .sffc-member-signup__checkout {
+  width: min(100%, 610px);
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.08), 0 8px 28px rgba(0, 0, 0, 0.05);
+}
+
+.sffc-member-signup__form,
+.sffc-member-signup__progressive {
+  display: grid;
+  gap: 18px;
+}
+
+.sffc-member-signup__route-step {
+  display: grid;
+  gap: 18px;
+}
+
+.sffc-member-signup__field {
+  display: grid;
+  gap: 8px;
+}
+
+.sffc-member-signup label,
+.sffc-member-signup legend {
+  color: #3f3f46;
+  font-size: 17px;
+  line-height: 1.25;
+  font-weight: 700;
+}
+
+.sffc-member-signup input {
+  width: 100%;
+  min-height: 50px;
+  padding: 0 14px;
+  border: 1px solid #4b5563;
+  border-radius: 5px;
+  background: #ffffff;
+  color: #111827;
+  font: inherit;
+  font-size: 17px;
+  outline: none;
+}
+
+.sffc-member-signup input:focus {
+  border-color: #0a66c2;
+  box-shadow: 0 0 0 1px #0a66c2;
+}
+
+.sffc-member-signup__error {
+  margin: 0;
+  color: #a33a3a;
+  font-size: 15px;
+  line-height: 1.35;
+}
+
+.sffc-member-signup__route-note {
+  margin: -4px 0 0;
+  color: #5f6368;
+  font-size: 13px;
+  line-height: 1.45;
+  text-align: center;
+  font-weight: 600;
+}
+
+.sffc-member-signup__primary {
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 58px;
+  padding: 0 24px;
+  border: 0;
+  border-radius: 999px;
+  background: #0a66c2;
+  color: #ffffff;
+  text-decoration: none;
+  text-align: center;
+  font-size: 19px;
+  font-weight: 800;
+  cursor: pointer;
+  box-sizing: border-box;
+}
+
+.sffc-member-signup__primary:hover {
+  background: #004182;
+  color: #ffffff;
+}
+
+.sffc-member-signup--simple-flow .sffc-member-signup__shell {
+  margin-top: clamp(52px, 8vw, 92px);
+}
+
+.sffc-member-signup--simple-flow .sffc-member-signup__card--simple {
+  width: min(100%, 860px);
+  padding: clamp(28px, 4vw, 44px) clamp(24px, 5vw, 52px);
+}
+
+.sffc-member-signup__form--simple {
+  gap: 22px;
+}
+
+.sffc-member-signup__form--simple.is-loading {
+  pointer-events: none;
+  opacity: 0.72;
+}
+
+.sffc-member-signup__simple-choice {
+  min-width: 0;
+  margin: 4px 0 0;
+  padding: 0;
+  border: 0;
+  display: grid;
+  gap: 12px;
+}
+
+.sffc-member-signup__simple-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.sffc-member-signup__simple-pill {
+  min-height: 46px;
+  padding: 0 18px;
+  border: 1px solid #d1d5db;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #111827;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 800;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    border-color 0.18s ease,
+    background 0.18s ease,
+    color 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.sffc-member-signup__simple-pill:hover,
+.sffc-member-signup__simple-pill:focus-visible {
+  border-color: #0a66c2;
+  outline: none;
+}
+
+.sffc-member-signup__simple-pill.is-active {
+  border-color: #0a66c2;
+  background: #eef3f8;
+  color: #0a66c2;
+  box-shadow: inset 0 0 0 1px rgba(10, 102, 194, 0.18);
+}
+
+.sffc-member-signup__route-actions {
+  display: grid;
+  gap: 12px;
+}
+
+.sffc-member-signup__route-option-group {
+  display: grid;
+  gap: 6px;
+  position: relative;
+}
+
+.sffc-member-signup__secondary--route-option {
+  width: 100%;
+  padding: 0 18px;
+  background: #ffffff;
+  color: #123943;
+  text-align: center;
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.sffc-member-signup__secondary--route-review {
+  min-height: 58px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 0 24px !important;
+  border: 1px solid #0a66c2 !important;
+  border-radius: 999px !important;
+  background: #0a66c2 !important;
+  color: #fff !important;
+  font-size: 16px !important;
+  font-weight: 800 !important;
+  line-height: 1 !important;
+  text-decoration: none !important;
+  cursor: pointer !important;
+}
+
+.sffc-member-signup__route-copy {
+  margin: 0;
+  color: #5f6368;
+  font-size: 13px;
+  line-height: 1.35;
+  font-weight: 600;
+  text-align: center;
+}
+
+.sffc-member-signup__route-modal {
+  position: absolute;
+  top: calc(100% + 10px);
+  left: 0;
+  right: 0;
+  z-index: 20;
+}
+
+.sffc-member-signup__route-modal-card {
+  padding: 12px;
+  border: 1px solid rgba(10, 102, 194, 0.16);
+  border-radius: 5px;
+  background: #ffffff;
+  box-shadow: 0 24px 60px rgba(18, 57, 67, 0.18);
+}
+
+.sffc-member-signup__route-modal-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.sffc-member-signup__route-modal-head h3 {
+  margin: 0;
+  color: #123943;
+  font-size: 20px;
+  line-height: 1.1;
+}
+
+.sffc-member-signup__route-modal-copy {
+  margin: 8px 0 0;
+  color: #5f6368;
+  font-size: 14px;
+  line-height: 1.45;
+  font-weight: 600;
+}
+
+.sffc-member-signup__route-reveal-card {
+  display: grid;
+  gap: 14px;
+  margin-top: 12px;
+  padding: 16px;
+  border: 1px solid rgba(10, 102, 194, 0.1);
+  border-radius: 8px;
+  background: linear-gradient(135deg, #fbfdff 0%, #f6f9ff 68%, #fffaf2 100%);
+}
+
+.sffc-member-signup__route-reveal-card.is-locked {
+  background: linear-gradient(135deg, #fbfdff 0%, #f7f9fd 100%);
+}
+
+.sffc-member-signup__route-reveal-profile {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.sffc-member-signup__route-reveal-avatar {
+  width: 58px;
+  height: 58px;
+  flex: 0 0 58px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: linear-gradient(180deg, #0a66c2 0%, #004182 100%);
+  color: #fff;
+  font-size: 22px;
+  font-weight: 800;
+}
+
+.sffc-member-signup__route-reveal-avatar.has-image img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
+
+.sffc-member-signup__route-reveal-copy {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+
+.sffc-member-signup__route-reveal-copy strong {
+  color: #123943;
+  font-size: 18px;
+  line-height: 1.15;
+}
+
+.sffc-member-signup__route-reveal-copy span,
+.sffc-member-signup__route-reveal-copy em {
+  color: #1d2f4c;
+  font-size: 14px;
+  line-height: 1.35;
+  font-style: normal;
+  font-weight: 600;
+}
+
+.sffc-member-signup__route-reveal-lock {
+  margin-left: auto;
+  padding: 7px 10px;
+  border-radius: 999px;
+  background: #edf4ff;
+  color: #0a66c2;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.sffc-member-signup__route-reveal-details {
+  display: grid;
+  gap: 10px;
+}
+
+.sffc-member-signup__route-reveal-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.85);
+}
+
+.sffc-member-signup__route-reveal-row span,
+.sffc-member-signup__route-reveal-row strong,
+.sffc-member-signup__route-reveal-row a {
+  font-size: 14px;
+  line-height: 1.35;
+}
+
+.sffc-member-signup__route-reveal-row span {
+  color: #5f6368;
+  font-weight: 700;
+}
+
+.sffc-member-signup__route-reveal-row strong {
+  color: #123943;
+  font-weight: 800;
+  text-align: right;
+}
+
+.sffc-member-signup__route-reveal-row a {
+  color: #0a66c2;
+  font-weight: 800;
+  text-align: right;
+  text-decoration: none;
+}
+
+.sffc-member-signup__route-reveal-row a:hover {
+  text-decoration: underline;
+}
+
+.sffc-member-signup__route-modal-close {
+  width: 36px;
+  height: 36px;
+  flex: 0 0 36px;
+  border: 0;
+  border-radius: 999px;
+  background: #f3f6fb;
+  color: #123943;
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.sffc-member-signup__route-modal-actions {
+  display: grid;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.sffc-member-signup__route-modal-cta {
+  width: 100%;
+  min-height: 46px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 20px;
+  border: 0;
+  border-radius: 999px;
+  background: #0a66c2;
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.sffc-member-signup__route-modal-cta:hover {
+  background: #004182;
+}
+
+.sffc-member-signup__route-modal-secondary {
+  width: 100%;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 18px;
+  border: 1px solid rgba(10, 102, 194, 0.18);
+  border-radius: 999px;
+  background: #fff;
+  color: #123943;
+  font-size: 15px;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.sffc-member-signup__route-modal-secondary:hover {
+  border-color: rgba(10, 102, 194, 0.34);
+  color: #0a66c2;
+}
+
+.sffc-member-signup__route-modal-feedback {
+  margin: 10px 0 0;
+  color: #0a66c2;
+  font-size: 13px;
+  line-height: 1.4;
+  font-weight: 700;
+  text-align: center;
+}
+
+.sffc-member-signup__progressive {
+  margin-top: 24px;
+  padding-top: 28px;
+  border-top: 1px solid rgba(17, 24, 39, 0.08);
+}
+
+.sffc-member-signup__choice-group {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.sffc-member-signup__choice-group--feature-cards {
+  width: min(100%, 1120px);
+  margin: 0 auto;
+}
+
+.sffc-member-signup__choice-group--feature-cards > legend {
+  width: 100%;
+  margin: 0 0 30px;
+  color: #0c2844;
+  font-family: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Georgia, serif;
+  font-size: 32px;
+  font-weight: 300;
+  letter-spacing: -0.04em;
+  line-height: 1;
+  text-align: center;
+}
+
+.sffc-member-signup__choice-proof {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: auto;
+  max-width: min(100%, 760px);
+  margin: -4px auto 24px;
+  padding: 9px 14px;
+  color: #52657f;
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(39, 61, 118, 0.08);
+  border-radius: 999px;
+  font-family: Tahoma, Arial, sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.35;
+  text-align: left;
+  box-shadow: 0 12px 26px rgba(20, 40, 84, 0.06);
+}
+
+.sffc-member-signup__choice-proof > span:last-child {
+  display: block;
+}
+
+.sffc-member-signup__choice-proof-icon {
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #2f7d4a;
+  flex: 0 0 auto;
+}
+
+.sffc-member-signup__choice-proof-icon svg {
+  width: 22px;
+  height: 22px;
+  display: block;
+}
+
+.sffc-member-signup__choice-step-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0 22px;
+  border-radius: 999px;
+  background: #edf4ff;
+  color: #1660b5;
+  font-family: Tahoma, Arial, sans-serif;
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  box-shadow: inset 0 0 0 1px rgba(22, 96, 181, 0.04);
+}
+
+.sffc-member-signup__choice-group--recruiter-pricing-step {
+  width: min(100%, 920px);
+  margin: 0 auto;
+  display: grid;
+  justify-items: stretch;
+  text-align: left;
+}
+
+.sffc-member-signup__choice-group--recruiter-pricing-step > .sffc-member-signup__choice-step-chip {
+  justify-self: center;
+}
+
+.sffc-member-signup__choice-group--recruiter-pricing-step > legend {
+  width: min(100%, 620px);
+  margin-top: 14px;
+  margin-inline: auto;
+  max-width: none;
+  color: #182762;
+  font-size: clamp(23px, 4.8vw, 30px);
+  font-weight: 700;
+  line-height: 1.05;
+  letter-spacing: -0.045em;
+  text-align: left;
+  text-wrap: pretty;
+}
+
+.sffc-member-signup__choice-group.sffc-member-signup__choice-group--recruiter-pricing-step
+  > .sffc-member-signup__recruiter-pricing-simple,
+.sffc-member-signup__recruiter-pricing-simple {
+  display: grid;
+  grid-template-columns: 1fr;
+  width: 100%;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.sffc-member-signup__recruiter-pricing-option {
+  width: 100%;
+  min-height: 78px;
+  padding: 13px 24px !important;
+  border-radius: 999px !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  text-align: center;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease,
+    background 0.2s ease, color 0.2s ease;
+}
+
+.sffc-member-signup__recruiter-pricing-option:hover,
+.sffc-member-signup__recruiter-pricing-option:focus-visible {
+  transform: translateY(-1px);
+  outline: none;
+}
+
+.sffc-member-signup__recruiter-pricing-option--primary {
+  border: 1px solid #1867c4 !important;
+  background: #1f6fc7 !important;
+  color: #ffffff !important;
+  box-shadow: 0 18px 34px rgba(24, 95, 178, 0.2);
+}
+
+.sffc-member-signup__recruiter-pricing-option--primary:hover,
+.sffc-member-signup__recruiter-pricing-option--primary:focus-visible {
+  background: #1762b2 !important;
+  border-color: #1762b2 !important;
+}
+
+.sffc-member-signup__recruiter-pricing-option--secondary {
+  border: 2px solid #2f80cf !important;
+  background: #ffffff !important;
+  color: #15324b !important;
+  box-shadow: none;
+}
+
+.sffc-member-signup__recruiter-pricing-option--secondary:hover,
+.sffc-member-signup__recruiter-pricing-option--secondary:focus-visible {
+  border-color: #1f6fc7 !important;
+  color: #15324b !important;
+}
+
+.sffc-member-signup__recruiter-pricing-option-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 999px;
+  overflow: hidden;
+  flex: 0 0 48px;
+  box-shadow: 0 8px 18px rgba(17, 24, 39, 0.14);
+  position: relative;
+}
+
+.sffc-member-signup__recruiter-pricing-option-avatar img,
+.sffc-member-signup__recruiter-pricing-option-avatar-image {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
+
+.sffc-member-signup__recruiter-pricing-option-avatar.has-stack {
+  width: 72px;
+  flex-basis: 72px;
+  overflow: visible;
+  box-shadow: none;
+}
+
+.sffc-member-signup__recruiter-pricing-option-avatar-image {
+  border-radius: 999px;
+  box-shadow: 0 8px 18px rgba(17, 24, 39, 0.14);
+}
+
+.sffc-member-signup__recruiter-pricing-option-avatar.has-stack .sffc-member-signup__recruiter-pricing-option-avatar-image {
+  position: absolute;
+  top: 0;
+  width: 48px;
+  height: 48px;
+  border-radius: 40px;
+}
+
+.sffc-member-signup__recruiter-pricing-option-avatar-image--primary {
+  left: 0;
+  z-index: 2;
+}
+
+.sffc-member-signup__recruiter-pricing-option-avatar-image--secondary {
+  right: 0;
+  z-index: 1;
+  border: 2px solid #ffffff;
+}
+
+.sffc-member-signup__recruiter-pricing-option-copy {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.sffc-member-signup__recruiter-pricing-option-copy strong,
+.sffc-member-signup__recruiter-pricing-option-copy span {
+  font-family: Tahoma, Arial, sans-serif;
+  font-size: clamp(18px, 1.6vw, 21px);
+  font-weight: 800;
+  line-height: 1.08;
+  letter-spacing: -0.03em;
+}
+
+.sffc-member-signup__recruiter-pricing-option--primary .sffc-member-signup__recruiter-pricing-option-copy strong,
+.sffc-member-signup__recruiter-pricing-option--primary .sffc-member-signup__recruiter-pricing-option-copy span {
+  color: #ffffff;
+}
+
+.sffc-member-signup__recruiter-pricing-option--secondary .sffc-member-signup__recruiter-pricing-option-copy strong,
+.sffc-member-signup__recruiter-pricing-option--secondary .sffc-member-signup__recruiter-pricing-option-copy span {
+  color: #15324b;
+}
+
+.sffc-member-signup__recruiter-pricing-note {
+  width: 100%;
+  margin: 10px 0 0;
+  color: #36506b;
+  font-family: Tahoma, Arial, sans-serif;
+  font-size: clamp(14px, 1.05vw, 16px);
+  font-weight: 500;
+  line-height: 1.35;
+  text-align: center;
+  letter-spacing: -0.02em;
+}
+
+.sffc-member-signup__recruiter-pricing-detail {
+  width: 100%;
+  margin: 0 0 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  text-align: center;
+  color: #36506b;
+  font-family: Tahoma, Arial, sans-serif;
+}
+
+.sffc-member-signup__recruiter-pricing-detail--secondary {
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 0;
+}
+
+.sffc-member-signup__recruiter-pricing-price {
+  color: #182762;
+  font-size: clamp(16px, 1.15vw, 18px);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+}
+
+.sffc-member-signup__recruiter-pricing-meta {
+  color: #536b84;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+@media (min-width: 641px) {
+  .sffc-member-signup__choice-group--recruiter-pricing-step {
+    width: min(100%, 980px);
+    justify-items: stretch;
+    text-align: left;
+  }
+
+  .sffc-member-signup__choice-group--recruiter-pricing-step > .sffc-member-signup__choice-step-chip {
+    justify-self: center;
+    min-height: 40px;
+    padding: 0 20px;
+    font-size: 15px;
+  }
+
+  .sffc-member-signup__choice-group--recruiter-pricing-step > .sffc-member-signup__choice-proof {
+    display: grid;
+    grid-template-columns: 22px minmax(0, auto);
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    width: max-content;
+    max-width: min(100%, 820px);
+    margin: 2px auto 26px;
+    padding: 0;
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    text-align: left;
+    place-content: center;
+  }
+
+  .sffc-member-signup__choice-group--recruiter-pricing-step > .sffc-member-signup__choice-proof > span:last-child {
+    min-width: 0;
+  }
+
+  .sffc-member-signup__choice-group--recruiter-pricing-step > legend {
+    width: min(100%, 760px);
+    margin-top: 18px;
+    margin-inline: auto;
+    max-width: 40ch;
+    font-size: clamp(22px, 2.25vw, 28px);
+    line-height: 1.08;
+    text-align: center;
+    text-wrap: balance;
+  }
+
+  .sffc-member-signup__choice-group.sffc-member-signup__choice-group--recruiter-pricing-step
+    > .sffc-member-signup__recruiter-pricing-simple,
+  .sffc-member-signup__recruiter-pricing-simple {
+    width: min(100%, 860px);
+    gap: 10px;
+    margin: 20px auto 0;
+  }
+
+  .sffc-member-signup__recruiter-pricing-option {
+    min-height: 68px;
+    padding: 11px 20px !important;
+    gap: 10px;
+  }
+
+  .sffc-member-signup__recruiter-pricing-option-avatar {
+    width: 40px;
+    height: 40px;
+    flex-basis: 40px;
+  }
+
+  .sffc-member-signup__recruiter-pricing-option-avatar.has-stack {
+    width: 60px;
+    flex-basis: 60px;
+  }
+
+  .sffc-member-signup__recruiter-pricing-option-avatar.has-stack .sffc-member-signup__recruiter-pricing-option-avatar-image {
+    width: 40px;
+    height: 40px;
+    border-radius: 40px;
+  }
+
+  .sffc-member-signup__recruiter-pricing-option-copy {
+    gap: 6px;
+  }
+
+  .sffc-member-signup__recruiter-pricing-option-copy strong,
+  .sffc-member-signup__recruiter-pricing-option-copy span {
+    font-size: clamp(15px, 1.35vw, 18px);
+  }
+
+  .sffc-member-signup__recruiter-pricing-detail {
+    width: min(100%, 860px);
+    margin: 0;
+    gap: 8px;
+  }
+
+  .sffc-member-signup__recruiter-pricing-price {
+    font-size: clamp(14px, 1.05vw, 16px);
+  }
+
+  .sffc-member-signup__recruiter-pricing-meta {
+    font-size: 12px;
+  }
+
+  .sffc-member-signup__recruiter-pricing-note {
+    width: min(100%, 860px);
+    margin: 10px auto 0;
+    font-size: 14px;
+  }
+}
+
+.sffc-member-signup__choice-group > div:not(.sffc-member-signup__choice-proof) {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.sffc-member-signup__choice-group button {
+  min-height: 40px;
+  padding: 0 14px;
+  border: 1px solid #d1d5db;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #1f2937;
+  font-size: 14px;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.sffc-member-signup__choice-group button.is-active {
+  border-color: #0a66c2;
+  background: #e8f3ff;
+  color: #0a66c2;
+}
+
+.sffc-member-signup__choice-group button.is-disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.sffc-member-signup__route-choice-grid {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+  margin-top: 0 !important;
+}
+
+.sffc-member-signup__route-choice-grid--three {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.sffc-member-signup__route-choice-grid--recruiter-pricing {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  max-width: none;
+  margin-inline: 0;
+}
+
+.sffc-member-signup__route-choice-card {
+  width: 100%;
+  min-height: 0 !important;
+  padding: 0 !important;
+  display: grid;
+  grid-template-rows: auto auto auto;
+  border: 1px solid rgba(17, 24, 39, 0.08) !important;
+  border-radius: 20px !important;
+  background: #ffffff !important;
+  overflow: hidden;
+  text-align: left;
+  box-shadow: 0 14px 28px rgba(15, 23, 42, 0.06);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.sffc-member-signup__route-choice-card:hover,
+.sffc-member-signup__route-choice-card:focus-visible,
+.sffc-member-signup__route-choice-card.is-active {
+  transform: translateY(-2px);
+  border-color: rgba(58, 107, 196, 0.28) !important;
+  box-shadow: 0 18px 34px rgba(37, 64, 97, 0.1);
+  outline: none;
+}
+
+.sffc-member-signup__route-choice-visual {
+  min-height: 0;
+  aspect-ratio: 16 / 9;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.sffc-member-signup__route-choice-visual::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0;
+  height: 48%;
+  background: linear-gradient(180deg, rgba(7, 20, 40, 0) 0%, rgba(7, 20, 40, 0.34) 100%);
+  pointer-events: none;
+}
+
+.sffc-member-signup__route-choice-visual img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
+
+.sffc-member-signup__route-choice-card--recruiter-pricing .sffc-member-signup__route-choice-visual::after {
+  display: none;
+}
+
+.sffc-member-signup__route-choice-visual--review {
+  background:
+    radial-gradient(circle at top left, rgba(83, 176, 255, 0.3), transparent 42%),
+    linear-gradient(135deg, #eef6ff 0%, #f8fbff 52%, #fff4e8 100%);
+}
+
+.sffc-member-signup__route-choice-visual--contacts {
+  background:
+    radial-gradient(circle at top right, rgba(255, 209, 107, 0.34), transparent 36%),
+    linear-gradient(135deg, #f9fbff 0%, #edf4ff 58%, #f4f8ff 100%);
+}
+
+.sffc-member-signup__route-choice-visual--cv {
+  background:
+    radial-gradient(circle at top left, rgba(161, 198, 255, 0.28), transparent 40%),
+    linear-gradient(135deg, #f8fbff 0%, #edf4ff 58%, #f7faff 100%);
+}
+
+.sffc-member-signup__route-choice-visual--profile {
+  background:
+    radial-gradient(circle at top right, rgba(110, 179, 255, 0.26), transparent 38%),
+    linear-gradient(135deg, #f1f7ff 0%, #eef6ff 55%, #f9fcff 100%);
+}
+
+.sffc-member-signup__route-choice-visual--messaging {
+  background:
+    radial-gradient(circle at center, rgba(255, 214, 142, 0.24), transparent 42%),
+    linear-gradient(135deg, #fffaf3 0%, #f4f8ff 58%, #eef6ff 100%);
+}
+
+.sffc-member-signup__route-choice-visual--contacts-first {
+  background:
+    radial-gradient(circle at top left, rgba(117, 184, 255, 0.28), transparent 38%),
+    linear-gradient(135deg, #eef6ff 0%, #f8fbff 56%, #fff8ef 100%);
+}
+
+.sffc-member-signup__route-choice-visual--profile-first {
+  background:
+    radial-gradient(circle at top right, rgba(255, 209, 107, 0.24), transparent 38%),
+    linear-gradient(135deg, #f8fbff 0%, #f3f8ff 54%, #fff7f0 100%);
+}
+
+.sffc-member-signup__route-choice-visual--build-both {
+  background:
+    radial-gradient(circle at center, rgba(142, 201, 255, 0.24), transparent 42%),
+    linear-gradient(135deg, #eef6ff 0%, #f8fbff 46%, #fff8ef 100%);
+}
+
+.sffc-member-signup__route-choice-visual--single-contact {
+  background:
+    radial-gradient(circle at top left, rgba(117, 184, 255, 0.22), transparent 38%),
+    linear-gradient(135deg, #f9fbff 0%, #eef4ff 58%, #ffffff 100%);
+}
+
+.sffc-member-signup__route-choice-visual--multiple-contacts {
+  background:
+    radial-gradient(circle at top right, rgba(255, 209, 107, 0.16), transparent 36%),
+    linear-gradient(135deg, #fbfdff 0%, #f2f7ff 58%, #ffffff 100%);
+}
+
+.sffc-member-signup__route-choice-visual--ongoing-contacts {
+  background:
+    radial-gradient(circle at top left, rgba(83, 176, 255, 0.22), transparent 42%),
+    radial-gradient(circle at top right, rgba(255, 209, 107, 0.16), transparent 36%),
+    linear-gradient(135deg, #f7fbff 0%, #eef5ff 54%, #fff8ef 100%);
+}
+
+.sffc-member-signup__route-overlay-badge {
+  position: absolute;
+  display: inline-flex;
+  align-items: center;
+  z-index: 1;
+  min-height: 32px;
+  padding: 0 13px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 12px 24px rgba(12, 40, 68, 0.12);
+  color: #123b72;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1;
+  backdrop-filter: blur(8px);
+}
+
+.sffc-member-signup__route-overlay-badge--top {
+  top: 18px;
+  left: 18px;
+}
+
+.sffc-member-signup__route-overlay-badge--bottom {
+  right: 18px;
+  bottom: 18px;
+}
+
+.sffc-member-signup__route-overlay-badge.is-success {
+  color: #117346;
+}
+
+.sffc-member-signup__route-review-stack,
+.sffc-member-signup__route-contacts-visual,
+.sffc-member-signup__route-cv-visual,
+.sffc-member-signup__route-profile-visual,
+.sffc-member-signup__route-fit-visual,
+.sffc-member-signup__route-priority-visual,
+.sffc-member-signup__route-both-visual,
+.sffc-member-signup__route-single-contact-visual,
+.sffc-member-signup__route-ongoing-visual {
+  position: absolute;
+  inset: 0;
+}
+
+.sffc-member-signup__route-review-stack {
+  display: grid;
+  place-items: center;
+}
+
+.sffc-member-signup__route-review-doc {
+  position: absolute;
+  width: 96px;
+  min-height: 128px;
+  padding: 12px 11px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.97);
+  box-shadow: 0 18px 34px rgba(12, 40, 68, 0.14);
+  display: grid;
+  align-content: start;
+  gap: 10px;
+}
+
+.sffc-member-signup__route-review-doc--before {
+  top: 18px;
+  left: 42px;
+  transform: rotate(-9deg);
+}
+
+.sffc-member-signup__route-review-doc--after {
+  right: 44px;
+  bottom: 18px;
+  transform: rotate(9deg);
+}
+
+.sffc-member-signup__route-review-doc-label {
+  color: #5a7091;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.sffc-member-signup__route-review-lines {
+  display: block;
+  height: 34px;
+  border-radius: 10px;
+  background:
+    linear-gradient(#dce5f5 0 0) 0 7px / 100% 2px no-repeat,
+    linear-gradient(#dce5f5 0 0) 0 18px / 82% 2px no-repeat,
+    linear-gradient(#dce5f5 0 0) 0 29px / 92% 2px no-repeat;
+}
+
+.sffc-member-signup__route-review-score {
+  min-width: 54px;
+  justify-self: start;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: #fff2e8;
+  color: #c3612c;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.sffc-member-signup__route-review-score.is-success {
+  background: #edf7ee;
+  color: #13824f;
+}
+
+.sffc-member-signup__route-review-profile {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 126px;
+  min-height: 148px;
+  padding: 16px 14px;
+  border-radius: 24px;
+  background: linear-gradient(180deg, #3b6cc0 0%, #2b56a7 100%);
+  box-shadow: 0 20px 40px rgba(43, 86, 167, 0.28);
+  transform: translate(-50%, -50%);
+  display: grid;
+  align-content: start;
+  gap: 12px;
+}
+
+.sffc-member-signup__route-review-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.96);
+}
+
+.sffc-member-signup__route-review-profile-lines {
+  display: block;
+  height: 42px;
+  border-radius: 12px;
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.9) 0 0) 0 8px / 100% 2px no-repeat,
+    linear-gradient(rgba(255, 255, 255, 0.85) 0 0) 0 21px / 82% 2px no-repeat,
+    linear-gradient(rgba(255, 255, 255, 0.85) 0 0) 0 34px / 92% 2px no-repeat;
+}
+
+.sffc-member-signup__route-contacts-visual {
+  display: grid;
+  place-items: center;
+}
+
+.sffc-member-signup__route-single-contact-visual,
+.sffc-member-signup__route-ongoing-visual {
+  display: grid;
+  place-items: center;
+}
+
+.sffc-member-signup__route-single-contact-avatar {
+  position: absolute;
+  left: 50%;
+  top: 28px;
+  width: 62px;
+  height: 62px;
+  border: 4px solid #ffffff;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 50% 34%, #f7ddc6 0 26%, transparent 27%),
+    radial-gradient(circle at 50% 84%, #4c6e98 0 37%, transparent 38%),
+    linear-gradient(135deg, #8db7e7, #d6e7ff);
+  box-shadow: 0 14px 28px rgba(12, 40, 68, 0.14);
+  transform: translateX(-50%);
+}
+
+.sffc-member-signup__route-single-contact-card {
+  position: absolute;
+  left: 50%;
+  bottom: 28px;
+  width: 174px;
+  padding: 16px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.98);
+  box-shadow: 0 16px 28px rgba(12, 40, 68, 0.12);
+  transform: translateX(-50%);
+  display: grid;
+  gap: 10px;
+}
+
+.sffc-member-signup__route-contact-avatars {
+  position: absolute;
+  top: 34px;
+  left: 50%;
+  display: flex;
+  transform: translateX(-50%);
+}
+
+.sffc-member-signup__route-contact-avatars span {
+  width: 44px;
+  height: 44px;
+  margin-left: -8px;
+  border: 3px solid #ffffff;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 50% 34%, #f7ddc6 0 26%, transparent 27%),
+    radial-gradient(circle at 50% 84%, #4c6e98 0 37%, transparent 38%),
+    linear-gradient(135deg, #8db7e7, #d6e7ff);
+  box-shadow: 0 12px 22px rgba(12, 40, 68, 0.12);
+}
+
+.sffc-member-signup__route-contact-avatars span:first-child {
+  margin-left: 0;
+}
+
+.sffc-member-signup__route-contact-panel {
+  position: absolute;
+  left: 50%;
+  bottom: 30px;
+  width: 192px;
+  padding: 16px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.98);
+  box-shadow: 0 16px 28px rgba(12, 40, 68, 0.12);
+  transform: translateX(-50%);
+  display: grid;
+  gap: 9px;
+}
+
+.sffc-member-signup__route-contact-line {
+  display: block;
+  height: 9px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #cddcf0, #e5edf8);
+}
+
+.sffc-member-signup__route-contact-line--short {
+  width: 68%;
+}
+
+.sffc-member-signup__route-cv-visual,
+.sffc-member-signup__route-profile-visual,
+.sffc-member-signup__route-fit-visual,
+.sffc-member-signup__route-priority-visual,
+.sffc-member-signup__route-both-visual {
+  display: grid;
+  place-items: center;
+}
+
+.sffc-member-signup__route-cv-sheet {
+  width: 138px;
+  min-height: 152px;
+  padding: 18px 16px;
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.98);
+  box-shadow: 0 18px 34px rgba(12, 40, 68, 0.12);
+  display: grid;
+  align-content: start;
+  gap: 11px;
+  transform: rotate(-4deg);
+}
+
+.sffc-member-signup__route-cv-title {
+  width: 44%;
+  height: 10px;
+  border-radius: 999px;
+  background: #8aa9d8;
+}
+
+.sffc-member-signup__route-cv-line {
+  width: 100%;
+  height: 10px;
+  border-radius: 999px;
+  background: #dde7f6;
+}
+
+.sffc-member-signup__route-cv-line--emphasis {
+  width: 82%;
+  background: linear-gradient(90deg, #ffd88d, #ffbf4e);
+}
+
+.sffc-member-signup__route-profile-card {
+  position: relative;
+  width: 148px;
+  min-height: 150px;
+  padding: 16px;
+  border-radius: 24px;
+  background: linear-gradient(180deg, #3c6fc5 0%, #28539f 100%);
+  box-shadow: 0 18px 34px rgba(43, 86, 167, 0.2);
+  display: grid;
+  align-content: start;
+  gap: 10px;
+  z-index: 1;
+}
+
+.sffc-member-signup__route-profile-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  background:
+    radial-gradient(circle at 50% 34%, #f7ddc6 0 27%, transparent 28%),
+    radial-gradient(circle at 50% 84%, #4d6f9c 0 37%, transparent 38%),
+    #ffffff;
+}
+
+.sffc-member-signup__route-profile-line {
+  height: 9px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.62);
+}
+
+.sffc-member-signup__route-profile-line--strong {
+  width: 92%;
+  background: rgba(255, 255, 255, 0.96);
+}
+
+.sffc-member-signup__route-profile-line--short {
+  width: 72%;
+}
+
+.sffc-member-signup__route-profile-glow {
+  position: absolute;
+  width: 210px;
+  height: 210px;
+  border-radius: 50%;
+  border: 1px solid rgba(86, 152, 255, 0.26);
+  box-shadow:
+    0 0 0 26px rgba(86, 152, 255, 0.08),
+    0 0 0 54px rgba(86, 152, 255, 0.04);
+}
+
+.sffc-member-signup__route-fit-target {
+  position: absolute;
+  width: 188px;
+  height: 188px;
+  border-radius: 50%;
+  border: 2px solid rgba(157, 178, 210, 0.3);
+}
+
+.sffc-member-signup__route-fit-target span {
+  position: absolute;
+  inset: 50%;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.sffc-member-signup__route-fit-target span:nth-child(1) {
+  width: 188px;
+  height: 188px;
+  border: 2px solid rgba(157, 178, 210, 0.24);
+}
+
+.sffc-member-signup__route-fit-target span:nth-child(2) {
+  width: 124px;
+  height: 124px;
+  border: 2px solid rgba(157, 178, 210, 0.32);
+}
+
+.sffc-member-signup__route-fit-target span:nth-child(3) {
+  width: 54px;
+  height: 54px;
+  background: rgba(86, 152, 255, 0.16);
+  border: 8px solid rgba(86, 152, 255, 0.14);
+}
+
+.sffc-member-signup__route-fit-check {
+  position: absolute;
+  right: 52px;
+  bottom: 34px;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: linear-gradient(180deg, #5d91e8 0%, #3f6ec7 100%);
+  box-shadow: 0 16px 24px rgba(63, 110, 199, 0.22);
+}
+
+.sffc-member-signup__route-fit-check::before {
+  content: "";
+  position: absolute;
+  left: 15px;
+  top: 12px;
+  width: 16px;
+  height: 10px;
+  border-left: 3px solid #ffffff;
+  border-bottom: 3px solid #ffffff;
+  transform: rotate(-45deg);
+}
+
+.sffc-member-signup__route-priority-visual {
+  grid-template-columns: repeat(2, 84px);
+  gap: 16px;
+}
+
+.sffc-member-signup__route-choice-visual--contacts-first .sffc-member-signup__route-priority-visual {
+  grid-template-columns: 1fr;
+  place-items: center;
+}
+
+.sffc-member-signup__route-choice-visual--profile-first .sffc-member-signup__route-priority-visual {
+  grid-template-columns: 1fr;
+  place-items: center;
+}
+
+.sffc-member-signup__route-priority-column {
+  min-height: 152px;
+  padding: 18px 14px;
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 14px 26px rgba(12, 40, 68, 0.08);
+  display: grid;
+  align-content: center;
+  gap: 12px;
+}
+
+.sffc-member-signup__route-priority-column.is-primary {
+  background: linear-gradient(180deg, #76a7ff 0%, #3d71c9 100%);
+  box-shadow: 0 18px 30px rgba(61, 113, 201, 0.2);
+}
+
+.sffc-member-signup__route-priority-icon {
+  width: 42px;
+  height: 42px;
+  justify-self: center;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.96);
+  position: relative;
+}
+
+.sffc-member-signup__route-priority-icon--contacts::before,
+.sffc-member-signup__route-both-icon--contacts::before {
+  content: "";
+  position: absolute;
+  left: 10px;
+  top: 12px;
+  width: 22px;
+  height: 16px;
+  border-radius: 12px 12px 10px 10px;
+  background: linear-gradient(180deg, #7ba7ef 0%, #5278b8 100%);
+}
+
+.sffc-member-signup__route-priority-icon--profile::before,
+.sffc-member-signup__route-both-icon--profile::before {
+  content: "";
+  position: absolute;
+  left: 11px;
+  top: 10px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 50% 34%, #f7ddc6 0 28%, transparent 29%),
+    radial-gradient(circle at 50% 84%, #4d6f9c 0 38%, transparent 39%),
+    #ffffff;
+}
+
+.sffc-member-signup__route-priority-bar {
+  width: 100%;
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(18, 40, 68, 0.12);
+}
+
+.sffc-member-signup__route-priority-column.is-primary .sffc-member-signup__route-priority-bar {
+  background: rgba(255, 255, 255, 0.42);
+}
+
+.sffc-member-signup__route-choice-visual--contacts-first .sffc-member-signup__route-priority-column {
+  width: 184px;
+  min-height: 142px;
+  padding: 18px 18px 16px;
+  gap: 14px;
+  background: rgba(255, 255, 255, 0.96);
+}
+
+.sffc-member-signup__route-choice-visual--contacts-first .sffc-member-signup__route-priority-column::before {
+  content: "";
+  width: 58px;
+  height: 58px;
+  justify-self: center;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 50% 34%, #f7ddc6 0 28%, transparent 29%),
+    radial-gradient(circle at 50% 84%, #4d6f9c 0 38%, transparent 39%),
+    linear-gradient(135deg, #8db7e7, #d6e7ff);
+  box-shadow:
+    -52px 8px 0 -8px rgba(255, 255, 255, 0.92),
+    52px 8px 0 -8px rgba(255, 255, 255, 0.92),
+    -52px 8px 0 0 rgba(77, 111, 156, 0.08),
+    52px 8px 0 0 rgba(77, 111, 156, 0.08);
+}
+
+.sffc-member-signup__route-choice-visual--contacts-first .sffc-member-signup__route-priority-column::after {
+  content: "";
+  width: 112px;
+  height: 8px;
+  justify-self: center;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #cddcf0, #e5edf8);
+  box-shadow: 0 16px 0 #d9e4f4;
+}
+
+.sffc-member-signup__route-choice-visual--contacts-first .sffc-member-signup__route-priority-icon,
+.sffc-member-signup__route-choice-visual--contacts-first .sffc-member-signup__route-priority-bar {
+  display: none;
+}
+
+.sffc-member-signup__route-choice-visual--profile-first .sffc-member-signup__route-priority-column {
+  width: 196px;
+  min-height: 148px;
+  padding: 18px 16px;
+  gap: 12px;
+  background: linear-gradient(180deg, #3c6fc5 0%, #28539f 100%);
+  box-shadow: 0 18px 32px rgba(43, 86, 167, 0.22);
+}
+
+.sffc-member-signup__route-choice-visual--profile-first .sffc-member-signup__route-priority-column::before {
+  content: "";
+  width: 54px;
+  height: 54px;
+  justify-self: center;
+  border-radius: 16px;
+  background:
+    radial-gradient(circle at 50% 34%, #f7ddc6 0 27%, transparent 28%),
+    radial-gradient(circle at 50% 84%, #4d6f9c 0 38%, transparent 39%),
+    #ffffff;
+}
+
+.sffc-member-signup__route-choice-visual--profile-first .sffc-member-signup__route-priority-column::after {
+  content: "";
+  width: 128px;
+  height: 42px;
+  justify-self: center;
+  border-radius: 14px;
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.92) 0 0) 0 8px / 100% 3px no-repeat,
+    linear-gradient(rgba(255, 255, 255, 0.82) 0 0) 0 21px / 82% 3px no-repeat,
+    linear-gradient(rgba(255, 255, 255, 0.78) 0 0) 0 34px / 92% 3px no-repeat;
+}
+
+.sffc-member-signup__route-choice-visual--profile-first .sffc-member-signup__route-priority-icon,
+.sffc-member-signup__route-choice-visual--profile-first .sffc-member-signup__route-priority-bar {
+  display: none;
+}
+
+.sffc-member-signup__route-both-visual {
+  grid-template-columns: auto auto auto;
+  align-items: center;
+  gap: 14px;
+}
+
+.sffc-member-signup__route-both-card {
+  width: 92px;
+  min-height: 132px;
+  padding: 16px 14px;
+  border-radius: 24px;
+  display: grid;
+  place-items: center;
+  box-shadow: 0 16px 28px rgba(12, 40, 68, 0.1);
+}
+
+.sffc-member-signup__route-both-card--left {
+  background: linear-gradient(180deg, #77a8ff 0%, #3d71c9 100%);
+}
+
+.sffc-member-signup__route-both-card--right {
+  background: rgba(255, 255, 255, 0.96);
+}
+
+.sffc-member-signup__route-both-plus {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 12px 22px rgba(12, 40, 68, 0.12);
+  position: relative;
+}
+
+.sffc-member-signup__route-both-plus::before,
+.sffc-member-signup__route-both-plus::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  background: #315cae;
+  transform: translate(-50%, -50%);
+}
+
+.sffc-member-signup__route-both-plus::before {
+  width: 16px;
+  height: 3px;
+}
+
+.sffc-member-signup__route-both-plus::after {
+  width: 3px;
+  height: 16px;
+}
+
+.sffc-member-signup__route-both-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 15px;
+  background: rgba(255, 255, 255, 0.96);
+  position: relative;
+}
+
+.sffc-member-signup__route-choice-body {
+  padding: 15px 18px 14px;
+  display: grid;
+  gap: 6px;
+}
+
+.sffc-member-signup__route-choice-heading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.sffc-member-signup__route-choice-body strong {
+  color: #171721;
+  font-family: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Georgia, serif;
+  font-size: clamp(18px, 1.45vw, 22px);
+  font-weight: 400;
+  letter-spacing: -0.035em;
+  line-height: 1.02;
+  display: block;
+}
+
+.sffc-member-signup__route-choice-body span {
+  color: #5b6270;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.sffc-member-signup__route-choice-recommendation {
+  color: #0a66c2 !important;
+  font-family: Tahoma, Arial, sans-serif;
+  font-size: 11px !important;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  line-height: 1.2 !important;
+  text-transform: uppercase;
+}
+
+.sffc-member-signup__route-choice-price {
+  color: #0c2844 !important;
+  font-size: 13px !important;
+  line-height: 1.2 !important;
+  font-weight: 800 !important;
+  letter-spacing: -0.01em;
+}
+
+.sffc-member-signup__route-choice-action {
+  padding: 14px 18px 15px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border-top: 1px solid rgba(17, 24, 39, 0.12);
+  color: #111827;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.sffc-member-signup__route-choice-grid--three .sffc-member-signup__route-choice-body strong {
+  font-size: clamp(17px, 1.3vw, 20px);
+}
+
+.sffc-member-signup__route-choice-grid--three .sffc-member-signup__route-choice-body span {
+  max-width: 28ch;
+}
+
+.sffc-member-signup__route-choice-action svg {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+.sffc-member-signup__route-choice-card--recruiter-pricing .sffc-member-signup__route-choice-body {
+  gap: 7px;
+}
+
+.sffc-member-signup__route-choice-card--recruiter-pricing .sffc-member-signup__route-choice-body span {
+  max-width: none;
+}
+
+.sffc-member-signup__route-choice-card--recruiter-pricing .sffc-member-signup__route-choice-price {
+  font-size: 17px !important;
+  font-weight: 900 !important;
+  letter-spacing: -0.03em;
+}
+
+.sffc-member-signup__route-choice-card--recruiter-pricing .sffc-member-signup__route-choice-recommendation {
+  color: #375a8e !important;
+}
+
+.sffc-member-signup__route-choice-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 24px;
+  padding: 0 11px;
+  border-radius: 999px;
+  background: #eff6ff;
+  color: #195fb8;
+  font-family: Tahoma, Arial, sans-serif;
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  line-height: 1;
+  text-transform: uppercase;
+  box-shadow: inset 0 0 0 1px rgba(10, 102, 194, 0.08);
+}
+
+.sffc-member-signup__route-recruiter-preview {
+  position: absolute;
+  inset: 0;
+  padding: 18px;
+  display: grid;
+  align-content: center;
+}
+
+.sffc-member-signup__route-recruiter-preview--list,
+.sffc-member-signup__route-recruiter-preview--ongoing {
+  align-content: stretch;
+}
+
+.sffc-member-signup__route-recruiter-preview--multiple {
+  align-content: center;
+  gap: 14px;
+}
+
+.sffc-member-signup__route-recruiter-preview--ongoing {
+  align-content: center;
+  gap: 14px;
+}
+
+.sffc-member-signup__route-recruiter-row {
+  min-height: 92px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 18px;
+  border: 1px solid rgba(17, 24, 39, 0.08);
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 16px 32px rgba(17, 24, 39, 0.08);
+}
+
+.sffc-member-signup__route-recruiter-row--hero {
+  min-height: 104px;
+}
+
+.sffc-member-signup__route-recruiter-avatar {
+  width: 72px;
+  height: 72px;
+  flex: 0 0 72px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: linear-gradient(135deg, #dce9ff 0%, #f5f8ff 100%);
+  box-shadow: 0 10px 20px rgba(18, 40, 68, 0.12);
+}
+
+.sffc-member-signup__route-recruiter-avatar.is-small {
+  width: 42px;
+  height: 42px;
+  flex-basis: 42px;
+  box-shadow: 0 8px 16px rgba(18, 40, 68, 0.1);
+}
+
+.sffc-member-signup__route-recruiter-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.sffc-member-signup__route-recruiter-copy {
+  min-width: 0;
+  display: grid;
+  gap: 4px;
+}
+
+.sffc-member-signup__route-recruiter-title {
+  color: #18253d;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.08;
+}
+
+.sffc-member-signup__route-recruiter-company {
+  color: rgb(39 46 124);
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.sffc-member-signup__route-recruiter-badge {
+  margin-left: auto;
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
+  padding: 0 18px;
+  border-radius: 999px;
+  background: rgba(239, 246, 255, 0.92);
+  color: #1767c2;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.sffc-member-signup__route-recruiter-badge--primary {
+  background: rgba(236, 245, 255, 0.95);
+  color: #1867c3;
+}
+
+.sffc-member-signup__route-scale-strip {
+  min-height: 64px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 14px;
+  border: 1px solid rgba(17, 24, 39, 0.08);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.88);
+  box-shadow: 0 10px 18px rgba(18, 40, 68, 0.05);
+}
+
+.sffc-member-signup__route-scale-strip--ongoing {
+  gap: 16px;
+}
+
+.sffc-member-signup__route-scale-avatars {
+  display: flex;
+  align-items: center;
+  flex: 0 0 auto;
+}
+
+.sffc-member-signup__route-scale-avatars .sffc-member-signup__route-recruiter-avatar {
+  margin-left: -8px;
+}
+
+.sffc-member-signup__route-scale-avatars .sffc-member-signup__route-recruiter-avatar:first-child {
+  margin-left: 0;
+}
+
+.sffc-member-signup__route-scale-copy {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+
+.sffc-member-signup__route-scale-copy strong {
+  color: #18253d;
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1.15;
+}
+
+.sffc-member-signup__route-scale-copy span {
+  color: #616b7b;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.35;
+}
+
+.sffc-member-signup__route-recruiter-alert-pill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 0 12px;
+  border-radius: 999px;
+  background: rgba(237, 245, 255, 0.95);
+  color: #173f73;
+  font-size: 11px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.sffc-member-signup__route-sheet {
+  width: 94px;
+  min-height: 122px;
+  padding: 14px 12px;
+  border-radius: 16px;
+  background: #ffffff;
+  box-shadow: 0 14px 28px rgba(12, 40, 68, 0.1);
+  display: grid;
+  gap: 10px;
+  position: relative;
+}
+
+.sffc-member-signup__route-sheet-line {
+  display: block;
+  height: 6px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #cad8ef, #e1e9f8);
+}
+
+.sffc-member-signup__route-sheet-line--wide {
+  width: 92%;
+}
+
+.sffc-member-signup__route-sheet-highlight {
+  width: 62%;
+  height: 10px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #0a66c2, #7ab7ff);
+}
+
+.sffc-member-signup__route-badge {
+  position: absolute;
+  left: 14px;
+  bottom: 14px;
+  padding: 7px 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 10px 20px rgba(12, 40, 68, 0.08);
+  color: #123b72;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.sffc-member-signup__route-profile-card {
+  width: 116px;
+  min-height: 128px;
+  padding: 14px;
+  border-radius: 18px;
+  background: #0a66c2;
+  box-shadow: 0 14px 28px rgba(10, 102, 194, 0.18);
+  display: grid;
+  align-content: start;
+  gap: 12px;
+}
+
+.sffc-member-signup__route-profile-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 50% 35%, #f7dcc3 0 28%, transparent 29%),
+    radial-gradient(circle at 50% 88%, #274779 0 36%, transparent 37%),
+    #ffffff;
+}
+
+.sffc-member-signup__route-profile-lines {
+  display: block;
+  height: 44px;
+  border-radius: 12px;
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.9) 0 0) 0 8px / 100% 2px no-repeat,
+    linear-gradient(rgba(255, 255, 255, 0.82) 0 0) 0 20px / 82% 2px no-repeat,
+    linear-gradient(rgba(255, 255, 255, 0.82) 0 0) 0 32px / 90% 2px no-repeat;
+}
+
+.sffc-member-signup__route-target {
+  position: relative;
+  width: 110px;
+  height: 110px;
+  display: grid;
+  place-items: center;
+}
+
+.sffc-member-signup__route-target-ring {
+  position: absolute;
+  inset: 0;
+  border: 2px solid rgba(12, 40, 68, 0.16);
+  border-radius: 50%;
+}
+
+.sffc-member-signup__route-target-ring--inner {
+  inset: 22px;
+  border-color: rgba(10, 102, 194, 0.24);
+}
+
+.sffc-member-signup__route-target-dot {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #0a66c2;
+  box-shadow: 0 0 0 10px rgba(10, 102, 194, 0.14);
+}
+
+.sffc-member-signup__route-priority-columns {
+  width: 122px;
+  height: 108px;
+  display: flex;
+  align-items: end;
+  gap: 14px;
+}
+
+.sffc-member-signup__route-priority-column {
+  flex: 1 1 0;
+  border-radius: 18px 18px 10px 10px;
+  box-shadow: 0 12px 24px rgba(12, 40, 68, 0.08);
+}
+
+.sffc-member-signup__route-priority-column--contacts {
+  height: 82px;
+  background: linear-gradient(180deg, #89c2ff, #0a66c2);
+}
+
+.sffc-member-signup__route-priority-column--profile {
+  height: 72px;
+  background: linear-gradient(180deg, #ffd78c, #ffb84d);
+}
+
+.sffc-member-signup__route-priority-column--lead {
+  height: 94px;
+}
+
+.sffc-member-signup__route-balance {
+  position: relative;
+  width: 128px;
+  height: 88px;
+}
+
+.sffc-member-signup__route-balance::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 6px;
+  bottom: 0;
+  width: 4px;
+  border-radius: 999px;
+  background: #123b72;
+  transform: translateX(-50%);
+}
+
+.sffc-member-signup__route-balance::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 12px;
+  width: 86px;
+  height: 4px;
+  border-radius: 999px;
+  background: #123b72;
+  transform: translateX(-50%);
+}
+
+.sffc-member-signup__route-balance-side {
+  position: absolute;
+  top: 26px;
+  width: 44px;
+  height: 36px;
+  border-radius: 12px 12px 16px 16px;
+  box-shadow: 0 12px 24px rgba(12, 40, 68, 0.08);
+}
+
+.sffc-member-signup__route-balance-side--left {
+  left: 8px;
+  background: linear-gradient(180deg, #89c2ff, #0a66c2);
+}
+
+.sffc-member-signup__route-balance-side--right {
+  right: 8px;
+  background: linear-gradient(180deg, #ffd78c, #ffb84d);
+}
+
+.sffc-member-signup__route-hint {
+  margin: 12px 0 0;
+  color: #4b5563;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.sffc-member-signup__choice-group > div:has(button[data-member-signup-study]) {
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.sffc-member-signup__choice-group
+  > div:has(button[data-member-signup-study])::-webkit-scrollbar {
+  display: none;
+}
+
+.sffc-member-signup__choice-group button[data-member-signup-study] {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+.sffc-member-signup__free-choice {
+  display: inline-flex;
+  cursor: pointer;
+}
+
+.sffc-member-signup__free-choice input {
+  position: absolute;
+  width: 1px;
+  min-height: 0;
+  height: 1px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.sffc-member-signup__free-choice span {
+  min-height: 40px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 14px;
+  border: 1px solid #d1d5db;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #1f2937;
+  font-size: 14px;
+  font-weight: 750;
+  line-height: 1;
+}
+
+.sffc-member-signup__free-choice input:focus-visible + span {
+  border-color: #0a66c2;
+  box-shadow: 0 0 0 2px rgba(10, 102, 194, 0.18);
+}
+
+.sffc-member-signup__free-choice input:checked + span {
+  border-color: #0a66c2;
+  background: #e8f3ff;
+  color: #0a66c2;
+}
+
+.sffc-member-signup__signin {
+  margin: 4px 0 0;
+  color: #5f6368;
+  font-size: 14px;
+  line-height: 1.35;
+  text-align: center;
+}
+
+.sffc-member-signup__signin a {
+  color: #0a66c2;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.sffc-member-signup__signin a:hover {
+  text-decoration: underline;
+}
+
+.sffc-member-signup__login-state {
+  text-align: center;
+}
+
+.sffc-member-signup__login-state h2 {
+  margin: 0;
+  font-size: 25px;
+  line-height: 1.2;
+}
+
+.sffc-member-signup__login-state p {
+  margin: 12px 0 20px;
+  color: #5f6368;
+  font-size: 16px;
+}
+
+.sffc-member-signup__login-state a {
+  min-height: 54px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 36px;
+  border-radius: 999px;
+  background: #0a66c2;
+  color: #ffffff;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.sffc-member-signup__plans {
+  width: 100%;
+  margin-top: 34px;
+}
+
+.sffc-member-signup__methods-actions {
+  width: min(100%, 940px);
+  margin: 0 auto 16px;
+}
+
+.sffc-member-signup__plans-head {
+  text-align: center;
+}
+
+.sffc-member-signup__plan-summary {
+  width: min(100%, 760px);
+  margin: 22px auto 0;
+  padding: 22px 24px;
+  border: 1px solid #ffd14929;
+  border-radius: 14px;
+  background: linear-gradient(90deg, #fce3bc00, #fdf0de96);
+  text-align: left;
+}
+
+.sffc-member-signup__plan-summary strong {
+  display: block;
+  margin: 0 0 14px;
+  color: #111111;
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.sffc-member-signup__plan-summary ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 10px;
+}
+
+.sffc-member-signup__form--summary {
+  margin-top: 18px;
+}
+
+.sffc-member-signup__plan-summary li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #123943;
+  font-size: 15px;
+  line-height: 1.4;
+  font-weight: 650;
+}
+
+.sffc-member-signup__plan-summary-check {
+  color: #0a66c2;
+  font-weight: 900;
+}
+
+.sffc-member-signup__plan-summary-avatar {
+  width: 36px;
+  height: 36px;
+  flex: 0 0 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: inset 0 0 0 1px rgba(18, 34, 76, 0.08);
+  overflow: hidden;
+}
+
+.sffc-member-signup__plan-summary-avatar img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
+
+.sffc-member-signup__plan-summary-avatar.is-senna,
+.sffc-member-signup__plan-summary-avatar.is-alert {
+  padding: 7px;
+}
+
+.sffc-member-signup__plan-summary-avatar.is-senna img,
+.sffc-member-signup__plan-summary-avatar.is-alert img {
+  object-fit: contain;
+}
+
+.sffc-member-signup__progressive .sffc-member-signup__route-actions {
+  justify-content: flex-start;
+  margin-top: 18px;
+}
+
+.sffc-member-signup__plans-head h2 {
+  margin: 0;
+  font-size: 52px;
+  line-height: 1.05;
+  font-weight: 450;
+}
+
+.sffc-member-signup__plans-head--job {
+  width: min(100%, 940px);
+  margin: 26px auto 0;
+}
+
+.sffc-member-signup__job-pricing-kicker {
+  margin: 0 0 10px;
+  color: #0a66c2;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.sffc-member-signup__job-pricing-copy {
+  width: min(100%, 760px);
+  margin: 14px auto 0;
+  color: #1f2937;
+  font-size: 16px;
+  line-height: 1.5;
+  font-weight: 500;
+}
+
+.sffc-member-signup__job-pricing-copy strong {
+  color: #111111;
+}
+
+.sffc-member-signup__job-pricing-copy.is-secondary {
+  color: #5f6368;
+  font-size: 14px;
+}
+
+.sffc-member-signup__job-pricing-copy--tiny {
+  margin-top: 10px;
+  font-size: 12px;
+}
+
+.sffc-member-signup__job-pricing-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 18px;
+  justify-content: center;
+  align-items: center;
+  margin-top: 18px;
+}
+
+.sffc-member-signup__job-pricing-link {
+  color: #123943;
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.sffc-member-signup__job-pricing-link:hover {
+  text-decoration: underline;
+}
+
+.sffc-member-signup__toggle {
+  display: inline-flex;
+  gap: 6px;
+  margin-top: 18px;
+  padding: 5px;
+  border: 1px solid #d8dce3;
+  border-radius: 999px;
+  background: #ffffff;
+}
+
+.sffc-member-signup__toggle button {
+  min-height: 36px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 15px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: #33363b;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.sffc-member-signup__toggle button.is-active {
+  background: #111111;
+  color: #ffffff;
+}
+
+.sffc-member-signup__toggle span {
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: #e8f3ff;
+  color: #0a66c2;
+  font-size: 12px;
+}
+
+.sffc-member-signup__plan-grid {
+  display: none;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+  margin-top: 26px;
+  padding: 0 120px 0;
+}
+
+.sffc-member-signup__plan-grid.is-active {
+  display: grid;
+}
+
+.sffc-member-signup__plan-grid.is-single {
+  grid-template-columns: minmax(0, min(460px, 100%));
+  justify-content: center;
+}
+
+.sffc-member-signup__faq {
+  width: min(100%, 940px);
+  margin: 28px auto 0;
+  padding: 22px 24px;
+  border: 1px solid #e5e7eb;
+  border-radius: 20px;
+  background: #ffffff;
+}
+
+.sffc-member-signup__faq h3 {
+  margin: 0 0 14px;
+  color: #111111;
+  font-size: 22px;
+  line-height: 1.2;
+  font-weight: 700;
+}
+
+.sffc-member-signup__faq-items {
+  display: grid;
+  gap: 12px;
+}
+
+.sffc-member-signup__faq-item {
+  padding: 16px 18px;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  background: #fafafa;
+}
+
+.sffc-member-signup__faq-item summary {
+  cursor: pointer;
+  list-style: none;
+  color: #1f2937;
+  font-size: 15px;
+  font-weight: 750;
+}
+
+.sffc-member-signup__faq-item summary::-webkit-details-marker {
+  display: none;
+}
+
+.sffc-member-signup__faq-item p {
+  margin: 12px 0 0;
+  color: #4b5563;
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.sffc-member-signup__faq-item a {
+  color: #0a66c2;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.sffc-member-signup__faq-item a:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 1180px) {
+  .sffc-member-signup__plan-grid {
+    padding: 0 48px;
+  }
+}
+
+.sffc-member-signup__plan {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  min-height: 340px;
+  padding: 20px;
+  border: 1px solid #e5e7eb;
+  border-radius: 20px;
+  background: #ffffff;
+  box-shadow: 0 16px 44px rgba(15, 23, 42, 0.08);
+}
+
+.sffc-member-signup__plan.is-recommended {
+  border-color: rgba(18, 57, 67, 0.22);
+  box-shadow: 0 18px 46px rgba(18, 57, 67, 0.14);
+}
+
+.sffc-member-signup__plan-top {
+  min-height: 56px;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.sffc-member-signup__plan h3 {
+  margin: 0;
+  font-size: 23px;
+  line-height: 1.1;
+}
+
+.sffc-member-signup__plan-top span {
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+  padding: 0 8px;
+  border: 1px solid #b8c8e8;
+  border-radius: 7px;
+  color: #0a4ea3;
+  background: #f6f9ff;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.sffc-member-signup__job-plan-fit {
+  margin: -4px 0 0;
+  color: #123943;
+  font-size: 13px;
+  line-height: 1.4;
+  font-weight: 700;
+}
+
+.sffc-member-signup__price {
+  padding-top: 14px;
+  border-top: 1px solid #e9eaee;
+}
+
+.sffc-member-signup__price strong {
+  display: block;
+  font-size: 30px;
+  line-height: 1.1;
+}
+
+.sffc-member-signup__price em {
+  display: block;
+  margin-top: 4px;
+  color: #4b5563;
+  font-style: normal;
+  font-weight: 700;
+}
+
+.sffc-member-signup__plan ul {
+  display: grid;
+  gap: 9px;
+  margin: 16px 0 18px;
+  padding: 0;
+  list-style: none;
+}
+
+.sffc-member-signup__plan li {
+  position: relative;
+  padding-left: 22px;
+  font-size: 13.5px;
+  line-height: 1.35;
+}
+
+.sffc-member-signup__plan li::before {
+  content: "✓";
+  position: absolute;
+  left: 0;
+  color: #2f7d48;
+  font-weight: 900;
+}
+
+.sffc-member-signup__plan li.is-unavailable {
+  color: #6b7280;
+}
+
+.sffc-member-signup__plan li.is-unavailable::before {
+  content: "×";
+  color: #9ca3af;
+}
+
+.sffc-member-signup__plan .sffc-member-signup__primary {
+  min-height: 46px;
+  margin-top: auto;
+  font-size: 16px;
+}
+
+.sffc-member-signup__external-fallback {
+  display: grid;
+  gap: 8px;
+  margin-top: 12px;
+  padding: 12px 14px;
+  border: 1px solid #dbe4ee;
+  border-radius: 14px;
+  background: #f8fbff;
+}
+
+.sffc-member-signup__external-fallback-copy {
+  margin: 0;
+  color: #5f6368;
+  font-size: 13px;
+  line-height: 1.45;
+  font-weight: 600;
+}
+
+.sffc-member-signup__external-fallback-link {
+  color: #0a66c2;
+  font-size: 14px;
+  line-height: 1.4;
+  font-weight: 800;
+  text-decoration: none;
+  word-break: break-word;
+}
+
+.sffc-member-signup__external-fallback-link:hover {
+  text-decoration: underline;
+}
+
+.sffc-member-signup__job-onboarding {
+  width: min(100%, 610px);
+  margin-top: 26px;
+}
+
+.sffc-member-signup__job-review {
+  width: min(100%, 610px);
+  margin-top: 26px;
+}
+
+.sffc-member-signup__job-description {
+  width: min(100%, 940px);
+  margin-top: 26px;
+}
+
+.sffc-member-signup__job-description
+  .sffc-cv-match-studio__job-post-description {
+  padding-top: 0;
+}
+
+.sffc-member-signup__job-description
+  .sffc-cv-match-studio__jobs-mailbox-messagebody {
+  display: grid;
+  gap: 20px;
+  color: #202833;
+  font-size: 16px;
+  line-height: 1.65;
+}
+
+.sffc-member-signup__job-description
+  .sffc-cv-match-studio__jobs-mailbox-messagebody
+  > * {
+  margin: 0;
+}
+
+.sffc-member-signup__job-description
+  .sffc-cv-match-studio__job-post-description
+  p,
+.sffc-member-signup__job-description
+  .sffc-cv-match-studio__job-post-description
+  li {
+  color: #1d2f4c;
+  font-size: 16px;
+  line-height: 1.65;
+}
+
+.sffc-member-signup__job-description
+  .sffc-cv-match-studio__job-post-description
+  ul {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding-left: 22px;
+}
+
+.sffc-member-signup__job-review-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.sffc-member-signup__job-step {
+  display: grid;
+  gap: 18px;
+}
+
+.sffc-member-signup__job-step-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.sffc-member-signup__job-step-label {
+  display: inline-flex;
+  width: fit-content;
+  min-height: 28px;
+  align-items: center;
+  padding: 0 12px;
+  border-radius: 999px;
+  background: #eef3f8;
+  color: #0a66c2;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.sffc-member-signup__job-step-badge {
+  display: inline-flex;
+  min-height: 28px;
+  align-items: center;
+  padding: 0 12px;
+  border: 1px solid #0a66c233;
+  border-radius: 999px;
+  background: #0a66c226;
+  color: #1d62c9;
+  font-size: 12px;
+  line-height: 1;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+.sffc-member-signup__job-step h2 {
+  margin: 0;
+  color: #111111;
+  font-size: clamp(28px, 3vw, 36px);
+  line-height: 1.08;
+  font-weight: 450;
+}
+
+.sffc-member-signup__job-step-copy {
+  margin: -6px 0 0;
+  color: #5f6368;
+  font-size: 15px;
+  line-height: 1.45;
+  font-weight: 500;
+}
+
+.sffc-member-signup__job-step-hint {
+  margin: -8px 0 0;
+  color: #0a66c2;
+  font-size: 13px;
+  line-height: 1.4;
+  font-weight: 700;
+}
+
+.sffc-member-signup__review-group {
+  margin-top: 20px;
+}
+
+.sffc-member-signup__review-group:last-of-type {
+  margin-bottom: 28px;
+}
+
+.sffc-member-signup__job-review .sffc-member-signup__job-actions {
+  margin-top: 10px;
+}
+
+.sffc-member-signup__review-group strong {
+  display: block;
+  margin: 0 0 10px;
+  color: #111111;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.sffc-member-signup__review-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.sffc-member-signup__review-list li {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 0 14px;
+  border: 1px solid #0a66c2;
+  border-radius: 999px;
+  background: #e8f3ff;
+  color: #0a66c2;
+  font-size: 14px;
+  line-height: 1;
+  font-weight: 750;
+}
+
+.sffc-member-signup__review-list li span:first-child {
+  color: #0a66c2;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.sffc-member-signup__job-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.sffc-member-signup__secondary {
+    min-height: 58px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 0 24px !important;
+    border: 1px solid #0a66c2 !important;
+    border-radius: 999px !important;
+    background: #0d6efd12 !important;
+    color: #0d353e !important;
+    font-size: 16px !important;
+    font-weight: 800 !important;
+    line-height: 1 !important;
+    text-decoration: none !important;
+  cursor: pointer !important;
+}
+
+.sffc-member-signup__secondary:hover {
+  border-color: #123943;
+  color: #123943;
+}
+
+.sffc-member-signup__secondary--compact {
+  min-height: 40px;
+  padding: 0 16px;
+  font-size: 14px;
+}
+
+.sffc-member-signup__secondary--route-option {
+  background: #ffffff !important;
+  color: #123943 !important;
+}
+
+.sffc-member-signup__route-avatar {
+  width: 34px;
+  height: 34px;
+  flex: 0 0 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.22);
+  color: inherit;
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.sffc-member-signup__route-avatar img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
+
+.sffc-member-signup__secondary--route-review {
+  gap: 10px;
+}
+
+.sffc-member-signup__secondary.sffc-member-signup__secondary--route-review {
+  background: #0a66c2 !important;
+  color: #ffffff !important;
+  border-color: #0a66c2 !important;
+}
+
+.sffc-member-signup__secondary.sffc-member-signup__secondary--route-review:hover {
+  background: #004182 !important;
+  color: #ffffff !important;
+  border-color: #004182 !important;
+}
+
+.sffc-member-signup__secondary--link {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.sffc-member-signup__checkout {
+  width: min(100%, 680px);
+  padding: 26px;
+}
+
+.sffc-member-signup__checkout-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.sffc-member-signup__checkout-topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.sffc-member-signup__back {
+  min-height: 40px;
+  padding: 0 16px;
+  border: 1px solid #d1d5db;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #0a66c2;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.sffc-member-signup__checkout-price {
+  color: #6b7280;
+  font-size: 13px;
+  line-height: 1.2;
+  font-weight: 600;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.sffc-member-signup__checkout-trust {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.sffc-member-signup__checkout-avatars {
+  display: inline-flex;
+  align-items: center;
+  padding-bottom: 2px;
+}
+
+.sffc-member-signup__checkout-avatar {
+  width: 26px;
+  height: 26px;
+  border-radius: 999px;
+  overflow: hidden;
+  border: 2px solid #ffffff;
+  box-shadow: 0 4px 10px rgba(17, 24, 39, 0.08);
+  background: #e5e7eb;
+}
+
+.sffc-member-signup__checkout-avatar + .sffc-member-signup__checkout-avatar {
+  margin-left: -8px;
+}
+
+.sffc-member-signup__checkout-avatar img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
+
+.sffc-member-signup__checkout-trust strong {
+  color: #111827;
+  font-size: 14px;
+  line-height: 1.2;
+  font-weight: 700;
+}
+
+.sffc-member-signup__checkout-rating {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #6b7280;
+  font-size: 12px;
+  line-height: 1.2;
+  font-weight: 600;
+}
+
+.sffc-member-signup__checkout-stars {
+  color: #d97706;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+}
+
+@media (max-width: 640px) {
+  .sffc-member-signup__checkout-avatars {
+    padding-bottom: 1px;
+  }
+
+  .sffc-member-signup__checkout-avatar {
+    width: 22px;
+    height: 22px;
+  }
+
+  .sffc-member-signup__checkout-avatar + .sffc-member-signup__checkout-avatar {
+    margin-left: -7px;
+  }
+}
+
+.sffc-member-signup__memberpress form {
+  margin: 0;
+}
+
+.sffc-member-signup__memberpress .mepr-form-row:has(input[name="mepr_job_id"]),
+.sffc-member-signup__memberpress .mepr-form-row:has(#mepr_job_id1),
+.sffc-member-signup__memberpress label[for="mepr_job_id1"],
+.sffc-member-signup__memberpress input[name="mepr_job_id"],
+.sffc-member-signup__memberpress #mepr_job_id1 {
+  display: none !important;
+}
+
+.sffc-member-signup__memberpress .mepr-submit,
+.sffc-member-signup__memberpress input.mepr-submit,
+.sffc-member-signup__memberpress button.mepr-submit,
+.sffc-member-signup__memberpress .mp-form-submit input[type="submit"],
+.sffc-member-signup__memberpress .mp-form-submit button {
+  width: auto !important;
+  min-width: 180px !important;
+  min-height: 50px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 0 32px !important;
+  border: 0 !important;
+  border-radius: 999px !important;
+  background: #0a66c2 !important;
+  color: #ffffff !important;
+  font-size: 17px !important;
+  font-weight: 800 !important;
+  line-height: 1 !important;
+  text-align: center !important;
+  cursor: pointer !important;
+  box-shadow: 0 12px 26px rgba(10, 102, 194, 0.18) !important;
+}
+
+.sffc-member-signup__memberpress .mepr-submit:hover,
+.sffc-member-signup__memberpress input.mepr-submit:hover,
+.sffc-member-signup__memberpress button.mepr-submit:hover,
+.sffc-member-signup__memberpress .mp-form-submit input[type="submit"]:hover,
+.sffc-member-signup__memberpress .mp-form-submit button:hover {
+  background: #004182 !important;
+  color: #ffffff !important;
+}
+
+.sffc-member-signup__memberpress .mp-form-submit {
+  display: flex !important;
+  justify-content: flex-start !important;
+  margin-top: 22px !important;
+}
+
+.sffc-member-signup__memberpress .mepr-payment-methods-wrapper {
+  margin-top: 12px !important;
+}
+
+.sffc-member-signup__memberpress .mepr-payment-methods-wrapper legend {
+  margin: 0 0 14px !important;
+  color: #202124 !important;
+  font-size: 18px !important;
+  line-height: 1.3 !important;
+  font-weight: 750 !important;
+}
+
+.sffc-member-signup__memberpress .mepr-payment-methods-icons {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  align-items: center !important;
+  gap: 8px !important;
+  margin: 0 0 14px !important;
+}
+
+.sffc-member-signup__memberpress .mepr-payment-methods-icons img {
+  height: 24px !important;
+  width: auto !important;
+}
+
+.sffc-member-signup__memberpress .mepr-payment-methods-radios {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 16px !important;
+  margin: 0 0 18px !important;
+}
+
+.sffc-member-signup__memberpress .mepr-payment-methods-radios label.mepr-payment-option-label {
+  position: relative !important;
+  min-height: 78px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  padding: 15px 98px 15px 18px !important;
+  border: 1px solid #d8dde6 !important;
+  border-radius: 14px !important;
+  background: #ffffff !important;
+  box-shadow: 0 10px 26px rgba(18, 57, 67, 0.06) !important;
+  cursor: pointer !important;
+  transition:
+    border-color 0.18s ease,
+    box-shadow 0.18s ease,
+    transform 0.18s ease !important;
+}
+
+.sffc-member-signup__memberpress .mepr-payment-methods-radios label.mepr-payment-option-label:hover {
+  border-color: #b6c7e2 !important;
+  box-shadow: 0 14px 30px rgba(18, 57, 67, 0.1) !important;
+  transform: translateY(-1px) !important;
+}
+
+.sffc-member-signup__memberpress .mepr-payment-methods-radios label.mepr-payment-option-label.checked,
+.sffc-member-signup__memberpress .mepr-payment-methods-radios label.mepr-payment-option-label:has(input:checked) {
+  border: 2px solid #0a66c2 !important;
+  box-shadow: 0 16px 34px rgba(10, 102, 194, 0.12) !important;
+  padding: 14px 97px 14px 17px !important;
+}
+
+.sffc-member-signup__memberpress .mepr-payment-methods-radios input[type="radio"] {
+  position: absolute !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  margin: 0 !important;
+}
+
+.sffc-member-signup__memberpress .mepr-payment-method-label-text {
+  display: inline-flex !important;
+  align-items: center !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  color: #202124 !important;
+  font-size: 16px !important;
+  line-height: 1.1 !important;
+  font-weight: 780 !important;
+}
+
+.sffc-member-signup__memberpress .mepr-payment-methods-radios label.mepr-payment-option-label::after {
+  content: "" !important;
+  position: absolute !important;
+  top: 50% !important;
+  right: 18px !important;
+  width: 76px !important;
+  height: 24px !important;
+  background-position: center right !important;
+  background-repeat: no-repeat !important;
+  background-size: contain !important;
+  transform: translateY(-50%) !important;
+  opacity: 1 !important;
+}
+
+.sffc-member-signup__memberpress .mepr-payment-methods-radios .payment-option-stripe::after {
+  background-image: url("https://media.joinsenna.com/2026/07/Stripe_Logo_revised_2016.svg_.webp?1783246968") !important;
+}
+
+.sffc-member-signup__memberpress .mepr-payment-methods-radios .payment-option-paypal::after,
+.sffc-member-signup__memberpress .mepr-payment-methods-radios .payment-option-pay-pal::after {
+  background-image: url("https://media.joinsenna.com/2026/07/PayPal.svg_.webp?1783246925") !important;
+}
+
+.sffc-member-signup__memberpress .mepr-payment-methods-wrapper hr {
+  margin: 0 0 20px !important;
+  border: 0 !important;
+  border-top: 1px solid #e6e9ef !important;
+}
+
+.sffc-member-signup__memberpress .mepr-payment-method-desc-text {
+  margin-top: 0 !important;
+  padding: 0 !important;
+  background: transparent !important;
+  border: 0 !important;
+}
+
+.sffc-member-signup__memberpress .mepr-payment-method-desc-text.spc,
+.sffc-member-signup__memberpress .mp-pm-desc-hidden,
+.sffc-member-signup__memberpress .mepr-hidden {
+  border: 0 !important;
+}
+
+.sffc-member-signup__memberpress .mepr-form-radio.mepr-can-order-bumps {
+  display: flex !important;
+  align-items: flex-start !important;
+  gap: 18px !important;
+  margin: 12px 0 18px !important;
+}
+
+.sffc-member-signup__memberpress .mepr-form-radio.mepr-can-order-bumps label,
+.sffc-member-signup__memberpress
+  .mepr-form-radio.mepr-can-order-bumps
+  .mepr-payment-method {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  width: auto !important;
+  margin: 0 !important;
+}
+
+.sffc-member-signup__memberpress
+  .mepr-form-radio.mepr-can-order-bumps
+  input[type="radio"] {
+  width: 22px !important;
+  height: 22px !important;
+  min-height: 22px !important;
+  margin: 0 !important;
+  accent-color: #0a66c2;
+}
+
+.sffc-member-signup__memberpress .mepr-loading-gif {
+  width: auto !important;
+  max-width: 28px !important;
+  height: auto !important;
+  max-height: 28px !important;
+  object-fit: contain !important;
+  display: none !important;
+  vertical-align: middle !important;
+}
+
+.sffc-member-signup__memberpress.is-memberpress-submitting .mepr-loading-gif,
+.sffc-member-signup__memberpress
+  form.is-memberpress-submitting
+  .mepr-loading-gif {
+  display: inline-block !important;
+}
+
+@media (max-width: 900px) {
+  .sffc-member-signup {
+    padding: 18px;
+  }
+
+  .sffc-member-signup__brand {
+    font-size: 38px;
+  }
+
+  .sffc-member-signup__shell {
+    margin-top: 30px;
+  }
+
+  .sffc-member-signup__entry-grid {
+    gap: 16px;
+  }
+
+  .sffc-member-signup__entry-body {
+    padding: 16px 18px 14px;
+  }
+
+  .sffc-member-signup__entry-action {
+    padding: 14px 18px 16px;
+  }
+
+  .sffc-member-signup__steps {
+    margin-bottom: 16px;
+  }
+
+  .sffc-member-signup__shell > h1 {
+    font-size: 32px;
+  }
+
+  .sffc-member-signup__card {
+    padding: 26px 22px 28px;
+  }
+
+  .sffc-member-signup__route-choice-grid--recruiter-pricing {
+    grid-template-columns: 1fr;
+    max-width: 560px;
+    margin-inline: auto;
+  }
+
+  .sffc-member-signup__plan-grid {
+    grid-template-columns: 1fr;
+    padding: 0;
+  }
+}
+
+@media (max-width: 640px) {
+  .sffc-member-signup {
+    min-height: 100svh;
+    padding: 12px;
+    overflow-x: hidden;
+  }
+
+  .sffc-member-signup__brand {
+    width: 100%;
+    gap: 10px;
+  }
+
+  .sffc-member-signup__brand-signin {
+    min-height: 36px;
+    padding: 0 12px;
+    font-size: 13px;
+    line-height: 1;
+    flex: 0 0 auto;
+    white-space: nowrap;
+  }
+
+  .sffc-member-signup__brand-avatar-toggle {
+    min-height: 36px;
+    padding: 3px 7px 3px 3px;
+    gap: 6px;
+    flex: 0 0 auto;
+  }
+
+  .sffc-member-signup__brand-avatar {
+    width: 28px;
+    height: 28px;
+    font-size: 12px;
+  }
+
+  .sffc-member-signup__brand-account-menu {
+    min-width: 176px;
+    padding: 8px;
+    border-radius: 14px;
+  }
+
+  .sffc-member-signup__brand-account-item {
+    min-height: 38px;
+    padding: 0 12px;
+    font-size: 13px;
+  }
+
+  .sffc-member-signup__brand-mark {
+    width: 40px;
+    height: 40px;
+    border-radius: 11px;
+  }
+
+  .sffc-member-signup__brand-glyph {
+    font-size: 41px;
+  }
+
+
+  .sffc-member-signup__brand-dot {
+    top: 12px;
+    width: 7px;
+    height: 7px;
+  }
+
+  .sffc-member-signup__brand-copy strong {
+    font-size: 18px;
+    line-height: 1.05;
+    letter-spacing: -0.03em;
+  }
+
+  .sffc-member-signup__brand-copy {
+    min-width: 0;
+    flex: 1 1 auto;
+    gap: 3px;
+  }
+
+  .sffc-member-signup__brand-copy span {
+    font-size: 11px;
+    line-height: 1.1;
+    letter-spacing: 0.07em;
+  }
+
+  .sffc-member-signup__shell {
+    width: 100%;
+    margin-top: 18px;
+    gap: 10px;
+  }
+
+  .sffc-member-signup__entry {
+    width: 100%;
+    margin-bottom: 18px;
+  }
+
+  .sffc-member-signup__entry-head {
+    margin-bottom: 12px;
+  }
+
+  .sffc-member-signup__contact-preview-card .sffc-member-signup__entry-head {
+    margin-bottom: 14px;
+  }
+
+  .sffc-member-signup__entry-head h2 {
+    font-size: 28px;
+    line-height: 1.02;
+    letter-spacing: -0.045em;
+    text-wrap: balance;
+  }
+
+  .sffc-member-signup__entry-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    max-width: 340px;
+    margin: 0 auto;
+  }
+
+  .sffc-member-signup__entry--recruiter-contact {
+    max-width: 100%;
+  }
+
+  .sffc-member-signup__entry--recruiter-contact .sffc-member-signup__entry-head p {
+    max-width: 330px;
+    font-size: 13px;
+    line-height: 1.4;
+  }
+
+  .sffc-member-signup__contact-card {
+    max-width: 540px;
+    margin: 0 auto;
+    border-radius: 18px;
+  }
+
+  .sffc-member-signup__contact-card-hero {
+    min-height: 0;
+    padding: 22px 20px 16px;
+  }
+
+  .sffc-member-signup__contact-chip {
+    top: 16px;
+    left: 16px;
+    padding: 9px 14px;
+    font-size: 12px;
+  }
+
+  .sffc-member-signup__contact-preview-card {
+    width: 100%;
+    margin-top: 46px;
+    padding: 8px;
+    border-radius: 16px;
+  }
+
+  .sffc-member-signup__route-reveal-card--preview {
+    padding: 10px;
+    border-radius: 14px;
+  }
+
+  .sffc-member-signup__route-reveal-card--preview .sffc-member-signup__route-reveal-profile {
+    gap: 10px;
+  }
+
+  .sffc-member-signup__route-reveal-card--preview .sffc-member-signup__route-reveal-avatar {
+    width: 44px;
+    height: 44px;
+    flex-basis: 44px;
+    font-size: 16px;
+  }
+
+  .sffc-member-signup__route-reveal-card--preview .sffc-member-signup__route-reveal-copy strong {
+    font-size: 14px;
+  }
+
+  .sffc-member-signup__route-reveal-card--preview .sffc-member-signup__route-reveal-copy-verified {
+    font-size: 12px;
+  }
+
+  .sffc-member-signup__route-reveal-card--preview .sffc-member-signup__route-reveal-copy-verified::before {
+    width: 16px;
+    height: 16px;
+    flex-basis: 16px;
+    font-size: 10px;
+  }
+
+  .sffc-member-signup__contact-preview-verifications {
+    gap: 8px;
+  }
+
+  .sffc-member-signup__contact-preview-verification {
+    width: 36px;
+    height: 36px;
+    flex-basis: 36px;
+    border-radius: 10px;
+  }
+
+  .sffc-member-signup__contact-preview-verification svg,
+  .sffc-member-signup__contact-preview-verification img {
+    width: 18px;
+    height: 18px;
+  }
+
+  .sffc-member-signup__contact-preview-verification--mail img {
+    width: 20px;
+    height: 20px;
+  }
+
+  .sffc-member-signup__contact-preview-verification.has-image img {
+    width: 20px;
+    height: 20px;
+  }
+
+  .sffc-member-signup__contact-preview-verification--company {
+    width: 40px;
+    height: 40px;
+    flex-basis: 40px;
+  }
+
+  .sffc-member-signup__contact-preview-verification--company.has-image img {
+    width: 24px;
+    height: 24px;
+  }
+
+  .sffc-member-signup__contact-preview-verification::after {
+    right: -3px;
+    bottom: -3px;
+    width: 14px;
+    height: 14px;
+    font-size: 9px;
+  }
+
+  .sffc-member-signup__route-reveal-card--preview .sffc-member-signup__route-reveal-copy span,
+  .sffc-member-signup__route-reveal-card--preview .sffc-member-signup__route-reveal-copy em {
+    font-size: 11px;
+  }
+
+  .sffc-member-signup__route-reveal-card--preview .sffc-member-signup__route-reveal-lock {
+    padding: 5px 8px;
+    font-size: 9px;
+  }
+
+  .sffc-member-signup__route-reveal-card--preview .sffc-member-signup__route-reveal-row {
+    padding: 8px 10px;
+    gap: 8px;
+  }
+
+  .sffc-member-signup__route-reveal-card--preview .sffc-member-signup__route-reveal-row span,
+  .sffc-member-signup__route-reveal-card--preview .sffc-member-signup__route-reveal-row strong,
+  .sffc-member-signup__route-reveal-card--preview .sffc-member-signup__route-reveal-row a {
+    font-size: 11px;
+  }
+
+  .sffc-member-signup__contact-card-body {
+    padding: 18px 18px 20px;
+  }
+
+  .sffc-member-signup__contact-entry-form {
+    gap: 12px;
+  }
+
+  .sffc-member-signup__contact-entry-form label {
+    font-size: 14px;
+  }
+
+  .sffc-member-signup__contact-entry-form input {
+    min-height: 48px;
+    border-radius: 8px;
+    padding: 0 14px;
+    font-size: 16px;
+  }
+
+  .sffc-member-signup__contact-entry-form .sffc-member-signup__primary {
+    min-height: 50px;
+    font-size: 17px;
+  }
+
+  .sffc-member-signup__contact-entry-form .sffc-member-signup__route-note {
+    margin-top: 2px;
+    font-size: 13px;
+    line-height: 1.4;
+    max-width: 29ch;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .sffc-member-signup__entry-card {
+    border-radius: 16px;
+    box-shadow: 0 10px 22px rgba(15, 23, 42, 0.07);
+  }
+
+  .sffc-member-signup__entry-image {
+    aspect-ratio: 16 / 7.6;
+  }
+
+  .sffc-member-signup__entry-body strong {
+    font-size: clamp(18px, 5.8vw, 22px);
+    line-height: 0.98;
+  }
+
+  .sffc-member-signup__entry-body {
+    padding: 11px 13px 9px;
+    gap: 4px;
+  }
+
+  .sffc-member-signup__entry-body span {
+    font-size: 11.5px;
+    line-height: 1.35;
+  }
+
+  .sffc-member-signup__entry-action {
+    padding: 11px 13px 12px;
+    font-size: 12px;
+  }
+
+  .sffc-member-signup__steps {
+    width: 100%;
+    justify-content: space-between;
+    margin-bottom: 14px;
+    padding: 4px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .sffc-member-signup__steps::-webkit-scrollbar {
+    display: none;
+  }
+
+  .sffc-member-signup__steps li {
+    flex: 0 0 auto;
+    min-height: 30px;
+    padding: 0 10px;
+    font-size: 11px;
+  }
+
+  .sffc-member-signup__steps li + li {
+    margin-left: 12px;
+  }
+
+  .sffc-member-signup__steps li + li::before {
+    left: -9px;
+    width: 5px;
+    height: 5px;
+  }
+
+  .sffc-member-signup__back {
+    position: relative;
+    min-width: 40px;
+    width: 40px;
+    min-height: 40px;
+    height: 40px;
+    padding: 0;
+    border-radius: 999px;
+    overflow: hidden;
+    text-indent: 100%;
+    white-space: nowrap;
+  }
+
+  .sffc-member-signup__back::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 10px;
+    height: 10px;
+    border-left: 2px solid #0a66c2;
+    border-bottom: 2px solid #0a66c2;
+    transform: translate(-35%, -50%) rotate(45deg);
+  }
+
+  .sffc-member-signup__shell > h1 {
+    width: min(100%, 360px);
+    font-size: clamp(27px, 8vw, 34px);
+    line-height: 1.12;
+    text-wrap: balance;
+  }
+
+  .sffc-member-signup__subtitle {
+    width: min(100%, 330px);
+    margin: 6px 0 14px;
+    font-size: 13px;
+    line-height: 1.35;
+  }
+
+  .sffc-member-signup__card,
+  .sffc-member-signup__checkout {
+    width: 100%;
+    border-radius: 16px;
+  }
+
+  .sffc-member-signup__card {
+    padding: 18px 14px 20px;
+  }
+
+  .sffc-member-signup__form,
+  .sffc-member-signup__progressive {
+    gap: 14px;
+  }
+
+  .sffc-member-signup label,
+  .sffc-member-signup legend {
+    font-size: 15px;
+  }
+
+  .sffc-member-signup input {
+    min-height: 46px;
+    font-size: 16px;
+  }
+
+  .sffc-member-signup__primary {
+    min-height: 50px;
+    font-size: 17px;
+  }
+
+  .sffc-member-signup__choice-group > div {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .sffc-member-signup__choice-group--recruiter-pricing-step
+    > .sffc-member-signup__recruiter-pricing-simple {
+    gap: 10px;
+  }
+
+  .sffc-member-signup__choice-group--recruiter-pricing-step {
+    width: 100%;
+    max-width: none;
+    justify-items: stretch;
+    text-align: left;
+  }
+
+  .sffc-member-signup__choice-group--recruiter-pricing-step > .sffc-member-signup__choice-step-chip {
+    justify-self: start;
+    min-height: 38px;
+    padding: 0 18px;
+    font-size: 14px;
+  }
+
+  .sffc-member-signup__choice-group--recruiter-pricing-step > legend {
+    width: 100%;
+    margin: 16px 0 18px;
+    max-width: none;
+    font-size: 28px;
+    line-height: 1.02;
+    text-align: center;
+    text-wrap: balance;
+  }
+
+  .sffc-member-signup__choice-group.sffc-member-signup__choice-group--recruiter-pricing-step
+    > .sffc-member-signup__recruiter-pricing-simple,
+  .sffc-member-signup__recruiter-pricing-simple {
+    width: 100%;
+    margin-top: 18px;
+  }
+
+  .sffc-member-signup__recruiter-pricing-option {
+    min-height: 74px;
+    padding: 12px 18px !important;
+    gap: 10px;
+  }
+
+  .sffc-member-signup__recruiter-pricing-option-avatar {
+    width: 40px;
+    height: 40px;
+    flex-basis: 40px;
+  }
+
+  .sffc-member-signup__recruiter-pricing-option-copy {
+    gap: 5px;
+  }
+
+  .sffc-member-signup__recruiter-pricing-option-copy strong,
+  .sffc-member-signup__recruiter-pricing-option-copy span {
+    font-size: clamp(14px, 2vw, 17px);
+    line-height: 1.12;
+  }
+
+  .sffc-member-signup__recruiter-pricing-detail {
+    width: 100%;
+    gap: 8px;
+  }
+
+  .sffc-member-signup__recruiter-pricing-price {
+    font-size: 15px;
+  }
+
+  .sffc-member-signup__recruiter-pricing-meta {
+    font-size: 12px;
+  }
+
+  .sffc-member-signup__recruiter-pricing-note {
+    width: min(100%, 340px);
+    margin: 12px auto 0;
+    text-align: center;
+  }
+
+  .sffc-member-signup__recruiter-pricing-note {
+    margin-top: 8px;
+    font-size: 13px;
+    line-height: 1.45;
+    max-width: none;
+  }
+
+  .sffc-member-signup__choice-group > .sffc-member-signup__route-choice-grid--recruiter-pricing {
+    grid-template-columns: 1fr;
+    max-width: 560px;
+    margin-inline: auto;
+  }
+
+  .sffc-member-signup__route-choice-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .sffc-member-signup__route-choice-visual {
+    min-height: 172px;
+    padding: 14px;
+  }
+
+  .sffc-member-signup__route-choice-body {
+    padding: 14px 15px 13px;
+  }
+
+  .sffc-member-signup__choice-proof {
+    font-size: 13px;
+    line-height: 1.35;
+  }
+
+  .sffc-member-signup__choice-group--recruiter-pricing-step > .sffc-member-signup__choice-proof {
+    grid-template-columns: 20px minmax(0, 1fr);
+    align-items: flex-start;
+    justify-content: flex-start;
+    max-width: 320px;
+    margin: 4px auto 18px;
+    padding: 0;
+    gap: 10px;
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  .sffc-member-signup__choice-proof-icon {
+    width: 20px;
+    height: 20px;
+    margin-top: 1px;
+  }
+
+  .sffc-member-signup__choice-proof-icon svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .sffc-member-signup__route-choice-body strong {
+    font-size: clamp(21px, 7vw, 25px);
+    line-height: 0.98;
+  }
+
+  .sffc-member-signup__route-choice-body span {
+    font-size: 13px;
+    line-height: 1.45;
+  }
+
+  .sffc-member-signup__route-choice-badge {
+    min-height: 24px;
+    padding: 0 10px;
+    font-size: 11px;
+  }
+
+  .sffc-member-signup__route-choice-heading {
+    gap: 8px;
+  }
+
+  .sffc-member-signup__route-choice-action {
+    padding: 13px 15px 14px;
+  }
+
+  .sffc-member-signup__route-choice-card--recruiter-pricing .sffc-member-signup__route-choice-visual {
+    aspect-ratio: auto;
+    min-height: 188px;
+  }
+
+  .sffc-member-signup__route-recruiter-preview {
+    padding: 14px;
+  }
+
+  .sffc-member-signup__route-recruiter-row {
+    min-height: 84px;
+    padding: 14px;
+    gap: 12px;
+  }
+
+  .sffc-member-signup__route-recruiter-avatar {
+    width: 58px;
+    height: 58px;
+    flex-basis: 58px;
+  }
+
+  .sffc-member-signup__route-recruiter-avatar.is-small {
+    width: 38px;
+    height: 38px;
+    flex-basis: 38px;
+  }
+
+  .sffc-member-signup__route-recruiter-title {
+    font-size: 16px;
+  }
+
+  .sffc-member-signup__route-recruiter-company {
+    font-size: 13px;
+  }
+
+  .sffc-member-signup__route-recruiter-badge {
+    min-height: 34px;
+    padding: 0 12px;
+    font-size: 10px;
+  }
+
+  .sffc-member-signup__route-scale-strip,
+  .sffc-member-signup__route-scale-strip--ongoing {
+    gap: 10px;
+    align-items: flex-start;
+    padding: 11px 12px;
+    flex-wrap: wrap;
+  }
+
+  .sffc-member-signup__route-scale-copy {
+    flex: 1 1 180px;
+  }
+
+  .sffc-member-signup__route-scale-count {
+    margin-left: 0;
+  }
+
+  .sffc-member-signup__route-scale-copy strong {
+    font-size: 13px;
+  }
+
+  .sffc-member-signup__route-scale-copy span {
+    font-size: 11px;
+  }
+
+  .sffc-member-signup__route-recruiter-alert-pill {
+    min-height: 26px;
+    padding: 0 10px;
+    font-size: 10px;
+  }
+
+  .sffc-member-signup__choice-group--feature-cards > legend {
+    margin-bottom: 18px;
+    font-size: 28px;
+    line-height: 1.02;
+    text-wrap: balance;
+  }
+
+  .sffc-member-signup__progressive {
+    margin-top: 16px;
+    padding-top: 20px;
+  }
+
+  .sffc-member-signup__choice-group
+    > div:has(button[data-member-signup-study]) {
+    display: flex;
+    grid-template-columns: none;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
+
+  .sffc-member-signup__choice-group button {
+    width: 100%;
+    min-height: 38px;
+    padding: 0 10px;
+    font-size: 13px;
+    white-space: normal;
+  }
+
+  .sffc-member-signup__choice-group button[data-member-signup-study] {
+    width: auto;
+    white-space: nowrap;
+  }
+
+  .sffc-member-signup__choice-group
+    button[data-member-signup-study="graduated"] {
+    grid-column: 1 / -1;
+  }
+
+  .sffc-member-signup__plans {
+    margin-top: 24px;
+  }
+
+  .sffc-member-signup__plan-summary {
+    padding: 18px 18px 20px;
+    border-radius: 20px;
+    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.05);
+  }
+
+  .sffc-member-signup__plans-head h2 {
+    font-size: 28px;
+  }
+
+  .sffc-member-signup__toggle {
+    width: 100%;
+    margin-top: 14px;
+    justify-content: center;
+  }
+
+  .sffc-member-signup__toggle button {
+    flex: 1 1 0;
+    justify-content: center;
+    min-height: 36px;
+    padding: 0 8px;
+    font-size: 13px;
+  }
+
+  .sffc-member-signup__toggle span {
+    display: none;
+  }
+
+  .sffc-member-signup__plan-grid {
+    gap: 14px;
+    margin-top: 18px;
+  }
+
+  .sffc-member-signup__plan {
+    min-height: 0;
+    padding: 16px;
+    border-radius: 16px;
+    box-shadow: 0 10px 28px rgba(15, 23, 42, 0.08);
+  }
+
+  .sffc-member-signup__plan-top {
+    min-height: auto;
+    align-items: flex-start;
+  }
+
+  .sffc-member-signup__plan h3 {
+    font-size: 20px;
+  }
+
+  .sffc-member-signup__price {
+    padding-top: 12px;
+    margin-top: 12px;
+  }
+
+  .sffc-member-signup__price strong {
+    font-size: 26px;
+  }
+
+  .sffc-member-signup__plan ul {
+    gap: 7px;
+    margin: 12px 0 14px;
+  }
+
+  .sffc-member-signup__plan li {
+    font-size: 13px;
+    line-height: 1.3;
+  }
+
+  .sffc-member-signup__checkout {
+    padding: 18px 14px;
+  }
+
+  .sffc-member-signup__memberpress,
+  .sffc-member-signup__memberpress * {
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  .sffc-member-signup__memberpress input,
+  .sffc-member-signup__memberpress select,
+  .sffc-member-signup__memberpress textarea,
+  .sffc-member-signup__memberpress button {
+    max-width: 100%;
+  }
+
+  .sffc-member-signup__memberpress .mepr-submit,
+  .sffc-member-signup__memberpress input.mepr-submit,
+  .sffc-member-signup__memberpress button.mepr-submit,
+  .sffc-member-signup__memberpress .mp-form-submit input[type="submit"],
+  .sffc-member-signup__memberpress .mp-form-submit button {
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  .sffc-member-signup__memberpress .mepr-form-radio.mepr-can-order-bumps {
+    gap: 14px !important;
+    flex-wrap: wrap !important;
+  }
+
+  .sffc-member-signup__memberpress .mepr-payment-methods-radios {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+
+  .sffc-member-signup__memberpress .mepr-payment-methods-radios label.mepr-payment-option-label {
+    min-height: 74px !important;
+    padding: 15px 86px 15px 16px !important;
+    border-radius: 13px !important;
+  }
+
+  .sffc-member-signup__memberpress .mepr-payment-methods-radios label.mepr-payment-option-label.checked,
+  .sffc-member-signup__memberpress .mepr-payment-methods-radios label.mepr-payment-option-label:has(input:checked) {
+    padding: 14px 85px 14px 15px !important;
+  }
+
+  .sffc-member-signup__memberpress .mepr-payment-method-label-text {
+    font-size: 15px !important;
+  }
+
+  .sffc-member-signup__memberpress .mepr-payment-methods-radios label.mepr-payment-option-label::after {
+    right: 14px !important;
+    width: 68px !important;
+    height: 22px !important;
+  }
+}
+
+@media (max-width: 380px) {
+  .sffc-member-signup {
+    padding: 10px;
+  }
+
+  .sffc-member-signup__card {
+    padding: 18px 12px 20px;
+  }
+
+  .sffc-member-signup__entry-body,
+  .sffc-member-signup__entry-action {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .sffc-member-signup__choice-group > div {
+    grid-template-columns: 1fr;
+  }
+
+  .sffc-member-signup__choice-step-chip {
+    min-height: 44px;
+    padding: 0 22px;
+    font-size: 16px;
+  }
+
+  .sffc-member-signup__choice-group--recruiter-pricing-step > legend {
+    margin-top: 18px;
+    max-width: none;
+    font-size: 26px;
+    line-height: 1.08;
+    text-align: center;
+  }
+
+  .sffc-member-signup__recruiter-pricing-option {
+    min-height: 78px;
+    padding: 13px 16px !important;
+  }
+
+  .sffc-member-signup__recruiter-pricing-option-avatar {
+    width: 42px;
+    height: 42px;
+    flex-basis: 42px;
+  }
+
+  .sffc-member-signup__recruiter-pricing-option-avatar.has-stack {
+    width: 62px;
+    flex-basis: 62px;
+  }
+
+  .sffc-member-signup__recruiter-pricing-option-avatar.has-stack .sffc-member-signup__recruiter-pricing-option-avatar-image {
+    width: 42px;
+    height: 42px;
+    border-radius: 40px;
+  }
+
+  .sffc-member-signup__recruiter-pricing-option-copy strong,
+  .sffc-member-signup__recruiter-pricing-option-copy span {
+    font-size: 15px;
+  }
+
+  .sffc-member-signup__recruiter-pricing-detail {
+    gap: 8px;
+  }
+
+  .sffc-member-signup__recruiter-pricing-detail--primary {
+    flex-direction: column;
+    gap: 3px;
+  }
+
+  .sffc-member-signup__recruiter-pricing-price {
+    font-size: 15px;
+  }
+
+  .sffc-member-signup__recruiter-pricing-meta {
+    font-size: 12px;
+  }
+
+  .sffc-member-signup__recruiter-pricing-note {
+    font-size: 12.5px;
+  }
+
+  .sffc-member-signup__choice-group
+    > div:has(button[data-member-signup-study]) {
+    display: flex;
+    grid-template-columns: none;
+  }
+
+  .sffc-member-signup__shell > h1 {
+    font-size: 26px;
+  }
+}
+
+@media (max-width: 900px) {
+  .sffc-member-signup__choice-group--recruiter-pricing-step
+    > .sffc-member-signup__route-choice-grid--recruiter-pricing {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    max-width: min(460px, 100%) !important;
+    margin-inline: auto !important;
+    gap: 16px !important;
+  }
+
+  .sffc-member-signup__choice-group--recruiter-pricing-step
+    > .sffc-member-signup__route-choice-grid--recruiter-pricing
+    > .sffc-member-signup__route-choice-card--recruiter-pricing {
+    width: 100% !important;
+  }
+
+  .sffc-member-signup__route-choice-grid--recruiter-pricing
+    .sffc-member-signup__route-choice-visual {
+    aspect-ratio: auto;
+    min-height: 228px;
+    padding: 14px;
+  }
+
+  .sffc-member-signup__route-choice-grid--recruiter-pricing
+    .sffc-member-signup__route-recruiter-row {
+    gap: 12px;
+    padding: 14px 15px;
+    border-radius: 20px;
+  }
+
+  .sffc-member-signup__route-choice-grid--recruiter-pricing
+    .sffc-member-signup__route-recruiter-row--hero {
+    min-height: 0;
+  }
+
+  .sffc-member-signup__route-choice-grid--recruiter-pricing
+    .sffc-member-signup__route-recruiter-avatar {
+    width: 64px;
+    height: 64px;
+    flex-basis: 64px;
+  }
+
+  .sffc-member-signup__route-choice-grid--recruiter-pricing
+    .sffc-member-signup__route-recruiter-avatar.is-small {
+    width: 36px;
+    height: 36px;
+    flex-basis: 36px;
+  }
+
+  .sffc-member-signup__route-choice-grid--recruiter-pricing
+    .sffc-member-signup__route-recruiter-title {
+    font-size: 17px;
+  }
+
+  .sffc-member-signup__route-choice-grid--recruiter-pricing
+    .sffc-member-signup__route-recruiter-company {
+    font-size: 14px;
+  }
+
+  .sffc-member-signup__route-choice-grid--recruiter-pricing
+    .sffc-member-signup__route-recruiter-badge {
+    min-height: 36px;
+    padding: 0 14px;
+    font-size: 11px;
+  }
+
+  .sffc-member-signup__route-choice-grid--recruiter-pricing
+    .sffc-member-signup__route-scale-strip {
+    gap: 10px;
+    padding: 12px 14px;
+    border-radius: 16px;
+  }
+
+  .sffc-member-signup__route-choice-grid--recruiter-pricing
+    .sffc-member-signup__route-scale-copy strong {
+    font-size: 13px;
+  }
+
+  .sffc-member-signup__route-choice-grid--recruiter-pricing
+    .sffc-member-signup__route-scale-copy span {
+    font-size: 11px;
+  }
+
+  .sffc-member-signup__route-choice-grid--recruiter-pricing
+    .sffc-member-signup__route-scale-count {
+    font-size: 12px;
+    line-height: 1.15;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sffc-member-signup__entry,
+  .sffc-member-signup__card,
+  .sffc-member-signup__plans,
+  .sffc-member-signup__checkout,
+  .sffc-member-signup__entry-card,
+  .sffc-member-signup__route-choice-card {
+    transition: none !important;
+    animation: none !important;
+  }
+}

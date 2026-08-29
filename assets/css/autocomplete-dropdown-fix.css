@@ -1,0 +1,102 @@
+/* 
+ * Autocomplete Dropdown Fix
+ * Ensures the dropdown appears properly above all other elements
+ * and is not clipped by parent containers
+ */
+
+/* Fix for parent containers that might clip the dropdown */
+.sffc-pe-search-container,
+.sffc-search-main,
+.sffc-search-bar-container {
+    overflow: visible !important;
+}
+
+/* Enhanced dropdown positioning and visibility */
+.sffc-autocomplete-dropdown {
+    /* Force dropdown to appear above everything */
+    position: absolute !important;
+    z-index: 999999 !important;
+    
+    /* Prevent clipping by creating new stacking context */
+    transform: translateZ(0) !important;
+    -webkit-transform: translateZ(0) !important;
+    will-change: transform;
+    
+    /* Enhanced shadow for better visibility */
+    box-shadow: 
+        0 20px 25px -5px rgba(0, 0, 0, 0.25),
+        0 10px 10px -5px rgba(0, 0, 0, 0.15),
+        0 0 0 1px rgba(0, 0, 0, 0.05) !important;
+    
+    /* Ensure it's on top of all WordPress admin elements */
+    position: fixed;
+    top: auto;
+    left: auto;
+    right: auto;
+}
+
+/* Alternative positioning for better visibility */
+.sffc-search-bar-container.sffc-dropdown-active .sffc-autocomplete-dropdown {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    right: 0;
+    z-index: 999999 !important;
+}
+
+/* WordPress admin bar compatibility */
+body.admin-bar .sffc-autocomplete-dropdown {
+    z-index: 999999 !important;
+}
+
+/* Theme compatibility - override common theme restrictions */
+.sffc-autocomplete-dropdown {
+    max-width: none !important;
+    width: 100% !important;
+    min-width: 300px !important;
+}
+
+/* Ensure dropdown content is scrollable if needed */
+.sffc-autocomplete-dropdown .sffc-autocomplete-content {
+    max-height: 400px;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+/* Mobile responsive fixes */
+@media (max-width: 768px) {
+    .sffc-autocomplete-dropdown {
+        left: 0 !important;
+        right: 0 !important;
+        max-height: 60vh;
+        border-radius: 12px;
+    }
+}
+
+/* Debug styles - remove after testing */
+.sffc-autocomplete-dropdown.debug {
+    border: 3px solid red !important;
+    background: yellow !important;
+    opacity: 0.9 !important;
+}
+
+/* Animation for smooth appearance */
+.sffc-autocomplete-dropdown {
+    opacity: 0;
+    transform: translateY(-10px) translateZ(0);
+    transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.sffc-autocomplete-dropdown.sffc-dropdown-visible {
+    opacity: 1;
+    transform: translateY(0) translateZ(0);
+}
+
+/* Ensure no parent elements interfere with positioning */
+.sffc-pe-search-container * {
+    position: static;
+}
+
+.sffc-search-bar-container {
+    position: relative !important;
+}

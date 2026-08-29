@@ -1,0 +1,364 @@
+{
+    "weak_verb_supported": {
+        "trigger": "Supported|Assisted|Helped with",
+        "issue": "Passive language diminishes your contribution",
+        "why_it_matters": "Recruiters scan for ownership and leadership. 'Supported' signals junior execution, not impact.",
+        "templates": {
+            "if_led_workstream": "Led [workstream] for [X] transactions, including [specific deliverables]",
+            "if_junior": "Executed [deliverable] across [X] deals, delivering [outcome]",
+            "generic": "Contributed to [X] transactions by [specific action], resulting in [outcome]"
+        },
+        "example_before": "Supported due diligence on various deals",
+        "example_after": "Led financial due diligence on 4 acquisitions ($50-200M EV), identifying $3M in working capital adjustments that informed final pricing"
+    },
+    "weak_verb_assisted": {
+        "trigger": "Assisted|Aided|Facilitated",
+        "issue": "Suggests you were a helper, not an owner",
+        "why_it_matters": "Even if you weren't the lead, frame your specific contribution with an active verb.",
+        "templates": {
+            "primary": "Executed [specific task] as part of [larger project], delivering [outcome]",
+            "with_numbers": "Managed [specific aspect] for [X] deals/projects, resulting in [measurable impact]"
+        },
+        "example_before": "Assisted the team with financial modeling",
+        "example_after": "Built 15+ financial models including DCF and LBO analyses for transactions ranging from $50M-$500M"
+    },
+    "weak_verb_participated": {
+        "trigger": "Participated in|Was involved in|Took part in",
+        "issue": "Vague participation suggests minimal contribution",
+        "why_it_matters": "Define your specific role and ownership within the broader effort.",
+        "templates": {
+            "primary": "Served as [specific role] on [project], responsible for [deliverables]",
+            "with_outcome": "[Action verb] [deliverable] for [project], contributing to [outcome]"
+        },
+        "example_before": "Participated in multiple M&A transactions",
+        "example_after": "Served as lead analyst on 3 M&A transactions ($100-300M), managing financial modeling and due diligence workstreams"
+    },
+    "weak_verb_responsible": {
+        "trigger": "Was responsible for|Responsible for|Tasked with",
+        "issue": "Describes job description, not achievement",
+        "why_it_matters": "Every CV says what people were 'responsible for.' Stand out by showing what you achieved.",
+        "templates": {
+            "with_action": "[Action verb] [specific deliverable], resulting in [measurable outcome]",
+            "with_scope": "Managed [scope: team/budget/portfolio] to deliver [specific results]"
+        },
+        "example_before": "Responsible for preparing client presentations",
+        "example_after": "Developed 50+ client presentations that supported $2B+ in closed transactions, receiving commendation from senior partners"
+    },
+    "weak_verb_worked_on": {
+        "trigger": "Worked on|Working on|Work on",
+        "issue": "Vague activity with no clear ownership or outcome",
+        "why_it_matters": "This phrase tells recruiters nothing about your role, impact, or skills used.",
+        "templates": {
+            "specify_role": "[Action verb] [specific deliverable] as [role], achieving [outcome]",
+            "specify_outcome": "Delivered [deliverable] for [project/client], resulting in [impact]"
+        },
+        "example_before": "Worked on several client projects",
+        "example_after": "Delivered 8 strategic assessments for Fortune 500 clients, with recommendations adopted by 6 C-suite teams"
+    },
+    "weak_verb_handled": {
+        "trigger": "Handled|Dealt with|Took care of",
+        "issue": "Suggests reactive work rather than proactive contribution",
+        "why_it_matters": "Frame yourself as a problem solver, not a task processor.",
+        "templates": {
+            "proactive": "Managed [scope] to [achieve outcome], improving [metric] by [X]%",
+            "initiative": "Identified and resolved [issue/challenge], preventing [negative outcome] / saving [X]"
+        },
+        "example_before": "Handled investor inquiries and requests",
+        "example_after": "Managed relationships with 15 institutional LPs representing $500M in commitments, achieving 95% re-up rate"
+    },
+    "no_quantification": {
+        "trigger": "no numbers detected",
+        "issue": "Vague scope - recruiters can't assess impact",
+        "why_it_matters": "Quantified bullets are 40% more likely to catch a recruiter's attention. Numbers = credibility.",
+        "templates": {
+            "deal_focused": "[Action verb] [X] deals worth $[X]M total enterprise value",
+            "client_focused": "Served [X] clients across [sectors], managing [scope]",
+            "deliverable_focused": "Built [X] models / Prepared [X] presentations / Conducted [X] interviews",
+            "time_focused": "Delivered [outcome] within [X] weeks, [X]% ahead of schedule"
+        },
+        "example_before": "Prepared financial models for several transactions",
+        "example_after": "Built 8 integrated LBO models for healthcare transactions ($75-250M EV), supporting 3 successful acquisitions"
+    },
+    "missing_outcome": {
+        "trigger": "no result/impact mentioned",
+        "issue": "Describes activity, not impact",
+        "why_it_matters": "Activities show what you did. Outcomes show why it mattered. Recruiters care about impact.",
+        "templates": {
+            "deal_outcome": "[Activity], resulting in successful close at [X]x EBITDA / $[X]M valuation",
+            "process_outcome": "[Activity], reducing turnaround time by [X]% / improving accuracy by [X]%",
+            "client_outcome": "[Activity], securing [X] new mandates / expanding relationship to [X] services",
+            "recognition_outcome": "[Activity], receiving [recognition/promotion/award]"
+        },
+        "example_before": "Conducted market research and competitive analysis",
+        "example_after": "Conducted market research and competitive analysis that identified 3 acquisition targets, one of which became a $150M platform investment"
+    },
+    "vague_quantity": {
+        "trigger": "various|several|multiple|some|many|numerous",
+        "issue": "Vague quantities undermine credibility",
+        "why_it_matters": "'Several deals' could mean 2 or 20. Specificity shows you tracked your work and take pride in it.",
+        "templates": {
+            "replace_various": "Replace 'various' with exact count: [X] deals/projects/clients",
+            "replace_several": "Replace 'several' with range: [X-Y] transactions",
+            "replace_multiple": "Replace 'multiple' with specific: [X] distinct [items]"
+        },
+        "example_before": "Worked on various deals across multiple sectors",
+        "example_after": "Executed 12 transactions across 4 sectors (healthcare, consumer, industrials, tech)"
+    },
+    "missing_sector": {
+        "trigger": "no sector/industry mentioned",
+        "issue": "Missing sector context weakens relevance",
+        "why_it_matters": "Sector experience is often a key filter. Make it easy for recruiters to see your relevant exposure.",
+        "templates": {
+            "add_sector": "[Existing bullet] in the [sector] sector",
+            "add_subsector": "[Existing bullet] for [subsector] companies including [example types]"
+        },
+        "example_before": "Led due diligence on 5 acquisitions",
+        "example_after": "Led due diligence on 5 healthcare services acquisitions (dental, urgent care, behavioral health)"
+    },
+    "missing_deal_size": {
+        "trigger": "deal/transaction mentioned without size",
+        "issue": "Deal size indicates experience level",
+        "why_it_matters": "A $10M deal is very different from a $1B deal. Size indicates the complexity you've handled.",
+        "templates": {
+            "add_ev": "[Transaction] ($[X]M enterprise value)",
+            "add_range": "[X] transactions ranging from $[A]M to $[B]M EV",
+            "add_total": "[X] deals totaling $[X]B in transaction value"
+        },
+        "example_before": "Executed multiple acquisitions for private equity clients",
+        "example_after": "Executed 6 acquisitions ($50-300M EV) for private equity clients including [Fund Names]"
+    },
+    "generic_skills": {
+        "trigger": "strong communication|team player|detail oriented|hard working",
+        "issue": "Generic skills waste valuable bullet space",
+        "why_it_matters": "Everyone claims these traits. Show them through specific examples instead.",
+        "templates": {
+            "show_communication": "Replace with: Presented to [audience] resulting in [outcome]",
+            "show_teamwork": "Replace with: Collaborated with [X] teams across [functions] to deliver [result]",
+            "show_attention": "Replace with: Identified [error/opportunity] that saved $[X] / prevented [issue]"
+        },
+        "example_before": "Strong communication skills and attention to detail",
+        "example_after": "Presented investment recommendations to IC, with 85% approval rate on proposed transactions"
+    },
+    "chronological_confusion": {
+        "trigger": "date formats inconsistent or missing",
+        "issue": "Unclear timeline confuses recruiters and ATS",
+        "why_it_matters": "Recruiters scan dates to understand your trajectory. Inconsistency suggests carelessness.",
+        "templates": {
+            "standard_format": "Month YYYY - Month YYYY (or Present)",
+            "example": "Jan 2020 - Dec 2022 (3 years)"
+        },
+        "example_before": "2020-22, '19-2020, Jan 2018 - current",
+        "example_after": "Jan 2022 - Present, Jan 2020 - Dec 2021, Jun 2018 - Dec 2019"
+    },
+    "buzzword_overload": {
+        "trigger": "synergies|leverage|best-in-class|world-class|cutting-edge|innovative|dynamic",
+        "issue": "Buzzwords without substance suggest filler content",
+        "why_it_matters": "Overused buzzwords signal that you lack specifics. Replace with concrete examples.",
+        "templates": {
+            "replace_synergies": "Identified $[X]M in cost reduction opportunities through [specific actions]",
+            "replace_innovative": "Developed [specific solution] that [achieved measurable result]",
+            "replace_dynamic": "[Specific action] in [fast-paced context] delivering [outcome]"
+        },
+        "example_before": "Leveraged best-in-class processes to drive synergies",
+        "example_after": "Implemented procurement consolidation across 3 portfolio companies, achieving $2.5M in annual cost savings"
+    },
+    "passive_voice": {
+        "trigger": "was given|was assigned|was asked|was told",
+        "issue": "Passive voice suggests you were directed rather than initiating",
+        "why_it_matters": "Active voice demonstrates ownership and initiative - qualities recruiters value.",
+        "templates": {
+            "to_active": "Replace 'Was given responsibility for X' with 'Assumed/Led/Managed X'",
+            "show_initiative": "Volunteered to [take on challenge], resulting in [outcome]"
+        },
+        "example_before": "Was assigned to lead the due diligence workstream",
+        "example_after": "Led due diligence workstream for $150M acquisition, coordinating 5 third-party advisors"
+    },
+    "missing_company_context": {
+        "trigger": "company size/type not mentioned for lesser-known firms",
+        "issue": "Recruiters may not recognize your employer",
+        "why_it_matters": "Context helps recruiters understand the scale and prestige of your experience.",
+        "templates": {
+            "add_description": "[Company Name], a [size/type descriptor] [industry] firm",
+            "add_metrics": "[Company Name] ($[X]M revenue / [X] employees / [ranking])"
+        },
+        "example_before": "Private Equity Associate at XYZ Partners",
+        "example_after": "Private Equity Associate at XYZ Partners, a $2B AUM middle-market fund focused on healthcare services"
+    },
+    "missing_tools_systems": {
+        "trigger": "technical work without tool mention",
+        "issue": "Missing tool/system names that ATS may search for",
+        "why_it_matters": "Many companies use ATS keyword filters. Mentioning tools increases your match rate.",
+        "templates": {
+            "add_tools": "[Activity] using [Tool 1], [Tool 2], and [Tool 3]",
+            "add_data_sources": "Leveraging [data sources: Bloomberg, Capital IQ, etc.] to [outcome]"
+        },
+        "example_before": "Conducted company research and prepared valuations",
+        "example_after": "Conducted company research using Capital IQ and PitchBook, building DCF and LBO models in Excel to support investment decisions"
+    },
+    "missing_team_leadership": {
+        "trigger": "management/leadership implied but not stated",
+        "issue": "Team size indicates scope of responsibility",
+        "why_it_matters": "Managing 2 people vs 20 people are very different experiences. Be specific.",
+        "templates": {
+            "add_team_size": "Managed team of [X] [role] to deliver [outcome]",
+            "add_dotted_line": "Provided mentorship to [X] junior analysts, with [X] promoted within [timeframe]"
+        },
+        "example_before": "Led a team on various projects",
+        "example_after": "Led team of 4 analysts and associates on 6 live transactions, with 2 analysts receiving early promotion"
+    },
+    "weak_action_verbs": {
+        "trigger": "made|did|got|went",
+        "issue": "Weak verbs undermine professional tone",
+        "why_it_matters": "Strong action verbs immediately convey competence and impact.",
+        "templates": {
+            "replace_made": "Created / Developed / Established / Built",
+            "replace_did": "Executed / Delivered / Completed / Achieved",
+            "replace_got": "Secured / Obtained / Earned / Won"
+        },
+        "example_before": "Made presentations for senior leadership",
+        "example_after": "Developed and delivered executive presentations to C-suite leadership across 5 portfolio companies"
+    },
+    "no_progression_shown": {
+        "trigger": "similar roles/titles without growth indication",
+        "issue": "Career progression not evident",
+        "why_it_matters": "Recruiters look for growth trajectory. Show promotions, expanded scope, or new responsibilities.",
+        "templates": {
+            "show_promotion": "Promoted from [previous role] to [current role] within [X months/years]",
+            "show_scope_expansion": "Expanded responsibilities to include [new areas] following [achievement]"
+        },
+        "example_before": "Investment Analyst (2019-2022)",
+        "example_after": "Investment Analyst, promoted to Senior Analyst after 18 months (2019-2022)"
+    },
+    "jargon_without_context": {
+        "trigger": "technical acronyms without explanation for non-PE audience",
+        "issue": "Industry jargon may not translate across sectors",
+        "why_it_matters": "While PE-specific roles understand jargon, some screeners may not. Balance is key.",
+        "templates": {
+            "add_context": "[Acronym] ([full term/explanation])",
+            "define_first_use": "First use: spell out, subsequent uses: acronym only"
+        },
+        "example_before": "Prepared IC materials and CIM for LBO opportunities",
+        "example_after": "Prepared Investment Committee materials and Confidential Information Memoranda for leveraged buyout opportunities"
+    },
+    "missing_stakeholder_interaction": {
+        "trigger": "work product mentioned without audience",
+        "issue": "Who consumed/approved your work matters",
+        "why_it_matters": "Presenting to Partners vs. Analysts indicates different levels of exposure and trust.",
+        "templates": {
+            "add_audience": "[Deliverable] presented to [audience level: Partners/C-suite/Board]",
+            "add_approval": "[Deliverable] reviewed and approved by [senior stakeholders]"
+        },
+        "example_before": "Prepared investment memoranda",
+        "example_after": "Prepared investment memoranda presented to Investment Committee, supporting $400M in approved investments"
+    },
+    "missing_frequency_volume": {
+        "trigger": "recurring task without frequency mentioned",
+        "issue": "Frequency indicates depth of experience",
+        "why_it_matters": "Daily modeling is different from quarterly modeling. Show the intensity of your experience.",
+        "templates": {
+            "add_frequency": "[Task] on [daily/weekly/monthly] basis",
+            "add_volume": "Processed [X] [items] per [time period]"
+        },
+        "example_before": "Updated portfolio company financial models",
+        "example_after": "Updated 15 portfolio company financial models monthly, tracking KPIs and providing quarterly board reporting"
+    },
+    "missing_competitive_context": {
+        "trigger": "achievement without competitive/comparative context",
+        "issue": "Achievements gain power in relative terms",
+        "why_it_matters": "Top 10% performer is more impressive than 'performed well.'",
+        "templates": {
+            "add_ranking": "[Achievement], ranking in top [X]% of [peer group]",
+            "add_comparison": "[Metric achieved], [X]% above [benchmark/average]"
+        },
+        "example_before": "Consistently met performance targets",
+        "example_after": "Exceeded investment targets by 35%, ranking in top quartile among 12-person analyst class"
+    },
+    "missing_problem_context": {
+        "trigger": "solution mentioned without problem statement",
+        "issue": "Solutions without problems lack impact",
+        "why_it_matters": "The 'before' state makes the 'after' state more compelling.",
+        "templates": {
+            "add_problem": "Identified [problem/challenge] and [implemented solution], resulting in [outcome]",
+            "add_stakes": "When [challenge occurred], [action taken] to [prevent/achieve outcome]"
+        },
+        "example_before": "Implemented new reporting process",
+        "example_after": "Identified 2-week lag in portfolio reporting; implemented automated dashboard, reducing reporting cycle to 3 days"
+    },
+    "missing_scope_complexity": {
+        "trigger": "project mentioned without complexity indicators",
+        "issue": "Project complexity indicates capability",
+        "why_it_matters": "Managing a simple project vs. a complex multi-stakeholder initiative are different skill levels.",
+        "templates": {
+            "add_complexity": "[Project] involving [X] stakeholders across [Y] workstreams",
+            "add_constraints": "Delivered [outcome] despite [constraint: tight timeline/limited resources/competing priorities]"
+        },
+        "example_before": "Managed integration project post-acquisition",
+        "example_after": "Managed 90-day integration involving 5 workstreams and 12 cross-functional teams, achieving Day 1 readiness on schedule"
+    },
+    "missing_initiative": {
+        "trigger": "assigned tasks without self-initiated projects",
+        "issue": "Only showing assigned work suggests limited initiative",
+        "why_it_matters": "Self-initiated projects demonstrate drive and ability to identify opportunities.",
+        "templates": {
+            "show_initiative": "Identified opportunity to [improve/create] and [took action] resulting in [outcome]",
+            "show_proactive": "Proactively developed [solution/tool/process] that [benefit]"
+        },
+        "example_before": "Completed assigned modeling tasks",
+        "example_after": "Developed reusable LBO model template adopted firm-wide, reducing new deal setup time by 50%"
+    },
+    "education_lacking_context": {
+        "trigger": "degree mentioned without relevant achievements",
+        "issue": "Education section missing differentiators",
+        "why_it_matters": "Honors, relevant coursework, and activities make education section work harder.",
+        "templates": {
+            "add_honors": "[Degree], [Major], [Honors: cum laude/Dean's List/Top X%]",
+            "add_activities": "[Degree] | [Relevant club/activity] | [Achievement within activity]"
+        },
+        "example_before": "BS Finance, State University",
+        "example_after": "BS Finance, State University, Magna Cum Laude | Investment Club President | Managed $50K student fund"
+    },
+    "internship_undersold": {
+        "trigger": "internship mentioned without substantive contributions",
+        "issue": "Internships often undersold despite real contributions",
+        "why_it_matters": "Even as an intern, you likely had measurable impact. Capture it.",
+        "templates": {
+            "elevate_internship": "[Specific deliverable] during [X]-week internship, [outcome/recognition]",
+            "show_value": "Selected from [X] candidates for full-time return offer based on [contribution]"
+        },
+        "example_before": "Summer Analyst, Investment Bank",
+        "example_after": "Summer Analyst, Investment Bank | Built merger model for $2B transaction | Received full-time return offer, extended to 1 of 3 interns"
+    },
+    "certification_without_status": {
+        "trigger": "certification mentioned without completion status",
+        "issue": "Unclear if credential is completed or in progress",
+        "why_it_matters": "CFA Charterholder vs CFA Level 1 Candidate are very different. Be clear.",
+        "templates": {
+            "completed": "[Credential] Charterholder/Certified ([Year obtained])",
+            "in_progress": "[Credential] Level [X] Candidate (Expected [Date])"
+        },
+        "example_before": "CFA",
+        "example_after": "CFA Level II Candidate (June 2025 exam) | CFA Level I passed December 2024"
+    },
+    "missing_client_type": {
+        "trigger": "client work mentioned without client description",
+        "issue": "Client type indicates sophistication of experience",
+        "why_it_matters": "Working with Fortune 500 vs small businesses demonstrates different skill levels.",
+        "templates": {
+            "add_client_type": "[Work] for [client type: Fortune 500/PE-backed/public/family office] clients",
+            "add_client_count": "Served [X] [client type] clients with combined [metric: revenue/AUM/employees]"
+        },
+        "example_before": "Provided financial advisory services to clients",
+        "example_after": "Provided M&A advisory to 8 PE-backed portfolio companies ($50-500M revenue), supporting exit planning and add-on acquisitions"
+    },
+    "missing_geographic_scope": {
+        "trigger": "work without geographic context",
+        "issue": "Geographic scope indicates complexity and exposure",
+        "why_it_matters": "Cross-border experience is increasingly valuable. Highlight international exposure.",
+        "templates": {
+            "add_geography": "[Work] across [X] countries/regions including [specific markets]",
+            "add_cross_border": "Managed cross-border [transaction/project] between [Region A] and [Region B]"
+        },
+        "example_before": "Executed M&A transactions",
+        "example_after": "Executed 5 cross-border M&A transactions involving targets in UK, Germany, and Nordics"
+    }
+}

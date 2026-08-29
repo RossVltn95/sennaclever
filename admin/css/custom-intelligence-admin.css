@@ -1,0 +1,447 @@
+/**
+ * Custom Intelligence Admin CSS
+ * Styling for the admin interface
+ * 
+ * @package SkillFarmFinance
+ * @since 10.20.0
+ */
+
+/* Admin Container Layout */
+.sffc-admin-container {
+    display: flex;
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.sffc-admin-main {
+    flex: 1;
+}
+
+.sffc-admin-sidebar {
+    width: 300px;
+}
+
+/* Card Components */
+.sffc-card {
+    background: #ffffff;
+    padding: 20px;
+    border: 1px solid #ccd0d4;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
+    border-radius: 4px;
+    margin-bottom: 20px;
+}
+
+.sffc-card h2,
+.sffc-card h3 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    color: #23282d;
+}
+
+.sffc-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #e5e5e5;
+}
+
+.sffc-card-header h2 {
+    margin: 0;
+    font-size: 18px;
+}
+
+/* Filter Types List */
+.sffc-filters-list .no-items {
+    text-align: center;
+    padding: 40px;
+    color: #666;
+    font-style: italic;
+}
+
+.sffc-filters-list .no-items a {
+    color: #0073aa;
+    text-decoration: none;
+}
+
+.sffc-filters-list .no-items a:hover {
+    text-decoration: underline;
+}
+
+/* Table Styling */
+.wp-list-table .color-indicator {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border-radius: 3px;
+    margin-right: 8px;
+    vertical-align: middle;
+    border: 1px solid #ddd;
+}
+
+.wp-list-table .filter-icon {
+    font-size: 18px;
+    line-height: 1;
+}
+
+.wp-list-table .status-badge {
+    padding: 4px 8px;
+    border-radius: 3px;
+    font-size: 12px;
+    font-weight: 500;
+    text-transform: uppercase;
+}
+
+.wp-list-table .status-badge.active {
+    background: #00a32a;
+    color: white;
+}
+
+.wp-list-table .status-badge.inactive {
+    background: #dba617;
+    color: white;
+}
+
+/* Cards Grid */
+.cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+.card-preview {
+    border: 1px solid #ddd;
+    padding: 15px;
+    border-radius: 5px;
+    background: #fafafa;
+    transition: all 0.2s ease;
+}
+
+.card-preview:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transform: translateY(-1px);
+}
+
+.card-preview-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.filter-type-badge {
+    background: #0073aa;
+    color: white;
+    padding: 3px 8px;
+    border-radius: 3px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.card-actions {
+    display: flex;
+    gap: 5px;
+}
+
+.card-preview h4 {
+    margin: 0 0 8px 0;
+    font-size: 16px;
+    color: #23282d;
+}
+
+.card-preview p {
+    margin: 0 0 12px 0;
+    color: #666;
+    line-height: 1.4;
+}
+
+.card-meta {
+    margin-top: 15px;
+    padding-top: 10px;
+    border-top: 1px solid #ddd;
+    font-size: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: #666;
+}
+
+/* Modal Styling */
+.sffc-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.sffc-modal-content {
+    background: white;
+    width: 500px;
+    max-width: 90vw;
+    max-height: 90vh;
+    border-radius: 4px;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+
+.sffc-modal-content.large {
+    width: 700px;
+}
+
+.sffc-modal-header {
+    padding: 20px;
+    border-bottom: 1px solid #ddd;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #f9f9f9;
+}
+
+.sffc-modal-header h3 {
+    margin: 0;
+    color: #23282d;
+    font-size: 18px;
+}
+
+.sffc-modal-close {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: #666;
+    line-height: 1;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.sffc-modal-close:hover {
+    color: #000;
+}
+
+/* Form Styling */
+.sffc-form-row {
+    padding: 15px 20px;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.sffc-form-row:last-child {
+    border-bottom: none;
+}
+
+.sffc-form-row label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 600;
+    color: #23282d;
+}
+
+.sffc-form-row input,
+.sffc-form-row textarea,
+.sffc-form-row select {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+.sffc-form-row input:focus,
+.sffc-form-row textarea:focus,
+.sffc-form-row select:focus {
+    border-color: #0073aa;
+    box-shadow: 0 0 0 1px #0073aa;
+    outline: none;
+}
+
+.sffc-form-row textarea {
+    resize: vertical;
+    min-height: 80px;
+}
+
+.sffc-form-row small {
+    display: block;
+    margin-top: 4px;
+    color: #666;
+    font-style: italic;
+    font-size: 12px;
+}
+
+.sffc-form-row input[type="checkbox"] {
+    width: auto;
+    margin-right: 8px;
+}
+
+.sffc-form-row label:has(input[type="checkbox"]) {
+    display: flex;
+    align-items: center;
+    font-weight: normal;
+    margin-bottom: 0;
+}
+
+/* Form Columns */
+.sffc-form-columns {
+    display: flex;
+    gap: 20px;
+}
+
+.sffc-form-column {
+    flex: 1;
+}
+
+/* Form Actions */
+.sffc-form-actions {
+    padding: 20px;
+    border-top: 1px solid #ddd;
+    text-align: right;
+    background: #f9f9f9;
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+}
+
+.sffc-form-actions .button {
+    min-width: 100px;
+}
+
+/* Color Picker Integration */
+.wp-picker-container {
+    margin-top: 5px;
+}
+
+.wp-picker-container .wp-color-result {
+    height: 30px;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+    .sffc-admin-container {
+        flex-direction: column;
+    }
+    
+    .sffc-admin-sidebar {
+        width: auto;
+    }
+    
+    .cards-grid {
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    }
+}
+
+@media (max-width: 768px) {
+    .sffc-modal-content {
+        width: 95vw;
+        margin: 20px;
+    }
+    
+    .sffc-form-columns {
+        flex-direction: column;
+        gap: 0;
+    }
+    
+    .cards-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .card-preview-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+    
+    .card-actions {
+        margin-top: 10px;
+    }
+}
+
+/* Loading States */
+.sffc-form-actions .button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Success/Error Messages */
+.notice.is-dismissible {
+    position: relative;
+    margin: 15px 0;
+}
+
+/* Quick Guide Styling */
+.sffc-card ul {
+    margin: 0;
+    padding-left: 20px;
+}
+
+.sffc-card li {
+    margin-bottom: 8px;
+    line-height: 1.4;
+}
+
+.sffc-card li strong {
+    color: #23282d;
+}
+
+/* Button Variants */
+.button.button-small {
+    padding: 3px 8px;
+    font-size: 12px;
+    line-height: 1.4;
+    height: auto;
+}
+
+.button-link-delete {
+    color: #a00;
+}
+
+.button-link-delete:hover {
+    color: #dc3232;
+}
+
+/* Animation */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.sffc-modal {
+    animation: fadeIn 0.2s ease-out;
+}
+
+/* Focus styles for accessibility */
+.sffc-modal-close:focus,
+.button:focus {
+    box-shadow: 0 0 0 1px #0073aa;
+    outline: 2px solid transparent;
+}
+
+/* Print styles */
+@media print {
+    .sffc-modal {
+        display: none !important;
+    }
+    
+    .sffc-admin-container {
+        flex-direction: column;
+    }
+    
+    .button {
+        display: none !important;
+    }
+}

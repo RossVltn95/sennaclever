@@ -1,0 +1,181 @@
+/**
+ * Dynamic Post Type Filters Frontend CSS
+ * 
+ * @package SkillFarmFinance
+ * @since 10.20.0
+ */
+
+/* Loading states */
+.sffc-intelligence-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+    text-align: center;
+}
+
+.loading-spinner {
+    width: 24px;
+    height: 24px;
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid #007cba;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 15px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.loading-text {
+    color: #666;
+    font-size: 14px;
+}
+
+/* Error states */
+.sffc-intelligence-error {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+    text-align: center;
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    margin: 20px 0;
+}
+
+.error-icon {
+    font-size: 48px;
+    margin-bottom: 15px;
+    opacity: 0.7;
+}
+
+.error-message {
+    font-size: 16px;
+    color: #dc3545;
+    margin-bottom: 15px;
+    font-weight: 600;
+}
+
+.error-help {
+    color: #666;
+    font-size: 14px;
+}
+
+.error-help ul {
+    text-align: left;
+    max-width: 300px;
+    margin: 10px auto 0;
+}
+
+.error-help li {
+    margin-bottom: 5px;
+}
+
+/* Custom filter integration */
+.sffc-filter-item[data-filter-key] {
+    /* Ensure custom filters match existing ZENA filters */
+    position: relative;
+}
+
+.sffc-filter-item[data-filter-key] .sffc-filter-badge {
+    /* Badge styling for dynamic counts */
+    min-width: 20px;
+    text-align: center;
+}
+
+/* Standalone system (fallback) */
+.dynamic-post-filters-standalone-container {
+    max-width: 1200px;
+    margin: 20px auto;
+    padding: 20px;
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.standalone-header {
+    text-align: center;
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #eee;
+}
+
+.standalone-header h3 {
+    margin: 0 0 10px 0;
+    color: #333;
+    font-size: 24px;
+}
+
+.standalone-header p {
+    margin: 0;
+    color: #666;
+    font-size: 14px;
+}
+
+.standalone-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    justify-content: center;
+    margin-bottom: 30px;
+}
+
+.standalone-cards-container {
+    min-height: 200px;
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 4px;
+}
+
+.welcome-message {
+    text-align: center;
+    color: #666;
+    font-style: italic;
+    padding: 40px;
+}
+
+/* Post type cards active state */
+.post-type-cards-active {
+    /* Add any specific styling when post type cards are displayed */
+    animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* Integration compatibility */
+.sffc-story-filters .sffc-filter-item[data-filter-key] {
+    /* Ensure seamless integration with existing story filters */
+    transition: all 0.2s ease;
+}
+
+.sffc-story-filters .sffc-filter-item[data-filter-key]:hover {
+    /* Hover effects matching ZENA's existing filters */
+    transform: translateY(-1px);
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+    .dynamic-post-filters-standalone-container {
+        margin: 10px;
+        padding: 15px;
+    }
+    
+    .standalone-filters {
+        gap: 10px;
+    }
+    
+    .sffc-intelligence-loading,
+    .sffc-intelligence-error {
+        padding: 30px 20px;
+    }
+}

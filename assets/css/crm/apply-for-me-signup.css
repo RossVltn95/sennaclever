@@ -1,0 +1,385 @@
+.sffc-apply-for-me-signup {
+  min-height: 100vh;
+  min-height: 100svh;
+  padding: 20px 14px 40px;
+  background:
+    radial-gradient(circle at 18% 10%, rgba(87, 127, 225, 0.08), transparent 22%),
+    radial-gradient(circle at 82% 12%, rgba(248, 198, 104, 0.1), transparent 18%),
+    linear-gradient(180deg, #f6f6f2 0%, #f1f2ee 100%);
+}
+
+.sffc-apply-for-me-signup__shell {
+  width: min(760px, 100%);
+  margin: 0 auto;
+}
+
+.sffc-apply-for-me-signup__hero {
+  max-width: 680px;
+  margin: 0 auto 14px;
+  text-align: center;
+}
+
+.sffc-apply-for-me-signup__eyebrow {
+  margin: 0 0 8px;
+  color: #1768c4;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.sffc-apply-for-me-signup__hero h1 {
+  margin: 0;
+  color: #182c63;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(28px, 3.8vw, 40px);
+  line-height: 1.05;
+  letter-spacing: -0.04em;
+}
+
+.sffc-apply-for-me-signup__intro {
+  max-width: 640px;
+  margin: 10px auto 0;
+  color: #58606f;
+  font-size: clamp(15px, 1.7vw, 16px);
+  line-height: 1.5;
+}
+
+.sffc-apply-for-me-signup__price-hint {
+  margin: 8px 0 0;
+  color: #1e4f97;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.sffc-apply-for-me-signup__panel,
+.sffc-apply-for-me-signup__checkout-card {
+  border: 1px solid rgba(41, 63, 92, 0.09);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 14px 30px rgba(20, 35, 66, 0.06);
+}
+
+.sffc-apply-for-me-signup__panel {
+  overflow: hidden;
+}
+
+.sffc-apply-for-me-signup__trust {
+  padding: 14px 14px 12px;
+  background:
+    linear-gradient(90deg, rgba(231, 239, 255, 0.92) 0%, rgba(255, 252, 243, 0.86) 100%);
+}
+
+.sffc-apply-for-me-signup__trust-row {
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  border: 1px solid #dae2f0;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.86);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+.sffc-apply-for-me-signup__avatar {
+  width: 48px;
+  height: 48px;
+  flex: 0 0 48px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #1d67c5 0%, #2747a7 100%);
+  color: #fff;
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+}
+
+.sffc-apply-for-me-signup__trust-copy {
+  flex: 1 1 auto;
+  display: grid;
+  gap: 8px;
+}
+
+.sffc-apply-for-me-signup__trust-copy strong {
+  color: #27884f;
+  font-size: 14px;
+  line-height: 1.2;
+}
+
+.sffc-apply-for-me-signup__trust-copy strong::before {
+  content: "✓";
+  display: inline-flex;
+  width: 24px;
+  height: 24px;
+  margin-right: 8px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: #2e9959;
+  color: #fff;
+  font-size: 15px;
+  vertical-align: middle;
+}
+
+.sffc-apply-for-me-signup__trust-copy span {
+  color: #4e596a;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.sffc-apply-for-me-signup__pill-row {
+  margin-top: 12px;
+  margin-bottom: 12px;
+  display: grid;
+  gap: 6px;
+}
+
+.sffc-apply-for-me-signup__pill {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #4c5a73;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+.sffc-apply-for-me-signup__content {
+  padding: 18px 18px 20px;
+}
+
+.sffc-apply-for-me-signup__content h2 {
+  margin: 0;
+  color: #152c63;
+  font-size: clamp(22px, 2.6vw, 28px);
+  line-height: 1.12;
+  letter-spacing: -0.04em;
+}
+
+.sffc-apply-for-me-signup__list {
+  margin: 14px 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 10px;
+}
+
+.sffc-apply-for-me-signup__list li {
+  position: relative;
+  padding-left: 30px;
+  color: #293754;
+  font-size: clamp(14px, 1.5vw, 16px);
+  font-weight: 700;
+  line-height: 1.45;
+}
+
+.sffc-apply-for-me-signup__list li::before {
+  content: "✓";
+  position: absolute;
+  top: 1px;
+  left: 0;
+  width: 20px;
+  height: 20px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  color: #24924d;
+  font-size: 18px;
+  font-weight: 900;
+}
+
+.sffc-apply-for-me-signup__continue {
+  width: 100%;
+  min-height: 50px;
+  margin-top: 16px;
+  border: 0;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #1c66c4 0%, #1c5db0 100%);
+  box-shadow: 0 12px 24px rgba(28, 102, 196, 0.24);
+  color: #fff;
+  font-size: clamp(17px, 1.7vw, 19px);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  cursor: pointer;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease;
+}
+
+.sffc-apply-for-me-signup__continue:hover,
+.sffc-apply-for-me-signup__continue:focus-visible {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 28px rgba(28, 102, 196, 0.28);
+  filter: brightness(1.03);
+  outline: none;
+}
+
+.sffc-apply-for-me-signup__checkout-card {
+  margin-top: 14px;
+  padding: 16px;
+}
+
+.sffc-apply-for-me-signup__checkout-head {
+  margin-bottom: 12px;
+}
+
+.sffc-apply-for-me-signup__checkout-kicker {
+  display: inline-block;
+  margin-bottom: 10px;
+  color: #1768c4;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.sffc-apply-for-me-signup__checkout-head h2 {
+  margin: 0;
+  color: #111827;
+  font-size: clamp(21px, 2.4vw, 24px);
+  line-height: 1.08;
+  letter-spacing: -0.04em;
+}
+
+.sffc-apply-for-me-signup__checkout-head p {
+  max-width: 680px;
+  margin: 10px 0 0;
+  color: #5a6576;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.sffc-apply-for-me-signup__memberpress {
+  padding: 16px;
+  border: 1px solid rgba(17, 24, 39, 0.08);
+  border-radius: 18px;
+  background: #fbfcff;
+}
+
+.sffc-apply-for-me-signup__memberpress .mepr-form,
+.sffc-apply-for-me-signup__memberpress form {
+  display: grid;
+  gap: 18px;
+}
+
+.sffc-apply-for-me-signup__memberpress .mp_wrapper label,
+.sffc-apply-for-me-signup__memberpress .mepr-form label {
+  display: block;
+  margin-bottom: 8px;
+  color: #111827;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.sffc-apply-for-me-signup__memberpress input,
+.sffc-apply-for-me-signup__memberpress select,
+.sffc-apply-for-me-signup__memberpress textarea {
+  width: 100%;
+  min-height: 58px;
+  padding: 0 18px;
+  border: 1px solid #d7deea;
+  border-radius: 18px;
+  background: #fff;
+  color: #111827;
+  font-size: 18px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.85);
+}
+
+.sffc-apply-for-me-signup__memberpress textarea {
+  min-height: 120px;
+  padding: 16px 18px;
+}
+
+.sffc-apply-for-me-signup__memberpress input:focus,
+.sffc-apply-for-me-signup__memberpress select:focus,
+.sffc-apply-for-me-signup__memberpress textarea:focus {
+  border-color: #2f66d5;
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(47, 102, 213, 0.14);
+}
+
+.sffc-apply-for-me-signup__memberpress .mepr-payment-methods-wrapper,
+.sffc-apply-for-me-signup__memberpress .mepr-payment-methods-radios {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.sffc-apply-for-me-signup__memberpress .mepr-payment-methods-wrapper label,
+.sffc-apply-for-me-signup__memberpress .mepr-payment-methods-radios label {
+  min-width: 92px;
+  min-height: 78px;
+  margin: 0;
+  padding: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #d7deea;
+  border-radius: 18px;
+  background: #fff;
+}
+
+.sffc-apply-for-me-signup__memberpress .mp-form-submit,
+.sffc-apply-for-me-signup__memberpress .mepr-submit-wrapper {
+  margin-top: 8px;
+}
+
+.sffc-apply-for-me-signup__memberpress .mepr-submit,
+.sffc-apply-for-me-signup__memberpress input.mepr-submit,
+.sffc-apply-for-me-signup__memberpress button.mepr-submit,
+.sffc-apply-for-me-signup__memberpress .mp-form-submit input[type="submit"],
+.sffc-apply-for-me-signup__memberpress .mp-form-submit button {
+  width: 100%;
+  min-height: 60px;
+  border: 0;
+  border-radius: 18px;
+  background: linear-gradient(135deg, #2f66d5 0%, #1d4ed8 100%);
+  color: #fff;
+  font-size: 18px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.sffc-apply-for-me-signup__memberpress .mepr-submit:hover,
+.sffc-apply-for-me-signup__memberpress input.mepr-submit:hover,
+.sffc-apply-for-me-signup__memberpress button.mepr-submit:hover,
+.sffc-apply-for-me-signup__memberpress .mp-form-submit input[type="submit"]:hover,
+.sffc-apply-for-me-signup__memberpress .mp-form-submit button:hover {
+  filter: brightness(1.03);
+}
+
+@media (max-width: 900px) {
+  .sffc-apply-for-me-signup {
+    padding: 16px 10px 32px;
+  }
+
+  .sffc-apply-for-me-signup__hero {
+    margin-bottom: 14px;
+  }
+
+  .sffc-apply-for-me-signup__trust,
+  .sffc-apply-for-me-signup__content,
+  .sffc-apply-for-me-signup__checkout-card {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .sffc-apply-for-me-signup__trust-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .sffc-apply-for-me-signup__pill-row {
+    margin-bottom: 10px;
+  }
+
+  .sffc-apply-for-me-signup__list li {
+    padding-left: 32px;
+    font-size: 15px;
+  }
+
+  .sffc-apply-for-me-signup__continue {
+    min-height: 52px;
+    font-size: 18px;
+  }
+}

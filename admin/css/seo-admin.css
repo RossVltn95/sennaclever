@@ -1,0 +1,311 @@
+/**
+ * SEO Content Admin Styles
+ */
+
+.sffc-seo-admin {
+    max-width: 1400px;
+}
+
+.sffc-admin-header {
+    margin: 20px 0;
+}
+
+.sffc-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.stat-card {
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    padding: 20px;
+    text-align: center;
+}
+
+.stat-value {
+    display: block;
+    font-size: 36px;
+    font-weight: bold;
+    color: #1B3B2F;
+    margin-bottom: 5px;
+}
+
+.stat-label {
+    display: block;
+    font-size: 14px;
+    color: #666;
+    text-transform: uppercase;
+}
+
+.sffc-admin-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+.admin-section {
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    padding: 20px;
+}
+
+.admin-section h2 {
+    margin-top: 0;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #eee;
+}
+
+.button-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.recent-articles {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.recent-articles li {
+    padding: 10px 0;
+    border-bottom: 1px solid #eee;
+}
+
+.recent-articles li:last-child {
+    border-bottom: none;
+}
+
+.system-status p {
+    margin: 10px 0;
+    padding: 10px;
+    border-radius: 3px;
+}
+
+.status-good {
+    background: #d4edda;
+    color: #155724;
+}
+
+.status-warning {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.status-active {
+    color: #28a745;
+    font-weight: bold;
+}
+
+.status-inactive {
+    color: #dc3545;
+    font-weight: bold;
+}
+
+/* Generator Form */
+.sffc-generator-form {
+    background: #fff;
+    padding: 20px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+}
+
+.generator-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 30px;
+    margin-bottom: 30px;
+}
+
+.generator-section {
+    border: 1px solid #eee;
+    padding: 20px;
+    border-radius: 5px;
+}
+
+.generator-section h2 {
+    margin-top: 0;
+    font-size: 18px;
+    border-bottom: 2px solid #1B3B2F;
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+}
+
+.generator-section label {
+    display: block;
+    margin: 15px 0 5px;
+    font-weight: 600;
+}
+
+.generator-section input[type="text"],
+.generator-section input[type="number"],
+.generator-section select,
+.generator-section textarea {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+}
+
+.generator-section textarea {
+    resize: vertical;
+}
+
+.source-selector {
+    margin-top: 15px;
+}
+
+.generator-actions {
+    padding-top: 20px;
+    border-top: 1px solid #eee;
+    display: flex;
+    gap: 10px;
+}
+
+/* Progress Bar */
+.progress-bar {
+    width: 100%;
+    height: 30px;
+    background: #f0f0f0;
+    border-radius: 15px;
+    overflow: hidden;
+    margin: 20px 0;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #1B3B2F, #2d5f4f);
+    width: 0%;
+    transition: width 0.3s ease;
+}
+
+.progress-status {
+    text-align: center;
+    color: #666;
+    margin-top: 10px;
+}
+
+/* Queue Table */
+.queue-status-pending {
+    background-color: #fff3cd;
+}
+
+.queue-status-processing {
+    background-color: #cce5ff;
+}
+
+.queue-status-completed {
+    background-color: #d4edda;
+}
+
+.queue-status-failed {
+    background-color: #f8d7da;
+}
+
+.priority-badge {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 3px;
+    font-weight: bold;
+    color: #fff;
+}
+
+.priority-10,
+.priority-9,
+.priority-8 {
+    background: #dc3545;
+}
+
+.priority-7,
+.priority-6,
+.priority-5 {
+    background: #ffc107;
+    color: #000;
+}
+
+.priority-4,
+.priority-3,
+.priority-2,
+.priority-1 {
+    background: #28a745;
+}
+
+.status-badge {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 3px;
+    font-weight: bold;
+}
+
+.status-pending {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.status-processing {
+    background: #cce5ff;
+    color: #004085;
+}
+
+.status-completed {
+    background: #d4edda;
+    color: #155724;
+}
+
+.status-failed {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+/* Add Source Form */
+.sffc-add-source {
+    background: #fff;
+    padding: 20px;
+    margin-bottom: 30px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+}
+
+.sffc-sources-list {
+    background: #fff;
+    padding: 20px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+}
+
+/* Article Preview */
+.article-preview {
+    background: #fff;
+    padding: 20px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    margin: 20px 0;
+    max-height: 500px;
+    overflow-y: auto;
+}
+
+.article-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .sffc-stats-grid,
+    .sffc-admin-grid,
+    .generator-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .button-group,
+    .generator-actions,
+    .article-actions {
+        flex-direction: column;
+    }
+}

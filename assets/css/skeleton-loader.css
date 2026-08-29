@@ -1,0 +1,337 @@
+/**
+ * Skeleton Loader for Shared Jobs
+ * Engaging loading animation while fetching job data
+ */
+
+/* Skeleton Container */
+.skeleton-jobs-container {
+    padding: 20px;
+    animation: fadeIn 0.3s ease-in;
+    background: linear-gradient(135deg, rgba(255, 249, 230, 0.3) 0%, rgba(255, 254, 249, 0.3) 100%);
+    border-radius: 12px;
+}
+
+/* Skeleton Welcome Message */
+.skeleton-welcome {
+    height: 60px;
+    background: linear-gradient(90deg, #FFF9E6 25%, #FFE69C 50%, #FFF9E6 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+/* Skeleton Job Cards Container */
+.skeleton-job-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+/* Individual Skeleton Job Card */
+.skeleton-job-card {
+    background: linear-gradient(135deg, #FFFEF9 0%, #FFF9E6 100%);
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 2px 12px rgba(212, 175, 55, 0.08);
+    border: 1px solid #F4E4BC;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Skeleton Elements */
+.skeleton-element {
+    background: linear-gradient(90deg, #FFF5D6 25%, #FFE69C 50%, #FFF5D6 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    border-radius: 4px;
+}
+
+/* Job Title Skeleton */
+.skeleton-job-title {
+    height: 24px;
+    width: 70%;
+    margin-bottom: 12px;
+}
+
+/* Company Name Skeleton */
+.skeleton-company {
+    height: 18px;
+    width: 40%;
+    margin-bottom: 8px;
+}
+
+/* Location Skeleton */
+.skeleton-location {
+    height: 16px;
+    width: 30%;
+    margin-bottom: 12px;
+}
+
+/* Salary Skeleton */
+.skeleton-salary {
+    height: 20px;
+    width: 25%;
+    margin-bottom: 15px;
+    background: linear-gradient(90deg, #FFFACD 25%, #FFE69C 50%, #FFFACD 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+}
+
+/* Skills Container Skeleton */
+.skeleton-skills {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 15px;
+}
+
+.skeleton-skill-tag {
+    height: 28px;
+    width: 80px;
+    border-radius: 14px;
+    background: linear-gradient(90deg, #FFF8DC 25%, #FFEAA7 50%, #FFF8DC 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+}
+
+/* Description Skeleton */
+.skeleton-description {
+    margin-bottom: 15px;
+}
+
+.skeleton-line {
+    height: 14px;
+    margin-bottom: 8px;
+    background: linear-gradient(90deg, #FFF5D6 25%, #FFE69C 50%, #FFF5D6 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    border-radius: 3px;
+}
+
+.skeleton-line:last-child {
+    width: 80%;
+}
+
+/* Action Buttons Skeleton */
+.skeleton-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.skeleton-button {
+    height: 36px;
+    width: 100px;
+    border-radius: 18px;
+    background: linear-gradient(90deg, #F4E4BC 25%, #E6D4A3 50%, #F4E4BC 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+}
+
+/* Shimmer Animation */
+@keyframes shimmer {
+    0% {
+        background-position: -200% 0;
+    }
+    100% {
+        background-position: 200% 0;
+    }
+}
+
+/* Fade In Animation */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Pulse Animation for Loading Indicator */
+.skeleton-pulse {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    background: linear-gradient(135deg, #D4AF37 0%, #F4E19C 100%);
+    border-radius: 50%;
+    margin: 0 2px;
+    animation: pulse 1.4s infinite both;
+    box-shadow: 0 0 8px rgba(212, 175, 55, 0.3);
+}
+
+.skeleton-pulse:nth-child(1) {
+    animation-delay: 0s;
+}
+
+.skeleton-pulse:nth-child(2) {
+    animation-delay: 0.2s;
+}
+
+.skeleton-pulse:nth-child(3) {
+    animation-delay: 0.4s;
+}
+
+@keyframes pulse {
+    0%, 60%, 100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    30% {
+        transform: scale(1.5);
+        opacity: 0.7;
+    }
+}
+
+/* Loading Message with Dots */
+.skeleton-loading-message {
+    text-align: center;
+    padding: 15px;
+    color: #8B7355;
+    font-size: 15px;
+    margin-bottom: 20px;
+    font-weight: 500;
+    background: linear-gradient(135deg, #FFF9E6 0%, #FFFEF9 100%);
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(212, 175, 55, 0.05);
+}
+
+.skeleton-loading-dots {
+    display: inline-flex;
+    align-items: center;
+    margin-left: 5px;
+}
+
+/* Match Score Skeleton */
+.skeleton-match-score {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: linear-gradient(90deg, #FFF9E6 25%, #D4AF37 50%, #FFF9E6 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    box-shadow: 0 2px 8px rgba(212, 175, 55, 0.15);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .skeleton-job-card {
+        padding: 15px;
+    }
+    
+    .skeleton-job-title {
+        width: 85%;
+    }
+    
+    .skeleton-company {
+        width: 60%;
+    }
+    
+    .skeleton-location {
+        width: 50%;
+    }
+    
+    .skeleton-skills {
+        flex-wrap: wrap;
+    }
+}
+
+/* Keep light gold theme even in dark mode for consistency */
+@media (prefers-color-scheme: dark) {
+    .skeleton-element {
+        background: linear-gradient(90deg, #FFF5D6 25%, #FFE69C 50%, #FFF5D6 75%);
+        background-size: 200% 100%;
+    }
+    
+    .skeleton-job-card {
+        background: linear-gradient(135deg, #FFFEF9 0%, #FFF9E6 100%);
+        border-color: #F4E4BC;
+    }
+    
+    .skeleton-loading-message {
+        background: linear-gradient(135deg, #FFF9E6 0%, #FFFEF9 100%);
+        color: #8B7355;
+    }
+}
+
+/* Smooth Transition from Skeleton to Content */
+.skeleton-transitioning {
+    animation: fadeOut 0.3s ease-out forwards;
+}
+
+@keyframes fadeOut {
+    to {
+        opacity: 0;
+        transform: scale(0.98);
+    }
+}
+
+/* Content Appearing Animation */
+.content-appearing {
+    animation: contentFadeIn 0.4s ease-in forwards;
+}
+
+@keyframes contentFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Premium Skeleton Badge */
+.skeleton-badge {
+    position: absolute;
+    top: -5px;
+    right: 15px;
+    width: 80px;
+    height: 24px;
+    border-radius: 12px;
+    background: linear-gradient(90deg, #FFE69C 25%, #D4AF37 50%, #FFE69C 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    box-shadow: 0 2px 6px rgba(212, 175, 55, 0.2);
+}
+
+/* Multiple Job Cards Loading */
+.skeleton-multiple-indicator {
+    text-align: center;
+    margin-top: 15px;
+    color: #B8941F;
+    font-size: 13px;
+    font-style: italic;
+    font-weight: 500;
+}
+
+/* Enhanced Loading State */
+.skeleton-enhanced {
+    position: relative;
+}
+
+.skeleton-enhanced::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+    animation: sweep 2s infinite;
+}
+
+@keyframes sweep {
+    0% {
+        left: -100%;
+    }
+    100% {
+        left: 100%;
+    }
+}

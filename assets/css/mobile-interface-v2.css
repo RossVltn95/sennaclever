@@ -1,0 +1,2272 @@
+/**
+ * Mobile Interface V2 Styles
+ * Transforms desktop elements with glassmorphism design
+ * Works WITH desktop structure, not against it
+ */
+
+@import url("https://fonts.googleapis.com/css2?family=Adamina&display=swap");
+
+/* ======================================
+   MOBILE ONLY - Applied via media query
+   ====================================== */
+@media (max-width: 768px) {
+  /* Hide floating search icon on mobile */
+  body.mobile-interface-v2 .floating-search-icon {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+  }
+
+  /* Global box-sizing for mobile */
+  body.mobile-interface-v2 *,
+  body.mobile-interface-v2 *::before,
+  body.mobile-interface-v2 *::after {
+    box-sizing: border-box !important;
+  }
+
+  /* Reset body for mobile */
+  body.mobile-interface-v2 {
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+    background: #f8f9fb; /* Premium light gray background */
+    padding-top: 44px; /* Space for status bar */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  /* Shortlist elements removed */
+
+  /* Hide only desktop UI chrome */
+  body.mobile-interface-v2 .sffc-opp-header,
+  body.mobile-interface-v2 .sffc-message-search,
+  body.mobile-interface-v2 .sffc-menu-toggle,
+  body.mobile-interface-v2 .sffc-stage-menu,
+  body.mobile-interface-v2 .conversation-stage,
+  body.mobile-interface-v2 .sffc-user-header,
+  body.mobile-interface-v2 .sffc-profile-actions,
+  body.mobile-interface-v2 .sffc-brand,
+  body.mobile-interface-v2 .sffc-edit-profile-btn,
+  body.mobile-interface-v2 #currency-selector-container,
+  body.mobile-interface-v2 .stage-indicators {
+    display: none !important;
+  }
+
+  /* Restyle main containers for mobile */
+  body.mobile-interface-v2 .sffc-main-container {
+    display: block !important;
+    visibility: visible !important;
+    position: relative !important;
+    left: auto !important;
+    top: auto !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    opacity: 1 !important;
+    z-index: 1 !important;
+    overflow-x: hidden !important;
+    box-sizing: border-box !important;
+  }
+
+  body.mobile-interface-v2 .sffc-conversational-view {
+    display: block !important;
+    visibility: visible !important;
+    padding: 0 !important; /* Container padding handled by children */
+    margin: 0 !important;
+    background: #f8f9fb !important; /* Match app background */
+    opacity: 1 !important;
+    z-index: 10 !important; /* Proper stacking */
+    min-height: calc(100vh - 44px) !important; /* Only status bar height now */
+    height: auto !important; /* Allow to expand with content */
+    width: 100% !important;
+    max-width: 100% !important; /* Override desktop constraints */
+    overflow: visible !important; /* Don't cut off content */
+    position: relative !important;
+  }
+
+  /* Mobile-restyled class for transformed elements */
+  body.mobile-interface-v2 .mobile-restyled {
+    /* Remove all desktop centering */
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    max-width: 100% !important;
+    width: 100% !important;
+  }
+
+  /* Override desktop conversation centering */
+  body.mobile-interface-v2 .sffc-conversational-view .sffc-main-container {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    justify-content: stretch !important;
+    align-items: stretch !important;
+    padding: 0 !important;
+    background: transparent !important;
+  }
+
+  /* Remove desktop message centering */
+  body.mobile-interface-v2 .sffc-conversational-view .senna-message,
+  body.mobile-interface-v2 .sffc-conversational-view .user-message {
+    max-width: 100% !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+  }
+
+  /* Remove desktop max-widths from messages container */
+  body.mobile-interface-v2 .sffc-conversational-view .senna-messages,
+  body.mobile-interface-v2 .sffc-conversational-view #senna-messages {
+    max-width: 100% !important;
+    width: 100% !important;
+    margin: 0 !important;
+  }
+
+  /* Override desktop input area positioning */
+  body.mobile-interface-v2 .sffc-conversational-view .senna-input-area {
+    left: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
+    justify-content: stretch !important;
+  }
+
+  /* Override desktop input wrapper centering */
+  body.mobile-interface-v2 .sffc-conversational-view .senna-input-wrapper {
+    max-width: 100% !important;
+    width: 100% !important;
+    margin: 0 !important;
+  }
+
+  /* Fix option cards centering */
+  body.mobile-interface-v2 .sffc-conversational-view .option-cards {
+    justify-content: flex-start !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+  }
+
+  /* Restyle PE filter sidebar for mobile */
+  body.mobile-interface-v2 .pe-filter-sidebar {
+    position: relative !important;
+    left: auto !important;
+    top: auto !important;
+    width: 100% !important;
+    height: auto !important;
+    padding: 85px 20px 20px 20px !important; /* Reduced top padding */
+    margin: 0 !important;
+    background: #f8f9fb !important; /* Match app background */
+    border: none !important;
+    box-shadow: none !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    transform: none !important;
+    min-height: calc(100vh - 140px) !important;
+    /* Hide scrollbar */
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+  }
+
+  body.mobile-interface-v2 .pe-filter-sidebar::-webkit-scrollbar {
+    display: none !important;
+  }
+
+  /* Restyle MENA Careers conversation for mobile */
+  body.mobile-interface-v2 .sffc-senna-conversation {
+    position: relative !important;
+    min-height: calc(100vh - 120px) !important; /* Reduced for floating pills */
+    height: auto !important; /* Allow natural height */
+    display: flex !important;
+    visibility: visible !important;
+    flex-direction: column !important;
+    padding: 85px 0 0 0 !important; /* Reduced top padding */
+    margin: 0 !important; /* Remove negative desktop margins */
+    opacity: 1 !important;
+    z-index: 15 !important; /* Proper stacking */
+    overflow: visible !important; /* Don't cut off content */
+    width: 100% !important;
+    max-width: 100% !important; /* Override desktop max-width */
+    box-sizing: border-box !important;
+    background: transparent !important;
+    /* Remove desktop centering */
+    left: 0 !important;
+    right: 0 !important;
+  }
+
+  body.mobile-interface-v2 .senna-messages {
+    flex: 1 1 auto !important; /* Grow and shrink as needed */
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    padding: 20px 0 !important; /* No horizontal padding for edge-to-edge */
+    padding-bottom: 120px !important; /* Extra space for input */
+    -webkit-overflow-scrolling: touch !important;
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    z-index: 15 !important; /* Above container */
+    background: transparent !important; /* Inherit parent background */
+    min-height: calc(
+      100vh - 250px
+    ) !important; /* Ensure minimum scrollable area */
+    max-height: calc(100vh - 180px) !important; /* Prevent overflow */
+    /* Hide scrollbar for all browsers */
+    scrollbar-width: none !important; /* Firefox */
+    -ms-overflow-style: none !important; /* IE and Edge */
+    transition: padding-bottom 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+      max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  }
+
+  /* Expand messages to full height when input is hidden */
+  body.mobile-interface-v2 .senna-messages.input-hidden {
+    padding-bottom: 20px !important; /* Minimal bottom padding */
+    max-height: calc(100vh - 60px) !important; /* Full height minus header */
+  }
+
+  /* Hide webkit scrollbar */
+  body.mobile-interface-v2 .senna-messages::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+  }
+
+  /* Reset main container - OVERRIDE all desktop styles */
+  body.mobile-interface-v2 .sffc-main-container {
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    position: static !important;
+    background: none !important;
+    box-shadow: none !important;
+    border: none !important;
+  }
+
+  /* Reset wrapper - OVERRIDE desktop fixed positioning */
+  body.mobile-interface-v2 .sffc-opportunities-wrapper {
+    position: relative !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    margin-left: 0 !important; /* Override desktop sidebar margins */
+    padding-left: 0 !important; /* Override desktop sidebar padding */
+    width: 100% !important;
+    max-width: 100% !important;
+    min-height: calc(100vh - 44px) !important; /* Account for status bar */
+    top: auto !important;
+    left: auto !important;
+    right: auto !important;
+    bottom: auto !important;
+    transform: none !important;
+    background: #f8f9fb !important; /* Match app background */
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    box-sizing: border-box !important;
+    z-index: 1 !important; /* Establish stacking context */
+    display: block !important; /* Override desktop flex */
+    font-family: "Playfair Display", -apple-system, BlinkMacSystemFont,
+      sans-serif !important;
+  }
+
+  /* Remove any desktop background overlays */
+  body.mobile-interface-v2 .sffc-opportunities-wrapper::before,
+  body.mobile-interface-v2 .sffc-opportunities-wrapper::after {
+    display: none !important;
+    content: none !important;
+    background: none !important;
+  }
+
+  /* Hide scrollbar on wrapper for native feel */
+  body.mobile-interface-v2 .sffc-opportunities-wrapper {
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+  }
+
+  body.mobile-interface-v2 .sffc-opportunities-wrapper::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+  }
+
+  /* ======================================
+       MOBILE STATUS BAR
+       ====================================== */
+  .mobile-status-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 44px;
+    background: #ffffff;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 16px;
+    z-index: 200; /* Top level */
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  .mobile-brand {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    color: #1e3a5f; /* Navy blue */
+    font-family: "Playfair Display", serif;
+    font-weight: 600;
+  }
+
+  .brand-s {
+    background: linear-gradient(
+      135deg,
+      #1a472a,
+      #2d6a4f
+    ); /* Forest green gradient */
+    color: white;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 14px;
+  }
+
+  .brand-dot {
+    color: #1a472a; /* Dark forest green */
+    font-size: 18px;
+  }
+
+  .brand-text {
+    font-size: 14px;
+    color: #1e3a5f; /* Navy blue */
+  }
+
+  .status-time {
+    color: #1e3a5f; /* Navy blue */
+    font-variant-numeric: tabular-nums;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+
+  /* Mobile header action buttons container */
+  .mobile-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .mobile-search-btn,
+  .mobile-profile-btn {
+    background: transparent;
+    border: none;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: rgba(30, 58, 95, 0.05);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .mobile-search-btn:active,
+  .mobile-profile-btn:active {
+    transform: scale(0.95);
+    background: rgba(30, 58, 95, 0.1);
+  }
+
+  .mobile-search-btn svg,
+  .mobile-profile-btn svg {
+    width: 20px;
+    height: 20px;
+    stroke: #1e3a5f; /* Navy blue */
+  }
+
+  /* ======================================
+       MODE PILLS - SUBTLE INTEGRATED DESIGN
+       ====================================== */
+  .mode-pills {
+    position: fixed;
+    top: 44px; /* Directly attached to header */
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: center;
+    gap: 4px;
+    padding: 8px 16px;
+    background: linear-gradient(
+      to bottom,
+      rgba(255, 255, 255, 0.98),
+      rgba(255, 255, 255, 0.9)
+    );
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    z-index: 40;
+    border-bottom: 1px solid rgba(30, 58, 95, 0.06);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease !important;
+  }
+
+  /* Minimal mode pills when scrolling - slides into header */
+  body.mobile-input-hidden .mode-pills {
+    transform: translateY(-50%);
+    padding: 4px 12px;
+    background: transparent;
+    border-bottom: none;
+  }
+
+  body.mobile-input-hidden .mode-pill {
+    padding: 2px 12px;
+    font-size: 12px;
+  }
+
+  body.mobile-input-hidden .pill-icon {
+    width: 0;
+    opacity: 0;
+    margin: 0;
+  }
+
+  body.mobile-input-hidden .pill-text {
+    font-size: 12px;
+  }
+
+  .mode-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 4px 16px;
+    background: transparent;
+    border: none;
+    border-radius: 16px;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-weight: 500;
+    color: rgba(30, 58, 95, 0.5);
+    position: relative;
+    overflow: hidden;
+    font-size: 13px;
+  }
+
+  /* Subtle dot indicator for active */
+  .mode-pill:after {
+    content: "";
+    position: absolute;
+    bottom: 2px;
+    left: 50%;
+    transform: translateX(-50%) scale(0);
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: #1a472a;
+    transition: transform 0.2s ease;
+  }
+
+  .mode-pill:active {
+    transform: scale(0.98);
+    transition: transform 0.1s ease;
+  }
+
+  .mode-pill.active {
+    background: rgba(30, 58, 95, 0.06);
+    color: #1e3a5f;
+    font-weight: 600;
+  }
+
+  .mode-pill.active:after {
+    transform: translateX(-50%) scale(1);
+  }
+
+  .pill-icon {
+    display: flex;
+    align-items: center;
+  }
+
+  .pill-icon svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .pill-text {
+    font-size: 13px;
+  }
+
+  .pill-badge {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    padding: 2px 5px;
+    border-radius: 8px;
+    font-size: 9px;
+    margin-left: 4px;
+    font-weight: 600;
+  }
+
+  /* ======================================
+       MOBILE BROWSE PANEL
+       ====================================== */
+  .mobile-browse-panel {
+    padding: 16px;
+    min-height: calc(100vh - 140px);
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    /* Hide scrollbar */
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Center children horizontally */
+  }
+
+  .mobile-browse-panel::-webkit-scrollbar {
+    display: none;
+    width: 0;
+    height: 0;
+  }
+
+  /* ======================================
+       MOBILE TIKTOK-STYLE CARDS
+       ====================================== */
+  @media (max-width: 768px) {
+    /* Base card styles - removed conflicting classes */
+    body.mobile-interface-v2 .question-card {
+      width: 100% !important;
+      max-width: 100% !important;
+      position: relative !important;
+      display: flex !important;
+      flex-direction: column !important;
+      justify-content: center !important;
+      border-radius: 16px !important; /* Nice rounded corners */
+      margin: 0 0 12px 0 !important; /* Proper gap between cards */
+      transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+      box-sizing: border-box !important;
+      overflow: hidden !important;
+      scroll-snap-align: start !important;
+      cursor: pointer !important;
+    }
+
+    /* Browse mode - TikTok style tall cards */
+    body.mobile-interface-v2 .pe-filter-sidebar .question-card {
+      min-height: 45vh !important;
+      max-height: 50vh !important;
+      padding: 40px 20px 30px !important;
+      background: linear-gradient(135deg, #0d353e 0%, #1a5a65 100%) !important;
+    }
+
+    /* Chat mode - Smaller cards */
+    body.mobile-interface-v2 .senna-messages .question-card {
+      min-height: 120px !important;
+      max-height: 150px !important;
+      padding: 16px !important;
+      background: linear-gradient(135deg, #0d353e 0%, #1a5a65 100%) !important;
+    }
+
+    /* Gradient variations - only for question cards */
+    body.mobile-interface-v2 .question-card:nth-child(2n) {
+      background: linear-gradient(145deg, #0d353e 0%, #2a6a75 100%) !important;
+    }
+
+    body.mobile-interface-v2 .question-card:nth-child(3n) {
+      background: linear-gradient(125deg, #0d353e 0%, #1f5460 100%) !important;
+    }
+
+    body.mobile-interface-v2 .question-card:nth-child(4n) {
+      background: linear-gradient(155deg, #0d353e 0%, #3a7a85 100%) !important;
+    }
+
+    /* Remove desktop pseudo elements */
+    body.mobile-interface-v2 .question-card::before,
+    body.mobile-interface-v2 .question-card::after {
+      display: none !important;
+      content: none !important;
+    }
+
+    /* Touch interaction */
+    body.mobile-interface-v2 .question-card:active {
+      transform: scale(0.98) !important;
+      opacity: 0.95 !important;
+    }
+
+    /* TikTok-style content layout with proper hierarchy */
+
+    /* Content container for proper centering */
+    body.mobile-interface-v2 .question-content,
+    body.mobile-interface-v2 .card-content {
+      display: flex !important;
+      flex-direction: column !important;
+      justify-content: center !important;
+      max-width: 85% !important; /* Centered with margins */
+      margin: 0 auto !important;
+      position: relative !important;
+      z-index: 1 !important;
+    }
+
+    /* Category label - small uppercase at top */
+    body.mobile-interface-v2 .question-category,
+    body.mobile-interface-v2 .job-category {
+      color: rgba(255, 255, 255, 0.9) !important;
+      font-size: 11px !important;
+      font-weight: 600 !important;
+      text-transform: uppercase !important;
+      letter-spacing: 1.2px !important;
+      margin-bottom: 10px !important;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+    }
+
+    /* Main title - large and prominent */
+    body.mobile-interface-v2 .question-card .question-title,
+    body.mobile-interface-v2 .mobile-unified-card .question-title,
+    body.mobile-interface-v2 .mobile-card-style .question-title,
+    body.mobile-interface-v2 .question-card h3,
+    body.mobile-interface-v2 .mobile-unified-card h3,
+    body.mobile-interface-v2 .mobile-card-style h3 {
+      font-size: 24px !important; /* Scaled from desktop 28px */
+      font-weight: 700 !important;
+      color: #ffffff !important;
+      margin: 0 0 16px 0 !important;
+      line-height: 1.3 !important;
+      font-family: "Playfair Display", serif !important;
+      text-shadow: none !important; /* Removed for easier reading */
+    }
+
+    /* Job-specific titles (smaller) */
+    body.mobile-interface-v2 .question-card .job-title,
+    body.mobile-interface-v2 .mobile-unified-card .job-title,
+    body.mobile-interface-v2 .mobile-card-style .job-title,
+    body.mobile-interface-v2 .sffc-job-title {
+      font-size: 22px !important;
+      font-weight: 600 !important;
+      color: #163451 !important;
+      margin: 20px 0 15px 0 !important; /* More top margin to prevent being pushed up */
+      line-height: 1.3 !important;
+      font-family: "Playfair Display", serif !important;
+      padding-top: 10px !important; /* Additional padding */
+    }
+
+    /* Preview/description text */
+    body.mobile-interface-v2 .question-preview,
+    body.mobile-interface-v2 .job-description,
+    body.mobile-interface-v2 .question-card .company,
+    body.mobile-interface-v2 .mobile-unified-card .company,
+    body.mobile-interface-v2 .mobile-card-style .company {
+      font-size: 14px !important;
+      color: rgba(255, 255, 255, 0.95) !important;
+      line-height: 1.6 !important;
+      margin-bottom: 16px !important;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+    }
+
+    /* Location info */
+    body.mobile-interface-v2 .question-card .location,
+    body.mobile-interface-v2 .mobile-unified-card .location,
+    body.mobile-interface-v2 .mobile-card-style .location {
+      font-size: 13px !important;
+      color: rgba(255, 255, 255, 0.75) !important;
+      margin-bottom: 12px !important;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+    }
+
+    /* Bullet points for details */
+    body.mobile-interface-v2 .question-bullets {
+      list-style: none !important;
+      padding: 0 !important;
+      margin: 16px 0 !important;
+    }
+
+    body.mobile-interface-v2 .question-bullets li {
+      color: rgba(255, 255, 255, 0.85) !important;
+      font-size: 13px !important;
+      line-height: 1.8 !important;
+      padding-left: 18px !important;
+      position: relative !important;
+      margin-bottom: 6px !important;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+    }
+
+    body.mobile-interface-v2 .question-bullets li:before {
+      content: "•" !important;
+      position: absolute !important;
+      left: 0 !important;
+      color: rgba(255, 255, 255, 0.6) !important;
+    }
+
+    /* Filter meta tags section */
+    body.mobile-interface-v2 .filter-meta,
+    body.mobile-interface-v2 .job-tags,
+    body.mobile-interface-v2 .tags {
+      display: flex !important;
+      gap: 8px !important;
+      margin-top: auto !important; /* Push to bottom */
+      margin-bottom: 0 !important;
+      flex-wrap: wrap !important;
+    }
+
+    /* Individual meta tags with glassmorphism */
+    body.mobile-interface-v2 .meta-tag,
+    body.mobile-interface-v2 .job-tag,
+    body.mobile-interface-v2 .tag {
+      display: inline-block !important;
+      padding: 6px 12px !important;
+      background: rgba(255, 255, 255, 0.15) !important;
+      border-radius: 14px !important;
+      color: rgba(255, 255, 255, 0.9) !important;
+      font-size: 11px !important;
+      font-weight: 500 !important;
+      backdrop-filter: blur(10px) !important;
+      -webkit-backdrop-filter: blur(10px) !important;
+      border: 1px solid rgba(255, 255, 255, 0.2) !important;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+      transition: all 0.2s ease !important;
+    }
+
+    body.mobile-interface-v2 .meta-tag:hover,
+    body.mobile-interface-v2 .job-tag:hover,
+    body.mobile-interface-v2 .tag:hover {
+      background: rgba(255, 255, 255, 0.25) !important;
+      transform: translateY(-1px) !important;
+    }
+
+    /* Ask MENA Careers Button - Ensure dark text on light background */
+    body.mobile-interface-v2 .ask-senna-btn {
+      background: #f5f2e8 !important; /* Cream background */
+      color: #0d353e !important; /* Dark navy text */
+      font-weight: 700 !important;
+      border: none !important;
+      padding: 14px 20px !important;
+      border-radius: 14px !important;
+      width: 100% !important;
+      font-size: 15px !important;
+      cursor: pointer !important;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+      text-align: center !important;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+      margin-top: 16px !important;
+    }
+
+    body.mobile-interface-v2 .ask-senna-btn:hover,
+    body.mobile-interface-v2 .ask-senna-btn:active {
+      background: #ffffff !important; /* White on hover */
+      color: #0d353e !important; /* Keep dark text */
+      transform: translateY(-2px) !important;
+      box-shadow: 0 8px 20px rgba(13, 53, 62, 0.15) !important;
+    }
+
+    /* Trending badge overlay */
+    body.mobile-interface-v2 .trending-badge {
+      position: absolute !important;
+      top: 16px !important;
+      left: 16px !important;
+      background: rgba(245, 242, 232, 0.95) !important;
+      backdrop-filter: blur(10px) !important;
+      -webkit-backdrop-filter: blur(10px) !important;
+      padding: 6px 12px !important;
+      border-radius: 16px !important;
+      display: flex !important;
+      align-items: center !important;
+      gap: 6px !important;
+      border: 1px solid rgba(255, 255, 255, 0.3) !important;
+      z-index: 2 !important;
+      font-size: 11px !important;
+      font-weight: 600 !important;
+      color: #0d353e !important;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+    }
+  }
+
+  /* Mobile browse panel container */
+  .mobile-browse-panel {
+    padding: 16px;
+    min-height: calc(100vh - 140px);
+  }
+
+  /* ======================================
+       MOBILE AUTOCOMPLETE CONTAINER
+       ====================================== */
+  body.mobile-interface-v2 .sffc-autocomplete-container {
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    padding: 12px !important;
+    background: #ffffff !important;
+    border-top: 1px solid rgba(30, 58, 95, 0.08) !important;
+    box-shadow: 0 -2px 10px rgba(30, 58, 95, 0.06) !important;
+    z-index: 100 !important; /* Above chat content */
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    width: 100% !important;
+    transform: translateY(0) !important;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease !important;
+  }
+
+  /* Hide all input elements when scrolling for full-screen chat */
+  body.mobile-interface-v2 .sffc-autocomplete-container.scroll-hidden,
+  body.mobile-interface-v2 .sffc-autocomplete-wrapper.scroll-hidden,
+  body.mobile-interface-v2 .sffc-input-group.scroll-hidden {
+    transform: translateY(100%) !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+  }
+
+  /* Hide mode-pills by sliding up and completely removing from layout */
+  body.mobile-interface-v2 .mode-pills.scroll-hidden {
+    transform: translateY(-100%) !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+    visibility: hidden !important;
+    height: 0 !important;
+    min-height: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border: none !important;
+  }
+
+  /* Ensure child elements also hide */
+  body.mobile-interface-v2 .scroll-hidden .sffc-chat-input,
+  body.mobile-interface-v2 .scroll-hidden .senna-input,
+  body.mobile-interface-v2 .scroll-hidden .sffc-send-btn,
+  body.mobile-interface-v2 .scroll-hidden #senna-send {
+    opacity: 0 !important;
+    pointer-events: none !important;
+  }
+
+  body.mobile-interface-v2 .sffc-autocomplete-wrapper {
+    background: transparent !important;
+    box-shadow: none !important;
+    border: none !important;
+    display: flex !important;
+    gap: 8px !important;
+    align-items: center !important;
+    padding: 0 !important;
+  }
+
+  body.mobile-interface-v2 #senna-input {
+    flex: 1 !important;
+    padding: 14px 16px !important;
+    background: rgba(30, 58, 95, 0.03) !important; /* Very light navy tint */
+    border: 2px solid rgba(30, 58, 95, 0.1) !important;
+    border-radius: 25px !important;
+    color: #1e3a5f !important; /* Navy blue text */
+    font-family: "Playfair Display", serif !important;
+    font-size: 15px !important;
+    outline: none !important;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  }
+
+  body.mobile-interface-v2 #senna-input:focus {
+    border-color: #1a472a !important; /* Forest green on focus */
+    background: #ffffff !important;
+    box-shadow: 0 0 0 3px rgba(26, 71, 42, 0.1) !important;
+  }
+
+  body.mobile-interface-v2 .sffc-send-btn,
+  body.mobile-interface-v2 #senna-send {
+    width: 48px !important;
+    height: 48px !important;
+    min-width: 48px !important;
+    padding: 0 !important;
+    border-radius: 24px !important;
+    background: linear-gradient(
+      135deg,
+      #1a472a,
+      #2d6a4f
+    ) !important; /* Forest green */
+    border: none !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    cursor: pointer !important;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    box-shadow: 0 4px 12px rgba(26, 71, 42, 0.2) !important;
+  }
+
+  body.mobile-interface-v2 .sffc-send-btn:active,
+  body.mobile-interface-v2 #senna-send:active {
+    transform: scale(0.95) !important;
+    box-shadow: 0 2px 8px rgba(26, 71, 42, 0.25) !important;
+  }
+
+  /* ======================================
+       MENA CAREERS MESSAGES AND CARDS IN CHAT
+       ====================================== */
+  body.mobile-interface-v2 .senna-message {
+    margin-bottom: 20px !important;
+    width: 100% !important;
+    padding: 0 !important; /* Edge to edge */
+  }
+
+  /* All messages left-aligned for reading */
+  body.mobile-interface-v2 .senna-message.user,
+  body.mobile-interface-v2 .senna-message.assistant {
+    text-align: left !important;
+  }
+
+  /* Kindle-style full-width messages */
+  body.mobile-interface-v2 .message-content {
+    display: block !important;
+    max-width: 100% !important; /* Full width */
+    width: 100% !important;
+    padding: 16px 16px !important; /* Consistent padding */
+    border-radius: 0 !important; /* No rounded corners for reading */
+    background: transparent !important; /* Transparent background */
+    border: none !important;
+    border-bottom: 1px solid rgba(30, 58, 95, 0.05) !important; /* Subtle separator */
+    box-shadow: none !important;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  }
+
+  body.mobile-interface-v2 .senna-message.user .message-content {
+    background: rgba(26, 71, 42, 0.04) !important; /* Very light green tint */
+    color: #1e3a5f !important; /* Dark text for readability */
+    border-left: 3px solid #1a472a !important; /* Left accent */
+    border-bottom: 1px solid rgba(30, 58, 95, 0.05) !important;
+    padding-left: 20px !important;
+  }
+
+  /* Override desktop message text styles from senna-vogue.css */
+  /* Kindle-style reading text */
+  body.mobile-interface-v2 .sffc-opportunities-wrapper .sffc-message-content,
+  body.mobile-interface-v2 .sffc-opportunities-wrapper .message-content,
+  body.mobile-interface-v2 .sffc-opportunities-wrapper .message-text,
+  body.mobile-interface-v2 .sffc-message-senna .sffc-message-content,
+  body.mobile-interface-v2 .sffc-message-senna .message-content,
+  body.mobile-interface-v2 .sffc-message-senna .message-text {
+    font-family: "Georgia", "Cambria", serif !important; /* Book-like font */
+    font-size: 20px !important; /* Larger for easy reading */
+    line-height: 1.8 !important; /* Comfortable line spacing */
+    color: #2c3e50 !important; /* Softer dark color for reading */
+    padding: 0 !important; /* Text spans edge to edge */
+    text-align: left !important;
+    letter-spacing: 0.3px !important; /* Slight letter spacing for readability */
+    word-spacing: 0.5px !important;
+  }
+
+  /* User messages use same dark text for readability */
+  body.mobile-interface-v2 .senna-message.user .message-content,
+  body.mobile-interface-v2 .senna-message.user .message-text,
+  body.mobile-interface-v2 .sffc-message-user .message-content {
+    color: #2c3e50 !important; /* Same readable dark text */
+  }
+
+  /* Override desktop font sizes for all text in wrapper */
+  body.mobile-interface-v2 .sffc-opportunities-wrapper {
+    font-size: 18px !important;
+    line-height: 1.8 !important;
+  }
+
+  /* Kindle-style message enhancements */
+  body.mobile-interface-v2 .message-text p {
+    margin: 0 0 12px 0 !important; /* Paragraph spacing */
+  }
+
+  body.mobile-interface-v2 .message-text p:last-child {
+    margin-bottom: 0 !important;
+  }
+
+  /* Assistant messages with subtle left border */
+  body.mobile-interface-v2 .senna-message.assistant .message-content {
+    border-left: 3px solid rgba(30, 58, 95, 0.1) !important;
+    padding-left: 20px !important;
+  }
+
+  /* Message sender indicator - subtle and minimal */
+  body.mobile-interface-v2 .senna-message::before {
+    content: attr(data-sender);
+    display: block;
+    font-size: 11px;
+    color: rgba(30, 58, 95, 0.4);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-weight: 500;
+  }
+
+  body.mobile-interface-v2 .senna-message.user::before {
+    content: "You";
+  }
+
+  body.mobile-interface-v2 .senna-message.assistant::before {
+    content: "MENA Careers";
+  }
+
+  /* Reading background - subtle paper texture */
+  body.mobile-interface-v2.mobile-chat-active {
+    background: #fdfcfa !important; /* Warm off-white like paper */
+  }
+
+  body.mobile-interface-v2 .sffc-senna-conversation {
+    background: #fdfcfa !important;
+  }
+
+  /* Lists in messages - better spacing */
+  body.mobile-interface-v2 .message-text ul,
+  body.mobile-interface-v2 .message-text ol {
+    margin: 12px 0 !important;
+    padding-left: 24px !important;
+  }
+
+  body.mobile-interface-v2 .message-text li {
+    margin: 6px 0 !important;
+    line-height: 1.8 !important;
+  }
+
+  /* Code blocks - monospace and subtle background */
+  body.mobile-interface-v2 .message-text code {
+    font-family: "SF Mono", "Monaco", "Inconsolata", monospace !important;
+    font-size: 16px !important;
+    background: rgba(30, 58, 95, 0.04) !important;
+    padding: 2px 6px !important;
+    border-radius: 4px !important;
+  }
+
+  body.mobile-interface-v2 .message-text pre {
+    background: rgba(30, 58, 95, 0.04) !important;
+    padding: 12px !important;
+    border-radius: 8px !important;
+    overflow-x: auto !important;
+    margin: 12px 0 !important;
+  }
+
+  /* Strong and emphasis */
+  body.mobile-interface-v2 .message-text strong {
+    font-weight: 600 !important;
+    color: #1e3a5f !important;
+  }
+
+  body.mobile-interface-v2 .message-text em {
+    font-style: italic !important;
+  }
+
+  /* Ensure messages don't have desktop flex gaps */
+  body.mobile-interface-v2 .sffc-opportunities-wrapper .sffc-message-senna,
+  body.mobile-interface-v2 .sffc-opportunities-wrapper .senna-message {
+    gap: 0 !important; /* Remove desktop gap */
+    align-items: stretch !important;
+  }
+
+  /* Job cards and grids in chat will use unified card styling */
+  @media (max-width: 768px) {
+    body.mobile-interface-v2 .jobs-grid {
+      display: flex !important;
+      flex-direction: column !important;
+      gap: 12px !important;
+      width: 100% !important;
+    }
+
+    body.mobile-interface-v2 .job-grid-2,
+    body.mobile-interface-v2 .job-grid-3 {
+      grid-template-columns: 1fr !important;
+    }
+  }
+
+  /* ======================================
+       MOBILE PANELS VISIBILITY
+       ====================================== */
+  /* Chat elements visibility in chat mode */
+  body.mobile-interface-v2.mobile-chat-active .sffc-senna-conversation,
+  body.mobile-interface-v2.mobile-chat-active .senna-messages,
+  body.mobile-interface-v2.mobile-chat-active .sffc-autocomplete-container {
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+  }
+
+  /* Hide PE filter in chat mode */
+  body.mobile-interface-v2.mobile-chat-active .pe-filter-sidebar {
+    display: none !important;
+    visibility: hidden !important;
+  }
+
+  /* Show PE filter in browse mode */
+  body.mobile-interface-v2:not(.mobile-chat-active) .pe-filter-sidebar {
+    display: block !important;
+    visibility: visible !important;
+  }
+
+  /* Hide chat elements in browse mode */
+  body.mobile-interface-v2:not(.mobile-chat-active) .sffc-senna-conversation {
+    display: none !important;
+  }
+
+  /* ======================================
+       PE QUICK FILTERS (STORIES BAR) - MOBILE
+       ====================================== */
+  body.mobile-interface-v2 .pe-quick-filters,
+  body.mobile-interface-v2 .stories-bar {
+    position: relative !important; /* Not absolute */
+    top: auto !important;
+    left: auto !important;
+    right: auto !important;
+    width: calc(100% - 32px) !important; /* Full width minus margins */
+    max-width: 600px !important; /* Max width for larger screens */
+    height: 90px !important; /* Taller for better visibility */
+    display: flex !important;
+    justify-content: flex-start !important; /* Start alignment for scrolling */
+    align-items: center !important; /* Vertically center items */
+    gap: 12px !important;
+    padding: 12px 20px !important;
+    margin: 8px auto 20px auto !important; /* Auto horizontal centering */
+    background: rgba(
+      13,
+      53,
+      62,
+      0.08
+    ) !important; /* Subtle tint matching theme */
+    border: 1px solid rgba(30, 58, 95, 0.08) !important;
+    border-radius: 16px !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    -webkit-overflow-scrolling: touch !important;
+    /* Hide scrollbar */
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+    z-index: 1 !important;
+    box-sizing: border-box !important;
+  }
+
+  body.mobile-interface-v2 .pe-quick-filters::-webkit-scrollbar,
+  body.mobile-interface-v2 .stories-bar::-webkit-scrollbar {
+    display: none !important;
+  }
+
+  /* Story bubble items - increased size */
+  body.mobile-interface-v2 .pe-quick-filter-item,
+  body.mobile-interface-v2 .story-bubble {
+    flex-shrink: 0 !important;
+    width: 75px !important; /* Increased for content */
+    text-align: center !important;
+    cursor: pointer !important;
+  }
+
+  /* Story bubble icon container - increased size */
+  body.mobile-interface-v2 .pe-quick-icon,
+  body.mobile-interface-v2 .story-ring {
+    width: 65px !important; /* Increased */
+    height: 65px !important;
+    border-radius: 50% !important;
+    background: linear-gradient(
+      135deg,
+      #1a472a,
+      #2d6a4f
+    ) !important; /* Forest green */
+    padding: 2px !important;
+    margin: 0 auto 4px !important;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    /* Remove desktop animations */
+    animation: none !important;
+  }
+
+  /* Inner circle */
+  body.mobile-interface-v2 .pe-quick-icon-inner,
+  body.mobile-interface-v2 .story-avatar {
+    width: 100% !important;
+    height: 100% !important;
+    border-radius: 50% !important;
+    background: #ffffff !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 18px !important;
+    color: #1e3a5f !important; /* Navy blue */
+    border: 2px solid #ffffff !important;
+  }
+
+  /* Active state */
+  body.mobile-interface-v2 .pe-quick-filter-item.active .pe-quick-icon {
+    background: linear-gradient(
+      135deg,
+      #1e3a5f,
+      #3d5875
+    ) !important; /* Navy gradient */
+    box-shadow: 0 2px 8px rgba(30, 58, 95, 0.2) !important;
+  }
+
+  /* Viewed state */
+  body.mobile-interface-v2 .pe-quick-filter-item.viewed .pe-quick-icon {
+    background: rgba(30, 58, 95, 0.1) !important; /* Light navy */
+    opacity: 0.7 !important;
+  }
+
+  /* Labels */
+  body.mobile-interface-v2 .pe-quick-label {
+    font-size: 11px !important;
+    color: #5a7491 !important; /* Muted navy */
+    font-weight: 500 !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+
+  /* Remove all desktop nth-child specific styles */
+  body.mobile-interface-v2 .pe-quick-filter-item:nth-child(n) .pe-quick-icon {
+    background: linear-gradient(135deg, #1a472a, #2d6a4f) !important;
+    border-radius: 50% !important;
+  }
+
+  body.mobile-interface-v2
+    .pe-quick-filter-item:nth-child(n)
+    .pe-quick-icon::before,
+  body.mobile-interface-v2
+    .pe-quick-filter-item:nth-child(n)
+    .pe-quick-icon::after {
+    display: none !important;
+  }
+
+  body.mobile-interface-v2.mobile-chat-active .mobile-browse-panel {
+    display: none !important;
+  }
+
+  /* ======================================
+       MOBILE JOB CARD ACTION BUTTONS
+       ====================================== */
+  /* Removed absolute positioning of sffc-match-actions that was causing overflow */
+
+  /* Style the action buttons within sffc-match-actions */
+  body.mobile-interface-v2 .sffc-match-actions button,
+  body.mobile-interface-v2 .sffc-match-actions .action-button,
+  body.mobile-interface-v2 .sffc-match-actions .sffc-action-btn,
+  body.mobile-interface-v2 .sffc-match-actions a {
+    padding: 10px 20px !important;
+    background: rgba(255, 255, 255, 0.15) !important;
+    backdrop-filter: blur(10px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.3) !important;
+    border-radius: 8px !important;
+    color: white !important;
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    transition: all 0.2s !important;
+    display: inline-block !important;
+    text-decoration: none !important;
+    flex: 1 !important; /* Make buttons equal width */
+    min-width: 80px !important; /* Minimum width for readability */
+    text-align: center !important;
+  }
+
+  /* Hover state for action buttons */
+  body.mobile-interface-v2 .sffc-match-actions button:hover,
+  body.mobile-interface-v2 .sffc-match-actions .action-button:hover,
+  body.mobile-interface-v2 .sffc-match-actions .sffc-action-btn:hover,
+  body.mobile-interface-v2 .sffc-match-actions a:hover {
+    background: rgba(255, 255, 255, 0.25) !important;
+    transform: translateY(-2px) !important;
+  }
+
+  /* Active state for touch */
+  body.mobile-interface-v2 .sffc-match-actions button:active,
+  body.mobile-interface-v2 .sffc-match-actions .action-button:active,
+  body.mobile-interface-v2 .sffc-match-actions .sffc-action-btn:active,
+  body.mobile-interface-v2 .sffc-match-actions a:active {
+    transform: translateY(0) !important;
+    background: rgba(255, 255, 255, 0.2) !important;
+  }
+
+  body.mobile-interface-v2.mobile-chat-active .mobile-chat-panel {
+    display: flex !important;
+    flex-direction: column;
+  }
+
+  /* ======================================
+       FLOATING ACTION BUTTON - More Prominent Design
+       ====================================== */
+  .floating-action-button {
+    position: fixed;
+    bottom: 90px; /* Just above input field */
+    right: 16px;
+    min-width: 48px; /* Slightly larger */
+    height: 44px; /* Taller for better tap target */
+    padding: 0 16px;
+    background: linear-gradient(
+      135deg,
+      #1a472a 0%,
+      #2d6a4f 100%
+    ); /* Forest green gradient */
+    backdrop-filter: blur(12px) saturate(180%);
+    -webkit-backdrop-filter: blur(12px) saturate(180%);
+    border: none;
+    border-radius: 22px; /* Pill shape */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    box-shadow: 0 4px 12px rgba(26, 71, 42, 0.25), 0 2px 6px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 1000; /* Increased z-index to ensure clickability */
+    font-size: 14px;
+    font-weight: 600;
+    color: white;
+    pointer-events: all; /* Ensure pointer events are enabled */
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1); /* Touch feedback on iOS */
+  }
+
+  /* Collapsed state - icon only */
+  .floating-action-button.collapsed {
+    width: 48px;
+    padding: 0;
+  }
+
+  .floating-action-button .fab-text {
+    display: none;
+    white-space: nowrap;
+    opacity: 0;
+    transition: opacity 0.3s;
+    color: white;
+    letter-spacing: 0.3px;
+  }
+
+  /* Expanded state with text */
+  .floating-action-button.expanded {
+    padding: 0 20px;
+    min-width: auto;
+  }
+
+  .floating-action-button.expanded .fab-text {
+    display: inline;
+    opacity: 1;
+  }
+
+  .floating-action-button:active {
+    transform: scale(0.95);
+    box-shadow: 0 2px 8px rgba(26, 71, 42, 0.3);
+  }
+
+  .floating-action-button:hover {
+    background: linear-gradient(135deg, #2d6a4f 0%, #3a7a5f 100%);
+    box-shadow: 0 6px 16px rgba(26, 71, 42, 0.35);
+    transform: translateY(-1px);
+  }
+
+  /* Move FAB down when input is hidden */
+  body.mobile-input-hidden .floating-action-button {
+    bottom: 24px !important;
+  }
+
+  /* Chat mode - gold accent */
+  body.mobile-chat-active .floating-action-button {
+    background: linear-gradient(
+      135deg,
+      #d4af37 0%,
+      #e6c757 100%
+    ); /* Gold gradient in chat mode */
+    box-shadow: 0 4px 12px rgba(212, 175, 55, 0.3);
+  }
+
+  body.mobile-chat-active .floating-action-button:hover {
+    background: linear-gradient(135deg, #e6c757 0%, #f0d567 100%);
+    box-shadow: 0 6px 16px rgba(212, 175, 55, 0.4);
+  }
+
+  .floating-action-button svg {
+    width: 20px;
+    height: 20px;
+    fill: white;
+    opacity: 0.95;
+    transition: opacity 0.2s;
+  }
+
+  .floating-action-button:hover svg,
+  .floating-action-button.expanded svg {
+    opacity: 1;
+  }
+
+  /* Slightly fade FAB when input is visible (but keep clickable) */
+  body.mobile-interface-v2:not(.mobile-input-hidden) .floating-action-button {
+    opacity: 0.8;
+    transform: translateY(4px);
+    /* Keep pointer-events enabled so button remains clickable */
+  }
+
+  /* Alternative: move FAB to left side when input visible */
+  body.mobile-interface-v2:not(.mobile-input-hidden)
+    .floating-action-button.auto-move {
+    right: auto;
+    left: 16px;
+    opacity: 0.8;
+    pointer-events: all;
+  }
+
+  /* Pulse animation for attention with green glow */
+  @keyframes fab-pulse {
+    0% {
+      box-shadow: 0 4px 12px rgba(26, 71, 42, 0.25);
+    }
+    50% {
+      box-shadow: 0 4px 12px rgba(26, 71, 42, 0.25),
+        0 0 0 12px rgba(45, 106, 79, 0.15);
+    }
+    100% {
+      box-shadow: 0 4px 12px rgba(26, 71, 42, 0.25);
+    }
+  }
+
+  /* Add pulse when FAB appears */
+  body.mobile-input-hidden .floating-action-button {
+    animation: fab-pulse 2.5s ease-out;
+  }
+
+  /* Gold pulse for chat mode */
+  @keyframes fab-pulse-gold {
+    0% {
+      box-shadow: 0 4px 12px rgba(212, 175, 55, 0.3);
+    }
+    50% {
+      box-shadow: 0 4px 12px rgba(212, 175, 55, 0.3),
+        0 0 0 12px rgba(212, 175, 55, 0.15);
+    }
+    100% {
+      box-shadow: 0 4px 12px rgba(212, 175, 55, 0.3);
+    }
+  }
+
+  body.mobile-chat-active.mobile-input-hidden .floating-action-button {
+    animation: fab-pulse-gold 2.5s ease-out;
+  }
+
+  /* ======================================
+       BOTTOM SHEET
+       ====================================== */
+  .bottom-sheet {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: #ffffff;
+    border-top-left-radius: 20px;
+    border-top-right-radius: 20px;
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08);
+    transform: translateY(100%);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 600;
+    min-height: 300px;
+    max-height: 70vh;
+    overflow-y: auto;
+    /* Hide scrollbar */
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .bottom-sheet::-webkit-scrollbar {
+    display: none;
+  }
+
+  .bottom-sheet.visible {
+    transform: translateY(0);
+  }
+
+  .sheet-handle {
+    width: 40px;
+    height: 4px;
+    background: rgba(0, 31, 63, 0.2);
+    border-radius: 2px;
+    margin: 12px auto;
+  }
+
+  .sheet-content {
+    padding: 0 24px 24px;
+  }
+
+  .sheet-content h3 {
+    color: #1e3a5f; /* Navy blue */
+    font-family: "Playfair Display", serif;
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 20px;
+  }
+
+  .quick-action-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+
+  .quick-action {
+    background: #ffffff;
+    border: 1px solid rgba(30, 58, 95, 0.1); /* Navy border */
+    border-radius: 16px;
+    padding: 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .quick-action:active {
+    transform: scale(0.97);
+    background: rgba(26, 71, 42, 0.05); /* Light forest green tint */
+    border-color: #1a472a;
+  }
+
+  .action-icon {
+    margin-bottom: 8px;
+    color: #1a472a; /* Dark forest green */
+  }
+
+  .action-icon svg {
+    width: 24px;
+    height: 24px;
+  }
+
+  .action-label {
+    color: #1e3a5f; /* Navy blue */
+    font-family: "Playfair Display", serif;
+    font-size: 14px;
+    font-weight: 500;
+  }
+
+  /* Body overlay when sheet is open */
+  body.sheet-open::before {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(30, 58, 95, 0.4); /* Navy overlay */
+    z-index: 599;
+    animation: fadeIn 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* ======================================
+       SEARCH PANEL
+       ====================================== */
+  .mobile-search-panel {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+    background: #ffffff;
+    transform: translateY(-100%);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 2000;
+    overflow-y: auto;
+    overflow-x: hidden;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .mobile-search-panel::-webkit-scrollbar {
+    display: none;
+  }
+
+  .mobile-search-panel.visible {
+    transform: translateY(0);
+  }
+
+  .search-panel-header {
+    display: flex;
+    align-items: center;
+    padding: 16px;
+    border-bottom: 1px solid rgba(30, 58, 95, 0.08);
+    position: sticky;
+    top: 0;
+    background: #ffffff;
+    z-index: 10;
+  }
+
+  .search-panel-close {
+    width: 32px;
+    height: 32px;
+    background: transparent;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    margin-right: 12px;
+  }
+
+  .search-panel-header h3 {
+    flex: 1;
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+    color: #1e3a5f;
+  }
+
+  .search-panel-content {
+    padding: 16px;
+  }
+
+  .mobile-search-input-wrapper {
+    position: relative;
+    margin-bottom: 16px;
+  }
+
+  .mobile-search-input {
+    width: 100%;
+    padding: 12px 40px 12px 16px;
+    background: rgba(30, 58, 95, 0.03);
+    border: 2px solid rgba(30, 58, 95, 0.1);
+    border-radius: 12px;
+    font-size: 16px;
+    color: #1e3a5f;
+    outline: none;
+    transition: all 0.2s;
+  }
+
+  .mobile-search-input:focus {
+    border-color: #1a472a;
+    background: #ffffff;
+    box-shadow: 0 0 0 3px rgba(26, 71, 42, 0.1);
+  }
+
+  .mobile-search-clear {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 32px;
+    height: 32px;
+    background: transparent;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: #1e3a5f;
+    opacity: 0.5;
+  }
+
+  .search-filters {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .search-filters::-webkit-scrollbar {
+    display: none;
+  }
+
+  .search-filter-btn {
+    flex-shrink: 0;
+    padding: 8px 16px;
+    background: rgba(30, 58, 95, 0.05);
+    border: 1px solid rgba(30, 58, 95, 0.1);
+    border-radius: 20px;
+    font-size: 14px;
+    color: #1e3a5f;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+
+  .search-filter-btn.active {
+    background: linear-gradient(135deg, #1a472a, #2d6a4f);
+    color: white;
+    border-color: transparent;
+  }
+
+  .search-results {
+    min-height: 300px;
+  }
+
+  .search-placeholder,
+  .search-no-results {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    text-align: center;
+  }
+
+  .search-placeholder p,
+  .search-no-results p {
+    color: rgba(30, 58, 95, 0.5);
+    font-size: 14px;
+    margin-top: 16px;
+  }
+
+  .search-loading {
+    text-align: center;
+    padding: 40px;
+    color: rgba(30, 58, 95, 0.5);
+    font-size: 14px;
+  }
+
+  .search-result-item {
+    display: flex;
+    gap: 12px;
+    padding: 12px;
+    margin-bottom: 8px;
+    background: rgba(30, 58, 95, 0.02);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .search-result-item:hover {
+    background: rgba(30, 58, 95, 0.05);
+  }
+
+  .result-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .result-icon.user {
+    background: linear-gradient(135deg, #1a472a, #2d6a4f);
+    color: white;
+  }
+
+  .result-icon.senna {
+    background: rgba(30, 58, 95, 0.1);
+    color: #1e3a5f;
+  }
+
+  .result-content {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .result-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 4px;
+  }
+
+  .result-type {
+    font-weight: 600;
+    font-size: 14px;
+    color: #1e3a5f;
+  }
+
+  .result-job-badge {
+    background: linear-gradient(135deg, #1a472a, #2d6a4f);
+    color: white;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 500;
+  }
+
+  .result-text {
+    font-size: 13px;
+    color: rgba(30, 58, 95, 0.7);
+    line-height: 1.4;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+  }
+
+  /* Highlighted message when scrolled to */
+  .senna-message.highlighted,
+  .user-message.highlighted,
+  .message-content.highlighted {
+    background: rgba(26, 71, 42, 0.1) !important;
+    border-radius: 8px;
+    animation: highlight-pulse 2s ease;
+    position: relative;
+  }
+
+  /* Flash effect when found */
+  .senna-message.flash,
+  .user-message.flash,
+  .message-content.flash {
+    animation: flash-effect 0.3s ease;
+  }
+
+  @keyframes highlight-pulse {
+    0% {
+      background: rgba(26, 71, 42, 0.2);
+    }
+    50% {
+      background: rgba(26, 71, 42, 0.1);
+    }
+    100% {
+      background: transparent;
+    }
+  }
+
+  @keyframes flash-effect {
+    0% {
+      transform: scale(1);
+    }
+    50% {
+      transform: scale(1.02);
+      background: rgba(26, 71, 42, 0.3);
+    }
+    100% {
+      transform: scale(1);
+    }
+  }
+
+  /* ======================================
+       PROFILE PANEL
+       ====================================== */
+  .mobile-profile-panel {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 80%;
+    max-width: 320px;
+    height: 100vh;
+    background: #ffffff;
+    box-shadow: -4px 0 20px rgba(30, 58, 95, 0.12);
+    transform: translateX(100%);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 1100; /* Above overlay (1099) */
+    overflow-y: auto;
+    /* Hide scrollbar */
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .mobile-profile-panel::-webkit-scrollbar {
+    display: none;
+  }
+
+  .mobile-profile-panel.visible {
+    transform: translateX(0);
+  }
+
+  .profile-panel-header {
+    display: flex;
+    align-items: center;
+    padding: 16px;
+    border-bottom: 1px solid rgba(0, 31, 63, 0.08);
+    position: sticky;
+    top: 0;
+    background: white;
+    z-index: 10;
+  }
+
+  .profile-panel-close {
+    background: transparent;
+    border: none;
+    padding: 4px;
+    margin-right: 12px;
+    cursor: pointer;
+  }
+
+  .profile-panel-header h3 {
+    color: #1e3a5f; /* Navy blue */
+    font-family: "Playfair Display", serif;
+    font-size: 20px;
+    font-weight: 600;
+    margin: 0;
+  }
+
+  .profile-panel-content {
+    padding: 24px 16px;
+  }
+
+  .profile-info {
+    text-align: center;
+    margin-bottom: 24px;
+  }
+
+  .profile-avatar {
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(
+      135deg,
+      rgba(45, 106, 79, 0.1),
+      rgba(82, 183, 136, 0.05)
+    );
+    border-radius: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 16px;
+  }
+
+  .profile-name {
+    color: #1e3a5f; /* Navy blue */
+    font-family: "Playfair Display", serif;
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0 0 4px 0;
+  }
+
+  .profile-status {
+    color: rgba(0, 31, 63, 0.6);
+    font-size: 14px;
+    margin: 0;
+  }
+
+  .profile-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+
+  .member-btn,
+  .profile-edit-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 14px;
+    border-radius: 12px;
+    font-family: "Playfair Display", serif;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    border: none;
+  }
+
+  .member-btn {
+    background: linear-gradient(135deg, #1a472a, #2d6a4f); /* Forest green */
+    color: white;
+    box-shadow: 0 4px 12px rgba(26, 71, 42, 0.2);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .profile-edit-btn {
+    background: rgba(30, 58, 95, 0.08); /* Light navy background */
+    color: #1e3a5f; /* Navy blue text */
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .member-btn:active,
+  .profile-edit-btn:active {
+    transform: scale(0.97);
+  }
+
+  /* Overlay for profile panel - clickable to close */
+  body.profile-panel-open::after {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(30, 58, 95, 0.4); /* Navy overlay */
+    z-index: 1099;
+    animation: fadeIn 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    pointer-events: auto; /* Make it clickable */
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+}
+
+/* ======================================
+   RESPONSIVE ADJUSTMENTS - Smaller screens
+   ====================================== */
+@media (max-width: 375px) {
+  .mode-pills {
+    padding: 10px 12px;
+  }
+
+  .mode-pill {
+    padding: 8px 10px;
+    font-size: 13px;
+  }
+
+  .mobile-browse-panel,
+  .mobile-chat-panel {
+    padding: 12px;
+  }
+
+  .floating-action-button {
+    min-width: 44px;
+    height: 40px;
+    bottom: 80px;
+    right: 12px;
+    padding: 0 14px;
+    font-size: 13px;
+  }
+
+  .floating-action-button.collapsed {
+    width: 44px;
+    padding: 0;
+  }
+
+  .floating-action-button svg {
+    width: 18px;
+    height: 18px;
+  }
+}
+
+/* ======================================
+   iOS SAFE AREA SUPPORT
+   ====================================== */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .mobile-autocomplete {
+    padding-bottom: calc(12px + env(safe-area-inset-bottom));
+  }
+
+  .bottom-sheet {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
+/* ======================================
+   ENSURE PROPER DESKTOP/MOBILE SEPARATION
+   ====================================== */
+@media (max-width: 768px) {
+  /* Ensure complete separation */
+  body.mobile-interface-v2 .mobile-browse-panel {
+    display: block;
+  }
+
+  body.mobile-interface-v2 .mobile-chat-panel {
+    display: none;
+  }
+
+  body.mobile-interface-v2.mobile-chat-active .mobile-browse-panel {
+    display: none !important;
+  }
+
+  body.mobile-interface-v2.mobile-chat-active .mobile-chat-panel {
+    display: block !important;
+  }
+}
+
+/* Hide all mobile elements on desktop */
+@media (min-width: 769px) {
+  .mobile-status-bar,
+  .mode-pills,
+  .mobile-browse-panel,
+  .mobile-chat-panel,
+  .mobile-search-panel,
+  .mobile-profile-panel,
+  .floating-action-button,
+  .bottom-sheet {
+    display: none !important;
+    visibility: hidden !important;
+  }
+
+  /* Ensure desktop elements show normally */
+  .pe-filter-sidebar.mobile-transformed {
+    /* Remove mobile transformations on desktop */
+    position: fixed !important;
+    left: 20px !important;
+    top: 100px !important;
+    width: 300px !important;
+    height: calc(100vh - 140px) !important;
+  }
+}
+
+/* ======================================
+   JOB CARD OVERRIDES - Match question-card exactly
+   ====================================== */
+@media (max-width: 768px) {
+  /* Removed job card dark background forcing - let vogue cards use their own white styles */
+
+  /* Removed chat mode height constraints */
+
+  /* Removed white text forcing on vogue cards */
+  /* Removed white text color forcing on company, location and meta text */
+
+  /* Removed global white text forcing */
+
+  /* Removed dark background badge styles */
+
+  /* Hide sections that don't belong in mobile */
+  body.mobile-interface-v2
+    .sffc-match-card.job-card-vogue.job-card-simplified
+    .sffc-job-details,
+  body.mobile-interface-v2
+    .sffc-match-card.job-card-vogue.job-card-simplified
+    .select-section {
+    display: none !important;
+  }
+
+  /* Removed absolute positioning and dark styling on vogue card buttons */
+
+  /* Removed dark gradient variations */
+}
+
+/* ======================================
+   FINAL OVERRIDE - ENSURE TIKTOK STYLES WIN
+   ====================================== */
+@media (max-width: 768px) {
+  /* Override any conflicting desktop heights with extreme specificity */
+  html body.mobile-interface-v2 .pe-filter-sidebar .question-card,
+  html body.mobile-interface-v2 .pe-filter-sidebar .mobile-unified-card,
+  html body.mobile-interface-v2 .pe-filter-sidebar .mobile-card-style,
+  html body.mobile-interface-v2 .pe-filter-sidebar .pe-job-card,
+  html body.mobile-interface-v2 .pe-filter-sidebar .job-card {
+    min-height: 45vh !important;
+    max-height: 50vh !important;
+    padding: 40px 20px 30px !important;
+    background: linear-gradient(135deg, #0d353e 0%, #1a5a65 100%) !important;
+    border-radius: 16px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+  }
+
+  /* Ensure chat cards stay smaller */
+  html body.mobile-interface-v2 .senna-messages .question-card,
+  html body.mobile-interface-v2 .senna-messages .mobile-unified-card,
+  html body.mobile-interface-v2 .senna-messages .mobile-card-style,
+  html body.mobile-interface-v2 .senna-messages .job-card,
+  html body.mobile-interface-v2 .senna-messages .senna-job-card {
+    min-height: 120px !important;
+    max-height: 150px !important;
+    padding: 16px !important;
+    background: linear-gradient(135deg, #0d353e 0%, #1a5a65 100%) !important;
+    border-radius: 12px !important;
+  }
+
+  /* Apply gradient variations with highest specificity */
+  html body.mobile-interface-v2 .question-card:nth-child(2n),
+  html body.mobile-interface-v2 .mobile-unified-card:nth-child(2n),
+  html body.mobile-interface-v2 .mobile-card-style:nth-child(2n) {
+    background: linear-gradient(145deg, #0d353e 0%, #2a6a75 100%) !important;
+  }
+
+  html body.mobile-interface-v2 .question-card:nth-child(3n),
+  html body.mobile-interface-v2 .mobile-unified-card:nth-child(3n),
+  html body.mobile-interface-v2 .mobile-card-style:nth-child(3n) {
+    background: linear-gradient(125deg, #0d353e 0%, #1f5460 100%) !important;
+  }
+
+  html body.mobile-interface-v2 .question-card:nth-child(4n),
+  html body.mobile-interface-v2 .mobile-unified-card:nth-child(4n),
+  html body.mobile-interface-v2 .mobile-card-style:nth-child(4n) {
+    background: linear-gradient(155deg, #0d353e 0%, #3a7a85 100%) !important;
+  }
+
+  /* Ensure text is white on dark backgrounds - but preserve button styles */
+  html body.mobile-interface-v2 .question-card > *:not(.ask-senna-btn),
+  html body.mobile-interface-v2 .mobile-unified-card > *:not(.ask-senna-btn),
+  html body.mobile-interface-v2 .mobile-card-style > *:not(.ask-senna-btn),
+  html body.mobile-interface-v2 .question-content,
+  html body.mobile-interface-v2 .question-title,
+  html body.mobile-interface-v2 .question-category,
+  html body.mobile-interface-v2 .question-preview,
+  html body.mobile-interface-v2 .question-bullets li,
+  html body.mobile-interface-v2 .filter-meta .meta-tag {
+    color: #ffffff !important;
+  }
+
+  /* Ask MENA Careers button should have dark text on light background */
+  html body.mobile-interface-v2 .ask-senna-btn {
+    background: #f5f2e8 !important; /* Cream background */
+    color: #0d353e !important; /* Dark teal text */
+    border: 2px solid #f5f2e8 !important;
+    padding: 14px 20px !important;
+    border-radius: 12px !important;
+    font-size: 15px !important;
+    font-weight: 700 !important;
+    font-family: "Playfair Display", serif !important;
+    cursor: pointer !important;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    text-align: center !important;
+    display: inline-block !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    text-transform: none !important;
+    letter-spacing: normal !important;
+  }
+
+  html body.mobile-interface-v2 .ask-senna-btn:hover,
+  html body.mobile-interface-v2 .ask-senna-btn:active {
+    background: #ffffff !important; /* White on hover */
+    color: #0d353e !important; /* Keep dark text */
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 12px rgba(245, 242, 232, 0.3) !important;
+  }
+
+  /* Kill ALL pseudo elements definitively */
+  html body.mobile-interface-v2 .question-card::before,
+  html body.mobile-interface-v2 .question-card::after,
+  html body.mobile-interface-v2 .mobile-unified-card::before,
+  html body.mobile-interface-v2 .mobile-unified-card::after,
+  html body.mobile-interface-v2 .mobile-card-style::before,
+  html body.mobile-interface-v2 .mobile-card-style::after,
+  html body.mobile-interface-v2 .pe-job-card::before,
+  html body.mobile-interface-v2 .pe-job-card::after,
+  html body.mobile-interface-v2 .job-card::before,
+  html body.mobile-interface-v2 .job-card::after {
+    display: none !important;
+    content: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    width: 0 !important;
+    height: 0 !important;
+  }
+
+  /* ======================================
+       MOBILE BOUNCE PREVENTION FIXES
+       ====================================== */
+
+  /* Prevent viewport jumping on mobile */
+  body.mobile-interface-v2 * {
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Remove ALL animations that cause bouncing on mobile */
+  body.mobile-interface-v2 .sffc-match-card,
+  body.mobile-interface-v2 .job-card-vogue,
+  body.mobile-interface-v2 .senna-message,
+  body.mobile-interface-v2 .quick-responses {
+    animation: none !important;
+  }
+
+  /* Fix viewport height to prevent bouncing */
+  body.mobile-interface-v2 {
+    min-height: 100vh;
+    min-height: -webkit-fill-available;
+  }
+
+  html {
+    height: -webkit-fill-available;
+  }
+
+  /* Prevent content jumping when elements hide/show */
+  body.mobile-interface-v2 .sffc-conversational-view {
+    min-height: calc(100vh - 44px);
+    padding-bottom: 100px; /* Prevent content jumping when keyboard appears */
+  }
+
+  /* Smooth scrolling without bouncing */
+  body.mobile-interface-v2 .sffc-messages-container {
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+
+  /* Prevent job cards from jumping when removed */
+  body.mobile-interface-v2 .sffc-match-card.passed,
+  body.mobile-interface-v2 .sffc-match-card.removing {
+    transition: opacity 0.3s ease, transform 0.3s ease !important;
+    animation: none !important;
+  }
+
+  /* Fix input field zoom on iOS */
+  body.mobile-interface-v2 #senna-input,
+  body.mobile-interface-v2 .senna-input-wrapper input {
+    font-size: 16px !important; /* Prevents zoom on iOS */
+  }
+
+  /* Hardware acceleration for smooth transitions */
+  body.mobile-interface-v2 .sffc-match-card,
+  body.mobile-interface-v2 .job-card-vogue {
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    perspective: 1000px;
+  }
+
+  /* Shortlist counter animation removed */
+}

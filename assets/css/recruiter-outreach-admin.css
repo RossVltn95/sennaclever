@@ -1,0 +1,456 @@
+/**
+ * Recruiter Outreach Admin Styles
+ *
+ * Uses NRT Terminal color palette - no purple or strange colors
+ */
+
+/* Variables - matching NRT Terminal */
+:root {
+    --roa-navy-900: #0a1628;
+    --roa-navy-800: #0f2137;
+    --roa-navy-700: #1a3a5c;
+    --roa-senna-primary: #0d353e;
+    --roa-senna-accent: #2d6a7a;
+    --roa-cream-100: #faf8f5;
+    --roa-cream-200: #f5f2ed;
+    --roa-gray-900: #18181b;
+    --roa-gray-600: #52525b;
+    --roa-gray-400: #a1a1aa;
+    --roa-gray-200: #e4e4e7;
+    --roa-green-600: #1e6b4a;
+    --roa-blue-600: #2563eb;
+    --roa-white: #ffffff;
+}
+
+/* Main Container */
+.sffc-outreach-admin {
+    max-width: 1400px;
+}
+
+.sffc-outreach-admin h1 {
+    color: var(--roa-navy-900);
+    font-weight: 600;
+}
+
+.sffc-outreach-content {
+    margin-top: 20px;
+    background: var(--roa-white);
+    border: 1px solid var(--roa-gray-200);
+    border-radius: 8px;
+    padding: 20px;
+}
+
+/* Nav Tabs */
+.sffc-outreach-admin .nav-tab-wrapper {
+    border-bottom-color: var(--roa-gray-200);
+    margin-bottom: 0;
+}
+
+.sffc-outreach-admin .nav-tab {
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    color: var(--roa-gray-600);
+    font-weight: 500;
+    padding: 10px 16px;
+    margin-bottom: -1px;
+}
+
+.sffc-outreach-admin .nav-tab:hover {
+    background: transparent;
+    color: var(--roa-navy-800);
+}
+
+.sffc-outreach-admin .nav-tab-active {
+    background: transparent;
+    border-bottom-color: var(--roa-senna-primary);
+    color: var(--roa-senna-primary);
+}
+
+/* Filter Bar */
+.sffc-filter-bar {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--roa-gray-200);
+}
+
+.sffc-filter-bar select,
+.sffc-filter-bar input[type="search"] {
+    padding: 8px 12px;
+    border: 1px solid var(--roa-gray-200);
+    border-radius: 6px;
+    font-size: 14px;
+}
+
+.sffc-filter-bar input[type="search"] {
+    width: 250px;
+}
+
+.sffc-filter-bar .button-primary {
+    margin-left: auto;
+}
+
+/* Tables */
+.sffc-outreach-admin .wp-list-table {
+    border-collapse: collapse;
+}
+
+.sffc-outreach-admin .wp-list-table th {
+    background: var(--roa-cream-100);
+    color: var(--roa-gray-600);
+    font-weight: 600;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--roa-gray-200);
+}
+
+.sffc-outreach-admin .wp-list-table td {
+    padding: 14px 16px;
+    vertical-align: middle;
+    border-bottom: 1px solid var(--roa-gray-200);
+}
+
+.sffc-outreach-admin .wp-list-table tr:hover td {
+    background: var(--roa-cream-100);
+}
+
+.sffc-outreach-admin .wp-list-table strong {
+    color: var(--roa-gray-900);
+    font-weight: 600;
+}
+
+.sffc-outreach-admin .wp-list-table small {
+    color: var(--roa-gray-600);
+    font-size: 12px;
+}
+
+/* Count Badge */
+.sffc-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 28px;
+    height: 28px;
+    padding: 0 8px;
+    background: var(--roa-senna-accent);
+    color: var(--roa-white);
+    font-weight: 600;
+    font-size: 13px;
+    border-radius: 14px;
+}
+
+/* More tag */
+.sffc-more {
+    display: inline-block;
+    padding: 2px 6px;
+    background: var(--roa-gray-200);
+    color: var(--roa-gray-600);
+    font-size: 11px;
+    border-radius: 4px;
+    margin-left: 4px;
+}
+
+/* Status Badges */
+.sffc-status {
+    display: inline-block;
+    padding: 4px 10px;
+    font-size: 12px;
+    font-weight: 500;
+    border-radius: 12px;
+    text-transform: capitalize;
+}
+
+.sffc-status-sent {
+    background: var(--roa-cream-200);
+    color: var(--roa-gray-600);
+}
+
+.sffc-status-viewed {
+    background: #dbeafe;
+    color: var(--roa-blue-600);
+}
+
+.sffc-status-responded {
+    background: #d1fae5;
+    color: var(--roa-green-600);
+}
+
+.sffc-status-no_response {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.sffc-status-declined {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+/* Tags */
+.sffc-tag {
+    display: inline-block;
+    padding: 2px 8px;
+    background: var(--roa-cream-200);
+    color: var(--roa-gray-600);
+    font-size: 11px;
+    border-radius: 10px;
+    margin-right: 4px;
+    margin-bottom: 2px;
+}
+
+/* Recruiter Thumbnail */
+.sffc-recruiter-thumb {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.sffc-recruiter-initials {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--roa-senna-accent);
+    color: var(--roa-white);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 14px;
+    text-transform: uppercase;
+}
+
+/* LinkedIn Link */
+.sffc-linkedin-link {
+    color: var(--roa-blue-600);
+    text-decoration: none;
+    margin-left: 6px;
+}
+
+.sffc-linkedin-link:hover {
+    color: var(--roa-navy-800);
+}
+
+/* Empty State */
+.sffc-empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--roa-gray-600);
+}
+
+.sffc-empty-state p {
+    font-size: 15px;
+    margin: 0;
+}
+
+/* Modal */
+.sffc-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(10, 22, 40, 0.6);
+    z-index: 100000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.sffc-modal-content {
+    background: var(--roa-white);
+    border-radius: 12px;
+    width: 100%;
+    max-width: 500px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+}
+
+.sffc-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--roa-gray-200);
+}
+
+.sffc-modal-header h3 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--roa-gray-900);
+}
+
+.sffc-modal-close {
+    background: none;
+    border: none;
+    font-size: 24px;
+    color: var(--roa-gray-400);
+    cursor: pointer;
+    line-height: 1;
+    padding: 0;
+}
+
+.sffc-modal-close:hover {
+    color: var(--roa-gray-900);
+}
+
+.sffc-modal form {
+    padding: 24px;
+}
+
+.sffc-form-row {
+    margin-bottom: 16px;
+}
+
+.sffc-form-row label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 500;
+    color: var(--roa-gray-900);
+    font-size: 13px;
+}
+
+.sffc-form-row input[type="text"],
+.sffc-form-row input[type="email"],
+.sffc-form-row input[type="url"],
+.sffc-form-row select,
+.sffc-form-row textarea {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--roa-gray-200);
+    border-radius: 6px;
+    font-size: 14px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.sffc-form-row input:focus,
+.sffc-form-row select:focus,
+.sffc-form-row textarea:focus {
+    outline: none;
+    border-color: var(--roa-senna-accent);
+    box-shadow: 0 0 0 3px rgba(45, 106, 122, 0.1);
+}
+
+.sffc-form-row .sffc-add-recruiter-btn {
+    margin-top: 8px;
+}
+
+.sffc-form-static {
+    margin: 0;
+    padding: 10px 12px;
+    background: var(--roa-cream-100);
+    border-radius: 6px;
+    font-weight: 500;
+}
+
+.sffc-modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    padding-top: 16px;
+    margin-top: 8px;
+    border-top: 1px solid var(--roa-gray-200);
+}
+
+/* Buttons */
+.sffc-outreach-admin .button {
+    border-radius: 6px;
+    font-weight: 500;
+}
+
+.sffc-outreach-admin .button-primary {
+    background: var(--roa-senna-primary);
+    border-color: var(--roa-senna-primary);
+}
+
+.sffc-outreach-admin .button-primary:hover,
+.sffc-outreach-admin .button-primary:focus {
+    background: var(--roa-navy-800);
+    border-color: var(--roa-navy-800);
+}
+
+/* Update Status Select */
+.sffc-update-status {
+    padding: 6px 10px;
+    border: 1px solid var(--roa-gray-200);
+    border-radius: 6px;
+    font-size: 13px;
+    margin-right: 8px;
+}
+
+/* Create Opportunity Button */
+.sffc-create-opportunity-btn {
+    font-size: 12px !important;
+    padding: 4px 10px !important;
+}
+
+/* View Submissions Link */
+.sffc-view-submissions {
+    display: inline-block;
+    margin-left: 8px;
+    color: var(--roa-senna-accent);
+    text-decoration: none;
+    font-size: 13px;
+}
+
+.sffc-view-submissions:hover {
+    text-decoration: underline;
+}
+
+/* Log Submission Button */
+.sffc-log-submission-btn {
+    font-size: 13px !important;
+}
+
+/* Pagination */
+.sffc-outreach-admin .tablenav-pages {
+    margin-top: 20px;
+}
+
+.sffc-outreach-admin .tablenav-pages .page-numbers {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 32px;
+    height: 32px;
+    padding: 0 8px;
+    margin: 0 2px;
+    border: 1px solid var(--roa-gray-200);
+    border-radius: 6px;
+    text-decoration: none;
+    color: var(--roa-gray-600);
+    font-size: 13px;
+}
+
+.sffc-outreach-admin .tablenav-pages .page-numbers:hover {
+    background: var(--roa-cream-100);
+    color: var(--roa-gray-900);
+}
+
+.sffc-outreach-admin .tablenav-pages .page-numbers.current {
+    background: var(--roa-senna-primary);
+    border-color: var(--roa-senna-primary);
+    color: var(--roa-white);
+}
+
+/* Responsive */
+@media screen and (max-width: 782px) {
+    .sffc-filter-bar {
+        flex-wrap: wrap;
+    }
+
+    .sffc-filter-bar input[type="search"] {
+        width: 100%;
+    }
+
+    .sffc-modal-content {
+        margin: 20px;
+        max-width: none;
+    }
+}

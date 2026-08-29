@@ -1,0 +1,823 @@
+/**
+ * Role Analyzer Styles
+ * CV matching and analysis interface
+ */
+
+/* ==========================================================================
+   CSS Variables
+   ========================================================================== */
+
+.sffc-role-analyzer {
+    --analyzer-bg: #ffffff;
+    --analyzer-bg-alt: #f8f9fa;
+    --analyzer-border: #e5e7eb;
+    --analyzer-text: #1a1a1a;
+    --analyzer-text-muted: #6b7280;
+
+    --color-primary: #059669;
+    --color-primary-light: #d1fae5;
+    --color-secondary: #2563eb;
+    --color-secondary-light: #dbeafe;
+    --color-warning: #d97706;
+    --color-warning-light: #fef3c7;
+    --color-danger: #dc2626;
+    --color-danger-light: #fee2e2;
+
+    --font-display: 'Playfair Display', Georgia, serif;
+    --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+
+    --space-xs: 0.25rem;
+    --space-sm: 0.5rem;
+    --space-md: 1rem;
+    --space-lg: 1.5rem;
+    --space-xl: 2rem;
+    --space-2xl: 3rem;
+    --space-3xl: 4rem;
+}
+
+/* ==========================================================================
+   Container
+   ========================================================================== */
+
+.sffc-role-analyzer {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: var(--space-xl);
+    font-family: var(--font-body);
+    color: var(--analyzer-text);
+    background: var(--analyzer-bg);
+}
+
+/* ==========================================================================
+   Header Section
+   ========================================================================== */
+
+.sffc-role-analyzer__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: var(--space-xl);
+    margin-bottom: var(--space-2xl);
+    padding-bottom: var(--space-xl);
+    border-bottom: 2px solid var(--analyzer-border);
+}
+
+.sffc-role-analyzer__title-section {
+    flex: 1;
+}
+
+.sffc-role-analyzer__title {
+    font-family: var(--font-display);
+    font-size: 2.25rem;
+    font-weight: 700;
+    color: var(--analyzer-text);
+    margin: 0 0 var(--space-lg);
+    line-height: 1.2;
+}
+
+.sffc-role-analyzer__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-lg);
+}
+
+.sffc-role-analyzer__meta-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    font-size: 0.9375rem;
+    color: var(--analyzer-text-muted);
+}
+
+.sffc-role-analyzer__meta-item svg {
+    flex-shrink: 0;
+    color: var(--color-primary);
+}
+
+.sffc-role-analyzer__analyze-btn {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-sm);
+    padding: 0.875rem 1.75rem;
+    background: linear-gradient(135deg, var(--color-primary) 0%, #047857 100%);
+    color: #ffffff;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    font-family: var(--font-body);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 12px rgba(5, 150, 105, 0.2);
+}
+
+.sffc-role-analyzer__analyze-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(5, 150, 105, 0.3);
+}
+
+.sffc-role-analyzer__analyze-btn:active {
+    transform: translateY(0);
+}
+
+.sffc-role-analyzer__analyze-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.sffc-role-analyzer__analyze-btn svg {
+    flex-shrink: 0;
+}
+
+/* ==========================================================================
+   Content Section
+   ========================================================================== */
+
+.sffc-role-analyzer__content {
+    margin-bottom: var(--space-2xl);
+}
+
+.sffc-role-analyzer__content h2 {
+    font-family: var(--font-display);
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--analyzer-text);
+    margin: 0 0 var(--space-lg);
+}
+
+.sffc-role-analyzer__description {
+    font-size: 1rem;
+    line-height: 1.7;
+    color: var(--analyzer-text);
+}
+
+.sffc-role-analyzer__description p {
+    margin-bottom: var(--space-md);
+}
+
+.sffc-role-analyzer__description ul,
+.sffc-role-analyzer__description ol {
+    margin-bottom: var(--space-md);
+    padding-left: var(--space-xl);
+}
+
+.sffc-role-analyzer__description li {
+    margin-bottom: var(--space-sm);
+}
+
+.sffc-role-analyzer__description strong {
+    color: var(--analyzer-text);
+    font-weight: 600;
+}
+
+/* ==========================================================================
+   CV Upload Panel
+   ========================================================================== */
+
+.sffc-role-analyzer__cv-panel {
+    margin-bottom: var(--space-2xl);
+    padding: var(--space-xl);
+    border: 2px dashed var(--analyzer-border);
+    border-radius: 16px;
+    background: #ffffff;
+    box-shadow: 0 20px 40px -35px rgba(15, 23, 42, 0.5);
+}
+
+.sffc-role-analyzer__cv-header {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--space-lg);
+    align-items: flex-start;
+}
+
+.sffc-role-analyzer__cv-header h3 {
+    margin: 0 0 var(--space-xs);
+    font-size: 1.35rem;
+}
+
+.sffc-role-analyzer__cv-header p {
+    margin: 0;
+    color: var(--analyzer-text-muted);
+    font-size: 0.95rem;
+}
+
+.sffc-role-analyzer__cv-upload {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.65rem 1.15rem;
+    background: var(--analyzer-bg-alt);
+    border: 1px solid var(--analyzer-border);
+    border-radius: 999px;
+    cursor: pointer;
+    font-weight: 600;
+    color: var(--analyzer-text);
+    transition: all 0.2s ease;
+}
+
+.sffc-role-analyzer__cv-upload svg {
+    flex-shrink: 0;
+}
+
+.sffc-role-analyzer__cv-upload:hover {
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+}
+
+.sffc-role-analyzer__cv-upload input[type="file"] {
+    display: none;
+}
+
+.sffc-role-analyzer__cv-status {
+    margin-top: var(--space-md);
+    padding: 0.65rem 0.95rem;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    background: var(--analyzer-bg-alt);
+    color: var(--analyzer-text-muted);
+}
+
+.sffc-role-analyzer__cv-status.is-success {
+    color: #047857;
+    background: #ecfdf5;
+}
+
+.sffc-role-analyzer__cv-status.is-error {
+    color: #b91c1c;
+    background: #fee2e2;
+}
+
+.sffc-role-analyzer__cv-status.is-warning {
+    color: #b45309;
+    background: #fffbeb;
+}
+
+.sffc-role-analyzer__cv-status.is-loading {
+    color: #2563eb;
+    background: #e0edff;
+}
+
+.sffc-role-analyzer__cv-textarea {
+    width: 100%;
+    min-height: 200px;
+    margin-top: var(--space-md);
+    border: 1px solid var(--analyzer-border);
+    border-radius: 12px;
+    padding: var(--space-md);
+    font-family: var(--font-body);
+    font-size: 0.95rem;
+    line-height: 1.5;
+    resize: vertical;
+}
+
+.sffc-role-analyzer__cv-footer {
+    margin-top: var(--space-sm);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--space-sm);
+}
+
+.sffc-role-analyzer__cv-count {
+    font-size: 0.85rem;
+    color: var(--analyzer-text-muted);
+}
+
+.sffc-role-analyzer__cv-save {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.9rem;
+    color: var(--analyzer-text);
+}
+
+.sffc-role-analyzer__cv-save input {
+    width: 16px;
+    height: 16px;
+}
+
+/* ==========================================================================
+   Match Results Section
+   ========================================================================== */
+
+.sffc-role-analyzer__results {
+    background: var(--analyzer-bg-alt);
+    border: 2px solid var(--analyzer-border);
+    border-radius: 16px;
+    padding: var(--space-xl);
+    margin-top: var(--space-2xl);
+}
+
+.sffc-role-analyzer__match-card {
+    background: linear-gradient(135deg, rgba(15, 23, 42, 0.04), rgba(15, 23, 42, 0.08));
+    border-radius: 20px;
+    padding: 2px;
+    box-shadow: 0 20px 45px -35px rgba(15, 23, 42, 0.65);
+    position: relative;
+}
+
+.sffc-role-analyzer__match-card .sffc-crm-match-row {
+    background: #fff;
+    border-radius: 18px;
+    padding: var(--space-xl);
+    box-shadow: none;
+    display: flex;
+    flex-wrap: nowrap;
+    gap: var(--space-xl);
+    align-items: stretch;
+}
+
+.sffc-role-analyzer__match-card + .sffc-role-analyzer__match-card {
+    margin-top: var(--space-xl);
+}
+
+.sffc-role-analyzer__match-card .sffc-crm-match-indicator {
+    flex: 0 0 220px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-md);
+}
+
+.sffc-role-analyzer__match-card .sffc-crm-match-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+}
+
+.sffc-role-analyzer__match-card .sffc-crm-match-actions {
+    flex: 0 0 200px;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+    align-items: stretch;
+    justify-content: center;
+}
+
+@media (max-width: 1024px) {
+    .sffc-role-analyzer__match-card .sffc-crm-match-row {
+        flex-direction: column;
+    }
+
+    .sffc-role-analyzer__match-card .sffc-crm-match-indicator,
+    .sffc-role-analyzer__match-card .sffc-crm-match-actions {
+        flex: none;
+        width: 100%;
+        align-items: center;
+    }
+
+    .sffc-role-analyzer__match-card .sffc-crm-match-actions {
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+}
+
+.sffc-role-analyzer__match-loader {
+    position: absolute;
+    inset: 0;
+    border-radius: 18px;
+    background: rgba(255,255,255,0.82);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: var(--space-sm);
+    z-index: 2;
+    text-align: center;
+    color: var(--analyzer-text);
+    font-weight: 600;
+}
+
+.sffc-role-analyzer__match-card.is-loading .sffc-crm-match-row {
+    opacity: 0.35;
+    filter: blur(1px);
+}
+
+.sffc-role-analyzer__spinner {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 3px solid var(--analyzer-border);
+    border-top-color: var(--color-primary);
+    animation: analyzerSpin 1s linear infinite;
+}
+
+.sffc-role-analyzer__source-note {
+    margin-top: var(--space-md);
+    font-size: 0.85rem;
+    color: var(--color-warning);
+    background: var(--color-warning-light);
+    border-radius: 999px;
+    padding: 0.35rem 0.9rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.sffc-role-analyzer__results-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-xl);
+}
+
+.sffc-role-analyzer__results-header h2 {
+    font-family: var(--font-display);
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--analyzer-text);
+    margin: 0;
+}
+
+.sffc-role-analyzer__close-results {
+    width: 2rem;
+    height: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: none;
+    border-radius: 50%;
+    color: var(--analyzer-text-muted);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.sffc-role-analyzer__close-results:hover {
+    background: var(--analyzer-bg);
+    color: var(--analyzer-text);
+}
+
+/* Score Circle */
+.sffc-role-analyzer__match-score {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-md);
+    margin-bottom: var(--space-xl);
+    padding: var(--space-xl);
+}
+
+.sffc-role-analyzer__score-circle {
+    position: relative;
+    width: 160px;
+    height: 160px;
+}
+
+.sffc-role-analyzer__circle-svg {
+    width: 100%;
+    height: 100%;
+    transform: rotate(-90deg);
+}
+
+.sffc-role-analyzer__circle-bg {
+    fill: none;
+    stroke: var(--analyzer-border);
+    stroke-width: 8;
+}
+
+.sffc-role-analyzer__circle-progress {
+    fill: none;
+    stroke: var(--color-primary);
+    stroke-width: 8;
+    stroke-linecap: round;
+    transition: stroke-dashoffset 1s ease, stroke 0.3s ease;
+}
+
+.sffc-role-analyzer__score-value {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--analyzer-text);
+    font-family: var(--font-display);
+}
+
+.sffc-role-analyzer__score-label {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--analyzer-text-muted);
+    text-align: center;
+}
+
+.sffc-role-analyzer__summary {
+    margin-top: var(--space-md);
+    font-size: 0.95rem;
+    color: var(--analyzer-text);
+    line-height: 1.6;
+}
+
+/* Insights */
+
+.sffc-role-analyzer__pill-sections {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: var(--space-lg);
+    margin-top: var(--space-xl);
+}
+
+.sffc-role-analyzer__pill-group h4 {
+    margin-bottom: var(--space-sm);
+    font-size: 0.95rem;
+    color: var(--analyzer-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.sffc-role-analyzer__pill-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-sm);
+}
+
+.sffc-role-analyzer__pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.35rem 0.75rem;
+    border-radius: 999px;
+    background: var(--analyzer-bg-alt);
+    color: var(--analyzer-text);
+    font-size: 0.85rem;
+    border: 1px solid rgba(15, 23, 42, 0.1);
+}
+
+.sffc-role-analyzer__pill--muted {
+    border-style: dashed;
+    color: var(--analyzer-text-muted);
+    background: transparent;
+}
+
+.sffc-role-analyzer__keywords {
+    margin-top: var(--space-xl);
+}
+
+.sffc-role-analyzer__keywords-card {
+    border: 1px dashed var(--analyzer-border);
+    border-radius: 12px;
+    padding: var(--space-md);
+    background: var(--analyzer-bg);
+    font-size: 0.9rem;
+}
+
+.sffc-role-analyzer__keywords-missing {
+    margin-top: var(--space-sm);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+}
+
+.sffc-role-analyzer__keywords-missing span {
+    background: var(--color-secondary-light);
+    color: var(--color-secondary);
+    padding: 0.2rem 0.6rem;
+    border-radius: 999px;
+    font-size: 0.8rem;
+}
+
+.sffc-role-analyzer__match-actions {
+    margin-top: var(--space-xl);
+    gap: var(--space-md);
+    display: flex;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+}
+
+.sffc-role-analyzer__match-actions .sffc-crm-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.sffc-role-analyzer__apply-disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.sffc-role-analyzer__apply-highlight {
+    animation: roleAnalyzerHighlight 1.5s ease;
+    outline: 2px solid var(--color-primary);
+    outline-offset: 6px;
+    border-radius: 16px;
+}
+
+/* Modal */
+.sffc-role-analyzer__modal {
+    position: fixed;
+    inset: 0;
+    display: none;
+    z-index: 1000;
+}
+
+.sffc-role-analyzer__modal.is-visible {
+    display: block;
+}
+
+.sffc-role-analyzer__modal-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.65);
+    backdrop-filter: blur(2px);
+}
+
+.sffc-role-analyzer__modal-dialog {
+    position: relative;
+    max-width: 720px;
+    margin: 4vh auto;
+    background: #fff;
+    border-radius: 18px;
+    padding: var(--space-xl);
+    box-shadow: 0 25px 65px -30px rgba(15, 23, 42, 0.55);
+    overflow: hidden;
+}
+
+.sffc-role-analyzer__modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-lg);
+}
+
+.sffc-role-analyzer__modal-header h3 {
+    margin: 0;
+    font-size: 1.4rem;
+    font-weight: 600;
+}
+
+.sffc-role-analyzer__modal-close {
+    background: transparent;
+    border: none;
+    color: var(--analyzer-text-muted);
+    cursor: pointer;
+    border-radius: 50%;
+    padding: 0.25rem;
+}
+
+.sffc-role-analyzer__modal-close:hover {
+    background: var(--analyzer-bg-alt);
+    color: var(--analyzer-text);
+}
+
+.sffc-role-analyzer__modal-body {
+    max-height: 70vh;
+    overflow-y: auto;
+    padding-right: 0.5rem;
+    line-height: 1.6;
+    color: var(--analyzer-text);
+}
+
+.sffc-role-analyzer__modal-section {
+    margin-bottom: var(--space-lg);
+}
+
+.sffc-role-analyzer__modal-section h4 {
+    margin-bottom: var(--space-sm);
+    font-size: 1rem;
+    letter-spacing: 0.04em;
+    color: var(--analyzer-text-muted);
+    text-transform: uppercase;
+}
+
+.sffc-role-analyzer__modal-list {
+    margin: 0;
+    padding-left: 1.2rem;
+}
+
+.sffc-role-analyzer__modal-list li {
+    margin-bottom: 0.4rem;
+}
+
+.sffc-role-analyzer__modal-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.92rem;
+}
+
+.sffc-role-analyzer__modal-table th,
+.sffc-role-analyzer__modal-table td {
+    text-align: left;
+    padding: 0.4rem 0.25rem;
+    border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+}
+
+.sffc-role-analyzer__modal-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.25rem 0.6rem;
+    background: var(--color-secondary-light);
+    color: var(--color-secondary);
+    border-radius: 999px;
+    font-size: 0.8rem;
+    margin-right: 0.35rem;
+    margin-bottom: 0.25rem;
+}
+
+.sffc-role-analyzer__modal-pill--risk {
+    background: var(--color-warning-light);
+    color: var(--color-warning);
+}
+
+body.sffc-role-analyzer-modal-open {
+    overflow: hidden;
+}
+
+/* ==========================================================================
+   Animations
+   ========================================================================== */
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes roleAnalyzerHighlight {
+    0% {
+        box-shadow: 0 0 0 0 rgba(5, 150, 105, 0.3);
+    }
+    100% {
+        box-shadow: 0 0 0 20px rgba(5, 150, 105, 0);
+    }
+}
+
+@keyframes analyzerSpin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* ==========================================================================
+   Responsive Design
+   ========================================================================== */
+
+@media (max-width: 768px) {
+    .sffc-role-analyzer {
+        padding: var(--space-lg);
+    }
+
+    .sffc-role-analyzer__header {
+        flex-direction: column;
+        gap: var(--space-lg);
+    }
+
+    .sffc-role-analyzer__analyze-btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .sffc-role-analyzer__title {
+        font-size: 1.875rem;
+    }
+
+    .sffc-role-analyzer__meta {
+        flex-direction: column;
+        gap: var(--space-sm);
+    }
+
+    .sffc-role-analyzer__content h2,
+    .sffc-role-analyzer__results-header h2 {
+        font-size: 1.5rem;
+    }
+
+    .sffc-role-analyzer__actions {
+        flex-direction: column;
+    }
+
+    .sffc-role-analyzer__action-btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .sffc-role-analyzer__title {
+        font-size: 1.5rem;
+    }
+
+    .sffc-role-analyzer__score-circle {
+        width: 120px;
+        height: 120px;
+    }
+
+    .sffc-role-analyzer__score-value {
+        font-size: 2rem;
+    }
+
+    .sffc-role-analyzer__results {
+        padding: var(--space-lg);
+    }
+}

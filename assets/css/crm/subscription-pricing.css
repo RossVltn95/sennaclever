@@ -1,0 +1,455 @@
+.sffc-subscription-pricing {
+  --pricing-bg: #f7f5ef;
+  --pricing-shell: transparent;
+  --pricing-surface: #ffffff;
+  --pricing-border: #d8d5ce;
+  --pricing-border-soft: #ece8df;
+  --pricing-ink: #111215;
+  --pricing-copy: #757067;
+  --pricing-muted: #a09a90;
+  --pricing-accent: #151519;
+  --pricing-accent-soft: #ffffff;
+  --pricing-popular: #151519;
+  --pricing-shadow: none;
+  background:
+    radial-gradient(circle at 20% 12%, rgba(255, 255, 255, 0.92), transparent 36%),
+    radial-gradient(circle at 84% 28%, rgba(255, 255, 255, 0.62), transparent 28%),
+    linear-gradient(180deg, #f6f4ee 0%, #f3f1eb 100%);
+  padding: 56px 18px 76px;
+  font-family: Tahoma, Arial, "Helvetica Neue", sans-serif;
+}
+
+.sffc-subscription-pricing__shell {
+  width: min(1190px, 100%);
+  margin: 0 auto;
+  background: var(--pricing-shell);
+  border: 0;
+  border-radius: 0;
+  box-shadow: var(--pricing-shadow);
+  padding: 0;
+}
+
+.sffc-subscription-pricing__chrome {
+  display: none;
+}
+
+.sffc-subscription-pricing__mark {
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: flex-end;
+  justify-content: flex-start;
+  position: relative;
+  color: #151519;
+}
+
+.sffc-subscription-pricing__mark-s {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.9rem;
+  font-weight: 400;
+  letter-spacing: -0.08em;
+  line-height: 0.82;
+}
+
+.sffc-subscription-pricing__mark-dot {
+  position: absolute;
+  top: 5px;
+  right: -1px;
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: #12d7c2;
+}
+
+.sffc-subscription-pricing__login {
+  display: inline-flex;
+  align-items: center;
+  min-height: 33px;
+  padding: 0 13px;
+  border-radius: 10px;
+  border: 1px solid var(--pricing-border-soft);
+  background: rgba(255, 255, 255, 0.78);
+  color: var(--pricing-ink);
+  font-size: 12px;
+  font-weight: 400;
+  text-decoration: none;
+}
+
+.sffc-subscription-pricing__header {
+  max-width: 760px;
+  margin: 0 auto 38px;
+  text-align: center;
+}
+
+.sffc-subscription-pricing__header h1 {
+  margin: 0;
+  color: var(--pricing-ink);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(3rem, 4.3vw, 4.7rem);
+  font-weight: 400;
+  line-height: 0.98;
+  letter-spacing: -0.052em;
+  max-width: 740px;
+  margin-inline: auto;
+}
+
+.sffc-subscription-pricing__billing {
+  margin-top: 26px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px;
+  border-radius: 12px;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+
+.sffc-subscription-pricing__billing-toggle {
+  border: 1px solid transparent;
+  background: transparent;
+  min-height: 40px;
+  padding: 0 18px;
+  border-radius: 10px;
+  color: var(--pricing-copy);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.18s ease, color 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.sffc-subscription-pricing__billing-toggle.is-active {
+  background: #ffffff;
+  color: var(--pricing-ink);
+  border-color: rgba(214, 210, 203, 0.95);
+  box-shadow: 0 8px 16px rgba(27, 29, 36, 0.06);
+}
+
+.sffc-subscription-pricing__grid {
+  display: none;
+  grid-template-columns: repeat(3, minmax(280px, 1fr));
+  gap: 28px;
+  align-items: stretch;
+}
+
+.sffc-subscription-pricing__grid.is-active {
+  display: grid;
+}
+
+.sffc-subscription-pricing__card {
+  position: relative;
+  background: #ffffff;
+  border: 1px solid var(--pricing-border);
+  border-radius: 20px;
+  padding: 22px 24px 26px;
+  box-shadow: 0 2px 8px rgba(20, 23, 30, 0.02);
+  display: flex;
+  flex-direction: column;
+  min-height: 462px;
+  transition: transform 0.18s ease, box-shadow 0.18s ease,
+    border-color 0.18s ease;
+}
+
+.sffc-subscription-pricing__card.is-active,
+.sffc-subscription-pricing__card.is-featured {
+  box-shadow: 0 8px 24px rgba(20, 24, 31, 0.04);
+  border-color: #d6d1c6;
+  transform: none;
+}
+
+.sffc-subscription-pricing__badge {
+  position: absolute;
+  top: -15px;
+  right: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 30px;
+  padding: 0 13px;
+  border-radius: 9px;
+  background: var(--pricing-popular);
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.sffc-subscription-pricing__card-head h2 {
+  margin: 0 0 18px;
+  color: var(--pricing-ink);
+  font-size: 1.02rem;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -0.03em;
+}
+
+.sffc-subscription-pricing__price-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 9px;
+  margin-bottom: 20px;
+}
+
+.sffc-subscription-pricing__price {
+  color: #101114;
+  font-size: clamp(3.35rem, 4.8vw, 4.15rem);
+  font-weight: 600;
+  line-height: 0.88;
+  letter-spacing: -0.06em;
+}
+
+.sffc-subscription-pricing__cycle {
+  color: var(--pricing-copy);
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.3;
+  padding-bottom: 9px;
+}
+
+.sffc-subscription-pricing__cta {
+  border: 0;
+  width: 100%;
+  min-height: 50px;
+  border-radius: 12px;
+  background: #f4f1eb;
+  color: #17181b;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.18s ease, color 0.18s ease;
+}
+
+.sffc-subscription-pricing__card.is-featured .sffc-subscription-pricing__cta,
+.sffc-subscription-pricing__card.is-active .sffc-subscription-pricing__cta {
+  background: #17181b;
+  color: #ffffff;
+}
+
+.sffc-subscription-pricing__divider {
+  margin: 24px -24px 24px;
+  border-top: 1px solid var(--pricing-border-soft);
+}
+
+.sffc-subscription-pricing__features h3 {
+  margin: 0 0 10px;
+  color: #202228;
+  font-size: 0.95rem;
+  font-weight: 700;
+  line-height: 1.2;
+  text-transform: uppercase;
+  letter-spacing: 0.035em;
+}
+
+.sffc-subscription-pricing__features p {
+  margin: 0 0 16px;
+  color: var(--pricing-copy);
+  font-size: 14px;
+  line-height: 1.52;
+}
+
+.sffc-subscription-pricing__features ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 12px;
+}
+
+.sffc-subscription-pricing__features li {
+  position: relative;
+  min-height: 24px;
+  padding-left: 32px;
+  color: #2d3139;
+  font-size: 15px;
+  line-height: 1.45;
+}
+
+.sffc-subscription-pricing__features li::before {
+  content: "";
+  position: absolute;
+  top: 1px;
+  left: 0;
+  width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  background: #17181b;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+}
+
+.sffc-subscription-pricing__features li::after {
+  content: "";
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  width: 8px;
+  height: 4px;
+  border-left: 2px solid #ffffff;
+  border-bottom: 2px solid #ffffff;
+  transform: rotate(-45deg);
+}
+
+
+.sffc-subscription-pricing__checkout {
+  margin-top: 42px;
+  background: #ffffff;
+  border: 1px solid var(--pricing-border);
+  border-radius: 24px;
+  box-shadow: 0 12px 28px rgba(20, 24, 31, 0.06);
+  overflow: hidden;
+}
+
+.sffc-subscription-pricing__checkout-head {
+  padding: 24px 26px;
+  border-bottom: 1px solid var(--pricing-border-soft);
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.sffc-subscription-pricing__checkout-kicker {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--pricing-copy);
+  font-size: 12px;
+}
+
+.sffc-subscription-pricing__checkout-head h2 {
+  margin: 0 0 8px;
+  color: var(--pricing-ink);
+  font-size: 1.7rem;
+  font-weight: 500;
+  line-height: 1.08;
+  letter-spacing: -0.04em;
+}
+
+.sffc-subscription-pricing__checkout-head p {
+  margin: 0;
+  color: var(--pricing-copy);
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.sffc-subscription-pricing__checkout-head strong {
+  color: var(--pricing-ink);
+  font-size: 1.55rem;
+  font-weight: 600;
+  white-space: nowrap;
+  letter-spacing: -0.04em;
+}
+
+.sffc-subscription-pricing__checkout-body {
+  padding: 24px 26px 30px;
+}
+
+.sffc-subscription-pricing__checkout-shell[hidden] {
+  display: none !important;
+}
+
+.sffc-subscription-pricing__checkout-body .mepr-signup-form,
+.sffc-subscription-pricing__checkout-body .mp_wrapper,
+.sffc-subscription-pricing__checkout-body form {
+  max-width: none !important;
+}
+
+.sffc-subscription-pricing__checkout-body input,
+.sffc-subscription-pricing__checkout-body select,
+.sffc-subscription-pricing__checkout-body textarea {
+  border-radius: 12px !important;
+}
+
+.sffc-subscription-pricing__fallback {
+  padding: 22px;
+  border: 1px solid var(--pricing-border-soft);
+  border-radius: 16px;
+  background: #fafafb;
+}
+
+.sffc-subscription-pricing__fallback p {
+  margin: 0 0 12px;
+  color: var(--pricing-copy);
+}
+
+.sffc-subscription-pricing__fallback-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0 18px;
+  border-radius: 11px;
+  background: #17181b;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+@media (max-width: 1040px) {
+  .sffc-subscription-pricing__shell {
+    padding: 0;
+  }
+
+  .sffc-subscription-pricing__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .sffc-subscription-pricing__card {
+    min-height: auto;
+  }
+
+  .sffc-subscription-pricing__checkout-head {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+@media (max-width: 720px) {
+  .sffc-subscription-pricing {
+    padding: 28px 12px;
+  }
+
+  .sffc-subscription-pricing__shell {
+    border-radius: 0;
+    padding: 0;
+  }
+
+  .sffc-subscription-pricing__chrome {
+    margin-bottom: 24px;
+  }
+
+  .sffc-subscription-pricing__header {
+    margin-bottom: 22px;
+  }
+
+  .sffc-subscription-pricing__billing {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .sffc-subscription-pricing__billing-toggle {
+    width: 100%;
+    padding: 0 10px;
+    font-size: 13px;
+  }
+
+  .sffc-subscription-pricing__card {
+    padding: 18px;
+    border-radius: 18px;
+  }
+
+  .sffc-subscription-pricing__price {
+    font-size: 2.6rem;
+  }
+
+  .sffc-subscription-pricing__divider {
+    margin: 20px -18px;
+  }
+
+  .sffc-subscription-pricing__checkout-head,
+  .sffc-subscription-pricing__checkout-body {
+    padding-left: 18px;
+    padding-right: 18px;
+  }
+}

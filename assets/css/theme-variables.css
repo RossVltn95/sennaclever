@@ -1,0 +1,76 @@
+/**
+ * Global Theme Variables
+ * Consistent color scheme throughout the plugin
+ */
+
+:root {
+    /* Primary Colors */
+    --primary-dark: #1A3028;
+    --header-blue: #132D51;
+    --forest-dark: #1B4332;
+    --forest-mid: #2D6A4F;
+    --forest-light: #3A8063;
+    
+    /* Background Colors */
+    --cream-bg: #FAF7F2;
+    --cream-light: #FFFDF8;
+    --cream-white: #FFFFFF;
+    
+    /* Text Colors */
+    --text-primary: #1A3028;
+    --text-secondary: #4A5B4F;
+    --text-light: #6B7B6F;
+    --text-muted: #8B9B8F;
+    
+    /* Accent Colors */
+    --accent-forest: #2D6A4F;
+    --accent-blue: #132D51;
+    --accent-success: #2D6A4F;
+    --accent-warning: #CB997E;
+    
+    /* Gradients */
+    --success-gradient: linear-gradient(135deg, #2D6A4F 0%, #1B4332 100%);
+    --premium-gradient: linear-gradient(135deg, #B08D57 0%, #CB997E 100%);
+    --cream-gradient: linear-gradient(135deg, #FFFDF8 0%, #FAF7F2 100%);
+    --header-gradient: linear-gradient(135deg, #132D51 0%, #1A3028 100%);
+    
+    /* Shadows */
+    --shadow-xs: 0 1px 2px rgba(26, 48, 40, 0.05);
+    --shadow-sm: 0 2px 4px rgba(26, 48, 40, 0.06);
+    --shadow-md: 0 4px 8px rgba(26, 48, 40, 0.08);
+    --shadow-lg: 0 8px 16px rgba(26, 48, 40, 0.1);
+    --shadow-xl: 0 12px 24px rgba(26, 48, 40, 0.12);
+    --shadow-2xl: 0 16px 32px rgba(26, 48, 40, 0.15);
+    
+    /* Borders */
+    --border-light: rgba(45, 106, 79, 0.1);
+    --border-medium: rgba(45, 106, 79, 0.2);
+    --border-dark: rgba(45, 106, 79, 0.3);
+    
+    /* Hover States */
+    --hover-bg: rgba(45, 106, 79, 0.05);
+    --hover-border: rgba(45, 106, 79, 0.3);
+    
+    /* Legacy Mappings (for backward compatibility) */
+    --gold: var(--forest-mid);
+    --sffc-gold: var(--forest-mid);
+    --cream: var(--cream-bg);
+    --dark-green: var(--primary-dark);
+    --sage: var(--text-secondary);
+}
+
+/* Dark Mode Support (optional) */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --cream-bg: #1A1A1A;
+        --cream-light: #2A2A2A;
+        --text-primary: #E0E0E0;
+        --text-secondary: #A0A0A0;
+        --border-light: rgba(45, 106, 79, 0.2);
+        --border-medium: rgba(45, 106, 79, 0.3);
+        --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.2);
+        --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.25);
+        --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.3);
+        --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.35);
+    }
+}
