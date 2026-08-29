@@ -393,11 +393,24 @@ async function fillApplicationAnswers(page, task) {
     };
     const selectOption = (select, answer) => {
       const wanted = scoreText(answer);
+      const compactWanted = wanted.replace(/[^a-z0-9]+/g, "");
       const options = Array.from(select.options || []);
       const option = options.find((candidate) => {
         const label = scoreText(candidate.textContent || candidate.label || "");
         const value = scoreText(candidate.value || "");
-        return label === wanted || value === wanted || label.includes(wanted) || wanted.includes(label);
+        const compactLabel = label.replace(/[^a-z0-9]+/g, "");
+        const compactValue = value.replace(/[^a-z0-9]+/g, "");
+        return (
+          label === wanted ||
+          value === wanted ||
+          compactLabel === compactWanted ||
+          compactValue === compactWanted ||
+          (compactWanted && /^\d+$/.test(compactWanted) && compactLabel && compactLabel.indexOf(compactWanted) === 0) ||
+          label.includes(wanted) ||
+          wanted.includes(label) ||
+          (compactWanted && compactLabel && compactLabel.includes(compactWanted)) ||
+          (compactWanted && compactLabel && compactWanted.includes(compactLabel))
+        );
       });
       if (!option) {
         return false;
@@ -428,13 +441,23 @@ async function fillApplicationAnswers(page, task) {
         const option = group.find((candidate) => {
           const id = candidate.getAttribute("id") || "";
           const label = id ? document.querySelector(`label[for="${CSS.escape(id)}"]`) : null;
+          const compactWanted = wanted.replace(/[^a-z0-9]+/g, "");
           const optionText = scoreText(
             (label && label.textContent) ||
               candidate.getAttribute("aria-label") ||
               candidate.value ||
               ""
           );
-          return optionText === wanted || optionText.includes(wanted) || wanted.includes(optionText);
+          const compactOption = optionText.replace(/[^a-z0-9]+/g, "");
+          return (
+            optionText === wanted ||
+            compactOption === compactWanted ||
+            (compactWanted && /^\d+$/.test(compactWanted) && compactOption && compactOption.indexOf(compactWanted) === 0) ||
+            optionText.includes(wanted) ||
+            wanted.includes(optionText) ||
+            (compactWanted && compactOption && compactOption.includes(compactWanted)) ||
+            (compactWanted && compactOption && compactWanted.includes(compactOption))
+          );
         });
         if (option) {
           option.click();

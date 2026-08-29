@@ -82812,6 +82812,19 @@
         !operationalPromptState && conversationalPromptState
       );
 
+      if (
+        promptStateValue === "apply_employer_question" &&
+        typeof otherHandler === "function" &&
+        cleanMessageText(value || "")
+      ) {
+        clearResponseWatchdog();
+        promptReplyWasTyped = true;
+        runAfterCurrentThought(function () {
+          otherHandler(value);
+        });
+        return true;
+      }
+
       if (semanticFirstPromptState) {
         promptSignals = extractJobSearchPreferenceSignals(value);
         compactMeaning = (
@@ -89762,6 +89775,7 @@
       function normalizeApplicationChoiceAnswer(answer, choices) {
         var cleanAnswer = cleanMessageText(answer || "");
         var lowerAnswer = cleanAnswer.toLowerCase();
+        var compactAnswer = lowerAnswer.replace(/[^a-z0-9]+/g, "");
         if (!choices.length || !cleanAnswer) {
           return cleanAnswer;
         }
@@ -89780,6 +89794,36 @@
           return choices.find(function (choice) {
             return /^no$/i.test(choice);
           }) || cleanAnswer;
+        }
+        if (compactAnswer) {
+          var compact = choices.find(function (choice) {
+            var compactChoice = cleanMessageText(choice).toLowerCase().replace(/[^a-z0-9]+/g, "");
+            return compactChoice === compactAnswer;
+          });
+          if (compact) {
+            return compact;
+          }
+        }
+        if (compactAnswer && /^\d+$/.test(compactAnswer)) {
+          var numeric = choices.find(function (choice) {
+            return cleanMessageText(choice).toLowerCase().replace(/[^a-z0-9]+/g, "").indexOf(compactAnswer) === 0;
+          });
+          if (numeric) {
+            return numeric;
+          }
+        }
+        if (compactAnswer) {
+          var contained = choices.find(function (choice) {
+            var compactChoice = cleanMessageText(choice).toLowerCase().replace(/[^a-z0-9]+/g, "");
+            return (
+              compactChoice &&
+              (compactChoice.indexOf(compactAnswer) !== -1 ||
+                compactAnswer.indexOf(compactChoice) !== -1)
+            );
+          });
+          if (contained) {
+            return contained;
+          }
         }
         return cleanAnswer;
       }
