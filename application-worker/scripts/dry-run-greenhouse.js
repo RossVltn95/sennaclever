@@ -38,17 +38,46 @@ const selectAnswers = {
 
 function getBrowserExecutablePath() {
   const configuredPath = process.env.PUPPETEER_EXECUTABLE_PATH || "";
-  if (configuredPath && fsSync.existsSync(configuredPath)) {
+  if (isUsableBrowserExecutable(configuredPath)) {
     return configuredPath;
   }
 
   const candidates = [
+    "/root/.nix-profile/bin/chromium",
+    "/nix/var/nix/profiles/default/bin/chromium",
+    ...String(process.env.PATH || "")
+      .split(path.delimiter)
+      .filter(Boolean)
+      .flatMap((dir) => [
+        path.join(dir, "chromium"),
+        path.join(dir, "google-chrome"),
+        path.join(dir, "google-chrome-stable"),
+      ]),
     "/usr/bin/chromium",
-    "/usr/bin/chromium-browser",
     "/usr/bin/google-chrome",
     "/usr/bin/google-chrome-stable",
+    "/usr/bin/chromium-browser",
   ];
-  return candidates.find((candidate) => fsSync.existsSync(candidate));
+  return candidates.find(isUsableBrowserExecutable);
+}
+
+function isUsableBrowserExecutable(candidate) {
+  if (!candidate || !fsSync.existsSync(candidate)) {
+    return false;
+  }
+  try {
+    const stat = fsSync.statSync(candidate);
+    if (!stat.isFile() && !stat.isSymbolicLink()) {
+      return false;
+    }
+    const sample = fsSync.readFileSync(candidate, "utf8").slice(0, 2000);
+    if (/snap install chromium|requires the chromium snap/i.test(sample)) {
+      return false;
+    }
+  } catch (error) {
+    return true;
+  }
+  return true;
 }
 
 function sleep(ms) {
