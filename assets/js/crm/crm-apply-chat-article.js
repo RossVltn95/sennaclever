@@ -90048,6 +90048,10 @@
         }
         askNextApplicationWorkerQuestion(startQueueCallback);
       }
+      root.__sffcEnsureApplicationWorkerAnswersThenQueue =
+        ensureApplicationWorkerAnswersThenQueue;
+      window.__sffcEnsureApplicationWorkerAnswersThenQueue =
+        ensureApplicationWorkerAnswersThenQueue;
 
       function showApplicationWorkspace(schema) {
         applicationWorkspaceSchema = schema || applicationWorkspaceSchema || null;
@@ -94439,6 +94443,9 @@
         var pollApplicationTask =
           root.__sffcPollBrowserApplicationTask ||
           window.__sffcPollBrowserApplicationTask;
+        var ensureApplicationAnswers =
+          root.__sffcEnsureApplicationWorkerAnswersThenQueue ||
+          window.__sffcEnsureApplicationWorkerAnswersThenQueue;
         if (typeof queueApplicationTask !== "function") {
           botMessage(
             "I could not start the application worker from this chat session. Refresh the page and try again.",
@@ -94454,7 +94461,18 @@
           "Okay. I’ll collect any required employer answers first, then queue this for the Senna application worker.",
           humanComposeDelay("Checking required employer answers.", 900, 1800),
           function () {
-            ensureApplicationWorkerAnswersThenQueue(function () {
+            if (typeof ensureApplicationAnswers !== "function") {
+              applicationWorkerQueue.disabled = false;
+              botMessage(
+                "I could not load the employer question flow in this chat session. Refresh the page and try again.",
+                humanComposeDelay("Employer question flow unavailable.", 900, 1800),
+                function () {
+                  focusComposer("Refresh the page and try again");
+                }
+              );
+              return;
+            }
+            ensureApplicationAnswers(function () {
               queueApplicationTask()
                 .then(function (data) {
                   var taskId = cleanMessageText((data && data.task_uuid) || "");
