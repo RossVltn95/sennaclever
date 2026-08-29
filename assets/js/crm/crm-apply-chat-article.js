@@ -18144,6 +18144,8 @@
     var suspendedPromptContext = null;
     var endChatPrompt = createEndChatPrompt();
     var currentCvFile = null;
+    var applicationWorkspaceSchema = null;
+    var applicationAnswerDraft = {};
     var applyChatSessionToken = "";
     var applyChatConversationId = 0;
     var applyChatLastSeenMessageId = 0;
@@ -80650,7 +80652,7 @@
         return false;
       }
       if (
-        /^(job_search_(?:collect_preferred_email|collect_full_name|confirm_email|check_inbox|email_received|delivery_frequency|reuse_preferred_email|signed_in)|catch_up_collect_full_name|catch_up_collect_email|catch_up_confirm_email|apply_account_email|apply_waiting_for_signup|apply_select_pricing_option|apply_confirm_preferred_email|apply_collect_preferred_email|apply_collect_full_name)$/.test(
+        /^(job_search_(?:collect_preferred_email|collect_full_name|confirm_email|check_inbox|email_received|delivery_frequency|reuse_preferred_email|signed_in)|catch_up_collect_full_name|catch_up_collect_email|catch_up_confirm_email|apply_account_email|apply_waiting_for_signup|apply_select_pricing_option|apply_confirm_preferred_email|apply_collect_preferred_email|apply_collect_full_name|apply_employer_question)$/.test(
           promptKey
         )
       ) {
@@ -82800,7 +82802,7 @@
       preferSemanticFirst = false;
       simpleBinaryOnlyReply = false;
       operationalPromptState =
-        /^(job_search_(?:collect_preferred_email|collect_full_name|confirm_email|check_inbox|email_received|delivery_frequency|reuse_preferred_email|signed_in)|catch_up_collect_full_name|catch_up_collect_email|catch_up_confirm_email|apply_account_email|apply_waiting_for_signup|apply_select_pricing_option|apply_confirm_preferred_email|apply_collect_preferred_email|apply_collect_full_name)$/.test(
+        /^(job_search_(?:collect_preferred_email|collect_full_name|confirm_email|check_inbox|email_received|delivery_frequency|reuse_preferred_email|signed_in)|catch_up_collect_full_name|catch_up_collect_email|catch_up_confirm_email|apply_account_email|apply_waiting_for_signup|apply_select_pricing_option|apply_confirm_preferred_email|apply_collect_preferred_email|apply_collect_full_name|apply_employer_question)$/.test(
           promptStateValue
         );
       conversationalPromptState = isConversationalPromptState(promptStateValue);
@@ -83090,7 +83092,8 @@
         promptState === "job_search_reuse_preferred_email" ||
         promptState === "catch_up_collect_full_name" ||
         promptState === "catch_up_collect_email" ||
-        promptState === "catch_up_confirm_email"
+        promptState === "catch_up_confirm_email" ||
+        promptState === "apply_employer_question"
       ) {
         if (
           typeof otherHandler === "function" &&
@@ -89584,6 +89587,7 @@
         formData.append("page_url", window.location.href || "");
         formData.append("cv_text", cleanMessageText(capturedCvText || ""));
         formData.append("cover_letter_requested", applyNeedsCoverLetter === "yes" ? "1" : "0");
+        formData.append("application_answers", JSON.stringify(applicationAnswerDraft || {}));
         formData.append("consent", "candidate_clicked_apply_for_me_worker");
         if (currentCvFile && currentCvFile.name) {
           formData.append("cv_file", currentCvFile, currentCvFile.name);
@@ -89730,6 +89734,69 @@
           .trim();
       }
 
+      function getApplicationWorkspaceQuestions(schema) {
+        return []
+          .concat((schema && schema.questions) || [])
+          .concat((schema && schema.location_questions) || [])
+          .filter(function (question) {
+            return question && typeof question === "object";
+          });
+      }
+
+      function getApplicationQuestionKey(question) {
+        var fieldName = getGreenhouseQuestionFieldName(question);
+        var label = cleanGreenhouseAnswerText((question && question.label) || "");
+        return fieldName || label.toLowerCase();
+      }
+
+      function getApplicationQuestionChoices(question) {
+        var field = getGreenhouseQuestionField(question);
+        var values = Array.isArray(field && field.values) ? field.values : [];
+        return values
+          .map(function (value) {
+            return cleanMessageText((value && (value.label || value.value)) || "");
+          })
+          .filter(Boolean);
+      }
+
+      function normalizeApplicationChoiceAnswer(answer, choices) {
+        var cleanAnswer = cleanMessageText(answer || "");
+        var lowerAnswer = cleanAnswer.toLowerCase();
+        if (!choices.length || !cleanAnswer) {
+          return cleanAnswer;
+        }
+        var exact = choices.find(function (choice) {
+          return cleanMessageText(choice).toLowerCase() === lowerAnswer;
+        });
+        if (exact) {
+          return exact;
+        }
+        if (/^yes\b|^y$/i.test(cleanAnswer)) {
+          return choices.find(function (choice) {
+            return /^yes$/i.test(choice);
+          }) || cleanAnswer;
+        }
+        if (/^no\b|^n$/i.test(cleanAnswer)) {
+          return choices.find(function (choice) {
+            return /^no$/i.test(choice);
+          }) || cleanAnswer;
+        }
+        return cleanAnswer;
+      }
+
+      function getApplicationUnansweredRequiredQuestions(schema) {
+        return getApplicationWorkspaceQuestions(schema).filter(function (question) {
+          var key = getApplicationQuestionKey(question);
+          return (
+            question &&
+            question.required &&
+            !isGreenhouseCoveredQuestion(question) &&
+            key &&
+            !cleanMessageText(applicationAnswerDraft[key] || "")
+          );
+        });
+      }
+
       function hasGreenhouseResumeMaterial() {
         return !!(
           (currentCvFile && currentCvFile.name) ||
@@ -89764,10 +89831,7 @@
       }
 
       function getGreenhouseUnansweredRequiredQuestions(schema) {
-        var questions = []
-          .concat((schema && schema.questions) || [])
-          .concat((schema && schema.location_questions) || []);
-        return questions.filter(function (question) {
+        return getApplicationWorkspaceQuestions(schema).filter(function (question) {
           return question && question.required && !isGreenhouseCoveredQuestion(question);
         });
       }
@@ -89784,10 +89848,7 @@
       }
 
       function getGreenhouseApplicationQuestionLabels(schema) {
-        var questions = []
-          .concat((schema && schema.questions) || [])
-          .concat((schema && schema.location_questions) || []);
-        return questions
+        return getApplicationWorkspaceQuestions(schema)
           .map(function (question) {
             return cleanGreenhouseAnswerText((question && question.label) || "");
           })
@@ -89802,10 +89863,7 @@
 
       function getGreenhouseApplicationInsightsHtml(schema) {
         var labels = getGreenhouseApplicationQuestionLabels(schema);
-        var questions = []
-          .concat((schema && schema.questions) || [])
-          .concat((schema && schema.location_questions) || []);
-        var requiredCount = questions.filter(function (question) {
+        var requiredCount = getApplicationWorkspaceQuestions(schema).filter(function (question) {
           return question && question.required && !isGreenhouseCoveredQuestion(question);
         }).length;
         var insights = [];
@@ -89852,7 +89910,103 @@
           .join("");
       }
 
+      function askNextApplicationWorkerQuestion(startQueueCallback) {
+        var schema = applicationWorkspaceSchema || {};
+        var remaining = getApplicationUnansweredRequiredQuestions(schema);
+        var question = remaining[0];
+        if (!question) {
+          clearPromptState();
+          startQueueCallback();
+          return;
+        }
+        var key = getApplicationQuestionKey(question);
+        var label = cleanGreenhouseAnswerText((question && question.label) || key);
+        var choices = getApplicationQuestionChoices(question);
+        var questionNumber =
+          getApplicationWorkspaceQuestions(schema).filter(function (candidateQuestion) {
+            return (
+              candidateQuestion &&
+              candidateQuestion.required &&
+              !isGreenhouseCoveredQuestion(candidateQuestion)
+            );
+          }).indexOf(question) + 1;
+        var prompt =
+          "Before I can submit this for you, I need this employer answer:\n\n" +
+          questionNumber +
+          ". " +
+          label;
+        if (choices.length) {
+          prompt += "\n\nOptions: " + choices.join(" / ");
+        }
+        botMessage(
+          prompt,
+          humanComposeDelay(label, 1200, 2600),
+          function () {
+            setPromptState(
+              "apply_employer_question",
+              {
+                other: function (value) {
+                  var answer = normalizeApplicationChoiceAnswer(value, choices);
+                  if (!answer) {
+                    botMessage(
+                      "Please send the answer for this employer question.",
+                      humanComposeDelay("Please send the answer.", 900, 1800),
+                      function () {
+                        focusComposer("Type your answer");
+                      },
+                      humanReadDelay(value, 450)
+                    );
+                    return;
+                  }
+                  if (
+                    choices.length &&
+                    !choices.some(function (choice) {
+                      return cleanMessageText(choice).toLowerCase() === answer.toLowerCase();
+                    })
+                  ) {
+                    botMessage(
+                      "Use one of these options exactly: " + choices.join(" / "),
+                      humanComposeDelay("Use one of the listed options.", 900, 1800),
+                      function () {
+                        focusComposer("Type one of the listed options");
+                      },
+                      humanReadDelay(value, 450)
+                    );
+                    return;
+                  }
+                  applicationAnswerDraft[key] = answer;
+                  clearPromptState();
+                  echoPromptChoice(value);
+                  window.setTimeout(function () {
+                    askNextApplicationWorkerQuestion(startQueueCallback);
+                  }, randomBetween(450, 900));
+                },
+              },
+              choices.length ? "Type one of the listed options" : "Type your answer",
+              { application_question_key: key }
+            );
+            focusComposer(choices.length ? "Type one of the listed options" : "Type your answer");
+          }
+        );
+      }
+
+      function ensureApplicationWorkerAnswersThenQueue(startQueueCallback) {
+        if (!applicationWorkspaceSchema) {
+          fetchApplicationWorkspaceSchema()
+            .then(function (schema) {
+              applicationWorkspaceSchema = schema || {};
+              askNextApplicationWorkerQuestion(startQueueCallback);
+            })
+            .catch(function () {
+              startQueueCallback();
+            });
+          return;
+        }
+        askNextApplicationWorkerQuestion(startQueueCallback);
+      }
+
       function showApplicationWorkspace(schema) {
+        applicationWorkspaceSchema = schema || applicationWorkspaceSchema || null;
         var providerLabel = getApplicationWorkspaceProviderLabel();
         var hostedUrl = cleanMessageText(
           (schema && (schema.application_embed_url || schema.hosted_url)) ||
@@ -89900,6 +90054,7 @@
       }
 
       function showExternalApplicationWorkspace(schema) {
+        applicationWorkspaceSchema = schema || applicationWorkspaceSchema || null;
         var providerLabel = getApplicationWorkspaceProviderLabel();
         var workspaceUrl = cleanMessageText(
           (schema && (schema.application_embed_url || schema.hosted_url)) ||
@@ -89947,6 +90102,8 @@
       function beginApplicationWorkspace() {
         var providerLabel = getApplicationWorkspaceProviderLabel();
         var workspaceUrl = getApplicationWorkspaceUrl();
+        applicationWorkspaceSchema = null;
+        applicationAnswerDraft = {};
         botMessage(
           "This is a " +
             escapeHtml(providerLabel) +
@@ -94250,39 +94407,41 @@
         }
         applicationWorkerQueue.disabled = true;
         botMessage(
-          "Okay. I’m queueing this for the Senna application worker now.",
-          humanComposeDelay("Queueing this application.", 900, 1800),
+          "Okay. I’ll collect any required employer answers first, then queue this for the Senna application worker.",
+          humanComposeDelay("Checking required employer answers.", 900, 1800),
           function () {
-            queueApplicationTask()
-              .then(function (data) {
-                var taskId = cleanMessageText((data && data.task_uuid) || "");
-                var reply = taskId
-                  ? "Done. This application is queued for browser submission. Task ID: " + taskId + "."
-                  : "Done. This application is queued for browser submission.";
-                botMessage(
-                  reply,
-                  humanComposeDelay(reply, 1200, 2600),
-                  function () {
-                    if (taskId && typeof pollApplicationTask === "function") {
-                      pollApplicationTask(taskId, 0);
+            ensureApplicationWorkerAnswersThenQueue(function () {
+              queueApplicationTask()
+                .then(function (data) {
+                  var taskId = cleanMessageText((data && data.task_uuid) || "");
+                  var reply = taskId
+                    ? "Done. This application is queued for browser submission. Task ID: " + taskId + "."
+                    : "Done. This application is queued for browser submission.";
+                  botMessage(
+                    reply,
+                    humanComposeDelay(reply, 1200, 2600),
+                    function () {
+                      if (taskId && typeof pollApplicationTask === "function") {
+                        pollApplicationTask(taskId, 0);
+                      }
+                      focusComposer("I’ll update you when the worker returns the submission status");
                     }
-                    focusComposer("I’ll update you when the worker returns the submission status");
-                  }
-                );
-              })
-              .catch(function (error) {
-                var message =
-                  cleanMessageText((error && error.message) || "") ||
-                  "I could not queue this application task just now.";
-                applicationWorkerQueue.disabled = false;
-                botMessage(
-                  message,
-                  humanComposeDelay(message, 1200, 2600),
-                  function () {
-                    focusComposer("Tell me if you want to try again");
-                  }
-                );
-              });
+                  );
+                })
+                .catch(function (error) {
+                  var message =
+                    cleanMessageText((error && error.message) || "") ||
+                    "I could not queue this application task just now.";
+                  applicationWorkerQueue.disabled = false;
+                  botMessage(
+                    message,
+                    humanComposeDelay(message, 1200, 2600),
+                    function () {
+                      focusComposer("Tell me if you want to try again");
+                    }
+                  );
+                });
+            });
           }
         );
         return;

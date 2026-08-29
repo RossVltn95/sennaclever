@@ -43721,7 +43721,22 @@ CRITICAL INSTRUCTIONS:
                 'source' => 'apply_chat',
                 'consent' => sanitize_text_field(wp_unslash((string) ($_POST['consent'] ?? 'candidate_clicked_apply_for_me'))),
                 'application_schema' => [],
+                'application_answers' => [],
             ];
+
+            $application_answers_raw = wp_unslash((string) ($_POST['application_answers'] ?? '{}'));
+            $application_answers_decoded = json_decode($application_answers_raw, true);
+            if (is_array($application_answers_decoded)) {
+                foreach ($application_answers_decoded as $answer_key => $answer_value) {
+                    $clean_key = sanitize_text_field((string) $answer_key);
+                    if ($clean_key === '') {
+                        continue;
+                    }
+                    $payload['application_answers'][$clean_key] = is_array($answer_value)
+                        ? array_map('sanitize_text_field', array_map('strval', $answer_value))
+                        : sanitize_text_field((string) $answer_value);
+                }
+            }
 
             $schema_raw = $jobs_post_id > 0 ? get_post_meta($jobs_post_id, '_sffc_auto_submit_schema', true) : '';
             if (is_string($schema_raw) && trim($schema_raw) !== '') {

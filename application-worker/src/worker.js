@@ -322,6 +322,135 @@ function getMissingRequiredSchemaQuestions(task, candidate, hasResume) {
     .filter(Boolean);
 }
 
+async function fillApplicationAnswers(page, task) {
+  const schema = getApplicationSchema(task);
+  const answers = getApplicationAnswers(task);
+  const questions = getSchemaQuestions(schema);
+  if (!questions.length || !Object.keys(answers).length) {
+    return { attempted: 0, filled: 0 };
+  }
+
+  const fillItems = questions
+    .map((question) => {
+      const label = getQuestionLabel(question);
+      const key = getQuestionFieldNames(question)[0] || label.toLowerCase();
+      const answer = answers[key] ?? answers[String(key).toLowerCase()] ?? answers[label.toLowerCase()];
+      return {
+        label,
+        fieldNames: getQuestionFieldNames(question),
+        answer: cleanText(answer),
+      };
+    })
+    .filter((item) => item.answer && (item.fieldNames.length || item.label));
+
+  if (!fillItems.length) {
+    return { attempted: 0, filled: 0 };
+  }
+
+  const filled = await page.evaluate((items) => {
+    const clean = (value) => String(value || "").replace(/\s+/g, " ").trim();
+    const scoreText = (value) => clean(value).toLowerCase();
+    const setNativeValue = (element, value) => {
+      element.focus();
+      element.value = value;
+      element.dispatchEvent(new Event("input", { bubbles: true }));
+      element.dispatchEvent(new Event("change", { bubbles: true }));
+    };
+    const findByName = (names) => {
+      for (const name of names) {
+        const selector = `[name="${CSS.escape(name)}"], #${CSS.escape(name)}`;
+        const element = document.querySelector(selector);
+        if (element) {
+          return element;
+        }
+      }
+      return null;
+    };
+    const findByLabel = (labelText) => {
+      const wanted = scoreText(labelText);
+      if (!wanted) {
+        return null;
+      }
+      const labels = Array.from(document.querySelectorAll("label"));
+      for (const label of labels) {
+        const text = scoreText(label.textContent || "");
+        if (!text || (!text.includes(wanted) && !wanted.includes(text))) {
+          continue;
+        }
+        const forId = label.getAttribute("for");
+        if (forId) {
+          const byFor = document.getElementById(forId);
+          if (byFor) {
+            return byFor;
+          }
+        }
+        const nested = label.querySelector("input, textarea, select");
+        if (nested) {
+          return nested;
+        }
+      }
+      return null;
+    };
+    const selectOption = (select, answer) => {
+      const wanted = scoreText(answer);
+      const options = Array.from(select.options || []);
+      const option = options.find((candidate) => {
+        const label = scoreText(candidate.textContent || candidate.label || "");
+        const value = scoreText(candidate.value || "");
+        return label === wanted || value === wanted || label.includes(wanted) || wanted.includes(label);
+      });
+      if (!option) {
+        return false;
+      }
+      select.value = option.value;
+      select.dispatchEvent(new Event("input", { bubbles: true }));
+      select.dispatchEvent(new Event("change", { bubbles: true }));
+      return true;
+    };
+    let filledCount = 0;
+    for (const item of items) {
+      const answer = clean(item.answer);
+      const field = findByName(item.fieldNames) || findByLabel(item.label);
+      if (!field || !answer) {
+        continue;
+      }
+      if (field.tagName === "SELECT") {
+        if (selectOption(field, answer)) {
+          filledCount += 1;
+        }
+        continue;
+      }
+      if (field.type === "checkbox" || field.type === "radio") {
+        const group = field.name
+          ? Array.from(document.querySelectorAll(`[name="${CSS.escape(field.name)}"]`))
+          : [field];
+        const wanted = scoreText(answer);
+        const option = group.find((candidate) => {
+          const id = candidate.getAttribute("id") || "";
+          const label = id ? document.querySelector(`label[for="${CSS.escape(id)}"]`) : null;
+          const optionText = scoreText(
+            (label && label.textContent) ||
+              candidate.getAttribute("aria-label") ||
+              candidate.value ||
+              ""
+          );
+          return optionText === wanted || optionText.includes(wanted) || wanted.includes(optionText);
+        });
+        if (option) {
+          option.click();
+          filledCount += 1;
+        }
+        continue;
+      }
+      setNativeValue(field, answer);
+      filledCount += 1;
+    }
+    return filledCount;
+  }, fillItems);
+
+  return { attempted: fillItems.length, filled };
+}
+
 async function extractSubmissionState(page) {
   return page.evaluate(() => {
     const clean = (value) => String(value || "").replace(/\s+/g, " ").trim();
@@ -479,6 +608,7 @@ async function processTask(task) {
     await fillByLabelText(page, ["email"], candidate.email);
     await fillByLabelText(page, ["phone", "mobile"], candidate.phone);
     const uploadedResume = await uploadResume(page, cvPath);
+    const applicationAnswers = await fillApplicationAnswers(page, task);
 
     const screenshotPath = path.join(os.tmpdir(), `${task.task_uuid}.png`);
     await page.screenshot({ path: screenshotPath, fullPage: true });
@@ -491,6 +621,8 @@ async function processTask(task) {
         allow_final_submit: allowFinalSubmit,
         clicked_submit: false,
         uploaded_resume: uploadedResume,
+        application_answers_attempted: applicationAnswers.attempted,
+        application_answers_filled: applicationAnswers.filled,
         page_title: await page.title().catch(() => ""),
         final_url: page.url(),
         local_screenshot_path: screenshotPath,
@@ -546,6 +678,8 @@ async function processTask(task) {
       submit_before_url: submitResult.beforeUrl,
       submit_after_url: submitResult.afterUrl,
       uploaded_resume: uploadedResume,
+      application_answers_attempted: applicationAnswers.attempted,
+      application_answers_filled: applicationAnswers.filled,
       page_title: await page.title().catch(() => ""),
       final_url: page.url(),
       local_screenshot_path: screenshotPath,
