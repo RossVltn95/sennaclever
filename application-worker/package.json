@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "postinstall": "puppeteer browsers install chrome",
     "start": "node src/worker.js",
     "worker": "node src/worker.js",
     "check": "node --check src/worker.js"
