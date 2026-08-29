@@ -89764,7 +89764,10 @@
       }
 
       function getGreenhouseUnansweredRequiredQuestions(schema) {
-        return ((schema && schema.questions) || []).filter(function (question) {
+        var questions = []
+          .concat((schema && schema.questions) || [])
+          .concat((schema && schema.location_questions) || []);
+        return questions.filter(function (question) {
           return question && question.required && !isGreenhouseCoveredQuestion(question);
         });
       }
@@ -89781,7 +89784,10 @@
       }
 
       function getGreenhouseApplicationQuestionLabels(schema) {
-        return ((schema && schema.questions) || [])
+        var questions = []
+          .concat((schema && schema.questions) || [])
+          .concat((schema && schema.location_questions) || []);
+        return questions
           .map(function (question) {
             return cleanGreenhouseAnswerText((question && question.label) || "");
           })
@@ -89796,7 +89802,10 @@
 
       function getGreenhouseApplicationInsightsHtml(schema) {
         var labels = getGreenhouseApplicationQuestionLabels(schema);
-        var requiredCount = ((schema && schema.questions) || []).filter(function (question) {
+        var questions = []
+          .concat((schema && schema.questions) || [])
+          .concat((schema && schema.location_questions) || []);
+        var requiredCount = questions.filter(function (question) {
           return question && question.required && !isGreenhouseCoveredQuestion(question);
         }).length;
         var insights = [];

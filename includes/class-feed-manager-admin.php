@@ -712,6 +712,7 @@ class SFFC_Feed_Manager_Admin {
             $location_value = (string) $payload['job_post_location'];
         }
 
+        $all_questions = array_merge($questions, $location_questions);
         return [
             'provider' => 'greenhouse',
             'source_key' => sanitize_key((string) $source_key),
@@ -729,12 +730,12 @@ class SFFC_Feed_Manager_Admin {
             'data_compliance' => is_array($payload['data_compliance'] ?? null) ? $payload['data_compliance'] : [],
             'questions' => $questions,
             'location_questions' => $location_questions,
-            'required_question_count' => count(array_filter($questions, static function ($question) {
+            'required_question_count' => count(array_filter($all_questions, static function ($question) {
                 return !empty($question['required']);
             })),
             'field_count' => array_sum(array_map(static function ($question) {
                 return count((array) ($question['fields'] ?? []));
-            }, $questions)),
+            }, $all_questions)),
             'discovered_at' => current_time('mysql'),
         ];
     }

@@ -10669,6 +10669,8 @@ CSS;
                 $submit_url = esc_url_raw('https://' . $submit_host . '/' . rawurlencode($board_token) . '/jobs/' . rawurlencode($job_id));
             }
 
+            $location_questions = is_array($job_post['location_questions'] ?? null) ? $job_post['location_questions'] : [];
+            $all_questions = array_merge($questions, $location_questions);
             $schema = [
                 'provider' => 'greenhouse',
                 'source_key' => '',
@@ -10685,13 +10687,13 @@ CSS;
                 'absolute_url' => esc_url_raw($hosted_url),
                 'data_compliance' => is_array($job_post['data_compliance'] ?? null) ? $job_post['data_compliance'] : [],
                 'questions' => $questions,
-                'location_questions' => is_array($job_post['location_questions'] ?? null) ? $job_post['location_questions'] : [],
-                'required_question_count' => count(array_filter($questions, static function ($question) {
+                'location_questions' => $location_questions,
+                'required_question_count' => count(array_filter($all_questions, static function ($question) {
                     return is_array($question) && !empty($question['required']);
                 })),
                 'field_count' => array_sum(array_map(static function ($question) {
                     return is_array($question) ? count((array) ($question['fields'] ?? [])) : 0;
-                }, $questions)),
+                }, $all_questions)),
                 'discovered_at' => current_time('mysql'),
             ];
 
@@ -43462,7 +43464,11 @@ CRITICAL INSTRUCTIONS:
             }
 
             $questions = [];
-            foreach ((array) ($schema['questions'] ?? []) as $question) {
+            $schema_questions = array_merge(
+                (array) ($schema['questions'] ?? []),
+                (array) ($schema['location_questions'] ?? [])
+            );
+            foreach ($schema_questions as $question) {
                 if (!is_array($question)) {
                     continue;
                 }
@@ -43504,7 +43510,9 @@ CRITICAL INSTRUCTIONS:
                 'hosted_url' => esc_url_raw((string) ($schema['hosted_url'] ?? '')),
                 'application_embed_url' => esc_url_raw((string) ($schema['application_embed_url'] ?? ($schema['hosted_url'] ?? ''))),
                 'schema_url' => esc_url_raw((string) ($schema['schema_url'] ?? '')),
-                'required_question_count' => absint($schema['required_question_count'] ?? 0),
+                'required_question_count' => count(array_filter($questions, static function ($question) {
+                    return is_array($question) && !empty($question['required']);
+                })),
                 'field_count' => absint($schema['field_count'] ?? 0),
                 'questions' => $questions,
             ]);
@@ -43723,6 +43731,18 @@ CRITICAL INSTRUCTIONS:
                 }
             } elseif (is_array($schema_raw)) {
                 $payload['application_schema'] = $schema_raw;
+            }
+            if (empty($payload['application_schema']) && $jobs_post_id > 0 && $provider === 'greenhouse') {
+                $schema = $this->fetch_crm_apply_chat_greenhouse_schema_from_hosted_url($jobs_post_id);
+                if (!empty($schema)) {
+                    $payload['application_schema'] = $schema;
+                }
+            }
+            if (empty($payload['application_schema']) && $jobs_post_id > 0 && $provider === 'successfactors') {
+                $schema = $this->fetch_crm_apply_chat_successfactors_schema_from_job_url($jobs_post_id);
+                if (!empty($schema)) {
+                    $payload['application_schema'] = $schema;
+                }
             }
 
             $inserted = $wpdb->insert($table, [

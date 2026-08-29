@@ -216,13 +216,17 @@ function getApplicationSchema(task) {
 }
 
 function getSchemaQuestions(schema) {
+  const questions = [];
   if (Array.isArray(schema.questions)) {
-    return schema.questions;
+    questions.push(...schema.questions);
   }
-  if (Array.isArray(schema.fields)) {
-    return schema.fields;
+  if (Array.isArray(schema.location_questions)) {
+    questions.push(...schema.location_questions);
   }
-  return [];
+  if (!questions.length && Array.isArray(schema.fields)) {
+    questions.push(...schema.fields);
+  }
+  return questions;
 }
 
 function getQuestionFields(question) {
