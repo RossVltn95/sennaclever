@@ -134,10 +134,30 @@ async function fillBySelectors(page, selectors, value) {
     return false;
   }
   for (const selector of selectors) {
-    const field = await page.$(selector);
+    const fields = await page.$$(selector);
+    let field = null;
+    for (const candidate of fields) {
+      const visible = await candidate.evaluate((element) => {
+        const style = window.getComputedStyle(element);
+        const rect = element.getBoundingClientRect();
+        return (
+          !element.disabled &&
+          element.type !== "hidden" &&
+          style.visibility !== "hidden" &&
+          style.display !== "none" &&
+          rect.width > 0 &&
+          rect.height > 0
+        );
+      });
+      if (visible) {
+        field = candidate;
+        break;
+      }
+    }
     if (!field) {
       continue;
     }
+    await field.evaluate((element) => element.scrollIntoView({ block: "center" })).catch(() => {});
     await field.click({ clickCount: 3 }).catch(() => {});
     await field.type(String(value), { delay: 10 }).catch(() => {});
     return true;
@@ -153,8 +173,23 @@ async function fillByLabelText(page, labelPatterns, value) {
     ({ labels, text }) => {
       const matches = (candidate) =>
         labels.some((pattern) => new RegExp(pattern, "i").test(candidate || ""));
+      const isVisible = (control) => {
+        const style = window.getComputedStyle(control);
+        const rect = control.getBoundingClientRect();
+        return (
+          !control.disabled &&
+          control.type !== "hidden" &&
+          style.visibility !== "hidden" &&
+          style.display !== "none" &&
+          rect.width > 0 &&
+          rect.height > 0
+        );
+      };
       const controls = Array.from(document.querySelectorAll("input, textarea"));
       for (const control of controls) {
+        if (!isVisible(control)) {
+          continue;
+        }
         const id = control.getAttribute("id");
         const aria = control.getAttribute("aria-label") || "";
         const name = control.getAttribute("name") || "";
@@ -177,12 +212,90 @@ async function fillByLabelText(page, labelPatterns, value) {
   );
 }
 
+async function hasApplicationFormFields(page) {
+  return page.evaluate(() => {
+    const fields = Array.from(
+      document.querySelectorAll(
+        [
+          'input[name="first_name"]',
+          'input[name="firstName"]',
+          'input[name="last_name"]',
+          'input[name="lastName"]',
+          'input[type="email"]',
+          'input[name*="email" i]',
+          'input[type="file"]',
+        ].join(",")
+      )
+    );
+    return fields.some((field) => {
+      const style = window.getComputedStyle(field);
+      const rect = field.getBoundingClientRect();
+      return (
+        !field.disabled &&
+        field.type !== "hidden" &&
+        style.visibility !== "hidden" &&
+        style.display !== "none" &&
+        rect.width > 0 &&
+        rect.height > 0
+      );
+    });
+  });
+}
+
+async function ensureApplicationFormReady(page) {
+  if (await hasApplicationFormFields(page)) {
+    return { opened: false, ready: true };
+  }
+
+  await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight)).catch(() => {});
+  if (await hasApplicationFormFields(page)) {
+    return { opened: false, ready: true };
+  }
+
+  const clicked = await page.evaluate(() => {
+    const targets = Array.from(document.querySelectorAll("button, a, input[type=button], input[type=submit]"));
+    const applyTarget = targets.find((target) => {
+      const text = `${target.textContent || ""} ${target.getAttribute("value") || ""} ${target.getAttribute("aria-label") || ""}`.trim();
+      return /\bapply now\b|\bapply for this job\b|\bapply\b/i.test(text);
+    });
+    if (!applyTarget) {
+      return false;
+    }
+    applyTarget.scrollIntoView({ block: "center" });
+    applyTarget.click();
+    return true;
+  });
+
+  if (clicked) {
+    await page.waitForNetworkIdle({ idleTime: 1000, timeout: 12000 }).catch(() => {});
+    await page
+      .waitForSelector(
+        [
+          'input[name="first_name"]',
+          'input[name="firstName"]',
+          'input[name="last_name"]',
+          'input[name="lastName"]',
+          'input[type="email"]',
+          'input[type="file"]',
+        ].join(","),
+        { timeout: 15000 }
+      )
+      .catch(() => {});
+  }
+
+  return {
+    opened: clicked,
+    ready: await hasApplicationFormFields(page),
+  };
+}
+
 async function uploadResume(page, cvPath) {
   if (!cvPath) {
     return false;
   }
   const inputs = await page.$$("input[type=file]");
   for (const input of inputs) {
+    await input.evaluate((element) => element.scrollIntoView({ block: "center" })).catch(() => {});
     await input.uploadFile(cvPath);
     return true;
   }
@@ -347,20 +460,35 @@ async function fillApplicationAnswers(page, task) {
     return { attempted: 0, filled: 0 };
   }
 
-  const filled = await page.evaluate((items) => {
+  const filled = await page.evaluate(async (items) => {
     const clean = (value) => String(value || "").replace(/\s+/g, " ").trim();
     const scoreText = (value) => clean(value).toLowerCase();
+    const compactText = (value) => scoreText(value).replace(/[^a-z0-9]+/g, "");
     const setNativeValue = (element, value) => {
+      const prototype = element instanceof HTMLTextAreaElement ? HTMLTextAreaElement.prototype : HTMLInputElement.prototype;
+      const descriptor = Object.getOwnPropertyDescriptor(prototype, "value");
       element.focus();
-      element.value = value;
+      if (descriptor && descriptor.set) {
+        descriptor.set.call(element, value);
+      } else {
+        element.value = value;
+      }
       element.dispatchEvent(new Event("input", { bubbles: true }));
       element.dispatchEvent(new Event("change", { bubbles: true }));
+    };
+    const isFillableVisibleControl = (element) => {
+      if (!element || element.disabled || element.type === "hidden") {
+        return false;
+      }
+      const style = window.getComputedStyle(element);
+      const rect = element.getBoundingClientRect();
+      return style.visibility !== "hidden" && style.display !== "none" && rect.width > 0 && rect.height > 0;
     };
     const findByName = (names) => {
       for (const name of names) {
         const selector = `[name="${CSS.escape(name)}"], #${CSS.escape(name)}`;
         const element = document.querySelector(selector);
-        if (element) {
+        if (element && isFillableVisibleControl(element)) {
           return element;
         }
       }
@@ -380,26 +508,46 @@ async function fillApplicationAnswers(page, task) {
         const forId = label.getAttribute("for");
         if (forId) {
           const byFor = document.getElementById(forId);
-          if (byFor) {
+          if (byFor && isFillableVisibleControl(byFor)) {
             return byFor;
           }
         }
         const nested = label.querySelector("input, textarea, select");
-        if (nested) {
+        if (nested && isFillableVisibleControl(nested)) {
           return nested;
         }
       }
       return null;
     };
+    const findQuestionContainer = (labelText) => {
+      const wanted = compactText(labelText);
+      if (!wanted) {
+        return null;
+      }
+      const candidates = Array.from(document.querySelectorAll("div, fieldset, section, li"));
+      return (
+        candidates
+          .filter((candidate) =>
+            candidate.querySelector(
+              "input:not([type='hidden']), textarea, select, button, [role='combobox'], [aria-haspopup='listbox']"
+            )
+          )
+          .sort((a, b) => clean(a.textContent || "").length - clean(b.textContent || "").length)
+          .find((candidate) => {
+          const text = compactText(candidate.textContent || "");
+          return text && (text.includes(wanted) || wanted.includes(text));
+          }) || null
+      );
+    };
     const selectOption = (select, answer) => {
       const wanted = scoreText(answer);
-      const compactWanted = wanted.replace(/[^a-z0-9]+/g, "");
+      const compactWanted = compactText(answer);
       const options = Array.from(select.options || []);
       const option = options.find((candidate) => {
         const label = scoreText(candidate.textContent || candidate.label || "");
         const value = scoreText(candidate.value || "");
-        const compactLabel = label.replace(/[^a-z0-9]+/g, "");
-        const compactValue = value.replace(/[^a-z0-9]+/g, "");
+        const compactLabel = compactText(candidate.textContent || candidate.label || "");
+        const compactValue = compactText(candidate.value || "");
         return (
           label === wanted ||
           value === wanted ||
@@ -420,15 +568,60 @@ async function fillApplicationAnswers(page, task) {
       select.dispatchEvent(new Event("change", { bubbles: true }));
       return true;
     };
+    const clickCustomChoice = async (container, answer) => {
+      if (!container) {
+        return false;
+      }
+      const wanted = scoreText(answer);
+      const compactWanted = compactText(answer);
+      const opener = container.querySelector(
+        "button, [role='combobox'], [aria-haspopup='listbox'], [data-testid*='select' i]"
+      );
+      if (opener) {
+        opener.click();
+        await new Promise((resolve) => setTimeout(resolve, 250));
+      }
+      const optionSelectors = [
+        "[role='option']",
+        "li",
+        "button",
+        "[data-testid*='option' i]",
+      ];
+      const options = Array.from(document.querySelectorAll(optionSelectors.join(",")));
+      const option = options.find((candidate) => {
+        const text = scoreText(candidate.textContent || candidate.getAttribute("aria-label") || "");
+        const compact = compactText(candidate.textContent || candidate.getAttribute("aria-label") || "");
+        return (
+          text === wanted ||
+          compact === compactWanted ||
+          (compactWanted && compact && compact.includes(compactWanted)) ||
+          (compactWanted && compact && compactWanted.includes(compact))
+        );
+      });
+      if (!option) {
+        return false;
+      }
+      option.click();
+      return true;
+    };
     let filledCount = 0;
     for (const item of items) {
       const answer = clean(item.answer);
-      const field = findByName(item.fieldNames) || findByLabel(item.label);
+      const container = findQuestionContainer(item.label);
+      const field =
+        findByName(item.fieldNames) ||
+        findByLabel(item.label) ||
+        (container ? container.querySelector("input:not([type='hidden']), textarea, select") : null);
       if (!field || !answer) {
+        if (answer && await clickCustomChoice(container, answer)) {
+          filledCount += 1;
+        }
         continue;
       }
       if (field.tagName === "SELECT") {
         if (selectOption(field, answer)) {
+          filledCount += 1;
+        } else if (await clickCustomChoice(container, answer)) {
           filledCount += 1;
         }
         continue;
@@ -438,17 +631,17 @@ async function fillApplicationAnswers(page, task) {
           ? Array.from(document.querySelectorAll(`[name="${CSS.escape(field.name)}"]`))
           : [field];
         const wanted = scoreText(answer);
+        const compactWanted = compactText(answer);
         const option = group.find((candidate) => {
           const id = candidate.getAttribute("id") || "";
           const label = id ? document.querySelector(`label[for="${CSS.escape(id)}"]`) : null;
-          const compactWanted = wanted.replace(/[^a-z0-9]+/g, "");
           const optionText = scoreText(
             (label && label.textContent) ||
               candidate.getAttribute("aria-label") ||
               candidate.value ||
               ""
           );
-          const compactOption = optionText.replace(/[^a-z0-9]+/g, "");
+          const compactOption = compactText(optionText);
           return (
             optionText === wanted ||
             compactOption === compactWanted ||
@@ -461,6 +654,8 @@ async function fillApplicationAnswers(page, task) {
         });
         if (option) {
           option.click();
+          filledCount += 1;
+        } else if (await clickCustomChoice(container, answer)) {
           filledCount += 1;
         }
         continue;
@@ -559,7 +754,7 @@ async function clickLikelyApplyButton(page) {
   const clicked = await page.evaluate(() => {
     const buttons = Array.from(document.querySelectorAll("button, input[type=submit]"));
     const target = buttons.find((button) =>
-      /submit application|send application|apply now|submit/i.test(
+      /submit application|send application|submit$/i.test(
         `${button.textContent || ""} ${button.getAttribute("value") || ""} ${button.getAttribute("aria-label") || ""}`
       )
     );
@@ -604,6 +799,7 @@ async function processTask(task) {
     const page = await browser.newPage();
     await page.setViewport({ width: 1440, height: 1200 });
     await page.goto(url, { waitUntil: "networkidle2", timeout: 60000 });
+    const formReady = await ensureApplicationFormReady(page);
 
     await fillBySelectors(page, [
       'input[name="first_name"]',
@@ -643,6 +839,8 @@ async function processTask(task) {
         url,
         allow_final_submit: allowFinalSubmit,
         clicked_submit: false,
+        form_opened: formReady.opened,
+        form_ready: formReady.ready,
         uploaded_resume: uploadedResume,
         application_answers_attempted: applicationAnswers.attempted,
         application_answers_filled: applicationAnswers.filled,
@@ -698,6 +896,8 @@ async function processTask(task) {
       url,
       allow_final_submit: allowFinalSubmit,
       clicked_submit: clickedSubmit,
+      form_opened: formReady.opened,
+      form_ready: formReady.ready,
       submit_before_url: submitResult.beforeUrl,
       submit_after_url: submitResult.afterUrl,
       uploaded_resume: uploadedResume,
