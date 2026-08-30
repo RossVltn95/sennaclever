@@ -34366,15 +34366,18 @@
       return clean === "greenhouse" || clean === "workable" || clean === "workable_board";
     }
 
-    function hasApplicationWorkerSubmitCapability() {
+    function hasKnownApplicationWorkerSubmitRoute() {
       return (
-        autoSubmitSupported &&
-        (isApplicationWorkerSubmitProvider(autoSubmitProvider) ||
-          isGreenhouseApplicationUrl(getApplicationWorkspaceUrl()) ||
-          isGreenhouseApplicationUrl(applicationUrl) ||
-          isWorkableApplicationUrl(getApplicationWorkspaceUrl()) ||
-          isWorkableApplicationUrl(applicationUrl))
+        isApplicationWorkerSubmitProvider(autoSubmitProvider) ||
+        isGreenhouseApplicationUrl(getApplicationWorkspaceUrl()) ||
+        isGreenhouseApplicationUrl(applicationUrl) ||
+        isWorkableApplicationUrl(getApplicationWorkspaceUrl()) ||
+        isWorkableApplicationUrl(applicationUrl)
       );
+    }
+
+    function hasApplicationWorkerSubmitCapability() {
+      return hasKnownApplicationWorkerSubmitRoute();
     }
 
     function isGreenhouseApplicationUrl(url) {
@@ -35633,6 +35636,9 @@
       greenhouseJobId = cleanMessageText(
         button.getAttribute("data-sffc-apply-chat-greenhouse-job-id") || ""
       );
+      if (!autoSubmitSupported && hasKnownApplicationWorkerSubmitRoute()) {
+        autoSubmitSupported = true;
+      }
       root.setAttribute("data-role-title", roleTitle || "");
       root.setAttribute("data-post-id", postId || "");
       root.setAttribute("data-jobs-post-id", jobsPostId || "");
@@ -96921,7 +96927,7 @@
         event.preventDefault();
         if (!hasApplicationWorkerSubmitCapability()) {
           botMessage(
-            "This employer form can be completed inside Senna, but managed worker submission is only switched on for Greenhouse right now.",
+            "This employer form can be completed inside Senna, but managed worker submission is not switched on for this provider yet.",
             humanComposeDelay("Managed worker submission is not switched on for this provider.", 900, 1800),
             function () {
               focusComposer("Use the embedded form, or ask me about the screening signals");
