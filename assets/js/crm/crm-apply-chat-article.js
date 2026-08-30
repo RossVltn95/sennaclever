@@ -34363,7 +34363,7 @@
 
     function isApplicationWorkerSubmitProvider(provider) {
       var clean = cleanMessageText(provider || "").toLowerCase();
-      return clean === "greenhouse";
+      return clean === "greenhouse" || clean === "workable" || clean === "workable_board";
     }
 
     function hasApplicationWorkerSubmitCapability() {
@@ -34371,12 +34371,20 @@
         autoSubmitSupported &&
         (isApplicationWorkerSubmitProvider(autoSubmitProvider) ||
           isGreenhouseApplicationUrl(getApplicationWorkspaceUrl()) ||
-          isGreenhouseApplicationUrl(applicationUrl))
+          isGreenhouseApplicationUrl(applicationUrl) ||
+          isWorkableApplicationUrl(getApplicationWorkspaceUrl()) ||
+          isWorkableApplicationUrl(applicationUrl))
       );
     }
 
     function isGreenhouseApplicationUrl(url) {
       return /(?:^|\/\/)(?:job-boards|boards)(?:\.eu)?\.greenhouse\.io\//i.test(
+        cleanMessageText(url || "")
+      );
+    }
+
+    function isWorkableApplicationUrl(url) {
+      return /(?:^|\/\/)apply\.workable\.com\//i.test(
         cleanMessageText(url || "")
       );
     }
