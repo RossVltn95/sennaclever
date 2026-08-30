@@ -45361,40 +45361,54 @@ CRITICAL INSTRUCTIONS:
             };
 
             $seniority_groups = [
-                ['level' => 12, 'label' => 'C-suite', 'terms' => ['cfo', 'coo', 'cto', 'cio', 'cmo', 'cro', 'chro', 'ceo', 'founder ceo']],
-                ['level' => 11, 'label' => 'Head / Executive', 'terms' => ['global head', 'regional head', 'head of', 'general manager', 'president', 'svp', 'evp']],
-                ['level' => 10, 'label' => 'Managing Director / Partner', 'terms' => ['senior managing director', 'managing director', 'managing partner', 'equity partner', 'associate partner', 'partner']],
-                ['level' => 9, 'label' => 'Director', 'terms' => ['executive director', 'senior director', 'associate director', 'director']],
-                ['level' => 8, 'label' => 'VP / Principal', 'terms' => ['assistant vice president', 'vice president', 'senior principal', 'principal', 'vp', 'avp']],
-                ['level' => 7, 'label' => 'Senior Manager', 'terms' => ['senior manager', 'lead manager']],
-                ['level' => 6, 'label' => 'Manager', 'terms' => ['assistant manager', 'team manager', 'manager']],
-                ['level' => 5, 'label' => 'Senior Associate', 'terms' => ['senior associate', 'lead associate']],
-                ['level' => 4, 'label' => 'Associate', 'terms' => ['junior associate', 'associate']],
-                ['level' => 3, 'label' => 'Senior Analyst', 'terms' => ['senior analyst', 'lead analyst']],
-                ['level' => 2, 'label' => 'Analyst', 'terms' => ['investment analyst', 'research analyst', 'business analyst', 'financial analyst', 'junior analyst', 'analyst']],
-                ['level' => 1, 'label' => 'Entry / Graduate', 'terms' => ['graduate', 'junior', 'assistant', 'coordinator', 'administrator', 'officer']],
-                ['level' => 0, 'label' => 'Internship', 'terms' => ['apprentice', 'trainee', 'intern', 'internship', 'placement', 'work experience']],
+                ['level' => 12, 'label' => 'C-suite', 'terms' => ['chief financial officer', 'chief operating officer', 'chief technology officer', 'chief investment officer', 'chief risk officer', 'chief executive officer', 'cfo', 'coo', 'cto', 'cio', 'cmo', 'cro', 'chro', 'ceo', 'founder ceo']],
+                ['level' => 11, 'label' => 'Head / Executive', 'terms' => ['global head', 'regional head', 'country head', 'head of', 'general manager', 'president', 'senior vice president', 'executive vice president', 'svp', 'evp']],
+                ['level' => 10, 'label' => 'Managing Director / Partner', 'terms' => ['senior managing director', 'managing director', 'managing partner', 'equity partner', 'operating partner', 'investment partner', 'associate partner', 'partner']],
+                ['level' => 9, 'label' => 'Director', 'terms' => ['executive director', 'senior director', 'associate director', 'director', 'investment director', 'finance director']],
+                ['level' => 8, 'label' => 'VP / Principal', 'terms' => ['assistant vice president', 'vice president', 'senior principal', 'principal', 'investment principal', 'vp', 'avp']],
+                ['level' => 7, 'label' => 'Senior Manager', 'terms' => ['senior manager', 'lead manager', 'programme manager', 'program manager']],
+                ['level' => 6, 'label' => 'Manager', 'terms' => ['assistant manager', 'team manager', 'finance manager', 'portfolio manager', 'relationship manager', 'project manager', 'product manager', 'manager']],
+                ['level' => 5, 'label' => 'Senior Associate', 'terms' => ['senior associate', 'lead associate', 'experienced associate']],
+                ['level' => 4, 'label' => 'Associate', 'terms' => ['junior associate', 'investment associate', 'research associate', 'associate']],
+                ['level' => 3, 'label' => 'Senior Analyst', 'terms' => ['senior analyst', 'lead analyst', 'experienced analyst', 'senior accountant']],
+                ['level' => 2, 'label' => 'Analyst', 'terms' => ['investment analyst', 'research analyst', 'business analyst', 'financial analyst', 'credit analyst', 'data analyst', 'quantitative analyst', 'junior analyst', 'analyst', 'analista', 'accountant', 'banker', 'accounting professional', 'finance professional']],
+                ['level' => 1, 'label' => 'Entry / Graduate', 'terms' => ['graduate analyst', 'graduate trainee', 'graduate', 'junior', 'jr', 'assistant', 'coordinator', 'administrator', 'officer', 'student', 'estudiante', 'entry level', 'career objective', 'career objectives', 'objetivo atuar']],
+                ['level' => 0, 'label' => 'Internship', 'terms' => ['apprentice', 'trainee', 'summer analyst', 'off-cycle analyst', 'intern', 'internship', 'placement', 'work experience', 'stagiaire', 'stage', 'alternance']],
             ];
             $action_groups = [
-                ['band' => 'support', 'level' => 1, 'weight' => 1, 'terms' => ['assisted', 'supported', 'helped', 'shadowed', 'participated', 'contributed', 'worked alongside', 'under supervision', 'gained exposure', 'helped prepare']],
-                ['band' => 'execute', 'level' => 3, 'weight' => 2, 'terms' => ['analysed', 'analyzed', 'built', 'prepared', 'modelled', 'modeled', 'researched', 'evaluated', 'calculated', 'forecasted', 'reviewed', 'monitored', 'identified', 'presented']],
-                ['band' => 'own', 'level' => 5, 'weight' => 3, 'terms' => ['owned', 'executed', 'delivered', 'managed workstream', 'managed workstreams', 'coordinated', 'drove execution', 'led analysis', 'managed process', 'reviewed junior work', 'mentored']],
-                ['band' => 'lead', 'level' => 8, 'weight' => 4, 'terms' => ['managed a team', 'led a team', 'supervised', 'coached', 'hired', 'developed team', 'allocated resources', 'managed performance', 'led transactions', 'originated', 'negotiated', 'approved', 'advised senior stakeholders']],
-                ['band' => 'direct', 'level' => 10, 'weight' => 5, 'terms' => ['defined strategy', 'set direction', 'set strategic direction', 'established', 'transformed', 'restructured', 'launched', 'expanded', 'entered new markets', 'owned p and l', 'owned pnl', 'generated revenue', 'won mandates', 'advised board', 'chaired']],
+                ['band' => 'support', 'level' => 1, 'weight' => 1, 'terms' => ['assisted', 'supported', 'helped', 'shadowed', 'participated', 'contributed', 'worked alongside', 'under supervision', 'gained exposure', 'helped prepare', 'maintained', 'processed', 'updated', 'compiled']],
+                ['band' => 'execute', 'level' => 3, 'weight' => 2, 'terms' => ['analysed', 'analyzed', 'built', 'prepared', 'modelled', 'modeled', 'researched', 'evaluated', 'calculated', 'forecasted', 'reviewed', 'monitored', 'identified', 'presented', 'drafted', 'screened', 'benchmarked', 'reconciled', 'implemented']],
+                ['band' => 'own', 'level' => 5, 'weight' => 3, 'terms' => ['owned', 'executed', 'delivered', 'managed workstream', 'managed workstreams', 'coordinated', 'drove execution', 'led analysis', 'managed process', 'reviewed junior work', 'mentored', 'prepared recommendations', 'conducted due diligence', 'managed stakeholders']],
+                ['band' => 'lead', 'level' => 8, 'weight' => 4, 'terms' => ['managed a team', 'led a team', 'supervised', 'coached', 'hired', 'developed team', 'allocated resources', 'managed performance', 'led transactions', 'originated', 'negotiated', 'approved', 'advised senior stakeholders', 'led workstreams', 'owned budget', 'influenced leadership']],
+                ['band' => 'direct', 'level' => 10, 'weight' => 5, 'terms' => ['defined strategy', 'set direction', 'set strategic direction', 'established', 'transformed', 'restructured', 'launched', 'expanded', 'entered new markets', 'owned p and l', 'owned pnl', 'generated revenue', 'won mandates', 'advised board', 'chaired', 'accountable for', 'drove growth', 'set objectives']],
             ];
             $sector_groups = [
-                ['label' => 'Private Equity', 'terms' => ['lbo', 'leveraged buyout', 'moic', 'investment committee', 'portfolio company', 'value creation', 'bolt-on', 'add-on acquisition', 'buyout', 'investment thesis', 'exit'], 'weight' => 5],
-                ['label' => 'Investment Banking', 'terms' => ['investment banking', 'm&a', 'sell-side', 'buy-side', 'pitchbook', 'cim', 'information memorandum', 'fairness opinion', 'deal execution'], 'weight' => 4],
-                ['label' => 'Private Credit', 'terms' => ['direct lending', 'unitranche', 'senior secured', 'credit underwriting', 'covenant', 'debt capacity', 'interest coverage', 'credit committee'], 'weight' => 5],
-                ['label' => 'Asset Management', 'terms' => ['aum', 'portfolio management', 'fund performance', 'benchmark', 'alpha', 'asset allocation', 'investment mandate', 'institutional investors'], 'weight' => 4],
-                ['label' => 'Sovereign Investment', 'terms' => ['sovereign wealth fund', 'sovereign investments', 'national investment strategy', 'pif', 'mubadala', 'adia', 'adq', 'qia', 'gic', 'temasek'], 'weight' => 6],
-                ['label' => 'Family Office', 'terms' => ['family office', 'principal investments', 'family investments', 'family assets', 'strategic holdings'], 'weight' => 5],
-                ['label' => 'Islamic Finance', 'terms' => ['sharia', 'sharia compliant', 'sukuk', 'murabaha', 'ijara', 'musharaka', 'mudaraba', 'wakala'], 'weight' => 5],
-                ['label' => 'Infrastructure Investment', 'terms' => ['infrastructure assets', 'ppp', 'concessions', 'regulated assets', 'utilities', 'transport', 'digital infrastructure'], 'weight' => 5],
-                ['label' => 'Renewable Energy', 'terms' => ['solar', 'wind', 'bess', 'renewable energy', 'ppa', 'mw', 'gw', 'generation capacity', 'energy transition', 'clean energy', 'green hydrogen'], 'weight' => 5],
-                ['label' => 'Energy', 'terms' => ['oil and gas', 'upstream', 'downstream', 'lng', 'reserves', 'production', 'exploration', 'energy markets', 'noc'], 'weight' => 4],
+                ['label' => 'Private Equity', 'terms' => ['lbo', 'leveraged buyout', 'moic', 'investment committee', 'portfolio company', 'value creation', 'bolt-on', 'add-on acquisition', 'buyout', 'investment thesis', 'exit', 'management buyout', 'commercial due diligence'], 'weight' => 5],
+                ['label' => 'Growth Equity', 'terms' => ['growth investment', 'minority investment', 'growth capital', 'unit economics', 'tam', 'cohort analysis', 'recurring revenue', 'arr', 'series c', 'series d', 'founder led'], 'weight' => 5],
+                ['label' => 'Venture Capital', 'terms' => ['venture capital', 'seed', 'series a', 'series b', 'startup', 'startups', 'founders', 'cap table', 'term sheet', 'follow-on investment', 'product market fit', 'accelerator'], 'weight' => 5],
+                ['label' => 'Investment Banking', 'terms' => ['investment banking', 'm&a', 'mergers and acquisitions', 'sell-side', 'buy-side', 'pitchbook', 'cim', 'information memorandum', 'fairness opinion', 'deal execution', 'buyer list', 'mandate'], 'weight' => 4],
+                ['label' => 'Equity Capital Markets', 'terms' => ['equity capital markets', 'ecm', 'ipo', 'adx', 'dfm', 'tadawul', 'rights issue', 'follow-on offering', 'bookbuilding', 'prospectus', 'investor roadshow'], 'weight' => 5],
+                ['label' => 'Debt Capital Markets', 'terms' => ['debt capital markets', 'dcm', 'bond issuance', 'debt issuance', 'fixed income issuance', 'refinancing', 'credit rating', 'sukuk issuance'], 'weight' => 5],
+                ['label' => 'Private Credit', 'terms' => ['private credit', 'direct lending', 'unitranche', 'senior secured', 'credit underwriting', 'covenant', 'debt capacity', 'interest coverage', 'credit committee', 'leveraged loans', 'downside case'], 'weight' => 5],
+                ['label' => 'Restructuring / Special Situations', 'terms' => ['distressed debt', 'restructuring', 'stressed credit', 'recovery analysis', 'liquidation value', 'special situations', 'turnaround', '13 week cash flow', 'covenant breach'], 'weight' => 5],
+                ['label' => 'Transaction Services / FDD', 'terms' => ['financial due diligence', 'transaction services', 'fdd', 'qoe', 'quality of earnings', 'net debt', 'working capital', 'ebitda adjustments', 'deal advisory'], 'weight' => 5],
+                ['label' => 'Valuations', 'terms' => ['dcf', 'discounted cash flow', 'comparable companies', 'precedent transactions', 'purchase price allocation', 'impairment testing', 'fair value', 'valuation modelling'], 'weight' => 4],
+                ['label' => 'Asset Management', 'terms' => ['aum', 'portfolio management', 'fund performance', 'benchmark', 'alpha', 'asset allocation', 'investment mandate', 'institutional investors', 'stock selection', 'public equities'], 'weight' => 4],
+                ['label' => 'Hedge Fund / Quant', 'terms' => ['hedge fund', 'long short', 'short thesis', 'gross exposure', 'net exposure', 'portfolio exposure', 'p and l', 'alpha generation', 'systematic', 'statistical arbitrage', 'backtesting', 'factor models'], 'weight' => 5],
+                ['label' => 'Sovereign Investment', 'terms' => ['sovereign wealth fund', 'sovereign investments', 'national investment strategy', 'pif', 'mubadala', 'adia', 'adq', 'qia', 'gic', 'temasek', 'strategic investments', 'national champions'], 'weight' => 6],
+                ['label' => 'Government / GRE', 'terms' => ['government related entity', 'gre', 'ministry', 'vision 2030', 'national transformation', 'economic development', 'strategic projects', 'giga project'], 'weight' => 5],
+                ['label' => 'Family Office', 'terms' => ['family office', 'principal investments', 'family investments', 'family assets', 'strategic holdings', 'wealth preservation', 'single family office', 'multi family office'], 'weight' => 5],
+                ['label' => 'Private Banking / Wealth', 'terms' => ['private banking', 'wealth management', 'hnw', 'uhnw', 'private clients', 'wealth planning', 'discretionary portfolio', 'client assets', 'investment advisory'], 'weight' => 5],
+                ['label' => 'Islamic Finance', 'terms' => ['sharia', 'sharia compliant', 'sukuk', 'murabaha', 'ijara', 'musharaka', 'mudaraba', 'wakala', 'islamic banking'], 'weight' => 5],
+                ['label' => 'Infrastructure Investment', 'terms' => ['infrastructure assets', 'ppp', 'concessions', 'regulated assets', 'utilities', 'transport', 'digital infrastructure', 'availability payments', 'project finance'], 'weight' => 5],
+                ['label' => 'Real Estate Investment', 'terms' => ['real estate', 'real estate acquisitions', 'property portfolio', 'development appraisal', 'cap rate', 'yield', 'noi', 'occupancy', 'rent roll', 'nav', 'asset management'], 'weight' => 4],
+                ['label' => 'Renewable Energy', 'terms' => ['solar', 'wind', 'bess', 'renewable energy', 'ppa', 'mw', 'gw', 'generation capacity', 'energy transition', 'clean energy', 'green hydrogen', 'renewable assets'], 'weight' => 5],
+                ['label' => 'Energy', 'terms' => ['oil and gas', 'upstream', 'downstream', 'lng', 'hydrocarbons', 'reserves', 'production', 'exploration', 'energy markets', 'noc', 'adnoc', 'aramco'], 'weight' => 4],
+                ['label' => 'Corporate Banking', 'terms' => ['corporate banking', 'commercial banking', 'corporate clients', 'credit facilities', 'working capital facility', 'revolving credit facility', 'loan book', 'relationship manager'], 'weight' => 4],
                 ['label' => 'Corporate Finance', 'terms' => ['budgeting', 'forecasting', 'fp&a', 'management accounts', 'variance analysis', 'cash flow', 'business partnering'], 'weight' => 3],
                 ['label' => 'Risk & Compliance', 'terms' => ['risk management', 'market risk', 'credit risk', 'operational risk', 'var', 'stress testing', 'aml', 'kyc', 'sanctions', 'regulatory compliance'], 'weight' => 4],
+                ['label' => 'Treasury', 'terms' => ['treasury', 'liquidity', 'cash management', 'fx hedging', 'funding', 'interest rate risk', 'debt facilities', 'cash forecasting'], 'weight' => 4],
+                ['label' => 'Fund Accounting / Operations', 'terms' => ['fund accounting', 'nav', 'capital calls', 'distributions', 'carried interest', 'waterfall', 'investor allocations', 'fund operations'], 'weight' => 4],
                 ['label' => 'Insurance', 'terms' => ['insurance', 'underwriting', 'premiums', 'claims', 'loss ratio', 'combined ratio', 'actuarial', 'policyholders', 'reinsurance', 'solvency'], 'weight' => 4],
                 ['label' => 'Management Consulting', 'terms' => ['consulting', 'strategy consulting', 'management consulting', 'operating model', 'transformation', 'market assessment', 'stakeholder interviews', 'client engagement', 'workstream'], 'weight' => 4],
                 ['label' => 'Accounting / Audit', 'terms' => ['audit', 'ifrs', 'gaap', 'statutory accounts', 'financial statements', 'controls testing', 'substantive testing', 'audit procedures', 'month end', 'reconciliations'], 'weight' => 4],
@@ -45552,6 +45566,22 @@ CRITICAL INSTRUCTIONS:
                     continue;
                 }
                 $add(sprintf(__('Worth noting: the role asks for %s, but the CV does not make that obvious yet.', 'senna-finance'), $label), 'watch', 'missing_signal');
+            }
+
+            if (count($insights) < 2) {
+                $role_sector_scores = array_values(array_filter((array) ($analysis['cv_signal_profile']['sectors'] ?? []), static function ($sector) {
+                    return is_array($sector) && (int) ($sector['role_score'] ?? 0) > 0;
+                }));
+                usort($role_sector_scores, static function ($left, $right) {
+                    return ((int) ($right['role_score'] ?? 0)) <=> ((int) ($left['role_score'] ?? 0));
+                });
+                foreach ($role_sector_scores as $sector) {
+                    $label = trim((string) ($sector['label'] ?? ''));
+                    if ($label !== '' && (int) ($sector['cv_score'] ?? 0) <= 0) {
+                        $add(sprintf(__('Worth noting: the role leans toward %s, but that evidence is not obvious on the CV yet.', 'senna-finance'), $label), 'watch', 'sector_gap');
+                        break;
+                    }
+                }
             }
 
             if (count($insights) < 2) {
