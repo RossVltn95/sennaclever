@@ -10430,7 +10430,7 @@ body.sffc-crm-apply-chat-lock {
 
 .sffc-crm-apply-chat__greenhouse-workspace {
   display: grid;
-  gap: 14px;
+  gap: 12px;
   width: min(100%, 980px);
   color: #1f2933;
 }
@@ -10452,6 +10452,63 @@ body.sffc-crm-apply-chat-lock {
 .sffc-crm-apply-chat__greenhouse-header span {
   color: #606b77;
   font-size: 14px;
+  line-height: 1.45;
+}
+
+.sffc-crm-apply-chat__greenhouse-primary {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 16px;
+  align-items: center;
+  padding: 18px;
+  border: 1px solid #0a66c2;
+  border-radius: 8px;
+  background: #f4f9ff;
+  box-shadow: 0 8px 22px rgba(10, 102, 194, 0.1);
+}
+
+.sffc-crm-apply-chat__greenhouse-primary-copy {
+  display: grid;
+  gap: 4px;
+}
+
+.sffc-crm-apply-chat__greenhouse-primary-copy small {
+  color: #0a66c2;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.sffc-crm-apply-chat__greenhouse-primary-copy strong {
+  color: #102a43;
+  font-size: 18px;
+  line-height: 1.25;
+}
+
+.sffc-crm-apply-chat__greenhouse-primary-copy p {
+  margin: 0;
+  color: #4f5f6f;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.sffc-crm-apply-chat__greenhouse-primary-action {
+  min-height: 46px;
+  padding: 0 20px;
+  border: 1px solid #0a66c2;
+  border-radius: 999px;
+  background: #0a66c2;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 900;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.sffc-crm-apply-chat__greenhouse-primary-action:disabled {
+  opacity: 0.55;
+  cursor: wait;
 }
 
 .sffc-crm-apply-chat__greenhouse-grid {
@@ -10462,6 +10519,11 @@ body.sffc-crm-apply-chat-lock {
   border-radius: 8px;
   overflow: hidden;
   background: #fff;
+}
+
+.sffc-crm-apply-chat__greenhouse-grid--compact {
+  grid-template-columns: minmax(220px, 320px) minmax(0, 1fr);
+  min-height: 0;
 }
 
 .sffc-crm-apply-chat__greenhouse-answers {
@@ -10502,6 +10564,43 @@ body.sffc-crm-apply-chat-lock {
   background: #fff;
   font-size: 13px;
   line-height: 1.35;
+}
+
+.sffc-crm-apply-chat__greenhouse-preview {
+  min-width: 0;
+  background: #fff;
+}
+
+.sffc-crm-apply-chat__greenhouse-preview summary {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  min-height: 62px;
+  padding: 0 16px;
+  border-bottom: 1px solid #e1e6eb;
+  color: #1f2933;
+  cursor: pointer;
+  list-style: none;
+}
+
+.sffc-crm-apply-chat__greenhouse-preview summary::-webkit-details-marker {
+  display: none;
+}
+
+.sffc-crm-apply-chat__greenhouse-preview summary span {
+  font-size: 14px;
+  font-weight: 900;
+}
+
+.sffc-crm-apply-chat__greenhouse-preview summary small {
+  color: #66727c;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.sffc-crm-apply-chat__greenhouse-preview:not([open]) .sffc-crm-apply-chat__greenhouse-frame-wrap {
+  display: none;
 }
 
 .sffc-crm-apply-chat__copy-answer,
@@ -10709,6 +10808,14 @@ body.sffc-crm-apply-chat-lock {
 @media (max-width: 860px) {
   .sffc-crm-apply-chat__greenhouse-grid {
     grid-template-columns: 1fr;
+  }
+
+  .sffc-crm-apply-chat__greenhouse-primary {
+    grid-template-columns: 1fr;
+  }
+
+  .sffc-crm-apply-chat__greenhouse-primary-action {
+    width: 100%;
   }
 
   .sffc-crm-apply-chat__greenhouse-answers {

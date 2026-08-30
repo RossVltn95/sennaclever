@@ -91190,37 +91190,48 @@
           '<div class="sffc-crm-apply-chat__greenhouse-workspace">' +
           '<div class="sffc-crm-apply-chat__greenhouse-header">' +
           '<strong>' +
-          escapeHtml(providerLabel) +
-          ' application</strong>' +
+          'Senna can apply for you</strong>' +
           '<span>' +
           (hasSchemaSignals
-            ? 'I checked the employer form and pulled out the main application signals. Complete the form in the window below.'
-            : 'Complete the employer form in the window below. If the employer blocks embedded forms, use the open-form button.') +
+            ? 'I checked the ' + escapeHtml(providerLabel) + ' form and pulled out the main screening signals. I can collect only what is needed, submit through the employer form, and ask you for any verification code if Greenhouse sends one.'
+            : 'I found the employer form. I can collect the core application details, submit through the employer route where supported, and keep the employer form available here for review.') +
           '</span>' +
           '</div>' +
-          '<div class="sffc-crm-apply-chat__greenhouse-grid">' +
+          '<div class="sffc-crm-apply-chat__greenhouse-primary">' +
+          '<div class="sffc-crm-apply-chat__greenhouse-primary-copy">' +
+          '<small>Recommended</small>' +
+          '<strong>Let Senna complete this application</strong>' +
+          '<p>I’ll use your CV, name, and email, then ask any employer-required questions in a cleaner format before the worker submits the form.</p>' +
+          '</div>' +
+          '<button type="button" class="sffc-crm-apply-chat__greenhouse-primary-action" data-sffc-application-worker-queue>Apply for me</button>' +
+          '</div>' +
+          '<div class="sffc-crm-apply-chat__greenhouse-grid sffc-crm-apply-chat__greenhouse-grid--compact">' +
           '<div class="sffc-crm-apply-chat__greenhouse-answers">' +
           '<strong>Application signals</strong>' +
           '<ul>' +
           getGreenhouseApplicationInsightsHtml(schema) +
           '</ul>' +
           '</div>' +
+          '<details class="sffc-crm-apply-chat__greenhouse-preview">' +
+          '<summary><span>Preview employer form inside Senna</span><small>' +
+          escapeHtml(providerLabel) +
+          ' form</small></summary>' +
           '<div class="sffc-crm-apply-chat__greenhouse-frame-wrap">' +
           '<iframe class="sffc-crm-apply-chat__greenhouse-frame" src="' +
           escapeHtml(fallbackUrl) +
           '" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>' +
           '</div>' +
+          '</details>' +
           '</div>' +
           '<div class="sffc-crm-apply-chat__greenhouse-actions">' +
           '<a href="' +
           escapeHtml(fallbackUrl) +
           '" target="_blank" rel="noopener noreferrer">Open employer form</a>' +
-          '<button type="button" data-sffc-application-worker-queue>Apply for me</button>' +
           '<button type="button" data-sffc-greenhouse-completed>I submitted it</button>' +
           '</div>' +
           '</div>';
         botMessage(html, humanComposeDelay("Application workspace ready.", 1000, 2200), function () {
-          focusComposer("Tell me when you have submitted the employer form");
+          focusComposer("Choose Apply for me, or preview the employer form");
         });
       }
 
@@ -91237,13 +91248,20 @@
           '<div class="sffc-crm-apply-chat__greenhouse-workspace is-external-only">' +
           '<div class="sffc-crm-apply-chat__greenhouse-header">' +
           '<strong>' +
-          escapeHtml(providerLabel) +
-          ' application</strong>' +
+          'Senna can prepare this application</strong>' +
           '<span>' +
           (hasSchemaSignals
-            ? 'I checked the employer form and pulled out the main application signals. This employer blocks embedded forms, so use the employer form button and come back here once it is submitted.'
-            : 'This employer blocks embedded application forms, so I can’t show the form window inside Senna. Use the employer form button and come back here once it is submitted.') +
+            ? 'I checked the ' + escapeHtml(providerLabel) + ' form and pulled out the main screening signals. This employer blocks embedded forms, but Senna can still help with the application route where supported.'
+            : 'This employer blocks embedded application forms, so I can’t show the form window inside Senna. I’ll keep the route and next step clear here.') +
           '</span>' +
+          '</div>' +
+          '<div class="sffc-crm-apply-chat__greenhouse-primary">' +
+          '<div class="sffc-crm-apply-chat__greenhouse-primary-copy">' +
+          '<small>Recommended</small>' +
+          '<strong>Let Senna handle the next step</strong>' +
+          '<p>I’ll use the CV, candidate details, and detected screening fields to prepare the cleanest application route.</p>' +
+          '</div>' +
+          '<button type="button" class="sffc-crm-apply-chat__greenhouse-primary-action" data-sffc-application-worker-queue>Apply for me</button>' +
           '</div>' +
           '<div class="sffc-crm-apply-chat__greenhouse-answers">' +
           '<strong>' +
@@ -91261,12 +91279,11 @@
           '<a href="' +
           escapeHtml(workspaceUrl || "#") +
           '" target="_blank" rel="noopener noreferrer">Open employer form</a>' +
-          '<button type="button" data-sffc-application-worker-queue>Apply for me</button>' +
           '<button type="button" data-sffc-greenhouse-completed>I submitted it</button>' +
           '</div>' +
           '</div>';
         botMessage(html, humanComposeDelay("Employer form route ready.", 1000, 2200), function () {
-          focusComposer("Tell me when you have submitted the employer form");
+          focusComposer("Choose Apply for me, or open the employer form");
         });
       }
 
