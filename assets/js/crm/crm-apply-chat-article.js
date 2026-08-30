@@ -952,8 +952,25 @@
       .trim();
   }
 
+  function isOperationalMetaQuestion(text) {
+    var clean = cleanMessageText(text || "").toLowerCase();
+    return !!(
+      clean &&
+      (/\?/.test(clean) ||
+        /\b(?:why|what for|what do you mean|what are you asking|do you need|need this|how come|is this safe|privacy|secure|data|will you submit|are you applying|can i skip|do i have to|not sure|confused|explain)\b/i.test(
+          clean
+        ))
+    );
+  }
+
   function extractGreenhouseSecurityCode(text) {
     var clean = cleanMessageText(text || "");
+    var labelled = clean.match(
+      /\b(?:code|security code|verification code|greenhouse code)\s*(?:is|:|-)?\s*([A-Za-z0-9]{6,12})\b/i
+    );
+    if (labelled && labelled[1]) {
+      return labelled[1];
+    }
     var match = clean.match(/\b[A-Za-z0-9]{6,12}\b/);
     return match ? match[0] : clean;
   }
@@ -1066,6 +1083,11 @@
       .replace(/\binglizi\b/g, "english")
       .replace(/\benglishy\b/g, "english")
       .replace(/\b7md?l+?ah\b/g, "hamdulillah")
+      .replace(/\bhiya+\b/g, "hi")
+      .replace(/\byo+\b/g, "hi")
+      .replace(/\byooo+\b/g, "hi")
+      .replace(/\bwhoa+\b/g, "woah")
+      .replace(/\bwoah+\b/g, "woah")
       .replace(/\bthx+\b/g, "thanks")
       .replace(/\bpls+\b/g, "please")
       .replace(/\bplz+\b/g, "please")
@@ -1578,6 +1600,8 @@
     { pattern: /\bapplicaiton\b/g, replacement: "application" },
     { pattern: /\bapplicaton\b/g, replacement: "application" },
     { pattern: /\bapplictions\b/g, replacement: "applications" },
+    { pattern: /\bassesse?ments?\b/g, replacement: "assessment" },
+    { pattern: /\bassesments?\b/g, replacement: "assessment" },
     { pattern: /\bsubmision\b/g, replacement: "submission" },
     { pattern: /\bsubmitt?ed\b/g, replacement: "submitted" },
     { pattern: /\bsubmited\b/g, replacement: "submitted" },
@@ -1908,6 +1932,233 @@
     { pattern: /\bmaabi\b/g, replacement: "do not want" },
   ];
 
+  careerIntentPhraseCorrections = careerIntentPhraseCorrections.concat([
+    { pattern: /\bgreetings?\b/g, replacement: "hi" },
+    { pattern: /\bgreeting\b/g, replacement: "hi" },
+    { pattern: /\bhope you are doing well\b/g, replacement: "hi" },
+    { pattern: /\bi hope you are doing well\b/g, replacement: "hi" },
+    { pattern: /\bthank\b/g, replacement: "thanks" },
+    { pattern: /\bi hi\b/g, replacement: "hi" },
+    { pattern: /\bi would like to express my interest\b/g, replacement: "interested" },
+    { pattern: /\bi wanted to reach out to see if\b/g, replacement: "looking for" },
+    { pattern: /\bi came across\b/g, replacement: "i found" },
+    { pattern: /\bopen position\b/g, replacement: "open role" },
+    { pattern: /\bnew opport(?:unity|unities)\b/g, replacement: "new opportunities" },
+    { pattern: /\baccomodate(?:d)?\b/g, replacement: "accommodate" },
+    { pattern: /\baccomodation\b/g, replacement: "accommodation" },
+    { pattern: /\bacheive\b/g, replacement: "achieve" },
+    { pattern: /\bacheived\b/g, replacement: "achieved" },
+    { pattern: /\bacheivements?\b/g, replacement: "achievements" },
+    { pattern: /\badress(?:ed|ing)?\b/g, replacement: "address" },
+    { pattern: /\banalisis\b/g, replacement: "analysis" },
+    { pattern: /\banalsysis\b/g, replacement: "analysis" },
+    { pattern: /\banalyis\b/g, replacement: "analysis" },
+    { pattern: /\banalyseing\b/g, replacement: "analysing" },
+    { pattern: /\banalyzeing\b/g, replacement: "analyzing" },
+    { pattern: /\banalystt\b/g, replacement: "analyst" },
+    { pattern: /\banalystss\b/g, replacement: "analysts" },
+    { pattern: /\bappliedd\b/g, replacement: "applied" },
+    { pattern: /\bassistand\b/g, replacement: "assistant" },
+    { pattern: /\bassitant\b/g, replacement: "assistant" },
+    { pattern: /\bavailabe\b/g, replacement: "available" },
+    { pattern: /\bavailabilty\b/g, replacement: "availability" },
+    { pattern: /\bbuisness(?:es)?\b/g, replacement: "business" },
+    { pattern: /\bbusines\b/g, replacement: "business" },
+    { pattern: /\bbusinesss\b/g, replacement: "business" },
+    { pattern: /\bcandi(?:ate|ates)\b/g, replacement: "candidate" },
+    { pattern: /\bcandidiate\b/g, replacement: "candidate" },
+    { pattern: /\bcatagory\b/g, replacement: "category" },
+    { pattern: /\bcatagories\b/g, replacement: "categories" },
+    { pattern: /\bcertficate\b/g, replacement: "certificate" },
+    { pattern: /\bcertifcate\b/g, replacement: "certificate" },
+    { pattern: /\bcertifed\b/g, replacement: "certified" },
+    { pattern: /\bcommitee\b/g, replacement: "committee" },
+    { pattern: /\bcommited\b/g, replacement: "committed" },
+    { pattern: /\bcommittments?\b/g, replacement: "commitments" },
+    { pattern: /\bcomercial\b/g, replacement: "commercial" },
+    { pattern: /\bcommerical\b/g, replacement: "commercial" },
+    { pattern: /\bcommunic(?:tion|aton)\b/g, replacement: "communication" },
+    { pattern: /\bcompet(?:ative|etive)\b/g, replacement: "competitive" },
+    { pattern: /\bcomplience\b/g, replacement: "compliance" },
+    { pattern: /\bcompliace\b/g, replacement: "compliance" },
+    { pattern: /\bconsistant(?:ly)?\b/g, replacement: "consistent" },
+    { pattern: /\bconsistancy\b/g, replacement: "consistency" },
+    { pattern: /\bconsultent\b/g, replacement: "consultant" },
+    { pattern: /\bconsultents\b/g, replacement: "consultants" },
+    { pattern: /\bconsultng\b/g, replacement: "consulting" },
+    { pattern: /\bcontibuted\b/g, replacement: "contributed" },
+    { pattern: /\bcontributon\b/g, replacement: "contribution" },
+    { pattern: /\bco-?ordinater\b/g, replacement: "coordinator" },
+    { pattern: /\bcoordinaton\b/g, replacement: "coordination" },
+    { pattern: /\bcurrenly\b/g, replacement: "currently" },
+    { pattern: /\bcurently\b/g, replacement: "currently" },
+    { pattern: /\b(?:decison|descision)\b/g, replacement: "decision" },
+    { pattern: /\b(?:decisons|descisions)\b/g, replacement: "decisions" },
+    { pattern: /\bdescriptons?\b/g, replacement: "description" },
+    { pattern: /\bdevelopements?\b/g, replacement: "developments" },
+    { pattern: /\bdevlopment\b/g, replacement: "development" },
+    { pattern: /\bdevloped\b/g, replacement: "developed" },
+    { pattern: /\bdevloping\b/g, replacement: "developing" },
+    { pattern: /\bdocumantation\b/g, replacement: "documentation" },
+    { pattern: /\bdocumention\b/g, replacement: "documentation" },
+    { pattern: /\befficent\b/g, replacement: "efficient" },
+    { pattern: /\befficency\b/g, replacement: "efficiency" },
+    { pattern: /\beligable\b/g, replacement: "eligible" },
+    { pattern: /\benviro?nmental?\b/g, replacement: "environmental" },
+    { pattern: /\benviro?nment\b/g, replacement: "environment" },
+    { pattern: /\bexcelent\b/g, replacement: "excellent" },
+    { pattern: /\bexcellant\b/g, replacement: "excellent" },
+    { pattern: /\bexcell\b/g, replacement: "excel" },
+    { pattern: /\bexperiance\b/g, replacement: "experience" },
+    { pattern: /\bexperianced\b/g, replacement: "experienced" },
+    { pattern: /\bexperince\b/g, replacement: "experience" },
+    { pattern: /\bexperinced\b/g, replacement: "experienced" },
+    { pattern: /\bexpertese\b/g, replacement: "expertise" },
+    { pattern: /\bforcasts?\b/g, replacement: "forecast" },
+    { pattern: /\bforcasting\b/g, replacement: "forecasting" },
+    { pattern: /\bforecastng\b/g, replacement: "forecasting" },
+    { pattern: /\bforecating\b/g, replacement: "forecasting" },
+    { pattern: /\bgovernement\b/g, replacement: "government" },
+    { pattern: /\bgoverment\b/g, replacement: "government" },
+    { pattern: /\bimplement(?:ion|aton)\b/g, replacement: "implementation" },
+    { pattern: /\bintergration\b/g, replacement: "integration" },
+    { pattern: /\bintergrated\b/g, replacement: "integrated" },
+    { pattern: /\bintergrate\b/g, replacement: "integrate" },
+    { pattern: /\bknowlege\b/g, replacement: "knowledge" },
+    { pattern: /\bliason\b/g, replacement: "liaison" },
+    { pattern: /\bliase\b/g, replacement: "liaise" },
+    { pattern: /\bliasing\b/g, replacement: "liaising" },
+    { pattern: /\bmanagemnt\b/g, replacement: "management" },
+    { pattern: /\bmanagment\b/g, replacement: "management" },
+    { pattern: /\bmanageing\b/g, replacement: "managing" },
+    { pattern: /\bmanagerment\b/g, replacement: "management" },
+    { pattern: /\borganisaton\b/g, replacement: "organisation" },
+    { pattern: /\borginisation\b/g, replacement: "organisation" },
+    { pattern: /\borginization\b/g, replacement: "organization" },
+    { pattern: /\borganizaton\b/g, replacement: "organization" },
+    { pattern: /\bperformace\b/g, replacement: "performance" },
+    { pattern: /\bperformence\b/g, replacement: "performance" },
+    { pattern: /\bprefered\b/g, replacement: "preferred" },
+    { pattern: /\bprefering\b/g, replacement: "preferring" },
+    { pattern: /\bproffessional\b/g, replacement: "professional" },
+    { pattern: /\bprofesional\b/g, replacement: "professional" },
+    { pattern: /\bprofessionel\b/g, replacement: "professional" },
+    { pattern: /\bprofesionally\b/g, replacement: "professionally" },
+    { pattern: /\brecieve\b/g, replacement: "receive" },
+    { pattern: /\brecieved\b/g, replacement: "received" },
+    { pattern: /\brecieving\b/g, replacement: "receiving" },
+    { pattern: /\brecomend\b/g, replacement: "recommend" },
+    { pattern: /\brecomended\b/g, replacement: "recommended" },
+    { pattern: /\brecomendations?\b/g, replacement: "recommendations" },
+    { pattern: /\brelevent\b/g, replacement: "relevant" },
+    { pattern: /\bschedual\b/g, replacement: "schedule" },
+    { pattern: /\bseperat(?:e|ed|ely|ion)\b/g, replacement: "separate" },
+    { pattern: /\bsuccesful\b/g, replacement: "successful" },
+    { pattern: /\bsuccessfull\b/g, replacement: "successful" },
+    { pattern: /\bsuccesfully\b/g, replacement: "successfully" },
+    { pattern: /\btommorow\b/g, replacement: "tomorrow" },
+    { pattern: /\bwritting\b/g, replacement: "writing" },
+    { pattern: /\bacqu?s?i?s?it?ions?\b/g, replacement: "acquisitions" },
+    { pattern: /\bassetts\b/g, replacement: "assets" },
+    { pattern: /\baudit(?:ng|ting)\b/g, replacement: "auditing" },
+    { pattern: /\bbankrup(?:cy|cty)\b/g, replacement: "bankruptcy" },
+    { pattern: /\bcapexx\b/g, replacement: "capex" },
+    { pattern: /\bcommodit(?:es|ies|oties)\b/g, replacement: "commodities" },
+    { pattern: /\bconsolidat(?:on|oin)\b/g, replacement: "consolidation" },
+    { pattern: /\bderiv(?:iatives|ates)\b/g, replacement: "derivatives" },
+    { pattern: /\bdividents?\b/g, replacement: "dividends" },
+    { pattern: /\bebidta\b/g, replacement: "ebitda" },
+    { pattern: /\bebitad\b/g, replacement: "ebitda" },
+    { pattern: /\bebtida\b/g, replacement: "ebitda" },
+    { pattern: /\bequites\b/g, replacement: "equities" },
+    { pattern: /\bfinacial\b/g, replacement: "financial" },
+    { pattern: /\bfinanacial\b/g, replacement: "financial" },
+    { pattern: /\bfinanciall\b/g, replacement: "financial" },
+    { pattern: /\bfinanical\b/g, replacement: "financial" },
+    { pattern: /\bfinancal\b/g, replacement: "financial" },
+    { pattern: /\bfinannce\b/g, replacement: "finance" },
+    { pattern: /\bhed(?:ing|gng)\b/g, replacement: "hedging" },
+    { pattern: /\binveste?m(?:ent|ents|ant|et|ets)\b/g, replacement: "investment" },
+    { pattern: /\bliabil(?:ites|ties|ty)\b/g, replacement: "liabilities" },
+    { pattern: /\bmodel(?:lingg|ingg)\b/g, replacement: "modelling" },
+    { pattern: /\bmoddeling\b/g, replacement: "modelling" },
+    { pattern: /\bport(?:flio|oflio|ofolio)\b/g, replacement: "portfolio" },
+    { pattern: /\bprofitabilty\b/g, replacement: "profitability" },
+    { pattern: /\breconcilliation\b/g, replacement: "reconciliation" },
+    { pattern: /\breconcillation\b/g, replacement: "reconciliation" },
+    { pattern: /\breconciliaton\b/g, replacement: "reconciliation" },
+    { pattern: /\brestruct(?:ring|ering)\b/g, replacement: "restructuring" },
+    { pattern: /\bsecur(?:ites|ties)\b/g, replacement: "securities" },
+    { pattern: /\btrans(?:ation|ations|actionss)\b/g, replacement: "transaction" },
+    { pattern: /\btreas(?:urery|ry)\b/g, replacement: "treasury" },
+    { pattern: /\bunderwrit(?:ting|ing)\b/g, replacement: "underwriting" },
+    { pattern: /\bvalu(?:aton|atons|tion|tions)\b/g, replacement: "valuation" },
+    { pattern: /\bbuy[-\s]?out\b/g, replacement: "buyout" },
+    { pattern: /\bdebtfinancing\b/g, replacement: "debt financing" },
+    { pattern: /\bdivestements?\b/g, replacement: "divestments" },
+    { pattern: /\bdue[-\s]?dilligence\b/g, replacement: "due diligence" },
+    { pattern: /\bdilligence\b/g, replacement: "diligence" },
+    { pattern: /\bfinacial modelling\b/g, replacement: "financial modelling" },
+    { pattern: /\bfinancial moddeling\b/g, replacement: "financial modelling" },
+    { pattern: /\binvestment commitee\b/g, replacement: "investment committee" },
+    { pattern: /\blever(?:eged|ged)\b/g, replacement: "leveraged" },
+    { pattern: /\blboo\b/g, replacement: "lbo" },
+    { pattern: /\bportfolio compaines\b/g, replacement: "portfolio companies" },
+    { pattern: /\bport(?:olio|oflio) company\b/g, replacement: "portfolio company" },
+    { pattern: /\bprecedent transations\b/g, replacement: "precedent transactions" },
+    { pattern: /\bprivate equitey\b/g, replacement: "private equity" },
+    { pattern: /\bprivate equitiy\b/g, replacement: "private equity" },
+    { pattern: /\bsensit(?:ivty|vity) analysis\b/g, replacement: "sensitivity analysis" },
+    { pattern: /\btransaction experi(?:ance|nce)\b/g, replacement: "transaction experience" },
+    { pattern: /\baccount(?:ancy|ng)\b/g, replacement: "accounting" },
+    { pattern: /\bballance sheet\b/g, replacement: "balance sheet" },
+    { pattern: /\bbalence sheet\b/g, replacement: "balance sheet" },
+    { pattern: /\bbudget(?:ting|ng)\b/g, replacement: "budgeting" },
+    { pattern: /\bcashflow\b/g, replacement: "cash flow" },
+    { pattern: /\bif(?:sr|rss)\b/g, replacement: "ifrs" },
+    { pattern: /\bmanagment accounts\b/g, replacement: "management accounts" },
+    { pattern: /\bp&l's\b/g, replacement: "p&ls" },
+    { pattern: /\bstatutary\b/g, replacement: "statutory" },
+    { pattern: /\bstatatory\b/g, replacement: "statutory" },
+    { pattern: /\bvar(?:iance anaylsis|ience analysis)\b/g, replacement: "variance analysis" },
+    { pattern: /\babudabi\b/g, replacement: "abu dhabi" },
+    { pattern: /\babu-dhabi\b/g, replacement: "abu dhabi" },
+    { pattern: /\bbahrian\b/g, replacement: "bahrain" },
+    { pattern: /\bquatar\b/g, replacement: "qatar" },
+    { pattern: /\bqutar\b/g, replacement: "qatar" },
+    { pattern: /\bkuwiat\b/g, replacement: "kuwait" },
+    { pattern: /\bmiddle[-\s]?east\b/g, replacement: "middle east" },
+    { pattern: /\bgcc regionn\b/g, replacement: "gcc region" },
+    { pattern: /\bsaudi arbi?a\b/g, replacement: "saudi arabia" },
+    { pattern: /\bu\.a\.e\b/g, replacement: "united arab emirates" },
+    { pattern: /\buntied arab emirates\b/g, replacement: "united arab emirates" },
+    { pattern: /\bunited arab emerates\b/g, replacement: "united arab emirates" },
+  ]);
+
+  var protectedFinanceIntentTokens = {
+    acca: true,
+    adgm: true,
+    aum: true,
+    cco: true,
+    cfa: true,
+    cfcs: true,
+    cft: true,
+    cme: true,
+    dcf: true,
+    difc: true,
+    ebitda: true,
+    fp: true,
+    "fp&a": true,
+    gaap: true,
+    ifrs: true,
+    irr: true,
+    kyc: true,
+    lbo: true,
+    nav: true,
+    moic: true,
+    pif: true,
+  };
+
   var careerIntentLexicon = [
     "job",
     "jobs",
@@ -2012,6 +2263,7 @@
     "internship",
     "hedge",
     "fund",
+    "found",
     "real",
     "estate",
     "project",
@@ -7644,6 +7896,9 @@
       normalized = normalized.replace(rule.pattern, rule.replacement);
     });
     normalized = normalized.replace(/[a-z&]{4,}/g, function (token) {
+      if (protectedFinanceIntentTokens[token]) {
+        return token;
+      }
       return getCareerLexiconCorrection(token);
     });
     normalized = normalized
@@ -34106,6 +34361,20 @@
       return !!workspaceUrl && !isKnownFrameBlockedApplicationUrl(workspaceUrl, autoSubmitProvider);
     }
 
+    function isApplicationWorkerSubmitProvider(provider) {
+      var clean = cleanMessageText(provider || "").toLowerCase();
+      return clean === "greenhouse";
+    }
+
+    function hasApplicationWorkerSubmitCapability() {
+      return (
+        autoSubmitSupported &&
+        (isApplicationWorkerSubmitProvider(autoSubmitProvider) ||
+          isGreenhouseApplicationUrl(getApplicationWorkspaceUrl()) ||
+          isGreenhouseApplicationUrl(applicationUrl))
+      );
+    }
+
     function isGreenhouseApplicationUrl(url) {
       return /(?:^|\/\/)(?:job-boards|boards)(?:\.eu)?\.greenhouse\.io\//i.test(
         cleanMessageText(url || "")
@@ -34125,19 +34394,11 @@
         autoSubmitSupported &&
         /^(successfactors|sap successfactors)$/i.test(cleanMessageText(autoSubmitProvider || ""))
       ) {
-        return (
-          "This role uses " +
-          providerLabel +
-          ". Once I have the CV and email, I can open the employer application form inside Senna and highlight what the form is screening for."
-        );
+        return providerLabel + " form available in Senna.";
       }
-      return (
-        "This role uses " +
-        providerLabel +
-        (hasApplicationWorkspaceEmbedCapability()
-          ? ". Once I have the CV and email, I can open the employer application form inside Senna and highlight what the form is screening for."
-          : ". Once I have the CV and email, I can highlight what the employer form is screening for and take you to the employer application route.")
-      );
+      return hasApplicationWorkspaceEmbedCapability()
+        ? providerLabel + " form available in Senna."
+        : providerLabel + " application route detected.";
     }
 
     function getApplicationResultCapabilityLabel(item) {
@@ -34258,9 +34519,9 @@
 
       if (!normalizedItems.length) {
         return (
-          '<div class="sffc-crm-apply-chat__formatted"><p>I could not find current job posts for <strong>' +
+          '<div class="sffc-crm-apply-chat__formatted"><p>No current job posts matched <strong>' +
           escapeHtml(query || "that search") +
-          "</strong>. Try a more specific title, company, sector, or location.</p></div>"
+          "</strong>. Try a more specific title, company, sector, or location and I’ll search again.</p></div>"
         );
       }
 
@@ -34728,7 +34989,7 @@
         { key: "data_analytics", label: "Data / Analytics", query: "data analyst", weight: 3, phrases: ["data analyst", "data analytics", "sql", "python", "tableau", "power bi", "machine learning", "statistical modelling", "analytics"] },
         { key: "sales_business_development", label: "Sales / Business Development", query: "business development", weight: 3, phrases: ["sales", "business development", "customer service", "account manager", "pipeline", "lead generation", "client acquisition", "revenue targets"] },
         { key: "human_resources", label: "Human Resources", query: "human resources", weight: 3, phrases: ["human resources", "hr", "talent acquisition", "employee relations", "payroll", "people operations", "learning and development"] },
-        { key: "education", label: "Education", query: "education", weight: 3, phrases: ["education", "teaching", "students", "curriculum", "schools", "universities", "academic", "learning outcomes"] },
+        { key: "education", label: "Education", query: "", weight: 3, phrases: ["education sector", "higher education", "teaching", "teacher", "students", "curriculum", "schools", "learning outcomes"] },
       ];
     }
 
@@ -34905,6 +35166,13 @@
         return cleanSeniority;
       }
       if (
+        /\b(?:analyst|associate|assistant|manager|director|consultant|advisor|adviser|specialist|officer|banker|accountant|auditor|controller|engineer|developer|principal|avp|vp|vice president|intern|internship|trainee|graduate|executive|partner|supervisor|chief)\b/i.test(
+          cleanBase
+        )
+      ) {
+        return cleanBase;
+      }
+      if (
         cleanSeniority &&
         new RegExp(
           "\\b" +
@@ -34918,6 +35186,163 @@
       return cleanMessageText(cleanBase + " " + cleanSeniority);
     }
 
+    function isUsefulApplyForMeRoleDiscoveryQuery(query) {
+      var clean = cleanMessageText(query || "");
+      var words = clean.split(/\s+/).filter(Boolean);
+      if (!clean || clean.length < 3) {
+        return false;
+      }
+      if (
+        /(?:^|\b)(?:19|20)\d{2}\b|(?:^|\b)(?:jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)[a-z]*\s+(?:19|20)?\d{2}\b|\b(?:present|current)\b/i.test(
+          clean
+        ) &&
+        !hasCoreCvRoleKeyword(clean)
+      ) {
+        return false;
+      }
+      if (
+        /^(?:education|academic|academics|school|schools|college|university|universities|degree|bachelor(?:'s|s)? degree|master(?:'s|s)? degree|msc|bsc|ba|ma|qualification|qualifications|certification|certifications|professional qualifications|skills|technical skills|other skills|experience|relevant experience|work experience|professional experience|employment history|projects|personal projects|profile|personal profile|summary|professional summary|personal statement|objective|career objective|contact|languages|interests|references|finance exam|investment analysis final exam)$/i.test(
+          clean
+        )
+      ) {
+        return false;
+      }
+      if (
+        words.length === 1 &&
+        /^(?:education|academic|student|member|team|coursework|project|projects|exam|merit|grade|school|university|college|degree|qualification|qualifications|certification|certifications|language|languages|skill|skills|experience|profile|statement|summary|finance|investment|analysis|management)$/i.test(
+          clean
+        )
+      ) {
+        return false;
+      }
+      if (
+        /\b(?:university|college|school|msc|bsc|ba|ma|bachelor|master|diploma|coursework|module|modules|exam|education|qualification|certification|certificate|language|languages)\b/i.test(
+          clean
+        ) &&
+        !hasCvRoleKeyword(clean)
+      ) {
+        return false;
+      }
+      if (
+        /\b(?:road|street|avenue|drive|lane|london|dubai|riyadh|doha|abu dhabi|singapore|united kingdom|united arab emirates|saudi arabia|qatar|email|phone|linkedin|www\.|https?)\b/i.test(
+          clean
+        ) &&
+        !hasCoreCvRoleKeyword(clean)
+      ) {
+        return false;
+      }
+      return true;
+    }
+
+    function normalizeApplyForMeCvRoleQuery(line) {
+      var clean = safeNormalizeCvRoleTitleText(line || "")
+        .replace(/\b(?:team member|member|candidate|student)\b/gi, " ")
+        .replace(/\s*\/\s*/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+      var match;
+      var roleTitleNounPattern =
+        /\b(?:analyst|associate|assistant|manager|director|consultant|advisor|adviser|specialist|officer|banker|accountant|auditor|controller|engineer|developer|principal|avp|vp|vice president|intern|internship|trainee|graduate|executive|partner|supervisor|chief)\b/i;
+      if (
+        !clean ||
+        looksLikeCvEducationOrObjectiveFragment(clean) ||
+        !roleTitleNounPattern.test(clean)
+      ) {
+        return "";
+      }
+      match = clean.match(
+        /\b(?:(?:junior|senior|lead|assistant|associate|executive|investment|financial|business|research|credit|risk|portfolio|technical|quantitative|data|finance|corporate|strategy|operations|compliance|project|product|fund|management|commercial|customer|success)\s+){0,4}(?:analyst|associate|manager|director|consultant|advisor|adviser|specialist|officer|banker|accountant|auditor|controller|engineer|developer|principal|avp|vp|vice president|intern|internship|trainee)\b/i
+      );
+      if (match && match[0]) {
+        clean = safeNormalizeCvRoleTitleText(match[0]);
+      } else if (!roleTitleNounPattern.test(clean)) {
+        return "";
+      } else if (clean.split(/\s+/).length > 5) {
+        return "";
+      }
+      if (/^(?:[-–—/:;|]+|\W{2,})/.test(clean)) {
+        return "";
+      }
+      if (
+        /\b(?:worked|working|responsible|supported|assisted|managed|led|developed|created|prepared|reported|collaborated|communicated|skilled|passionate|keen|experience|expertise|currently|seeking|targeting)\b/i.test(
+          clean
+        )
+      ) {
+        return "";
+      }
+      return safeIsRealCvRoleTitle(clean) &&
+        isUsefulApplyForMeRoleDiscoveryQuery(clean)
+        ? clean
+        : "";
+    }
+
+    function extractApplyForMeCvRoleTitleQueries(analysis) {
+      var text = String(capturedCvText || "");
+      var normalizedText = normalizeApplyForMeSignalText(text);
+      var queries = [];
+      var lines = text
+        .split(/\r?\n/)
+        .map(function (line) {
+          return cleanMessageText(line || "");
+        })
+        .filter(Boolean)
+        .slice(0, 140);
+
+      [analysis && analysis.experience_title,
+       analysis &&
+         analysis.profile_review_ontology &&
+         analysis.profile_review_ontology.role_archetype].forEach(function (item) {
+        var query = normalizeApplyForMeCvRoleQuery(item);
+        if (query) {
+          queries.push(query);
+        }
+      });
+
+      if (
+        /\b(?:investment fund|portfolio|equities|stocks|asset pricing|bloomberg|dcf|m&a|valuation|financial modelling|financial modeling|corporate finance|investment analysis|monte carlo|capital markets)\b/i.test(
+          normalizedText
+        )
+      ) {
+        queries.push("investment analyst", "financial analyst");
+      }
+      if (
+        /\b(?:credit valuation|credit risk|credit analyst|credit underwriting|structured credit|fixed income)\b/i.test(
+          normalizedText
+        )
+      ) {
+        queries.push("credit analyst");
+      }
+      if (
+        /\b(?:portfolio management|asset management|fund performance|investment mandate|aum)\b/i.test(
+          normalizedText
+        )
+      ) {
+        queries.push("portfolio analyst", "asset management analyst");
+      }
+
+      lines.forEach(function (line, index) {
+        var nearbyExperience =
+          lines
+            .slice(Math.max(0, index - 4), Math.min(lines.length, index + 5))
+            .join(" ")
+            .search(/\b(?:experience|employment|work history|internship|investment fund|professional experience|relevant experience)\b/i) !== -1;
+        var query;
+        if (
+          looksLikeCvEducationOrObjectiveFragment(line) ||
+          (!nearbyExperience &&
+            !/\b(?:analyst|associate|manager|director|intern|consultant|advisor|specialist|officer|banker|accountant|auditor|project manager)\b/i.test(line))
+        ) {
+          return;
+        }
+        query = normalizeApplyForMeCvRoleQuery(line);
+        if (query) {
+          queries.push(query);
+        }
+      });
+
+      return uniqueCleanItems(queries).slice(0, 6);
+    }
+
     function buildApplyForMeCvSignalQueries(analysis) {
       var signals = detectApplyForMeCvSignals(capturedCvText || "", analysis || {});
       var seniority = signals.seniority.demonstrated_label || "analyst";
@@ -34926,29 +35351,60 @@
       var queries = [];
 
       sectors.slice(0, 4).forEach(function (sector) {
-        queries.push(sector.query);
+        if (!sector.query || sector.score < 4) {
+          return;
+        }
         queries.push(combineApplyForMeQuery(sector.query, seniority));
       });
       functions.slice(0, 3).forEach(function (item) {
-        queries.push(item.query);
+        if (!item.query || item.score < 3) {
+          return;
+        }
         queries.push(combineApplyForMeQuery(item.query, seniority));
       });
       if (seniority === "analyst" || seniority === "associate") {
         queries.push("investment " + seniority);
         queries.push("financial " + seniority);
       }
-      queries.push(
-        combineApplyForMeQuery("private equity", seniority),
-        combineApplyForMeQuery("asset management", seniority),
-        combineApplyForMeQuery("investment banking", seniority),
-        combineApplyForMeQuery("corporate finance", seniority),
-        "finance"
-      );
-      return uniqueCleanItems(queries).slice(0, 12);
+      if (
+        sectors.some(function (sector) {
+          return sector.key === "private_equity" && sector.score >= 4;
+        })
+      ) {
+        queries.push(combineApplyForMeQuery("private equity", seniority));
+      }
+      if (
+        sectors.some(function (sector) {
+          return sector.key === "asset_management" && sector.score >= 4;
+        })
+      ) {
+        queries.push(combineApplyForMeQuery("asset management", seniority));
+      }
+      if (
+        sectors.some(function (sector) {
+          return sector.key === "investment_banking" && sector.score >= 4;
+        })
+      ) {
+        queries.push(combineApplyForMeQuery("investment banking", seniority));
+      }
+      if (
+        functions.some(function (item) {
+          return item.query === "corporate finance" && item.score >= 3;
+        })
+      ) {
+        queries.push(combineApplyForMeQuery("corporate finance", seniority));
+      }
+      return uniqueCleanItems(queries)
+        .filter(isUsefulApplyForMeRoleDiscoveryQuery)
+        .slice(0, 12);
     }
 
     function getApplyForMeSearchTermsFromCvText(analysis) {
-      return buildApplyForMeCvSignalQueries(analysis || {})[0] || "finance";
+      return (
+        extractApplyForMeCvRoleTitleQueries(analysis || {})[0] ||
+        buildApplyForMeCvSignalQueries(analysis || {})[0] ||
+        "financial analyst"
+      );
     }
 
     function getApplyForMeRoleDiscoveryQueries(analysis) {
@@ -34957,26 +35413,41 @@
       var directQueries = [
         roleTitle,
         standaloneProfileReviewTargetRole,
-        jobSearchSeedContext && jobSearchSeedContext.roleTarget,
-        jobSearchSeedContext && jobSearchSeedContext.query,
-        conversationFacts.targetFunctions &&
-          conversationFacts.targetFunctions[0],
       ];
+      var contextualQueries =
+        activePath === "apply_for_me_role_discovery"
+          ? []
+          : [
+              jobSearchSeedContext && jobSearchSeedContext.roleTarget,
+              jobSearchSeedContext && jobSearchSeedContext.query,
+              conversationFacts.targetFunctions &&
+                conversationFacts.targetFunctions[0],
+            ];
       var cvQueries = buildApplyForMeCvSignalQueries(analysis || {});
+      var cvRoleTitleQueries = extractApplyForMeCvRoleTitleQueries(
+        analysis || {}
+      );
       var analysisQueries = [
-        analysis && analysis.experience_title,
-        ontology.role_archetype,
+        normalizeApplyForMeCvRoleQuery(analysis && analysis.experience_title),
+        normalizeApplyForMeCvRoleQuery(ontology.role_archetype),
       ];
       return uniqueCleanItems(
         directQueries
-          .concat(cvQueries)
+          .concat(cvRoleTitleQueries)
           .concat(analysisQueries)
-          .concat(["finance"])
-      ).slice(0, 14);
+          .concat(cvQueries)
+          .concat(contextualQueries)
+          .concat(["financial analyst", "investment analyst"])
+      )
+        .filter(isUsefulApplyForMeRoleDiscoveryQuery)
+        .slice(0, 14);
     }
 
     function getApplyForMeRoleDiscoveryQuery(analysis) {
-      return getApplyForMeRoleDiscoveryQueries(analysis || {})[0] || "finance";
+      return (
+        getApplyForMeRoleDiscoveryQueries(analysis || {})[0] ||
+        "financial analyst"
+      );
     }
 
     function startApplyForMeRoleDiscoveryFlow() {
@@ -34987,20 +35458,20 @@
         [
           {
             html: isArabicChat()
-              ? "لا أرى دورًا محددًا بعد. ارفعي الـCV وسأبحث لك في الوظائف الحالية عن أدوار مناسبة للتقديم."
-              : "I cannot see a specific role yet. Upload your CV and I’ll search the current job posts for suitable roles to apply to.",
+              ? "ابدئي برفع الـCV، وسأبحث لك في الوظائف الحالية عن أدوار مناسبة للتقديم."
+              : "Start by uploading your CV. I’ll use it to find suitable live roles from the current job posts.",
             delay: humanComposeDelay(
-              "I cannot see a specific role yet. Upload your CV and I’ll search the current job posts for suitable roles to apply to.",
+              "Start by uploading your CV. I’ll use it to find suitable live roles from the current job posts.",
               1300,
               2600
             ),
           },
           {
             html: isArabicChat()
-              ? "بعد أن تختاري دورًا من النتائج، سأكمل نفس تسلسل Apply for Me المعتاد."
-              : "Once you choose a role from the results, I’ll continue the normal Apply for Me sequence.",
+              ? "بعد أن تختاري دورًا من النتائج، سأريك نقاط التقديم المهمة ثم أتحرك مباشرة إلى خطوة التقديم."
+              : "Once you choose a role from the results, I’ll show the key application signals and move straight into the application step.",
             delay: humanComposeDelay(
-              "Once you choose a role from the results, I’ll continue the normal Apply for Me sequence.",
+              "Once you choose a role from the results, I’ll show the key application signals and move straight into the application step.",
               1300,
               2600
             ),
@@ -35033,7 +35504,7 @@
         null,
         sourceLabel ? humanReadDelay(sourceLabel, 450) : 0
       );
-      fetchActualJobPostsWithFallbacks(queries, 8)
+      return fetchActualJobPostsWithFallbacks(queries, 8)
         .then(function (result) {
           var items = result && result.items ? result.items : [];
           var query = result && result.query ? result.query : queries[0] || "finance";
@@ -35177,13 +35648,13 @@
       applyCvReviewSkipped = false;
       userMessage(roleTitle || "Apply for this role");
       botMessage(
-        "Good, I’ll use " +
+        "Great, I’ll use " +
           escapeHtml(roleTitle || "that role") +
-          " as the target role. I’ll check fit, likely screening blockers, and the best application route before anything goes out." +
+          "." +
           (getAutoSubmitDetectedCopy()
             ? "<br><br>" + escapeHtml(getAutoSubmitDetectedCopy())
             : ""),
-        humanComposeDelay("Good, I’ll use that role as the target role.", 900, 1800),
+        humanComposeDelay("Great, I’ll use that role.", 500, 1000),
         function () {
           if (capturedCvText) {
             fetchCvAnalysis(capturedCvText)
@@ -40926,6 +41397,13 @@
       if (!context) {
         return false;
       }
+      if (
+        cleanMessageText(context.entryRoute || "") ===
+        "landing_filter_search"
+      ) {
+        startLandingFilterSearchFromContext(context);
+        return true;
+      }
       if (context.recruiterOutreachStart) {
         startRecruiterOutreachFromLauncherContext(context);
         return true;
@@ -40957,6 +41435,37 @@
       }
       startJobSearchFromLauncherContext(context);
       return true;
+    }
+
+    function startLandingFilterSearchFromContext(context) {
+      var query = cleanMessageText((context && context.query) || "");
+      var roleFocus = cleanMessageText((context && context.roleTarget) || "");
+      var locationFocus = cleanMessageText((context && context.location) || "");
+      var sectorFocus = cleanMessageText((context && context.sector) || "");
+
+      activePath = "job_search";
+      step = "job_search_results";
+      jobSearchSeedContext = context || null;
+      jobSearchLaunchMode = "landing_filter_search";
+      if (locationFocus) {
+        jobSearchPreferredLocation = locationFocus;
+      }
+      if (roleFocus) {
+        conversationFacts.targetFunctions = sanitizeRoleTargetList(
+          [roleFocus].concat(conversationFacts.targetFunctions || [])
+        );
+      }
+      if (sectorFocus) {
+        conversationFacts.targetSectors = uniqueCleanItems(
+          [sectorFocus].concat(conversationFacts.targetSectors || [])
+        );
+      }
+      if (query) {
+        userMessage(query, "", { skipChatLog: true });
+      }
+      addTransferNotice(getInterfaceCopy("transfer_emily"));
+      setDeskIdentity("emily");
+      searchActualJobPostsInChat(query || roleFocus || sectorFocus || "finance jobs");
     }
 
     function getJobSearchWhichRolesPrompt() {
@@ -68144,6 +68653,12 @@
               ? "ar"
               : "en"
           );
+        } else if (
+          pendingLaunchContext &&
+          cleanMessageText(pendingLaunchContext.entryRoute || "") ===
+            "landing_filter_search"
+        ) {
+          setChatLanguage("en");
         } else if (hasConcreteRoleEntryContext()) {
           setChatLanguage(getDefaultEntryLanguage());
         } else {
@@ -81170,7 +81685,7 @@
       }
       return isArabicChat()
         ? "خذيها بطريقتك الطبيعية هنا وسأفهم المقصود وأكمل من هناك."
-        : "Tell me what you mean directly and I’ll take it from there.";
+        : "Say it in your own words and I’ll work out the next step from there.";
     }
 
     function isPromptQuestionDetourIntent(intent, semantics) {
@@ -83703,7 +84218,7 @@
 
       promptExplanation = isArabicChat()
         ? "خذيها بالطريقة التي تبدو طبيعية لك هنا، وسألتقط المعنى وأكمل من هناك."
-        : "Tell me what you mean directly, and I’ll take it from there.";
+        : "Say it in your own words and I’ll work out the next step from there.";
       botMessage(
         promptExplanation,
         humanComposeDelay(promptExplanation, 1700, 3400),
@@ -84840,8 +85355,8 @@
       return composeSemanticReply("apply_full_name_prompt_dynamic", {
         opener: {
           direct: ["What is your full name?"],
-          warm: ["What full name should I use for the account?"],
-          measured: ["What name should I put on the account?"],
+          warm: ["What full name should I use for the application?"],
+          measured: ["What name should I put on the application?"],
           sharp: ["Can you send me your full name first?"],
         },
       });
@@ -84862,7 +85377,7 @@
         opener: {
           direct: ["What is your preferred email?"],
           warm: ["What email would you like me to use?"],
-          measured: ["Which email should I put on the account?"],
+          measured: ["Which email should I put on the application?"],
           sharp: ["What is the best email to use for this?"],
         },
       });
@@ -87102,45 +87617,340 @@
       return "";
     }
 
-    function getApplyQuickRoleInsightMessages(analysis) {
-      var backendInsights = (analysis && analysis.quick_role_insights) || [];
-      var messages = [];
-      backendInsights.forEach(function (item) {
-        var message = cleanMessageText(
-          item && item.message ? item.message : String(item || "")
+    function buildApplyQuickRoleInsightMessage(type, label, tone, message) {
+      label = cleanMessageText(label || "");
+      message = cleanMessageText(message || "");
+      if (message) {
+        return message;
+      }
+      if (type === "cv_contact_email") {
+        return "The CV contact section is missing an email address. I can still use the email you give me here, but the document itself should carry a professional contact email.";
+      }
+      if (type === "cv_contact_phone") {
+        return "The CV does not show a phone number. For recruiter-led GCC roles, that can slow things down once the CV is opened outside the application system.";
+      }
+      if (type === "cv_contact_linkedin") {
+        return "A LinkedIn link would make this stronger. For senior or cross-border roles, recruiters often use it to verify the profile quickly.";
+      }
+      if (type === "cv_contact_location") {
+        return "The current location is not clear from the CV. That matters for GCC and international roles because location, relocation, and visa context often affect screening.";
+      }
+      if (!label) {
+        return "";
+      }
+      if (type === "language") {
+        return (
+          "I noticed this role appears to require " +
+          label +
+          ", but that language is not visible on the CV. If you use it professionally, it should be visible before you apply."
         );
-        if (message) {
-          messages.push(message);
+      }
+      if (type === "qualification") {
+        return (
+          "I noticed the job asks for " +
+          label +
+          ", but your CV does not mention that qualification. If you do have it, I can help you improve the positioning before you apply."
+        );
+      }
+      if (type === "work_authorization") {
+        return "The application may screen for work authorisation or location readiness. The CV does not confirm that clearly, so it is worth checking before this goes out.";
+      }
+      if (type === "sector_gap" || type === "sector_signal") {
+        return (
+          "This role leans toward " +
+          label +
+          ", but the CV does not show that sector exposure clearly yet. I can help create a stronger bridge before you apply."
+        );
+      }
+      if (tone === "strong") {
+        return (
+          "Good signal: your CV already shows " +
+          label +
+          " for this role. That is worth keeping prominent in the application."
+        );
+      }
+      return (
+        "I noticed the role asks for " +
+        label +
+        ", but the CV does not make that evidence obvious yet. If it is part of your background, I can help bring it forward before you apply."
+      );
+    }
+
+    function cvTextHasEmail(text) {
+      return /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/i.test(
+        cleanMessageText(text || "")
+      );
+    }
+
+    function cvTextHasLinkedIn(text) {
+      return /(?:https?:\/\/)?(?:[a-z]{2,3}\.)?linkedin\.com\/in\/[a-z0-9._%+-]+|linkedin\s*[:\-]?\s*[a-z0-9._%+-]{4,}/i.test(
+        cleanMessageText(text || "")
+      );
+    }
+
+    function cvTextHasPhone(text) {
+      var clean = cleanMessageText(text || "");
+      return /(?:\+\d{1,3}[\s().-]*)?(?:\(?\d{2,4}\)?[\s().-]*){2,5}\d{3,4}/.test(
+        clean
+      );
+    }
+
+    function cvTextHasLocation(text) {
+      var clean = cleanMessageText(text || "");
+      if (
+        /\b(?:dubai|abu dhabi|sharjah|riyadh|jeddah|doha|qatar|saudi arabia|ksa|uae|united arab emirates|singapore|london|uk|united kingdom|new york|india|mumbai|delhi|bahrain|kuwait|oman|remote|hybrid|relocat(?:e|ion)|based in)\b/i.test(
+          clean
+        )
+      ) {
+        return true;
+      }
+      return /\b[A-Z][a-z]+,\s*(?:[A-Z]{2,}|[A-Z][a-z]+(?:\s+[A-Z][a-z]+)?)\b/.test(
+        clean
+      );
+    }
+
+    function getApplyCvProfileGapInsightItems() {
+      var text = cleanMessageText(capturedCvText || "");
+      var items = [];
+      if (!text || text.length < 25) {
+        return items;
+      }
+      if (!cvTextHasEmail(text)) {
+        items.push(
+          normalizeApplyQuickRoleInsightItem({
+            type: "cv_contact_email",
+            tone: "watch",
+          })
+        );
+      }
+      if (!cvTextHasPhone(text)) {
+        items.push(
+          normalizeApplyQuickRoleInsightItem({
+            type: "cv_contact_phone",
+            tone: "watch",
+          })
+        );
+      }
+      if (!cvTextHasLinkedIn(text)) {
+        items.push(
+          normalizeApplyQuickRoleInsightItem({
+            type: "cv_contact_linkedin",
+            tone: "watch",
+          })
+        );
+      }
+      if (!cvTextHasLocation(text)) {
+        items.push(
+          normalizeApplyQuickRoleInsightItem({
+            type: "cv_contact_location",
+            tone: "watch",
+          })
+        );
+      }
+      return items.filter(Boolean);
+    }
+
+    function normalizeApplyQuickRoleInsightItem(item, fallbackTone, fallbackType) {
+      var label = "";
+      var title = "";
+      var tone = cleanMessageText(fallbackTone || "watch").toLowerCase();
+      var type = cleanMessageText(fallbackType || "general").toLowerCase();
+      var message = "";
+      if (typeof item === "string") {
+        message = cleanMessageText(item);
+      } else if (item && typeof item === "object") {
+        label = cleanMessageText(item.label || "");
+        title = cleanMessageText(item.title || "");
+        tone = cleanMessageText(item.tone || tone).toLowerCase();
+        type = cleanMessageText(item.type || type).toLowerCase();
+        message = cleanMessageText(item.message || "");
+      }
+      if (
+        !message &&
+        (label || /^cv_contact_(?:email|phone|linkedin|location)$/.test(type))
+      ) {
+        message = buildApplyQuickRoleInsightMessage(type, label, tone, "");
+      }
+      if (!message) {
+        return null;
+      }
+      if (!title) {
+        if (type === "language") {
+          title = label ? label + " is not visible" : "Language signal missing";
+        } else if (type === "qualification") {
+          title = label ? label + " is not on the CV" : "Qualification signal missing";
+        } else if (type === "work_authorization") {
+          title = "Work authorisation may be screened";
+        } else if (type === "cv_contact_email") {
+          title = "CV email is missing";
+        } else if (type === "cv_contact_phone") {
+          title = "CV phone number is missing";
+        } else if (type === "cv_contact_linkedin") {
+          title = "LinkedIn is not visible";
+        } else if (type === "cv_contact_location") {
+          title = "Current location is unclear";
+        } else if (type === "sector_gap" || type === "sector_signal") {
+          title = label ? label + " exposure is not clear" : "Sector exposure is not clear";
+        } else if (tone === "strong") {
+          title = "Strong match signal";
+        } else {
+          title = label ? label + " is not obvious yet" : "Worth checking before applying";
+        }
+      }
+      if (!/^(?:gap|watch|strong)$/.test(tone)) {
+        tone = "watch";
+      }
+      return {
+        title: title,
+        message: message,
+        tone: tone,
+        type: type,
+        label: label,
+      };
+    }
+
+    function getApplyQuickRoleInsightItems(analysis) {
+      var backendInsights = (analysis && analysis.quick_role_insights) || [];
+      var items = [];
+      backendInsights.forEach(function (item) {
+        var normalized = normalizeApplyQuickRoleInsightItem(item);
+        if (normalized) {
+          items.push(normalized);
         }
       });
-      if (!messages.length) {
-        getApplySecondaryGaps(analysis).forEach(function (gap) {
+      if (!items.length) {
+        ((analysis && analysis.requirement_gaps) || []).forEach(function (gap) {
           var label = cleanMessageText(gap && gap.label ? gap.label : "");
-          if (!label || messages.length >= 2) {
+          var type = cleanMessageText(gap && gap.type ? gap.type : "missing_signal").toLowerCase();
+          if (!label || items.length >= 2) {
             return;
           }
-          messages.push(
-            "Worth noting: " +
-              label +
-              " is not obvious on the CV yet, so it may be worth checking before you apply."
+          items.push(
+            normalizeApplyQuickRoleInsightItem({
+              label: label,
+              type: type,
+              tone: "gap",
+            })
           );
         });
       }
-      return dedupeList(messages).slice(0, 2);
+      if (!items.length) {
+        getApplySecondaryGaps(analysis).forEach(function (gap) {
+          var label = cleanMessageText(gap && gap.label ? gap.label : "");
+          var type = cleanMessageText(gap && gap.type ? gap.type : gap && gap.kind === "clarify" ? "general" : "missing_signal").toLowerCase();
+          if (!label || items.length >= 2) {
+            return;
+          }
+          items.push(
+            normalizeApplyQuickRoleInsightItem({
+              label: label,
+              type: type,
+              tone: gap && gap.kind === "clarify" ? "watch" : "gap",
+              message: gap && gap.message ? gap.message : "",
+            })
+          );
+        });
+      }
+      if (!items.length) {
+        ((analysis && analysis.unconfirmed_signals) || []).forEach(function (signal) {
+          var category = cleanMessageText(signal && signal.category ? signal.category : "");
+          var label = cleanMessageText(signal && signal.label ? signal.label : "");
+          if (
+            !label ||
+            items.length >= 2 ||
+            /^(?:language|credential|soft_signal|seniority_signal)$/i.test(category)
+          ) {
+            return;
+          }
+          items.push(
+            normalizeApplyQuickRoleInsightItem({
+              label: label,
+              type: /^(?:sector_exposure|industry)$/i.test(category)
+                ? "sector_signal"
+                : "missing_signal",
+              tone: "watch",
+            })
+          );
+        });
+      }
+      if (!items.length) {
+        (((analysis && analysis.cv_signal_profile && analysis.cv_signal_profile.sectors) || [])
+          .slice(0, 4)
+          .some(function (sector) {
+            var label = cleanMessageText(sector && sector.label ? sector.label : "");
+            var cvScore = Number(sector && sector.cv_score ? sector.cv_score : 0) || 0;
+            var roleScore = Number(sector && sector.role_score ? sector.role_score : 0) || 0;
+            if (!label || roleScore <= 0 || cvScore > 0) {
+              return false;
+            }
+            items.push(
+              normalizeApplyQuickRoleInsightItem({
+                label: label,
+                type: "sector_gap",
+                tone: "watch",
+              })
+            );
+            return true;
+          }));
+      }
+      if (items.length < 2) {
+        getApplyCvProfileGapInsightItems().forEach(function (item) {
+          if (items.length < 2 && item) {
+            items.push(item);
+          }
+        });
+      }
+      var seen = {};
+      return items
+        .filter(Boolean)
+        .filter(function (item) {
+          var key = cleanMessageText(item.message || "").toLowerCase();
+          if (!key || seen[key]) {
+            return false;
+          }
+          seen[key] = true;
+          return true;
+        })
+        .slice(0, 2);
+    }
+
+    function getApplyQuickRoleInsightMessages(analysis) {
+      return getApplyQuickRoleInsightItems(analysis).map(function (item) {
+        return item.message;
+      });
     }
 
     function renderApplyQuickRoleInsights(analysis) {
-      var messages = getApplyQuickRoleInsightMessages(analysis);
-      if (!messages.length) {
+      var items = getApplyQuickRoleInsightItems(analysis);
+      if (!items.length) {
         return "";
       }
       return (
-        messages
-          .map(function (message) {
-            return escapeHtml(message);
+        '<div class="sffc-crm-apply-chat__quick-insights" role="group" aria-label="Application signals">' +
+        '<div class="sffc-crm-apply-chat__quick-insights-head">' +
+        '<span>Worth noting</span><strong>Application signals</strong>' +
+        "</div>" +
+        items
+          .map(function (item) {
+            return (
+              '<article class="sffc-crm-apply-chat__quick-insight is-' +
+              escapeHtml(item.tone || "watch") +
+              '">' +
+              '<span class="sffc-crm-apply-chat__quick-insight-kicker">' +
+              escapeHtml(item.tone === "strong" ? "Good signal" : item.tone === "gap" ? "Potential blocker" : "Check") +
+              "</span>" +
+              '<strong class="sffc-crm-apply-chat__quick-insight-title">' +
+              escapeHtml(item.title || "Worth checking before applying") +
+              "</strong>" +
+              '<p class="sffc-crm-apply-chat__quick-insight-body">' +
+              escapeHtml(item.message) +
+              "</p>" +
+              "</article>"
+            );
           })
-          .join("<br>") +
-        "<br><br>Just let me know if you want me to do a full Career Assessment before you apply."
+          .join("") +
+        '<p class="sffc-crm-apply-chat__quick-insights-cta">I’ll keep moving with the application. After this one is submitted, I can run the full Career Assessment if you want it.</p>' +
+        "</div>"
       );
     }
 
@@ -88604,10 +89414,12 @@
       var critical = !(options && options.critical === false);
       var fileName = file && file.name ? String(file.name) : "resume";
       var targetRole = cleanMessageText(
-        standaloneProfileReviewTargetRole ||
-          (jobSearchSeedContext && jobSearchSeedContext.roleTarget) ||
-          roleTitle ||
-          ""
+        activePath === "apply_for_me_role_discovery"
+          ? roleTitle || standaloneProfileReviewTargetRole || ""
+          : standaloneProfileReviewTargetRole ||
+              (jobSearchSeedContext && jobSearchSeedContext.roleTarget) ||
+              roleTitle ||
+              ""
       );
       var formData = new FormData();
       if (!file) {
@@ -89272,7 +90084,8 @@
           }] : []),
         function () {
           applyCvReviewSkipped = true;
-          window.setTimeout(askCoverLetterQuestion, randomBetween(650, 1200));
+          applyNeedsCoverLetter = "no";
+          window.setTimeout(askAccountStatusForApplyFlow, randomBetween(650, 1200));
         }
       );
     }
@@ -89281,10 +90094,12 @@
       var config = getConfig();
       var formData = new FormData();
       var targetRole = cleanMessageText(
-        standaloneProfileReviewTargetRole ||
-          (jobSearchSeedContext && jobSearchSeedContext.roleTarget) ||
-          roleTitle ||
-          ""
+        activePath === "apply_for_me_role_discovery"
+          ? roleTitle || standaloneProfileReviewTargetRole || ""
+          : standaloneProfileReviewTargetRole ||
+              (jobSearchSeedContext && jobSearchSeedContext.roleTarget) ||
+              roleTitle ||
+              ""
       );
       formData.append("action", "sffc_crm_apply_chat_analyze_cv");
       formData.append("nonce", config.nonce || "");
@@ -89404,6 +90219,11 @@
 
     function extractEmailCandidate(text) {
       var raw = String(text || "");
+      raw = raw
+        .replace(/\s+(?:at|\[at\]|\(at\)|@)\s+/gi, "@")
+        .replace(/\s+(?:dot|\[dot\]|\(dot\)|\.)\s+/gi, ".")
+        .replace(/\s*@\s*/g, "@")
+        .replace(/\s*\.\s*/g, ".");
       var match = raw.match(/([A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,15})/i);
       return match && match[1] ? match[1].toLowerCase() : "";
     }
@@ -89500,11 +90320,29 @@
     }
 
     function isReasonableFullName(text) {
-      var clean = cleanMessageText(text || "");
+      var clean = extractReasonableFullName(text || "");
       return (
         /^[A-Za-zÀ-ÿ'’.-]+(?:\s+[A-Za-zÀ-ÿ'’.-]+){1,5}$/.test(clean) &&
         !/@/.test(clean)
       );
+    }
+
+    function extractReasonableFullName(text) {
+      var clean = cleanMessageText(text || "")
+        .replace(/\bmy\s+(?=full name is|name is)\b/gi, " ")
+        .replace(/\b(?:my name is|name is|full name is|full name:|use the name|use name|use|i am|i'm|im|it's|its|this is)\b/gi, " ")
+        .replace(/\b(?:for this application|for the application|please|thanks|thank you)\b/gi, " ")
+        .replace(/[^A-Za-zÀ-ÿ'’.\-\s]/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+      var words = clean.split(/\s+/).filter(Boolean);
+      if (words.length > 6) {
+        words = words.slice(0, 6);
+      }
+      clean = words.join(" ");
+      return /^[A-Za-zÀ-ÿ'’.-]+(?:\s+[A-Za-zÀ-ÿ'’.-]+){1,5}$/.test(clean)
+        ? clean
+        : "";
     }
 
     function buildPrefilledApplySignupUrl() {
@@ -90149,6 +90987,17 @@
                       {
                         other: function (value) {
                           var code = extractGreenhouseSecurityCode(value || "");
+                          if (/\b(?:did not|get|got|received|see|find|no|nothing|missing|spam|junk|resend)\b/i.test(cleanMessageText(value || "")) && !/^[A-Za-z0-9]{6,12}$/.test(code)) {
+                            botMessage(
+                              "No problem. Greenhouse sends that code to the candidate email, and it can take a minute. Check inbox and spam, then paste the latest 8-character code exactly as shown.",
+                              humanComposeDelay("Check inbox and spam for the latest code.", 1200, 2400),
+                              function () {
+                                focusComposer("Paste the latest Greenhouse code");
+                              },
+                              humanReadDelay(value, 450)
+                            );
+                            return;
+                          }
                           if (!/^[A-Za-z0-9-]{4,20}$/.test(code)) {
                             botMessage(
                               "Send just the Greenhouse security code from the email. It is case-sensitive, so paste it exactly as shown.",
@@ -90286,6 +91135,57 @@
         var cleanAnswer = cleanMessageText(answer || "");
         var lowerAnswer = cleanAnswer.toLowerCase();
         var compactAnswer = lowerAnswer.replace(/[^a-z0-9]+/g, "");
+        var normalizedAliases = {
+          agree: "yes",
+          iagree: "yes",
+          agreed: "yes",
+          consent: "yes",
+          iconsent: "yes",
+          iconfirm: "yes",
+          yesiconsent: "yes",
+          yesiagree: "yes",
+          yep: "yes",
+          yeah: "yes",
+          nope: "no",
+          nah: "no",
+          nonbinary: "nonbinary",
+          nonbin: "nonbinary",
+          nonconfirming: "nonconfirming",
+          prefernot: "prefernottosay",
+          prefernotsay: "prefernottosay",
+          prefernottosay: "prefernottosay",
+          prefernottoanswer: "prefernottosay",
+          rathernotsay: "prefernottosay",
+          bachelor: "bachelorsdegreebabscorequivalent",
+          bachelors: "bachelorsdegreebabscorequivalent",
+          bachelorsdegree: "bachelorsdegreebabscorequivalent",
+          bachelordegree: "bachelorsdegreebabscorequivalent",
+          ba: "bachelorsdegreebabscorequivalent",
+          bsc: "bachelorsdegreebabscorequivalent",
+          master: "mastersdegreemamscequivalent",
+          masters: "mastersdegreemamscequivalent",
+          mastersdegree: "mastersdegreemamscequivalent",
+          ma: "mastersdegreemamscequivalent",
+          msc: "mastersdegreemamscequivalent",
+          phd: "doctoratephdorequivalent",
+          doctorate: "doctoratephdorequivalent",
+          college: "collegediplomaorequivalent",
+          diploma: "collegediplomaorequivalent",
+          secondary: "secondaryschoolorequivalent",
+          highschool: "secondaryschoolorequivalent",
+          apprenticeship: "apprenticeshiporvocationalqualification",
+          vocational: "apprenticeshiporvocationalqualification",
+          one: "1language",
+          onelanguage: "1language",
+          twolanguages: "12languages",
+          three: "24languages",
+          threelanguages: "24languages",
+          four: "24languages",
+          fourlanguages: "24languages",
+          fourplus: "4languages",
+          fourpluslanguages: "4languages",
+          "4plus": "4languages"
+        };
         if (!choices.length || !cleanAnswer) {
           return cleanAnswer;
         }
@@ -90304,6 +91204,18 @@
           return choices.find(function (choice) {
             return /^no$/i.test(choice);
           }) || cleanAnswer;
+        }
+        if (compactAnswer && normalizedAliases[compactAnswer]) {
+          var aliasMatch = choices.find(function (choice) {
+            return (
+              cleanMessageText(choice)
+                .toLowerCase()
+                .replace(/[^a-z0-9]+/g, "") === normalizedAliases[compactAnswer]
+            );
+          });
+          if (aliasMatch) {
+            return aliasMatch;
+          }
         }
         if (compactAnswer) {
           var compact = choices.find(function (choice) {
@@ -90638,6 +91550,17 @@
           );
           return;
         }
+        if (isOperationalMetaQuestion(clean) || /\b(next|now|after this|what happens)\b/i.test(lower)) {
+          botMessage(
+            "Now that this application is handled, the best next move is either to apply to more similar roles while the momentum is fresh, or run the Career Assessment so we can improve how your profile converts.",
+            humanComposeDelay("Explaining the next step.", 1200, 2400),
+            function () {
+              showPostApplicationNextStepPrompt();
+            },
+            humanReadDelay(value, 450)
+          );
+          return;
+        }
         botMessage(
           "Choose one next step: apply to more roles, assess your career, or track this application.",
           humanComposeDelay("Choose one next step.", 900, 1800),
@@ -90709,6 +91632,21 @@
         var lowerLabel = label.toLowerCase();
         var clean = cleanMessageText(text || "");
         var lower = clean.toLowerCase();
+        var simpleLabel = getEmployerQuestionSimpleLabel(question);
+        var simpleMatch = simpleLabel
+          ? extractEmployerAnswerAfterKeywords(clean, [simpleLabel], "[^;,.]+")
+          : "";
+        var simpleChoice = simpleMatch
+          ? normalizeApplicationChoiceAnswer(simpleMatch, choices)
+          : "";
+        if (
+          simpleChoice &&
+          choices.some(function (choice) {
+            return cleanMessageText(choice).toLowerCase() === simpleChoice.toLowerCase();
+          })
+        ) {
+          return simpleChoice;
+        }
         var directChoice = choices.find(function (choice) {
           var compactChoice = cleanMessageText(choice).toLowerCase().replace(/[^a-z0-9]+/g, "");
           return compactChoice && new RegExp("\\b" + escapeRegex(cleanMessageText(choice).toLowerCase()) + "\\b", "i").test(lower);
@@ -90717,6 +91655,12 @@
           return extractEmployerAnswerAfterKeywords(clean, ["data consent", "consent", "data use", "declaration"], "yes|no|agree|agreed|consent") || "";
         }
         if (/gender/i.test(lowerLabel)) {
+          var genderMatch = clean.match(
+            /\bgender(?:\s+identity)?\s*(?:is|:|-)?\s*(male|female|non[-\s]?binary|non[-\s]?confirming|prefer\s+not\s+(?:to\s+)?say)\b/i
+          );
+          if (genderMatch && genderMatch[1]) {
+            return genderMatch[1];
+          }
           return extractEmployerAnswerAfterKeywords(clean, ["gender", "gender identity"], "male|female|non-binary|non binary|non-confirming|non confirming|prefer not to say") || directChoice || "";
         }
         if (/ethnic|background|race/i.test(lowerLabel)) {
@@ -90776,11 +91720,75 @@
         return "";
       }
 
+      function stripEmployerAnswerLabelPrefix(answer, question) {
+        var clean = cleanMessageText(answer || "");
+        var simpleLabel = getEmployerQuestionSimpleLabel(question)
+          .toLowerCase()
+          .replace(/[^a-z0-9+\/\s-]+/g, " ")
+          .replace(/\s+/g, " ")
+          .trim();
+        var genericPrefixes = [
+          simpleLabel,
+          "salary",
+          "salary expectation",
+          "desired salary",
+          "current salary",
+          "notice",
+          "notice period",
+          "data consent",
+          "consent",
+          "data use",
+          "gender",
+          "gender identity",
+          "ethnicity",
+          "ethnic",
+          "background",
+          "race",
+          "lgbtq",
+          "lgbt",
+          "disability",
+          "disabled",
+          "veteran",
+          "parent",
+          "caretaker",
+          "care-taker",
+          "languages",
+          "language",
+          "local",
+          "local to office",
+          "visa",
+          "work authorisation",
+          "work authorization",
+          "education",
+          "degree",
+          "office days",
+          "days in office",
+          "4-day office",
+          "4 day office"
+        ].filter(Boolean);
+        genericPrefixes.some(function (prefix) {
+          var pattern = new RegExp("^\\s*" + escapeRegex(prefix) + "\\s*(?:is|:|-)?\\s*", "i");
+          if (pattern.test(clean)) {
+            clean = clean.replace(pattern, "").trim();
+            return true;
+          }
+          return false;
+        });
+        return cleanMessageText(clean || answer || "");
+      }
+
       function applyEmployerBulkAnswers(value, schema) {
         var remaining = getApplicationUnansweredRequiredQuestions(schema);
         var clean = cleanMessageText(value || "");
         var applied = 0;
         var numbered = {};
+        var orderedParts = clean
+          .replace(/(\d),(\d)/g, "$1$2")
+          .split(/\s*(?:;|\n|,\s+)\s*/g)
+          .map(function (part) {
+            return cleanMessageText(part || "");
+          })
+          .filter(Boolean);
         var numberedPattern = /(?:^|\s)(\d{1,2})\s*[\).:-]\s*([\s\S]*?)(?=\s+\d{1,2}\s*[\).:-]|$)/g;
         var match;
         while ((match = numberedPattern.exec(clean)) !== null) {
@@ -90794,6 +91802,10 @@
           if (!answer) {
             answer = inferEmployerBulkAnswer(clean, question, choices);
           }
+          if (!answer && orderedParts.length >= Math.min(remaining.length, 3)) {
+            answer = orderedParts[index] || "";
+          }
+          answer = stripEmployerAnswerLabelPrefix(answer, question);
           answer = normalizeApplicationChoiceAnswer(answer, choices);
           if (
             answer &&
@@ -90806,7 +91818,46 @@
             applied += 1;
           }
         });
+        remaining.forEach(function (question) {
+          var key = getApplicationQuestionKey(question);
+          var choices = getApplicationQuestionChoices(question);
+          var label = cleanGreenhouseAnswerText((question && question.label) || "");
+          var genderMatch;
+          var answer = "";
+          if (applicationAnswerDraft[key] || !choices.length) {
+            return;
+          }
+          if (/gender/i.test(label)) {
+            genderMatch = clean.match(
+              /\bgender(?:\s+identity)?\s*(?:is|:|-)?\s*(male|female|non[-\s]?binary|non[-\s]?confirming|prefer\s+not\s+(?:to\s+)?say)\b/i
+            );
+            answer = genderMatch && genderMatch[1] ? genderMatch[1] : "";
+          }
+          answer = normalizeApplicationChoiceAnswer(answer, choices);
+          if (
+            answer &&
+            choices.some(function (choice) {
+              return cleanMessageText(choice).toLowerCase() === answer.toLowerCase();
+            })
+          ) {
+            applicationAnswerDraft[key] = answer;
+            applied += 1;
+          }
+        });
         return applied;
+      }
+
+      if (getConfig().enableTestHooks) {
+        root.__sffcNormalizeApplicationChoiceAnswer =
+          normalizeApplicationChoiceAnswer;
+        root.__sffcParseEmployerBulkAnswersForTest = function (value, schema) {
+          applicationWorkspaceSchema = schema || {};
+          applicationAnswerDraft = {};
+          return {
+            applied: applyEmployerBulkAnswers(value || "", schema || {}),
+            answers: Object.assign({}, applicationAnswerDraft),
+          };
+        };
       }
 
       function hasGreenhouseResumeMaterial() {
@@ -90958,6 +92009,21 @@
               "apply_employer_question",
               {
                 other: function (value) {
+                  if (isOperationalMetaQuestion(value)) {
+                    botMessage(
+                      "This is a required employer field on the application form. I’ll only use it for this submission, and I need the answer before I can queue the worker.",
+                      humanComposeDelay(
+                        "This is a required employer field on the application form.",
+                        1200,
+                        2400
+                      ),
+                      function () {
+                        focusComposer(choices.length ? "Type one of the listed options" : "Type your answer");
+                      },
+                      humanReadDelay(value, 450)
+                    );
+                    return;
+                  }
                   var answer = normalizeApplicationChoiceAnswer(value, choices);
                   if (!answer) {
                     botMessage(
@@ -91112,6 +92178,21 @@
               "apply_employer_questions_bulk",
               {
                 other: function (value) {
+                  if (isOperationalMetaQuestion(value)) {
+                    botMessage(
+                      "These are required by the employer’s application form. I’m collecting them here so you do not have to work through the full form manually.",
+                      humanComposeDelay(
+                        "Explaining employer-required answers.",
+                        1200,
+                        2400
+                      ),
+                      function () {
+                        focusFirstEmployerQuestionInput();
+                      },
+                      humanReadDelay(value, 450)
+                    );
+                    return;
+                  }
                   var applied = applyEmployerBulkAnswers(value, schema);
                   clearPromptState();
                   echoPromptChoice(value);
@@ -91186,6 +92267,7 @@
         );
         var fallbackUrl = hostedUrl || "#";
         var hasSchemaSignals = getGreenhouseApplicationQuestionLabels(schema).length > 0;
+        var canWorkerSubmit = hasApplicationWorkerSubmitCapability();
         var html =
           '<div class="sffc-crm-apply-chat__greenhouse-workspace">' +
           '<div class="sffc-crm-apply-chat__greenhouse-header">' +
@@ -91193,17 +92275,27 @@
           'Senna can apply for you</strong>' +
           '<span>' +
           (hasSchemaSignals
-            ? 'I checked the ' + escapeHtml(providerLabel) + ' form and pulled out the main screening signals. I can collect only what is needed, submit through the employer form, and ask you for any verification code if Greenhouse sends one.'
-            : 'I found the employer form. I can collect the core application details, submit through the employer route where supported, and keep the employer form available here for review.') +
+            ? 'I checked the ' + escapeHtml(providerLabel) + ' form and pulled out the main screening signals.'
+            : 'I found the employer form and can keep it available here for review.') +
           '</span>' +
           '</div>' +
           '<div class="sffc-crm-apply-chat__greenhouse-primary">' +
           '<div class="sffc-crm-apply-chat__greenhouse-primary-copy">' +
-          '<small>Recommended</small>' +
-          '<strong>Let Senna complete this application</strong>' +
-          '<p>I’ll use your CV, name, and email, then ask any employer-required questions in a cleaner format before the worker submits the form.</p>' +
+          '<small>' +
+          (canWorkerSubmit ? 'Recommended' : 'Application form') +
+          '</small>' +
+          '<strong>' +
+          (canWorkerSubmit ? 'Let Senna complete this application' : 'Complete the employer form inside Senna') +
+          '</strong>' +
+          '<p>' +
+          (canWorkerSubmit
+            ? 'I’ll use your CV, name, and email, then ask any employer-required questions in a cleaner format before the worker submits the form.'
+            : 'The form is available here. I’ll keep the role context and screening signals beside it while you apply.') +
+          '</p>' +
           '</div>' +
-          '<button type="button" class="sffc-crm-apply-chat__greenhouse-primary-action" data-sffc-application-worker-queue>Apply for me</button>' +
+          (canWorkerSubmit
+            ? '<button type="button" class="sffc-crm-apply-chat__greenhouse-primary-action" data-sffc-application-worker-queue>Apply for me</button>'
+            : '<a class="sffc-crm-apply-chat__greenhouse-primary-action" href="' + escapeHtml(fallbackUrl) + '" target="_blank" rel="noopener noreferrer">Open form</a>') +
           '</div>' +
           '<div class="sffc-crm-apply-chat__greenhouse-grid sffc-crm-apply-chat__greenhouse-grid--compact">' +
           '<div class="sffc-crm-apply-chat__greenhouse-answers">' +
@@ -91231,7 +92323,7 @@
           '</div>' +
           '</div>';
         botMessage(html, humanComposeDelay("Application workspace ready.", 1000, 2200), function () {
-          focusComposer("Choose Apply for me, or preview the employer form");
+          focusComposer(canWorkerSubmit ? "Choose Apply for me, or preview the employer form" : "Preview the form, or tell me what you want to check");
         });
       }
 
@@ -91244,6 +92336,7 @@
             ""
         );
         var hasSchemaSignals = getGreenhouseApplicationQuestionLabels(schema).length > 0;
+        var canWorkerSubmit = hasApplicationWorkerSubmitCapability();
         var html =
           '<div class="sffc-crm-apply-chat__greenhouse-workspace is-external-only">' +
           '<div class="sffc-crm-apply-chat__greenhouse-header">' +
@@ -91251,17 +92344,27 @@
           'Senna can prepare this application</strong>' +
           '<span>' +
           (hasSchemaSignals
-            ? 'I checked the ' + escapeHtml(providerLabel) + ' form and pulled out the main screening signals. This employer blocks embedded forms, but Senna can still help with the application route where supported.'
+            ? 'I checked the ' + escapeHtml(providerLabel) + ' form and pulled out the main screening signals. This employer blocks embedded forms in Senna.'
             : 'This employer blocks embedded application forms, so I can’t show the form window inside Senna. I’ll keep the route and next step clear here.') +
           '</span>' +
           '</div>' +
           '<div class="sffc-crm-apply-chat__greenhouse-primary">' +
           '<div class="sffc-crm-apply-chat__greenhouse-primary-copy">' +
-          '<small>Recommended</small>' +
-          '<strong>Let Senna handle the next step</strong>' +
-          '<p>I’ll use the CV, candidate details, and detected screening fields to prepare the cleanest application route.</p>' +
+          '<small>' +
+          (canWorkerSubmit ? 'Recommended' : 'Employer site') +
+          '</small>' +
+          '<strong>' +
+          (canWorkerSubmit ? 'Let Senna handle the next step' : 'Use the employer application page') +
+          '</strong>' +
+          '<p>' +
+          (canWorkerSubmit
+            ? 'I’ll use the CV, candidate details, and detected screening fields to prepare the cleanest application route.'
+            : 'I’ll keep the screening signals here, but this provider needs the employer page for submission.') +
+          '</p>' +
           '</div>' +
-          '<button type="button" class="sffc-crm-apply-chat__greenhouse-primary-action" data-sffc-application-worker-queue>Apply for me</button>' +
+          (canWorkerSubmit
+            ? '<button type="button" class="sffc-crm-apply-chat__greenhouse-primary-action" data-sffc-application-worker-queue>Apply for me</button>'
+            : '<a class="sffc-crm-apply-chat__greenhouse-primary-action" href="' + escapeHtml(workspaceUrl || "#") + '" target="_blank" rel="noopener noreferrer">Open employer form</a>') +
           '</div>' +
           '<div class="sffc-crm-apply-chat__greenhouse-answers">' +
           '<strong>' +
@@ -91283,7 +92386,7 @@
           '</div>' +
           '</div>';
         botMessage(html, humanComposeDelay("Employer form route ready.", 1000, 2200), function () {
-          focusComposer("Choose Apply for me, or open the employer form");
+          focusComposer(canWorkerSubmit ? "Choose Apply for me, or open the employer form" : "Open the employer form, or ask me about the screening signals");
         });
       }
 
@@ -91536,6 +92639,21 @@
                 other: function (value) {
                   var analysed = analysePreferredEmail(value, "");
                   if (!analysed) {
+                    if (isOperationalMetaQuestion(value)) {
+                      botMessage(
+                        "I need the email the employer should use for this application and any Greenhouse confirmation. Send the address you want on the application.",
+                        humanComposeDelay(
+                          "I need the email the employer should use for this application.",
+                          1200,
+                          2400
+                        ),
+                        function () {
+                          focusComposer("Type your email");
+                        },
+                        humanReadDelay(value, 450)
+                      );
+                      return;
+                    }
                     botMessage(
                       isArabicChat()
                         ? "أرسلي لي عنوان البريد الكامل الذي تريدينني أن أستخدمه هنا."
@@ -91585,7 +92703,23 @@
               "apply_collect_full_name",
               {
                 other: function (value) {
-                  if (!isReasonableFullName(value)) {
+                  var extractedName = extractReasonableFullName(value);
+                  if (!extractedName) {
+                    if (isOperationalMetaQuestion(value)) {
+                      botMessage(
+                        "I need the name exactly as it should appear on the employer application. Send it as first name and last name.",
+                        humanComposeDelay(
+                          "I need the name exactly as it should appear on the employer application.",
+                          1200,
+                          2400
+                        ),
+                        function () {
+                          focusComposer(getFlowPlaceholder("full_name"));
+                        },
+                        humanReadDelay(value, 450)
+                      );
+                      return;
+                    }
                     botMessage(
                       isArabicChat()
                         ? "فقط حتى أضبط هذا لك بشكل صحيح، ما اسمك الكامل؟"
@@ -91606,7 +92740,7 @@
                   }
                   clearPromptState();
                   echoPromptChoice(value);
-                  applyOnboardingFullName = cleanMessageText(value);
+                  applyOnboardingFullName = extractedName;
                   window.setTimeout(
                     askForPreferredEmail,
                     randomBetween(650, 1200)
@@ -95069,6 +96203,83 @@
       closeChat(true);
     }
 
+    if (getConfig().enableTestHooks) {
+      root.__sffcApplyChatTest = {
+        setCapturedCvText: function (text) {
+          capturedCvText = cleanMessageText(text || "");
+        },
+        setRoleContext: function (context) {
+          context = context || {};
+          roleTitle = cleanMessageText(context.roleTitle || roleTitle || "");
+          standaloneProfileReviewTargetRole = cleanMessageText(
+            context.standaloneProfileReviewTargetRole ||
+              standaloneProfileReviewTargetRole ||
+              ""
+          );
+          jobSearchSeedContext = context.jobSearchSeedContext || null;
+          if (context.activePath) {
+            activePath = cleanMessageText(context.activePath || activePath || "");
+          }
+        },
+        getRoleDiscoveryQueries: function (analysis) {
+          return getApplyForMeRoleDiscoveryQueries(analysis || {});
+        },
+        getSearchTermsFromCvText: function (analysis) {
+          return getApplyForMeSearchTermsFromCvText(analysis || {});
+        },
+        detectCvSignals: function (analysis) {
+          return detectApplyForMeCvSignals(capturedCvText || "", analysis || {});
+        },
+        detectCvProfileGapInsights: function (text) {
+          capturedCvText = cleanMessageText(text || "");
+          return getApplyCvProfileGapInsightItems();
+        },
+        showRoleSelection: function (analysis, sourceLabel) {
+          return showApplyForMeRoleSelection(analysis || {}, sourceLabel || "");
+        },
+        renderQuickRoleInsights: function (analysis) {
+          return renderApplyQuickRoleInsights(analysis || {});
+        },
+        analysePreferredEmail: function (value, fallbackLocalPart) {
+          return analysePreferredEmail(value || "", fallbackLocalPart || "");
+        },
+        extractReasonableFullName: function (value) {
+          return extractReasonableFullName(value || "");
+        },
+        isReasonableFullName: function (value) {
+          return isReasonableFullName(value || "");
+        },
+        extractSecurityCode: function (value) {
+          return extractGreenhouseSecurityCode(value || "");
+        },
+        normalizeChoiceAnswer: function (value, choices) {
+          return typeof root.__sffcNormalizeApplicationChoiceAnswer === "function"
+            ? root.__sffcNormalizeApplicationChoiceAnswer(value || "", choices || [])
+            : value || "";
+        },
+        parseEmployerAnswers: function (value, schema) {
+          return typeof root.__sffcParseEmployerBulkAnswersForTest === "function"
+            ? root.__sffcParseEmployerBulkAnswersForTest(value || "", schema || {})
+            : { applied: 0, answers: {} };
+        },
+        normalizeCareerIntentText: function (value) {
+          return normalizeCareerIntentText(value || "");
+        },
+        parseMessageSemantics: function (value) {
+          return parseMessageSemantics(value || "");
+        },
+        detectIntent: function (value) {
+          return detectIntent(value || "");
+        },
+        showAnalysis: function (analysis) {
+          return showAnalysis(analysis || {});
+        },
+        continueApplyAfterAnalysis: function (analysis) {
+          return continueApplyAfterAnalysis(analysis || {});
+        },
+      };
+    }
+
     root
       .querySelectorAll("[data-sffc-apply-chat-open]")
       .forEach(function (button) {
@@ -95076,6 +96287,50 @@
       });
 
     root.addEventListener("sffc:apply-chat-open", function () {
+      openChat();
+    });
+
+    root.addEventListener("sffc:apply-chat-launch-search", function (event) {
+      var detail = (event && event.detail) || {};
+      var role = cleanMessageText(detail.role || "");
+      var seniority = cleanMessageText(detail.seniority || "");
+      var location = cleanMessageText(detail.location || "");
+      var sector = cleanMessageText(
+        detail.specialisation || detail.specialization || detail.sector || ""
+      );
+      if (/^all\b/i.test(seniority)) {
+        seniority = "";
+      }
+      var roleTarget = [seniority, role]
+        .filter(Boolean)
+        .join(" ")
+        .replace(/\s+/g, " ")
+        .trim();
+      var query = cleanMessageText(detail.query || "");
+
+      if (!query) {
+        query = [roleTarget, sector].filter(Boolean).join(" ");
+        if (location) {
+          query += (query ? " jobs in " : "Jobs in ") + location;
+        }
+      }
+
+      pendingLaunchContext = {
+        entryRoute: "landing_filter_search",
+        query: query || "finance jobs",
+        roleTarget: roleTarget || role,
+        location: location,
+        sector: sector,
+        seniority: seniority,
+        filters: {
+          role: role,
+          seniority: seniority,
+          location: location,
+          specialisation: sector,
+        },
+      };
+      pendingLaunchOpenFilePicker = false;
+      resetChatOnNextOpen = true;
       openChat();
     });
 
@@ -95656,6 +96911,16 @@
       }
       if (applicationWorkerQueue) {
         event.preventDefault();
+        if (!hasApplicationWorkerSubmitCapability()) {
+          botMessage(
+            "This employer form can be completed inside Senna, but managed worker submission is only switched on for Greenhouse right now.",
+            humanComposeDelay("Managed worker submission is not switched on for this provider.", 900, 1800),
+            function () {
+              focusComposer("Use the embedded form, or ask me about the screening signals");
+            }
+          );
+          return;
+        }
         var queueApplicationTask =
           root.__sffcQueueBrowserApplicationTask ||
           window.__sffcQueueBrowserApplicationTask;

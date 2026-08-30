@@ -604,6 +604,7 @@ class SFFC_CRM_Shortcodes
         add_shortcode('sffc_signup_form', [$this, 'render_signup_form']);
         add_shortcode('sffc_crm_matching_engine', [$this, 'render_matching_engine_landing']);
         add_shortcode('sffc_crm_console_search', [$this, 'render_crm_console_search']);
+        add_shortcode('sffc_mena_search_landing', [$this, 'render_mena_search_landing']);
         add_shortcode('sffc_exit_discount_offer', [$this, 'render_exit_discount_offer']);
         add_shortcode('sffc_latest_posts', [$this, 'render_latest_posts']);
         add_shortcode('sffc_contact_capture', [$this, 'render_contact_capture']);
@@ -620,6 +621,8 @@ class SFFC_CRM_Shortcodes
         add_shortcode('sffc_members_pricing_landing', [$this, 'render_members_pricing_landing']);
         add_shortcode('sffc_mena_careers_pricing_tiers', [$this, 'render_mena_careers_pricing_tiers']);
         add_shortcode('sffc_memberpress_pricing_tiers', [$this, 'render_mena_careers_pricing_tiers']);
+        add_shortcode('sffc_mena_pricing_plans', [$this, 'render_mena_careers_pricing_plans']);
+        add_shortcode('sffc_mena_pricing_grid', [$this, 'render_mena_careers_pricing_plans']);
         add_shortcode('sffc_members_pricing_signup', [$this, 'render_members_pricing_signup']);
         add_shortcode('sffc_members_simple_pricing_signup', [$this, 'render_members_simple_pricing_signup']);
         add_shortcode('sffc_members_paid_signup', [$this, 'render_members_paid_signup']);
@@ -45516,7 +45519,8 @@ CRITICAL INSTRUCTIONS:
         private function build_crm_apply_chat_quick_role_insights(array $analysis)
         {
             $insights = [];
-            $add = static function ($message, $tone = 'watch', $type = 'general') use (&$insights) {
+            $add = static function ($title, $message, $tone = 'watch', $type = 'general', $label = '', $priority = 50) use (&$insights) {
+                $title = trim(wp_strip_all_tags((string) $title));
                 $message = trim(wp_strip_all_tags((string) $message));
                 if ($message === '') {
                     return;
@@ -45527,9 +45531,12 @@ CRITICAL INSTRUCTIONS:
                     }
                 }
                 $insights[] = [
+                    'title' => sanitize_text_field($title !== '' ? $title : __('Worth noting', 'senna-finance')),
                     'message' => sanitize_text_field($message),
                     'tone' => sanitize_key($tone),
                     'type' => sanitize_key($type),
+                    'label' => sanitize_text_field(trim(wp_strip_all_tags((string) $label))),
+                    'priority' => (int) $priority,
                 ];
             };
 
@@ -45543,61 +45550,120 @@ CRITICAL INSTRUCTIONS:
                     continue;
                 }
                 if ($type === 'language') {
-                    $add(sprintf(__('Heads up: this role appears to require %s, but I cannot see it clearly on the CV.', 'senna-finance'), $label), 'gap', 'language');
+                    $add(
+                        sprintf(__('%s is not visible', 'senna-finance'), $label),
+                        sprintf(__('I noticed this role appears to require %s, but I cannot see that language on the CV. If you use it professionally, it should be visible before you apply.', 'senna-finance'), $label),
+                        'gap',
+                        'language',
+                        $label,
+                        100
+                    );
                     continue;
                 }
                 if ($type === 'work_authorization') {
-                    $add(__('Heads up: work authorization or location readiness may be screened, and it is not clear from the CV yet.', 'senna-finance'), 'gap', 'work_authorization');
+                    $add(
+                        __('Work authorisation may be screened', 'senna-finance'),
+                        __('The application may screen for work authorisation or location readiness. I cannot confirm that from the CV, so it is worth checking before this goes out.', 'senna-finance'),
+                        'gap',
+                        'work_authorization',
+                        $label,
+                        95
+                    );
                     continue;
                 }
                 if ($type === 'qualification') {
-                    $add(sprintf(__('Heads up: %s appears relevant to this role, but I cannot see it clearly on the CV.', 'senna-finance'), $label), 'gap', 'qualification');
+                    $add(
+                        sprintf(__('%s is not on the CV', 'senna-finance'), $label),
+                        sprintf(__('I noticed the job asks for %s, but your CV does not mention that qualification. If you do have it, I can help you improve the positioning before you apply.', 'senna-finance'), $label),
+                        'gap',
+                        'qualification',
+                        $label,
+                        98
+                    );
+                    continue;
+                }
+                if ($type === 'experience') {
+                    $message = trim((string) ($gap['message'] ?? ''));
+                    $add(
+                        __('Experience level needs checking', 'senna-finance'),
+                        $message !== ''
+                            ? $message . ' ' . __('I can help make the relevant experience clearer before you apply.', 'senna-finance')
+                            : sprintf(__('The role asks for %s, but the dated experience on the CV may not show that clearly. I can help position the relevant experience before you apply.', 'senna-finance'), $label),
+                        'gap',
+                        'experience',
+                        $label,
+                        92
+                    );
                     continue;
                 }
             }
 
             foreach ((array) ($analysis['unconfirmed_signals'] ?? []) as $signal) {
-                if (!is_array($signal) || count($insights) >= 2) {
-                    break;
+                if (!is_array($signal)) {
+                    continue;
                 }
                 $category = sanitize_key((string) ($signal['category'] ?? ''));
                 $label = trim((string) ($signal['label'] ?? ''));
                 if ($label === '' || in_array($category, ['language', 'credential', 'soft_signal'], true)) {
                     continue;
                 }
-                $add(sprintf(__('Worth noting: the role asks for %s, but the CV does not make that obvious yet.', 'senna-finance'), $label), 'watch', 'missing_signal');
+                $type = in_array($category, ['sector_exposure', 'industry'], true) ? 'sector_signal' : 'missing_signal';
+                $priority = $type === 'sector_signal' ? 70 : 82;
+                $add(
+                    sprintf(__('%s is not obvious yet', 'senna-finance'), ucfirst($label)),
+                    sprintf(__('I noticed the role asks for %s, but the CV does not make that evidence obvious yet. If it is part of your background, I can help bring it forward before you apply.', 'senna-finance'), $label),
+                    'watch',
+                    $type,
+                    $label,
+                    $priority
+                );
             }
 
-            if (count($insights) < 2) {
-                $role_sector_scores = array_values(array_filter((array) ($analysis['cv_signal_profile']['sectors'] ?? []), static function ($sector) {
-                    return is_array($sector) && (int) ($sector['role_score'] ?? 0) > 0;
-                }));
-                usort($role_sector_scores, static function ($left, $right) {
-                    return ((int) ($right['role_score'] ?? 0)) <=> ((int) ($left['role_score'] ?? 0));
-                });
-                foreach ($role_sector_scores as $sector) {
-                    $label = trim((string) ($sector['label'] ?? ''));
-                    if ($label !== '' && (int) ($sector['cv_score'] ?? 0) <= 0) {
-                        $add(sprintf(__('Worth noting: the role leans toward %s, but that evidence is not obvious on the CV yet.', 'senna-finance'), $label), 'watch', 'sector_gap');
-                        break;
-                    }
+            $role_sector_scores = array_values(array_filter((array) ($analysis['cv_signal_profile']['sectors'] ?? []), static function ($sector) {
+                return is_array($sector) && (int) ($sector['role_score'] ?? 0) > 0;
+            }));
+            usort($role_sector_scores, static function ($left, $right) {
+                return ((int) ($right['role_score'] ?? 0)) <=> ((int) ($left['role_score'] ?? 0));
+            });
+            foreach ($role_sector_scores as $sector) {
+                $label = trim((string) ($sector['label'] ?? ''));
+                if ($label !== '' && (int) ($sector['cv_score'] ?? 0) <= 0) {
+                    $add(
+                        sprintf(__('%s exposure is not clear', 'senna-finance'), $label),
+                        sprintf(__('This role leans toward %s, but the CV does not show that sector exposure clearly yet. I can help create a stronger bridge before you apply.', 'senna-finance'), $label),
+                        'watch',
+                        'sector_gap',
+                        $label,
+                        68
+                    );
+                    break;
                 }
             }
 
-            if (count($insights) < 2) {
-                $profile = (array) ($analysis['cv_signal_profile'] ?? []);
-                $summary = trim((string) ($profile['summary'] ?? ''));
-                if ($summary !== '') {
-                    $add($summary, 'strong', 'profile_signal');
-                }
+            $matched = array_values(array_filter(array_map('strval', (array) ($analysis['matched_keywords'] ?? []))));
+            if (!empty($matched)) {
+                $matched_label = implode(', ', array_slice($matched, 0, 2));
+                $add(
+                    __('Strong match signal', 'senna-finance'),
+                    sprintf(__('Good signal: your CV already shows %s for this role. That is worth keeping prominent in the application.', 'senna-finance'), $matched_label),
+                    'strong',
+                    'matched_signal',
+                    $matched_label,
+                    45
+                );
             }
 
             if (empty($insights)) {
-                $matched = array_values(array_filter(array_map('strval', (array) ($analysis['matched_keywords'] ?? []))));
-                if (!empty($matched)) {
-                    $add(sprintf(__('Good signal: the CV already shows %s for this role.', 'senna-finance'), implode(', ', array_slice($matched, 0, 2))), 'strong', 'matched_signal');
+                $profile = (array) ($analysis['cv_signal_profile'] ?? []);
+                $summary = trim((string) ($profile['summary'] ?? ''));
+                if ($summary !== '') {
+                    $add(__('CV direction is clear', 'senna-finance'), $summary, 'strong', 'profile_signal', '', 30);
                 }
             }
+
+            usort($insights, static function ($left, $right) {
+                return ((int) ($right['priority'] ?? 0)) <=> ((int) ($left['priority'] ?? 0));
+            });
 
             return array_slice($insights, 0, 2);
         }
@@ -54165,139 +54231,8 @@ CRITICAL INSTRUCTIONS:
                     <p><?php esc_html_e('Pick the level of access that matches how actively you are searching and how much support you want.', 'senna-finance'); ?></p>
                 </div>
 
-                <div class="sffc-mena-pricing-tiers__grid" role="list">
-                    <?php foreach ($plans as $index => $plan):
-                        $product_id = (int) ($plan['memberpress_product_id'] ?? 0);
-                        $plan_slug = sanitize_title((string) ($plan['slug'] ?? $plan['name']));
-                        $is_current = $product_id > 0 && in_array($product_id, $active_product_ids, true);
-                        $is_recommended = !$is_current && !empty($plan['is_featured']);
-                        $card_classes = [
-                            'sffc-mena-pricing-tier',
-                            'sffc-mena-pricing-tier--' . (($index % 3) + 1),
-                        ];
-                        if ($is_current) {
-                            $card_classes[] = 'is-current';
-                        } elseif ($is_recommended) {
-                            $card_classes[] = 'is-recommended';
-                        }
-
-                        $button_label = __('Choose Plan', 'senna-finance');
-                        if ($is_current) {
-                            $button_label = __('Current plan', 'senna-finance');
-                        } elseif ($has_active_paid_plan) {
-                            $button_label = __('Switch plan', 'senna-finance');
-                        }
-
-                        $features = array_slice((array) ($plan['features'] ?? []), 0, 6);
-                        if (empty($features)) {
-                            $features = [
-                                __('Curated private equity roles and tracker access', 'senna-finance'),
-                                __('Career Assessment tools', 'senna-finance'),
-                                __('Application support for target roles', 'senna-finance'),
-                            ];
-                        }
-                    ?>
-                        <article
-                            class="<?php echo esc_attr(implode(' ', $card_classes)); ?>"
-                            role="listitem"
-                            data-sffc-mena-pricing-card
-                            data-plan-slug="<?php echo esc_attr($plan_slug); ?>">
-                            <div class="sffc-mena-pricing-tier__stripe" aria-hidden="true"></div>
-                            <div class="sffc-mena-pricing-tier__header">
-                                <h3><?php echo esc_html($plan['name']); ?></h3>
-                                <?php if ($is_current): ?>
-                                    <span class="sffc-mena-pricing-tier__badge"><?php esc_html_e('Current plan', 'senna-finance'); ?></span>
-                                <?php elseif ($is_recommended): ?>
-                                    <span class="sffc-mena-pricing-tier__badge"><?php esc_html_e('Recommended', 'senna-finance'); ?></span>
-                                <?php endif; ?>
-                            </div>
-
-                            <?php if (!empty($plan['tagline'])): ?>
-                                <p class="sffc-mena-pricing-tier__tagline"><?php echo esc_html($plan['tagline']); ?></p>
-                            <?php endif; ?>
-
-                            <?php if (!empty($plan['price'])): ?>
-                                <p class="sffc-mena-pricing-tier__price"><?php echo esc_html($plan['price']); ?></p>
-                            <?php endif; ?>
-
-                            <div class="sffc-mena-pricing-tier__action">
-                                <?php if ($is_current): ?>
-                                    <button type="button" class="sffc-mena-pricing-tier__button is-disabled" disabled>
-                                        <?php echo esc_html($button_label); ?>
-                                    </button>
-                                <?php else: ?>
-                                    <button
-                                        type="button"
-                                        class="sffc-mena-pricing-tier__button"
-                                        data-sffc-mena-pricing-select
-                                        data-plan-slug="<?php echo esc_attr($plan_slug); ?>"
-                                        data-plan-name="<?php echo esc_attr($plan['name']); ?>"
-                                        data-plan-price="<?php echo esc_attr($plan['price']); ?>"
-                                        data-plan-tagline="<?php echo esc_attr($plan['tagline']); ?>"
-                                        data-plan-url="<?php echo esc_url($plan['url']); ?>"
-                                        data-plan-has-form="<?php echo !empty($plan['shortcode']) ? '1' : '0'; ?>"
-                                        aria-controls="sffc-mena-pricing-checkout">
-                                        <?php echo esc_html($button_label); ?>
-                                    </button>
-                                <?php endif; ?>
-                            </div>
-
-                            <div class="sffc-mena-pricing-tier__divider"></div>
-                            <h4><?php esc_html_e('Top differences', 'senna-finance'); ?></h4>
-                            <ul class="sffc-mena-pricing-tier__features">
-                                <?php foreach ($features as $feature): ?>
-                                    <li>
-                                        <span aria-hidden="true">✓</span>
-                                        <?php echo esc_html($feature); ?>
-                                    </li>
-                                <?php endforeach; ?>
-                            </ul>
-
-                            <?php if ($is_current): ?>
-                                <p class="sffc-mena-pricing-tier__note"><?php esc_html_e('You already have access to this plan.', 'senna-finance'); ?></p>
-                            <?php endif; ?>
-                        </article>
-                    <?php endforeach; ?>
-                </div>
-
-                <section id="sffc-mena-pricing-checkout" class="sffc-mena-pricing-tiers__checkout" data-sffc-mena-pricing-checkout hidden>
-                    <div class="sffc-mena-pricing-tiers__checkout-shell">
-                        <aside class="sffc-mena-pricing-tiers__checkout-summary" aria-live="polite">
-                            <span class="sffc-mena-pricing-tiers__checkout-eyebrow">
-                                <span aria-hidden="true"></span>
-                                <?php esc_html_e('Secure checkout', 'senna-finance'); ?>
-                            </span>
-                            <h3 data-sffc-mena-pricing-checkout-title><?php esc_html_e('Choose a plan to continue', 'senna-finance'); ?></h3>
-                            <p data-sffc-mena-pricing-checkout-copy><?php esc_html_e('Your selected MemberPress checkout will appear here.', 'senna-finance'); ?></p>
-                            <div class="sffc-mena-pricing-tiers__checkout-price">
-                                <span><?php esc_html_e('Selected plan', 'senna-finance'); ?></span>
-                                <strong data-sffc-mena-pricing-checkout-price></strong>
-                            </div>
-                            <ul>
-                                <li><?php esc_html_e('MemberPress secure payment', 'senna-finance'); ?></li>
-                                <li><?php esc_html_e('Instant account access after checkout', 'senna-finance'); ?></li>
-                                <li><?php esc_html_e('Plan state updates automatically when signed in', 'senna-finance'); ?></li>
-                            </ul>
-                        </aside>
-                        <div class="sffc-mena-pricing-tiers__checkout-form-wrap">
-                            <?php foreach ($plans as $plan):
-                                $plan_slug = sanitize_title((string) ($plan['slug'] ?? $plan['name']));
-                                if (empty($plan['shortcode'])) {
-                                    continue;
-                                }
-                            ?>
-                                <div class="sffc-mena-pricing-tiers__checkout-form" data-sffc-mena-pricing-form="<?php echo esc_attr($plan_slug); ?>" hidden>
-                                    <?php echo do_shortcode((string) $plan['shortcode']); ?>
-                                </div>
-                            <?php endforeach; ?>
-                            <div class="sffc-mena-pricing-tiers__checkout-external" data-sffc-mena-pricing-external hidden>
-                                <h4><?php esc_html_e('Open secure checkout', 'senna-finance'); ?></h4>
-                                <p><?php esc_html_e('This plan does not have an embedded form configured yet. Use the secure MemberPress checkout link below.', 'senna-finance'); ?></p>
-                                <a href="#" data-sffc-mena-pricing-external-link><?php esc_html_e('Open checkout', 'senna-finance'); ?></a>
-                            </div>
-                        </div>
-                    </div>
-                </section>
+                <?php $this->render_mena_careers_pricing_plan_grid($plans, $active_product_ids, $has_active_paid_plan); ?>
+                <?php $this->render_mena_careers_pricing_checkout($plans); ?>
 
                 <section class="sffc-mena-pricing-tiers__faq" aria-labelledby="sffc-mena-pricing-faq-title">
                     <span class="sffc-mena-pricing-tiers__faq-icon" aria-hidden="true">?</span>
@@ -54318,6 +54253,206 @@ CRITICAL INSTRUCTIONS:
             </section>
             <?php
             return ob_get_clean();
+        }
+
+        public function render_mena_careers_pricing_plans($atts = [], $content = null, $shortcode_tag = 'sffc_mena_pricing_plans')
+        {
+            $atts = shortcode_atts([
+                'headline' => __('Choose the right path for your career', 'senna-finance'),
+                'subheadline' => __('Pick the level of access that matches how actively you are searching and how much support you want.', 'senna-finance'),
+                'show_intro' => '1',
+            ], $atts, $shortcode_tag);
+
+            $css_path = SFFC_PLUGIN_DIR . 'assets/css/crm/memberpress-pricing-tiers.css';
+            wp_enqueue_style(
+                'sffc-memberpress-pricing-tiers',
+                SFFC_PLUGIN_URL . 'assets/css/crm/memberpress-pricing-tiers.css',
+                [],
+                file_exists($css_path) ? (string) filemtime($css_path) : SFFC_VERSION
+            );
+            $js_path = SFFC_PLUGIN_DIR . 'assets/js/crm/memberpress-pricing-tiers.js';
+            wp_enqueue_script(
+                'sffc-memberpress-pricing-tiers',
+                SFFC_PLUGIN_URL . 'assets/js/crm/memberpress-pricing-tiers.js',
+                [],
+                file_exists($js_path) ? (string) filemtime($js_path) : SFFC_VERSION,
+                true
+            );
+
+            $plans = $this->get_mena_careers_paid_pricing_tier_plans();
+            if (empty($plans)) {
+                return '';
+            }
+
+            $active_product_ids = is_user_logged_in() ? $this->get_active_memberpress_product_ids(get_current_user_id()) : [];
+            $has_active_paid_plan = !empty($active_product_ids) && $this->has_active_paid_memberpress_plan($active_product_ids);
+            $show_intro = !in_array(strtolower((string) $atts['show_intro']), ['0', 'false', 'no'], true);
+            $instance_id = 'sffc-mena-pricing-plans-' . wp_unique_id();
+            $checkout_id = $instance_id . '-checkout';
+
+            ob_start();
+            ?>
+            <section class="sffc-mena-pricing-tiers sffc-mena-pricing-tiers--plans-only" data-sffc-mena-pricing-tiers>
+                <?php if ($show_intro) : ?>
+                    <div class="sffc-mena-pricing-tiers__intro">
+                        <span class="sffc-mena-pricing-tiers__eyebrow">
+                            <span aria-hidden="true"></span>
+                            <?php esc_html_e('Plans', 'senna-finance'); ?>
+                        </span>
+                        <h2><?php echo esc_html($atts['headline']); ?></h2>
+                        <p><?php echo esc_html($atts['subheadline']); ?></p>
+                    </div>
+                <?php endif; ?>
+
+                <?php $this->render_mena_careers_pricing_plan_grid($plans, $active_product_ids, $has_active_paid_plan, $checkout_id); ?>
+                <?php $this->render_mena_careers_pricing_checkout($plans, $checkout_id); ?>
+            </section>
+            <?php
+            return ob_get_clean();
+        }
+
+        private function render_mena_careers_pricing_plan_grid(array $plans, array $active_product_ids, $has_active_paid_plan, $checkout_id = 'sffc-mena-pricing-checkout')
+        {
+            ?>
+            <div class="sffc-mena-pricing-tiers__grid" role="list">
+                <?php foreach ($plans as $index => $plan):
+                    $product_id = (int) ($plan['memberpress_product_id'] ?? 0);
+                    $plan_slug = sanitize_title((string) ($plan['slug'] ?? $plan['name']));
+                    $is_current = $product_id > 0 && in_array($product_id, $active_product_ids, true);
+                    $is_recommended = !$is_current && !empty($plan['is_featured']);
+                    $card_classes = [
+                        'sffc-mena-pricing-tier',
+                        'sffc-mena-pricing-tier--' . (($index % 3) + 1),
+                    ];
+                    if ($is_current) {
+                        $card_classes[] = 'is-current';
+                    } elseif ($is_recommended) {
+                        $card_classes[] = 'is-recommended';
+                    }
+
+                    $button_label = __('Choose Plan', 'senna-finance');
+                    if ($is_current) {
+                        $button_label = __('Current plan', 'senna-finance');
+                    } elseif ($has_active_paid_plan) {
+                        $button_label = __('Switch plan', 'senna-finance');
+                    }
+
+                    $features = array_slice((array) ($plan['features'] ?? []), 0, 6);
+                    if (empty($features)) {
+                        $features = [
+                            __('Curated private equity roles and tracker access', 'senna-finance'),
+                            __('Career Assessment tools', 'senna-finance'),
+                            __('Application support for target roles', 'senna-finance'),
+                        ];
+                    }
+                ?>
+                    <article
+                        class="<?php echo esc_attr(implode(' ', $card_classes)); ?>"
+                        role="listitem"
+                        data-sffc-mena-pricing-card
+                        data-plan-slug="<?php echo esc_attr($plan_slug); ?>">
+                        <div class="sffc-mena-pricing-tier__stripe" aria-hidden="true"></div>
+                        <div class="sffc-mena-pricing-tier__header">
+                            <h3><?php echo esc_html($plan['name']); ?></h3>
+                            <?php if ($is_current): ?>
+                                <span class="sffc-mena-pricing-tier__badge"><?php esc_html_e('Current plan', 'senna-finance'); ?></span>
+                            <?php elseif ($is_recommended): ?>
+                                <span class="sffc-mena-pricing-tier__badge"><?php esc_html_e('Recommended', 'senna-finance'); ?></span>
+                            <?php endif; ?>
+                        </div>
+
+                        <?php if (!empty($plan['tagline'])): ?>
+                            <p class="sffc-mena-pricing-tier__tagline"><?php echo esc_html($plan['tagline']); ?></p>
+                        <?php endif; ?>
+
+                        <?php if (!empty($plan['price'])): ?>
+                            <p class="sffc-mena-pricing-tier__price"><?php echo esc_html($plan['price']); ?></p>
+                        <?php endif; ?>
+
+                        <div class="sffc-mena-pricing-tier__action">
+                            <?php if ($is_current): ?>
+                                <button type="button" class="sffc-mena-pricing-tier__button is-disabled" disabled>
+                                    <?php echo esc_html($button_label); ?>
+                                </button>
+                            <?php else: ?>
+                                <button
+                                    type="button"
+                                    class="sffc-mena-pricing-tier__button"
+                                    data-sffc-mena-pricing-select
+                                    data-plan-slug="<?php echo esc_attr($plan_slug); ?>"
+                                    data-plan-name="<?php echo esc_attr($plan['name']); ?>"
+                                    data-plan-price="<?php echo esc_attr($plan['price']); ?>"
+                                    data-plan-tagline="<?php echo esc_attr($plan['tagline']); ?>"
+                                    data-plan-url="<?php echo esc_url($plan['url']); ?>"
+                                    data-plan-has-form="<?php echo !empty($plan['shortcode']) ? '1' : '0'; ?>"
+                                    aria-controls="<?php echo esc_attr($checkout_id); ?>">
+                                    <?php echo esc_html($button_label); ?>
+                                </button>
+                            <?php endif; ?>
+                        </div>
+
+                        <div class="sffc-mena-pricing-tier__divider"></div>
+                        <h4><?php esc_html_e('Top differences', 'senna-finance'); ?></h4>
+                        <ul class="sffc-mena-pricing-tier__features">
+                            <?php foreach ($features as $feature): ?>
+                                <li>
+                                    <span aria-hidden="true">✓</span>
+                                    <?php echo esc_html($feature); ?>
+                                </li>
+                            <?php endforeach; ?>
+                        </ul>
+
+                        <?php if ($is_current): ?>
+                            <p class="sffc-mena-pricing-tier__note"><?php esc_html_e('You already have access to this plan.', 'senna-finance'); ?></p>
+                        <?php endif; ?>
+                    </article>
+                <?php endforeach; ?>
+            </div>
+            <?php
+        }
+
+        private function render_mena_careers_pricing_checkout(array $plans, $checkout_id = 'sffc-mena-pricing-checkout')
+        {
+            ?>
+            <section id="<?php echo esc_attr($checkout_id); ?>" class="sffc-mena-pricing-tiers__checkout" data-sffc-mena-pricing-checkout hidden>
+                <div class="sffc-mena-pricing-tiers__checkout-shell">
+                    <aside class="sffc-mena-pricing-tiers__checkout-summary" aria-live="polite">
+                        <span class="sffc-mena-pricing-tiers__checkout-eyebrow">
+                            <span aria-hidden="true"></span>
+                            <?php esc_html_e('Secure checkout', 'senna-finance'); ?>
+                        </span>
+                        <h3 data-sffc-mena-pricing-checkout-title><?php esc_html_e('Choose a plan to continue', 'senna-finance'); ?></h3>
+                        <p data-sffc-mena-pricing-checkout-copy><?php esc_html_e('Your selected MemberPress checkout will appear here.', 'senna-finance'); ?></p>
+                        <div class="sffc-mena-pricing-tiers__checkout-price">
+                            <span><?php esc_html_e('Selected plan', 'senna-finance'); ?></span>
+                            <strong data-sffc-mena-pricing-checkout-price></strong>
+                        </div>
+                        <ul>
+                            <li><?php esc_html_e('MemberPress secure payment', 'senna-finance'); ?></li>
+                            <li><?php esc_html_e('Instant account access after checkout', 'senna-finance'); ?></li>
+                            <li><?php esc_html_e('Plan state updates automatically when signed in', 'senna-finance'); ?></li>
+                        </ul>
+                    </aside>
+                    <div class="sffc-mena-pricing-tiers__checkout-form-wrap">
+                        <?php foreach ($plans as $plan):
+                            $plan_slug = sanitize_title((string) ($plan['slug'] ?? $plan['name']));
+                            if (empty($plan['shortcode'])) {
+                                continue;
+                            }
+                        ?>
+                            <div class="sffc-mena-pricing-tiers__checkout-form" data-sffc-mena-pricing-form="<?php echo esc_attr($plan_slug); ?>" hidden>
+                                <?php echo do_shortcode((string) $plan['shortcode']); ?>
+                            </div>
+                        <?php endforeach; ?>
+                        <div class="sffc-mena-pricing-tiers__checkout-external" data-sffc-mena-pricing-external hidden>
+                            <h4><?php esc_html_e('Open secure checkout', 'senna-finance'); ?></h4>
+                            <p><?php esc_html_e('This plan does not have an embedded form configured yet. Use the secure MemberPress checkout link below.', 'senna-finance'); ?></p>
+                            <a href="#" data-sffc-mena-pricing-external-link><?php esc_html_e('Open checkout', 'senna-finance'); ?></a>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            <?php
         }
 
         private function get_mena_careers_paid_pricing_tier_plans()
@@ -65010,6 +65145,221 @@ HTML;
             $value = (int) $hash;
 
             return $min + ($value % ($max - $min + 1));
+        }
+
+        /**
+         * Premium landing-page search that opens Apply Chat with structured context.
+         */
+        public function render_mena_search_landing($atts = [])
+        {
+            $atts = shortcode_atts([
+                'eyebrow' => __('Live MENA finance search', 'senna-finance'),
+                'title' => __('Find better-matched finance roles before everyone else does.', 'senna-finance'),
+                'description' => __('Search current analyst, associate, private equity, investment, and advisory roles across Dubai, Abu Dhabi, Riyadh, Doha, London, and Singapore. Senna opens the results with context already attached.', 'senna-finance'),
+                'button' => __('Find Matches', 'senna-finance'),
+                'role' => __('Analyst', 'senna-finance'),
+                'seniority' => __('All Seniority', 'senna-finance'),
+                'location' => __('Dubai', 'senna-finance'),
+                'specialisation' => __('Private Equity', 'senna-finance'),
+            ], $atts, 'sffc_mena_search_landing');
+
+            wp_enqueue_style(
+                'sffc-crm-linkedin',
+                SFFC_PLUGIN_URL . 'assets/css/crm/crm-linkedin.css',
+                [],
+                defined('SFFC_VERSION') ? SFFC_VERSION : null
+            );
+
+            $instance_id = function_exists('wp_unique_id') ? wp_unique_id('sffc-mena-search-landing-') : 'sffc-mena-search-landing-' . wp_rand();
+            $role_list_id = $instance_id . 'roles';
+            $location_list_id = $instance_id . 'locations';
+
+            $role_options = [
+                __('Analyst', 'senna-finance'),
+                __('Investment Analyst', 'senna-finance'),
+                __('Investment Associate', 'senna-finance'),
+                __('Private Equity Associate', 'senna-finance'),
+                __('Senior Associate', 'senna-finance'),
+                __('Vice President', 'senna-finance'),
+                __('Portfolio Operations Manager', 'senna-finance'),
+                __('Investor Relations Associate', 'senna-finance'),
+                __('Fund Finance Manager', 'senna-finance'),
+                __('Corporate Development Associate', 'senna-finance'),
+            ];
+
+            $location_options = [
+                __('Dubai', 'senna-finance'),
+                __('Abu Dhabi', 'senna-finance'),
+                __('Riyadh', 'senna-finance'),
+                __('Doha', 'senna-finance'),
+                __('London', 'senna-finance'),
+                __('Singapore', 'senna-finance'),
+                __('Global', 'senna-finance'),
+            ];
+
+            $seniority_options = function_exists('sffc_crm_get_seniority_options') ? sffc_crm_get_seniority_options() : [];
+            if (empty($seniority_options)) {
+                $seniority_options = [
+                    'analyst' => __('Analyst', 'senna-finance'),
+                    'associate' => __('Associate', 'senna-finance'),
+                    'senior_associate' => __('Senior Associate', 'senna-finance'),
+                    'vp' => __('VP', 'senna-finance'),
+                    'director' => __('Director', 'senna-finance'),
+                ];
+            }
+            $seniority_options = ['all' => __('All Seniority', 'senna-finance')] + $seniority_options;
+
+            $sector_options = function_exists('sffc_crm_get_sector_options') ? sffc_crm_get_sector_options() : [];
+            if (empty($sector_options)) {
+                $sector_options = [
+                    'private_equity' => __('Private Equity', 'senna-finance'),
+                    'venture_capital' => __('Venture Capital', 'senna-finance'),
+                    'asset_management' => __('Asset Management', 'senna-finance'),
+                    'private_credit' => __('Private Credit', 'senna-finance'),
+                    'investment_banking' => __('Investment Banking', 'senna-finance'),
+                    'corporate_development' => __('Corporate Development', 'senna-finance'),
+                ];
+            }
+
+            $normalize_choice = static function ($raw_value, array $options) {
+                $raw_value = trim((string) $raw_value);
+                if ($raw_value === '') {
+                    return '';
+                }
+                if (array_key_exists($raw_value, $options)) {
+                    return $raw_value;
+                }
+                foreach ($options as $value => $label) {
+                    if (strcasecmp($raw_value, (string) $value) === 0 || strcasecmp($raw_value, (string) $label) === 0) {
+                        return (string) $value;
+                    }
+                }
+                return $raw_value;
+            };
+
+            $selected_seniority = $normalize_choice($atts['seniority'], $seniority_options);
+            $selected_specialisation = $normalize_choice($atts['specialisation'], $sector_options);
+
+            $chat_markup = $this->render_crm_apply_chat_launcher([
+                'title' => __('MENA Careers Search', 'senna-finance'),
+                'prompt' => __('Search jobs, companies, or locations', 'senna-finance'),
+                'mode' => 'search_apply',
+                'surface' => 'home_launcher',
+            ]);
+
+            ob_start();
+            ?>
+            <section class="sffc-mena-search-landing" id="<?php echo esc_attr($instance_id); ?>" data-sffc-mena-search-landing>
+                <div class="sffc-mena-search-landing__inner">
+                    <div class="sffc-mena-search-landing__copy">
+                        <span class="sffc-mena-search-landing__eyebrow"><span aria-hidden="true"></span><?php echo esc_html((string) $atts['eyebrow']); ?></span>
+                        <h1><?php echo esc_html((string) $atts['title']); ?></h1>
+                        <p><?php echo esc_html((string) $atts['description']); ?></p>
+                    </div>
+
+                    <form class="sffc-crm-console-search sffc-mena-search-landing__console" data-sffc-mena-search-form>
+                        <div class="sffc-crm-console-search__bars">
+                            <div class="sffc-crm-console-search__bar">
+                                <label class="sffc-crm-console-search__field">
+                                    <span><?php esc_html_e('Role', 'senna-finance'); ?></span>
+                                    <input type="text" name="role" list="<?php echo esc_attr($role_list_id); ?>" value="<?php echo esc_attr((string) $atts['role']); ?>" autocomplete="off">
+                                </label>
+                                <label class="sffc-crm-console-search__field">
+                                    <span><?php esc_html_e('Seniority', 'senna-finance'); ?></span>
+                                    <select name="seniority">
+                                        <?php foreach ($seniority_options as $value => $label) : ?>
+                                            <option value="<?php echo esc_attr((string) $label); ?>" <?php selected($selected_seniority, (string) $value); ?>><?php echo esc_html((string) $label); ?></option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                </label>
+                                <label class="sffc-crm-console-search__field">
+                                    <span><?php esc_html_e('Location', 'senna-finance'); ?></span>
+                                    <input type="text" name="location" list="<?php echo esc_attr($location_list_id); ?>" value="<?php echo esc_attr((string) $atts['location']); ?>" autocomplete="off">
+                                </label>
+                                <label class="sffc-crm-console-search__field">
+                                    <span><?php esc_html_e('Specialisation', 'senna-finance'); ?></span>
+                                    <select name="specialisation">
+                                        <?php foreach ($sector_options as $value => $label) : ?>
+                                            <option value="<?php echo esc_attr((string) $label); ?>" <?php selected($selected_specialisation, (string) $value); ?>><?php echo esc_html((string) $label); ?></option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                </label>
+                                <button type="submit" class="sffc-crm-console-search__submit"><?php echo esc_html((string) $atts['button']); ?></button>
+                            </div>
+                        </div>
+                        <datalist id="<?php echo esc_attr($role_list_id); ?>">
+                            <?php foreach ($role_options as $role_option) : ?>
+                                <option value="<?php echo esc_attr((string) $role_option); ?>"></option>
+                            <?php endforeach; ?>
+                        </datalist>
+                        <datalist id="<?php echo esc_attr($location_list_id); ?>">
+                            <?php foreach ($location_options as $location_option) : ?>
+                                <option value="<?php echo esc_attr((string) $location_option); ?>"></option>
+                            <?php endforeach; ?>
+                        </datalist>
+                    </form>
+
+                    <div class="sffc-mena-search-landing__proof" aria-hidden="true">
+                        <span><?php esc_html_e('Matched today', 'senna-finance'); ?></span>
+                        <strong><?php esc_html_e('Investment Associate', 'senna-finance'); ?></strong>
+                        <small><?php esc_html_e('Dubai - Private Equity - 4.2 / 5 fit', 'senna-finance'); ?></small>
+                    </div>
+                </div>
+                <div class="sffc-mena-search-landing__chat">
+                    <?php echo $chat_markup; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+                </div>
+            </section>
+            <script>
+                (function () {
+                    var root = document.getElementById(<?php echo wp_json_encode($instance_id); ?>);
+                    if (!root) {
+                        return;
+                    }
+                    var form = root.querySelector('[data-sffc-mena-search-form]');
+                    var chat = root.querySelector('[data-sffc-apply-chat]');
+                    function fieldValue(name) {
+                        var field = form ? form.querySelector('[name="' + name + '"]') : null;
+                        return field ? String(field.value || '').trim() : '';
+                    }
+                    function buildQuery(context) {
+                        var parts = [];
+                        var seniority = context.seniority && !/^all\b/i.test(context.seniority) ? context.seniority : '';
+                        if (seniority && context.role && seniority.toLowerCase() !== context.role.toLowerCase()) {
+                            parts.push(context.seniority + ' ' + context.role);
+                        } else if (context.role) {
+                            parts.push(context.role);
+                        }
+                        if (context.specialisation) {
+                            parts.push(context.specialisation);
+                        }
+                        var query = parts.join(' ');
+                        if (context.location) {
+                            query += (query ? ' jobs in ' : 'Jobs in ') + context.location;
+                        }
+                        return query || 'Finance jobs';
+                    }
+                    if (!form || !chat) {
+                        return;
+                    }
+                    form.addEventListener('submit', function (event) {
+                        var context;
+                        event.preventDefault();
+                        context = {
+                            role: fieldValue('role'),
+                            seniority: fieldValue('seniority'),
+                            location: fieldValue('location'),
+                            specialisation: fieldValue('specialisation')
+                        };
+                        context.query = buildQuery(context);
+                        chat.dispatchEvent(new CustomEvent('sffc:apply-chat-launch-search', {
+                            bubbles: true,
+                            detail: context
+                        }));
+                    });
+                })();
+            </script>
+            <?php
+            return (string) ob_get_clean();
         }
 
         /**

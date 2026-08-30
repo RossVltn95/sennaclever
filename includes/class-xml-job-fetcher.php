@@ -1143,6 +1143,151 @@ class SFFC_XML_Job_Fetcher
             'site_number' => 'CX_1',
             'allowed_locations' => ['United Arab Emirates', 'Dubai', 'Abu Dhabi', 'Riyadh'],
         ],
+        'iaarey_oracle_dubai_careers' => [
+            'url' => 'https://iaarey.fa.ocs.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_1001/jobs',
+            'type' => 'oracle_cx',
+            'name' => 'IAAREY Oracle Careers',
+            'company_name' => 'IAAREY',
+            'category' => 'Job aggregators',
+            'quality' => 'standard',
+            'source_type' => 'job_aggregator',
+            'feed_group' => 'dubai_feeds',
+            'source_platform' => 'Oracle HCM',
+            'api_base_url' => 'https://iaarey.fa.ocs.oraclecloud.com',
+            'site_number' => 'CX_1001',
+            'allowed_locations' => ['United Arab Emirates', 'Dubai', 'Abu Dhabi'],
+        ],
+        'shamal_icims_careers' => [
+            'url' => 'https://careers-shamal.icims.com/jobs/search?ss=1&hashed=-625882864',
+            'type' => 'icims_search',
+            'name' => 'Shamal Careers',
+            'company_name' => 'Shamal',
+            'category' => 'Job aggregators',
+            'quality' => 'standard',
+            'source_type' => 'job_aggregator',
+            'feed_group' => 'dubai_feeds',
+            'source_platform' => 'iCIMS',
+            'allowed_locations' => ['United Arab Emirates', 'Dubai', 'Abu Dhabi', 'Sharjah'],
+        ],
+        'nichehr_global_careers' => [
+            'url' => 'https://ats.nichehrglobal.com/careers',
+            'api_url' => 'https://sxfmreydtmwwdrdfhbja.supabase.co/rest/v1/jobs?select=*&status=eq.OPEN&order=created_at.desc',
+            'type' => 'nichehr_supabase',
+            'name' => 'NicheHR Global Careers',
+            'company_name' => 'NicheHR Global',
+            'category' => 'Job aggregators',
+            'quality' => 'standard',
+            'source_type' => 'job_aggregator',
+            'feed_group' => 'dubai_feeds',
+            'source_platform' => 'NicheHR',
+            'allowed_locations' => ['United Arab Emirates', 'Dubai', 'Abu Dhabi', 'Saudi Arabia', 'Riyadh', 'Doha', 'Qatar'],
+        ],
+        'hdid_oracle_dubai_careers' => [
+            'url' => 'https://hdid.fa.us2.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_1/jobs',
+            'type' => 'oracle_cx',
+            'name' => 'HDID Oracle Careers',
+            'company_name' => 'HDID',
+            'category' => 'Job aggregators',
+            'quality' => 'standard',
+            'source_type' => 'job_aggregator',
+            'feed_group' => 'dubai_feeds',
+            'source_platform' => 'Oracle HCM',
+            'api_base_url' => 'https://hdid.fa.us2.oraclecloud.com',
+            'site_number' => 'CX_1',
+            'allowed_locations' => ['United Arab Emirates', 'Dubai', 'Abu Dhabi'],
+        ],
+        'fitch_group_dubai_successfactors' => [
+            'url' => 'https://careers.fitch.group/search/?createNewAlert=false&q=&locationsearch=dubai&optionsFacetsDD_customfield2=&optionsFacetsDD_department=&optionsFacetsDD_customfield4=',
+            'type' => 'successfactors',
+            'name' => 'Fitch Group Dubai Careers',
+            'company_name' => 'Fitch Group',
+            'category' => 'Job aggregators',
+            'quality' => 'standard',
+            'source_type' => 'job_aggregator',
+            'feed_group' => 'dubai_feeds',
+            'source_platform' => 'SAP SuccessFactors',
+            'force_company_name' => true,
+            'allowed_locations' => ['United Arab Emirates', 'Dubai'],
+        ],
+        'ezra_greenhouse_careers' => [
+            'url' => 'https://boards-api.greenhouse.io/v1/boards/ezra/jobs?content=true',
+            'type' => 'greenhouse',
+            'name' => 'Ezra Careers',
+            'company_name' => 'Ezra',
+            'category' => 'Job aggregators',
+            'quality' => 'standard',
+            'source_type' => 'job_aggregator',
+            'feed_group' => 'dubai_feeds',
+            'source_platform' => 'Greenhouse',
+            'allowed_locations' => ['United Arab Emirates', 'Dubai', 'Abu Dhabi', 'Saudi Arabia', 'Riyadh', 'Doha', 'Qatar'],
+        ],
+        'the_first_group_icims_careers' => [
+            'url' => 'https://careers-thefirstgroup.icims.com/jobs/search?ss=1&searchLocation=--Dubai',
+            'type' => 'icims_search',
+            'name' => 'The First Group Careers',
+            'company_name' => 'The First Group',
+            'category' => 'Job aggregators',
+            'quality' => 'standard',
+            'source_type' => 'job_aggregator',
+            'feed_group' => 'dubai_feeds',
+            'source_platform' => 'iCIMS',
+            'allowed_locations' => ['United Arab Emirates', 'Dubai'],
+        ],
+        'chalhoub_accounting_saudi_teamtailor' => [
+            'url' => 'https://careers.chalhoubgroup.com/jobs?split_view=true&query=&department=ACCOUNTING&country=Saudi+Arabia',
+            'rss_url' => 'https://careers.chalhoubgroup.com/jobs.rss?department=ACCOUNTING&country=Saudi+Arabia',
+            'type' => 'teamtailor_rss',
+            'name' => 'Chalhoub Group Accounting Saudi Arabia',
+            'company_name' => 'Chalhoub Group',
+            'category' => 'Accounting',
+            'quality' => 'standard',
+            'source_type' => 'job_aggregator',
+            'feed_group' => 'dubai_feeds',
+            'source_platform' => 'Teamtailor',
+            'allowed_locations' => ['Saudi Arabia', 'Riyadh', 'Jeddah', 'Dammam', 'Khobar'],
+        ],
+        'chalhoub_finance_uae_teamtailor' => [
+            'url' => 'https://careers.chalhoubgroup.com/jobs?split_view=true&query=&department=FINANCE+%26+TREASURY&country=United+Arab+Emirates',
+            'rss_url' => 'https://careers.chalhoubgroup.com/jobs.rss?department=FINANCE+%26+TREASURY&country=United+Arab+Emirates',
+            'type' => 'teamtailor_rss',
+            'name' => 'Chalhoub Group Finance UAE',
+            'company_name' => 'Chalhoub Group',
+            'category' => 'Finance & Treasury',
+            'quality' => 'standard',
+            'source_type' => 'job_aggregator',
+            'feed_group' => 'dubai_feeds',
+            'source_platform' => 'Teamtailor',
+            'allowed_locations' => ['United Arab Emirates', 'Dubai', 'Abu Dhabi'],
+        ],
+        'nbf_successfactors_careers' => [
+            'url' => 'https://careers.nbf.ae/search/?q=&searchResultView=LIST',
+            'type' => 'successfactors',
+            'name' => 'National Bank of Fujairah Careers',
+            'company_name' => 'National Bank of Fujairah',
+            'category' => 'Job aggregators',
+            'quality' => 'standard',
+            'source_type' => 'job_aggregator',
+            'feed_group' => 'dubai_feeds',
+            'source_platform' => 'SAP SuccessFactors',
+            'force_company_name' => true,
+            'use_unified_api' => true,
+            'allowed_locations' => ['United Arab Emirates', 'Dubai', 'Abu Dhabi', 'Fujairah'],
+        ],
+        'emirates_nbd_cx2_careers' => [
+            'url' => 'https://fa-evlo-saasfaprod1.fa.ocs.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_2/jobs',
+            'type' => 'oracle_cx',
+            'name' => 'Emirates NBD CX2 Careers',
+            'company_name' => 'Emirates NBD',
+            'category' => 'Job aggregators',
+            'quality' => 'standard',
+            'source_type' => 'job_aggregator',
+            'feed_group' => 'dubai_feeds',
+            'source_platform' => 'Oracle HCM',
+            'company_logo' => 'https://fa-evlo-saasfaprod1.fa.ocs.oraclecloud.com/cs/groups/public/documents/digitalmedia/c25i/zc0y/~edisp/logo-emiratesnbd-2024.png',
+            'api_base_url' => 'https://fa-evlo-saasfaprod1.fa.ocs.oraclecloud.com',
+            'site_number' => 'CX_2',
+            'allowed_locations' => ['United Arab Emirates', 'Dubai', 'Abu Dhabi', 'Riyadh'],
+        ],
         'cbd_comeet_careers' => [
             'url' => 'https://www.comeet.com/jobs/cbd/14.007/',
             'type' => 'comeet',
@@ -1494,6 +1639,22 @@ class SFFC_XML_Job_Fetcher
 
         if ($source_type === 'successfactors') {
             $jobs = $this->fetch_successfactors_jobs($source_key, $source, $max_jobs);
+            if (!empty($jobs)) {
+                set_transient($cache_key, $jobs, $this->cache_duration);
+            }
+            return array_slice($jobs, 0, $max_jobs);
+        }
+
+        if ($source_type === 'icims_search') {
+            $jobs = $this->fetch_icims_search_jobs($source_key, $source, $max_jobs);
+            if (!empty($jobs)) {
+                set_transient($cache_key, $jobs, $this->cache_duration);
+            }
+            return array_slice($jobs, 0, $max_jobs);
+        }
+
+        if ($source_type === 'nichehr_supabase') {
+            $jobs = $this->fetch_nichehr_supabase_jobs($source_key, $source, $max_jobs);
             if (!empty($jobs)) {
                 set_transient($cache_key, $jobs, $this->cache_duration);
             }
@@ -3493,6 +3654,283 @@ class SFFC_XML_Job_Fetcher
     private function clean_text($text)
     {
         return trim(preg_replace('/\s+/', ' ', html_entity_decode((string) $text, ENT_QUOTES, 'UTF-8')));
+    }
+
+    private function fetch_icims_search_jobs($source_key, array $source_info, $max_jobs = 50)
+    {
+        $url = (string) ($source_info['url'] ?? '');
+        if ($url === '') {
+            return [];
+        }
+
+        if (strpos($url, 'in_iframe=') === false) {
+            $url = add_query_arg('in_iframe', '1', $url);
+        }
+
+        $response = wp_remote_get($url, [
+            'timeout' => 30,
+            'redirection' => 4,
+            'headers' => [
+                'Accept' => 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+                'User-Agent' => 'Mozilla/5.0 (compatible; WordPress/' . get_bloginfo('version') . '; ' . home_url('/') . ')',
+            ],
+        ]);
+
+        if (is_wp_error($response) || (int) wp_remote_retrieve_response_code($response) >= 400) {
+            return [];
+        }
+
+        $html = (string) wp_remote_retrieve_body($response);
+        if (trim($html) === '') {
+            return [];
+        }
+
+        libxml_use_internal_errors(true);
+        $doc = new DOMDocument();
+        $doc->loadHTML('<?xml encoding="utf-8" ?>' . $html);
+        libxml_clear_errors();
+        $xpath = new DOMXPath($doc);
+        $cards = $xpath->query('//*[contains(concat(" ", normalize-space(@class), " "), " iCIMS_JobCardItem ")]');
+        if (!$cards || $cards->length === 0) {
+            return [];
+        }
+
+        $jobs = [];
+        $seen = [];
+        foreach ($cards as $card) {
+            if (count($jobs) >= $max_jobs) {
+                break;
+            }
+
+            $link_node = $xpath->query('.//a[contains(@href, "/jobs/")]', $card)->item(0);
+            if (!$link_node instanceof DOMElement) {
+                continue;
+            }
+
+            $job_url = $this->make_absolute_url($link_node->getAttribute('href'), $url);
+            $title = $this->clean_text($this->xpath_text($xpath, './/*[contains(concat(" ", normalize-space(@class), " "), " title ")]//*[self::h2 or self::h3 or self::h4]', $card));
+            if ($title === '') {
+                $title = $this->clean_text($link_node->textContent);
+            }
+            $title = preg_replace('/^\s*Title\s+/i', '', (string) $title);
+            $title = preg_replace('/^\s*\d+\s*-\s*/', '', (string) $title);
+
+            if ($title === '' || $job_url === '') {
+                continue;
+            }
+
+            $external_id = '';
+            if (preg_match('#/jobs/(\d+)/#', $job_url, $matches)) {
+                $external_id = $matches[1];
+            }
+            if ($external_id === '') {
+                $external_id = md5($job_url);
+            }
+            if (isset($seen[$external_id])) {
+                continue;
+            }
+
+            $location = $this->extract_icims_card_term($xpath, $card, 'Location');
+            if ($location === '') {
+                $location = (string) ($source_info['location'] ?? '');
+            }
+            if (!$this->rss_job_matches_allowed_locations($location, $source_info)) {
+                continue;
+            }
+
+            $seen[$external_id] = true;
+            $posted_date = $this->normalize_icims_date($this->extract_icims_card_posted_date($xpath, $card));
+            $description = $this->clean_text($this->xpath_text($xpath, './/*[contains(concat(" ", normalize-space(@class), " "), " description ")]', $card));
+            $category = $this->extract_icims_card_term($xpath, $card, 'Category');
+
+            $jobs[] = [
+                'id' => 'icims_' . $source_key . '_' . sanitize_key($external_id),
+                'external_id' => sanitize_text_field($external_id),
+                'title' => sanitize_text_field($title),
+                'company' => sanitize_text_field((string) ($source_info['company_name'] ?? $source_info['name'] ?? '')),
+                'location' => sanitize_text_field($location),
+                'description' => $description,
+                'url' => esc_url_raw($job_url),
+                'posted_date' => $posted_date,
+                'source' => $source_key,
+                'source_key' => $source_key,
+                'source_name' => $source_info['name'] ?? ucwords(str_replace('_', ' ', $source_key)),
+                'source_platform' => $source_info['source_platform'] ?? 'iCIMS',
+                'source_type' => $source_info['source_type'] ?? 'job_aggregator',
+                'category' => sanitize_text_field($category ?: ($source_info['category'] ?? 'Job aggregators')),
+                'company_logo' => esc_url_raw((string) ($source_info['company_logo'] ?? '')),
+                'via_recruiter' => false,
+            ];
+        }
+
+        return $jobs;
+    }
+
+    private function extract_icims_card_term(DOMXPath $xpath, DOMNode $card, $label)
+    {
+        $terms = $xpath->query('.//dt', $card);
+        if (!$terms) {
+            return '';
+        }
+
+        foreach ($terms as $term) {
+            $term_text = $this->clean_text($term->textContent);
+            if (stripos($term_text, (string) $label) === false) {
+                continue;
+            }
+
+            $value = $xpath->query('following-sibling::dd[1]', $term)->item(0);
+            if ($value) {
+                return $this->clean_text($value->textContent);
+            }
+        }
+
+        return '';
+    }
+
+    private function extract_icims_card_posted_date(DOMXPath $xpath, DOMNode $card)
+    {
+        $nodes = $xpath->query('.//*[contains(concat(" ", normalize-space(@class), " "), " posted-date ")]//*[@title] | .//*[contains(concat(" ", normalize-space(@class), " "), " header ")]//*[@title]', $card);
+        if (!$nodes || $nodes->length === 0) {
+            return '';
+        }
+
+        $node = $nodes->item(0);
+        return $node instanceof DOMElement ? $node->getAttribute('title') : $node->textContent;
+    }
+
+    private function normalize_icims_date($date)
+    {
+        $date = trim((string) $date);
+        if ($date === '') {
+            return '';
+        }
+
+        if (preg_match('/^(\d{1,2})\/(\d{1,2})\/(\d{4})/', $date, $matches)) {
+            return sprintf('%04d-%02d-%02d', (int) $matches[3], (int) $matches[2], (int) $matches[1]);
+        }
+
+        $timestamp = strtotime($date);
+        return $timestamp ? date('Y-m-d', $timestamp) : '';
+    }
+
+    private function fetch_nichehr_supabase_jobs($source_key, array $source_info, $max_jobs = 50)
+    {
+        $api_url = (string) ($source_info['api_url'] ?? '');
+        if ($api_url === '') {
+            return [];
+        }
+
+        $api_url = add_query_arg('limit', max(1, (int) $max_jobs), $api_url);
+        $anon_key = (string) ($source_info['anon_key'] ?? 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN4Zm1yZXlkdG13d2RyZGZoYmphIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ3NTgxNDMsImV4cCI6MjA4MDMzNDE0M30.D7g3-KgWPCVoVRpr0f9c8_6ccyzMqmBy5c2lbVXj5Rk');
+        $response = wp_remote_get($api_url, [
+            'timeout' => 30,
+            'redirection' => 3,
+            'headers' => [
+                'Accept' => 'application/json',
+                'apikey' => $anon_key,
+                'Authorization' => 'Bearer ' . $anon_key,
+                'User-Agent' => 'Mozilla/5.0 (compatible; WordPress/' . get_bloginfo('version') . '; ' . home_url('/') . ')',
+            ],
+        ]);
+
+        if (is_wp_error($response) || (int) wp_remote_retrieve_response_code($response) >= 400) {
+            return [];
+        }
+
+        $records = json_decode((string) wp_remote_retrieve_body($response), true);
+        if (!is_array($records)) {
+            return [];
+        }
+
+        $jobs = [];
+        foreach ($records as $record) {
+            if (count($jobs) >= $max_jobs || !is_array($record)) {
+                break;
+            }
+
+            $title = $this->clean_text($record['title'] ?? '');
+            $location = $this->clean_text($record['location'] ?? '');
+            $external_id = sanitize_key((string) ($record['id'] ?? ''));
+            if ($title === '' || $external_id === '') {
+                continue;
+            }
+            if (!$this->rss_job_matches_allowed_locations($location, $source_info)) {
+                continue;
+            }
+
+            $description = $this->clean_text(wp_strip_all_tags((string) ($record['description'] ?? '')));
+            $salary = $this->format_nichehr_salary($record);
+            if ($salary !== '') {
+                $description = trim($description . ' Salary: ' . $salary);
+            }
+
+            $jobs[] = [
+                'id' => 'nichehr_' . $source_key . '_' . $external_id,
+                'external_id' => $external_id,
+                'title' => sanitize_text_field($title),
+                'company' => sanitize_text_field((string) ($source_info['company_name'] ?? $source_info['name'] ?? 'NicheHR Global')),
+                'location' => sanitize_text_field($location),
+                'description' => $description,
+                'url' => esc_url_raw(rtrim((string) ($source_info['url'] ?? ''), '/') . '/' . rawurlencode((string) ($record['id'] ?? ''))),
+                'posted_date' => $this->normalize_iso_date($record['created_at'] ?? ''),
+                'source' => $source_key,
+                'source_key' => $source_key,
+                'source_name' => $source_info['name'] ?? ucwords(str_replace('_', ' ', $source_key)),
+                'source_platform' => $source_info['source_platform'] ?? 'NicheHR',
+                'source_type' => $source_info['source_type'] ?? 'job_aggregator',
+                'category' => sanitize_text_field((string) ($record['department'] ?? $source_info['category'] ?? 'Job aggregators')),
+                'department' => sanitize_text_field((string) ($record['department'] ?? '')),
+                'seniority' => sanitize_text_field((string) ($record['seniority'] ?? '')),
+                'job_type' => sanitize_text_field((string) ($record['employment_type'] ?? '')),
+                'company_logo' => esc_url_raw((string) ($source_info['company_logo'] ?? '')),
+                'via_recruiter' => true,
+                'recruiter_name' => sanitize_text_field((string) ($source_info['company_name'] ?? 'NicheHR Global')),
+            ];
+        }
+
+        return $jobs;
+    }
+
+    private function format_nichehr_salary(array $record)
+    {
+        $currency = trim((string) ($record['salary_currency'] ?? ''));
+        $min = $record['salary_min'] ?? '';
+        $max = $record['salary_max'] ?? '';
+        if ($currency === '' || ($min === '' && $max === '')) {
+            return '';
+        }
+
+        if ($min !== '' && $max !== '') {
+            return $currency . ' ' . number_format((float) $min) . '-' . number_format((float) $max);
+        }
+
+        return $currency . ' ' . number_format((float) ($min !== '' ? $min : $max));
+    }
+
+    private function make_absolute_url($href, $base_url)
+    {
+        $href = trim((string) $href);
+        if ($href === '' || preg_match('#^https?://#i', $href)) {
+            return $href;
+        }
+
+        $parts = wp_parse_url($base_url);
+        if (empty($parts['scheme']) || empty($parts['host'])) {
+            return $href;
+        }
+
+        if (strpos($href, '//') === 0) {
+            return $parts['scheme'] . ':' . $href;
+        }
+
+        $root = $parts['scheme'] . '://' . $parts['host'];
+        if (strpos($href, '/') === 0) {
+            return $root . $href;
+        }
+
+        $path = isset($parts['path']) ? dirname($parts['path']) : '';
+        return rtrim($root . '/' . trim($path, '/'), '/') . '/' . $href;
     }
 
     private function normalize_successfactors_date($date)
@@ -7207,6 +7645,14 @@ class SFFC_XML_Job_Fetcher
             return $this->fetch_workable_board_jobs($source_key, $source_info);
         }
 
+        if (isset($source_info['type']) && $source_info['type'] === 'icims_search') {
+            return $this->fetch_icims_search_jobs($source_key, $source_info);
+        }
+
+        if (isset($source_info['type']) && $source_info['type'] === 'nichehr_supabase') {
+            return $this->fetch_nichehr_supabase_jobs($source_key, $source_info);
+        }
+
         if (isset($source_info['type']) && $source_info['type'] === 'oracle_cx') {
             return $this->fetch_oracle_cx_jobs($source_key, $source_info);
         }
@@ -9056,6 +9502,109 @@ class SFFC_XML_Job_Fetcher
     public function fetch_from_source($url, $limit = 10)
     {
         $jobs = [];
+
+        if (strpos($url, '.icims.com/jobs/search') !== false) {
+            $host = (string) parse_url($url, PHP_URL_HOST);
+            $is_first_group = strpos($host, 'careers-thefirstgroup') !== false;
+            $is_shamal = strpos($host, 'careers-shamal') !== false;
+            return $this->fetch_icims_search_jobs('icims_custom_' . sanitize_key($host), [
+                'url' => $url,
+                'name' => $is_first_group ? 'The First Group Careers' : ($is_shamal ? 'Shamal Careers' : 'iCIMS Careers'),
+                'company_name' => $is_first_group ? 'The First Group' : ($is_shamal ? 'Shamal' : ''),
+                'category' => 'Job aggregators',
+                'source_type' => 'job_aggregator',
+                'source_platform' => 'iCIMS',
+                'allowed_locations' => ['United Arab Emirates', 'Dubai', 'Abu Dhabi', 'Sharjah'],
+            ], $limit);
+        }
+
+        if (strpos($url, 'ats.nichehrglobal.com/careers') !== false) {
+            return $this->fetch_nichehr_supabase_jobs('nichehr_global_custom', [
+                'url' => 'https://ats.nichehrglobal.com/careers',
+                'api_url' => 'https://sxfmreydtmwwdrdfhbja.supabase.co/rest/v1/jobs?select=*&status=eq.OPEN&order=created_at.desc',
+                'name' => 'NicheHR Global Careers',
+                'company_name' => 'NicheHR Global',
+                'category' => 'Job aggregators',
+                'source_type' => 'job_aggregator',
+                'source_platform' => 'NicheHR',
+                'allowed_locations' => ['United Arab Emirates', 'Dubai', 'Abu Dhabi', 'Saudi Arabia', 'Riyadh', 'Doha', 'Qatar'],
+            ], $limit);
+        }
+
+        if (strpos($url, 'ezra.world/company/careers') !== false) {
+            return $this->fetch_greenhouse_jobs('ezra_custom', [
+                'url' => 'https://boards-api.greenhouse.io/v1/boards/ezra/jobs?content=true',
+                'name' => 'Ezra Careers',
+                'company_name' => 'Ezra',
+                'category' => 'Job aggregators',
+                'source_type' => 'job_aggregator',
+                'source_platform' => 'Greenhouse',
+                'allowed_locations' => ['United Arab Emirates', 'Dubai', 'Abu Dhabi', 'Saudi Arabia', 'Riyadh', 'Doha', 'Qatar'],
+            ], $limit);
+        }
+
+        if (strpos($url, 'careers.chalhoubgroup.com/jobs') !== false) {
+            $rss_url = 'https://careers.chalhoubgroup.com/jobs.rss';
+            $name = 'Chalhoub Group Careers';
+            $category = 'Job aggregators';
+            $allowed_locations = ['United Arab Emirates', 'Dubai', 'Abu Dhabi', 'Saudi Arabia', 'Riyadh', 'Jeddah', 'Dammam', 'Khobar'];
+
+            if (stripos($url, 'department=ACCOUNTING') !== false && stripos($url, 'country=Saudi') !== false) {
+                $rss_url = 'https://careers.chalhoubgroup.com/jobs.rss?department=ACCOUNTING&country=Saudi+Arabia';
+                $name = 'Chalhoub Group Accounting Saudi Arabia';
+                $category = 'Accounting';
+                $allowed_locations = ['Saudi Arabia', 'Riyadh', 'Jeddah', 'Dammam', 'Khobar'];
+            } elseif ((stripos($url, 'FINANCE+%26+TREASURY') !== false || stripos($url, 'FINANCE%20%26%20TREASURY') !== false) && stripos($url, 'United+Arab+Emirates') !== false) {
+                $rss_url = 'https://careers.chalhoubgroup.com/jobs.rss?department=FINANCE+%26+TREASURY&country=United+Arab+Emirates';
+                $name = 'Chalhoub Group Finance UAE';
+                $category = 'Finance & Treasury';
+                $allowed_locations = ['United Arab Emirates', 'Dubai', 'Abu Dhabi'];
+            }
+
+            return $this->fetch_teamtailor_rss_jobs('chalhoub_group_custom', [
+                'url' => $url,
+                'rss_url' => $rss_url,
+                'name' => $name,
+                'company_name' => 'Chalhoub Group',
+                'category' => $category,
+                'source_type' => 'job_aggregator',
+                'source_platform' => 'Teamtailor',
+                'allowed_locations' => $allowed_locations,
+            ], $limit);
+        }
+
+        if (strpos($url, '/hcmUI/CandidateExperience') !== false && strpos($url, 'oraclecloud.com') !== false) {
+            $host = (string) parse_url($url, PHP_URL_HOST);
+            $site_number = $this->extract_oracle_cx_site_number($url);
+            $api_base_url = $this->extract_oracle_cx_api_base_url($url);
+            $company_name = strpos($host, 'fa-evlo-saasfaprod1') !== false ? 'Emirates NBD' : '';
+            return $this->fetch_oracle_cx_jobs('oracle_cx_custom_' . sanitize_key($host . '_' . $site_number), [
+                'url' => $url,
+                'name' => $company_name !== '' ? $company_name . ' Careers' : 'Oracle CX Careers',
+                'company_name' => $company_name,
+                'category' => 'Job aggregators',
+                'source_type' => 'job_aggregator',
+                'source_platform' => 'Oracle HCM',
+                'api_base_url' => $api_base_url,
+                'site_number' => $site_number,
+                'allowed_locations' => ['United Arab Emirates', 'Dubai', 'Abu Dhabi', 'Saudi Arabia', 'Riyadh'],
+            ], $limit);
+        }
+
+        if (strpos($url, '/search/') !== false && (strpos($url, 'careers.fitch.group') !== false || strpos($url, 'careers.nbf.ae') !== false)) {
+            $is_nbf = strpos($url, 'careers.nbf.ae') !== false;
+            return $this->fetch_successfactors_jobs($is_nbf ? 'nbf_successfactors_custom' : 'fitch_group_custom', [
+                'url' => $url,
+                'name' => $is_nbf ? 'National Bank of Fujairah Careers' : 'Fitch Group Dubai Careers',
+                'company_name' => $is_nbf ? 'National Bank of Fujairah' : 'Fitch Group',
+                'category' => 'Job aggregators',
+                'source_type' => 'job_aggregator',
+                'source_platform' => 'SAP SuccessFactors',
+                'force_company_name' => true,
+                'use_unified_api' => $is_nbf,
+                'allowed_locations' => ['United Arab Emirates', 'Dubai', 'Abu Dhabi', 'Fujairah'],
+            ], $limit);
+        }
 
         if (strpos($url, 'job-boards.greenhouse.io/teneolinkedin') !== false || strpos($url, 'boards-api.greenhouse.io/v1/boards/teneolinkedin/jobs') !== false) {
             return $this->fetch_greenhouse_jobs('teneo_middle_east_custom', [

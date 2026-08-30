@@ -25,6 +25,15 @@
     overflow-x: clip;
 }
 
+.sffc-mena-pricing-tiers--plans-only {
+    min-height: 0;
+    padding: 48px 0 20px;
+}
+
+.sffc-mena-pricing-tiers--plans-only .sffc-mena-pricing-tiers__intro {
+    padding-top: 0;
+}
+
 .sffc-mena-pricing-tiers img,
 .sffc-mena-pricing-tiers video,
 .sffc-mena-pricing-tiers iframe {

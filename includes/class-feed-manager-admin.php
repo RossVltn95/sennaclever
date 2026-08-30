@@ -191,8 +191,34 @@ class SFFC_Feed_Manager_Admin {
                         </tr>
                     </thead>
                     <tbody id="aggregator-feeds-list">
-                        <?php $this->render_workday_feeds('job_aggregator'); ?>
-                        <?php $this->render_xml_feeds('job_aggregator'); ?>
+                        <?php $this->render_workday_feeds('job_aggregator', '', 'dubai_feeds'); ?>
+                        <?php $this->render_xml_feeds('job_aggregator', '', 'dubai_feeds'); ?>
+                    </tbody>
+                </table>
+
+                <h2 style="margin-top:28px;">Dubai Feeds</h2>
+                <div class="sffc-progressive-fetch" data-feed-target="#dubai-feeds-list" data-feed-label="Dubai Feeds">
+                    <button type="button" class="button button-primary sffc-fetch-section-feeds">Fetch All Dubai Feeds</button>
+                    <button type="button" class="button sffc-stop-section-fetch" disabled>Stop</button>
+                    <div class="sffc-progressive-fetch__status" aria-live="polite">Ready to fetch this section.</div>
+                    <div class="sffc-progressive-fetch__bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+                        <span></span>
+                    </div>
+                </div>
+                <table class="wp-list-table widefat fixed striped">
+                    <thead>
+                        <tr>
+                            <th width="3%"><input type="checkbox" id="select-all-dubai-feeds" /></th>
+                            <th width="17%">Source</th>
+                            <th width="40%">Feed URL</th>
+                            <th width="10%">Status</th>
+                            <th width="10%">Roles</th>
+                            <th width="20%">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="dubai-feeds-list">
+                        <?php $this->render_workday_feeds('', 'dubai_feeds'); ?>
+                        <?php $this->render_xml_feeds('', 'dubai_feeds'); ?>
                     </tbody>
                 </table>
                 
@@ -231,6 +257,8 @@ class SFFC_Feed_Manager_Admin {
                                     <option value="lever">Lever</option>
                                     <option value="recruitee">Recruitee</option>
                                     <option value="job_listing_page">Curated Listing Page</option>
+                                    <option value="icims_search">iCIMS Search</option>
+                                    <option value="nichehr_supabase">NicheHR Supabase</option>
                                     <option value="jisr_careers">Jisr Careers</option>
                                     <option value="oracle_cx">Oracle Candidate Experience</option>
                                     <option value="goldman_higher">Goldman Sachs Higher</option>
@@ -326,6 +354,8 @@ class SFFC_Feed_Manager_Admin {
                                         <option value="lever">Lever</option>
                                         <option value="recruitee">Recruitee</option>
                                         <option value="job_listing_page">Curated Listing Page</option>
+                                        <option value="icims_search">iCIMS Search</option>
+                                        <option value="nichehr_supabase">NicheHR Supabase</option>
                                         <option value="jisr_careers">Jisr Careers</option>
                                         <option value="oracle_cx">Oracle Candidate Experience</option>
                                         <option value="goldman_higher">Goldman Sachs Higher</option>
@@ -846,11 +876,18 @@ class SFFC_Feed_Manager_Admin {
         return $normalized;
     }
     
-    private function render_workday_feeds($source_type_filter = '') {
+    private function render_workday_feeds($source_type_filter = '', $feed_group_filter = '', $exclude_feed_group_filter = '') {
         $feeds = $this->get_workday_feeds();
         
         foreach ($feeds as $key => $feed) {
             $source_type = $feed['source_type'] ?? $this->get_workday_feed_source_type($key, $feed);
+            $feed_group = sanitize_key((string) ($feed['feed_group'] ?? ''));
+            if ($feed_group_filter !== '' && $feed_group !== $feed_group_filter) {
+                continue;
+            }
+            if ($exclude_feed_group_filter !== '' && $feed_group === $exclude_feed_group_filter) {
+                continue;
+            }
             if ($source_type_filter !== '' && $source_type !== $source_type_filter) {
                 continue;
             }
@@ -878,15 +915,26 @@ class SFFC_Feed_Manager_Admin {
         }
     }
     
-    private function render_xml_feeds($source_type_filter = '') {
+    private function render_xml_feeds($source_type_filter = '', $feed_group_filter = '', $exclude_feed_group_filter = '') {
         $feeds = $this->get_xml_feeds();
         
         foreach ($feeds as $key => $feed) {
             $source_type = $feed['source_type'] ?? '';
-            if ($source_type_filter === 'job_aggregator' && $source_type !== 'job_aggregator') {
+            $feed_group = sanitize_key((string) ($feed['feed_group'] ?? ''));
+            if ($feed_group_filter !== '' && $feed_group !== $feed_group_filter) {
                 continue;
             }
-            if ($source_type_filter === '' && $source_type === 'job_aggregator') {
+            if ($exclude_feed_group_filter !== '' && $feed_group === $exclude_feed_group_filter) {
+                continue;
+            }
+            if ($feed_group_filter === '') {
+                if ($source_type_filter === 'job_aggregator' && $source_type !== 'job_aggregator') {
+                    continue;
+                }
+                if ($source_type_filter === '' && $source_type === 'job_aggregator') {
+                    continue;
+                }
+            } elseif ($source_type_filter !== '' && $source_type !== $source_type_filter) {
                 continue;
             }
             $status = sanitize_html_class($feed['status'] ?? 'untested');
@@ -1721,6 +1769,8 @@ class SFFC_Feed_Manager_Admin {
         $feed_provider = sanitize_key((string) ($feed['type'] ?? ''));
         $supported_providers = [
             'greenhouse',
+            'workable',
+            'workable_board',
             'recruitee',
             'lever',
             'successfactors',
@@ -1780,6 +1830,9 @@ class SFFC_Feed_Manager_Admin {
 
     private function fetch_application_workspace_schema_for_provider($provider, array $job, array $feed, $source_key) {
         switch (sanitize_key((string) $provider)) {
+            case 'workable':
+            case 'workable_board':
+                return $this->fetch_workable_application_workspace_schema($job, $feed, $source_key);
             case 'recruitee':
                 return $this->fetch_recruitee_application_workspace_schema($job, $feed, $source_key);
             case 'lever':
@@ -1936,6 +1989,61 @@ class SFFC_Feed_Manager_Admin {
             $api_url,
             (string) (($offer['careers_apply_url'] ?? '') ?: ($offer['careers_url'] ?? ($job['url'] ?? ''))),
             $questions
+        );
+    }
+
+    private function fetch_workable_application_workspace_schema(array $job, array $feed, $source_key) {
+        $hosted_url = esc_url_raw((string) ($job['url'] ?? ''));
+        if ($hosted_url === '') {
+            return [];
+        }
+
+        if (preg_match('/\.md(?:\?.*)?$/i', $hosted_url)) {
+            $response = wp_remote_get($hosted_url, [
+                'timeout' => 20,
+                'redirection' => 4,
+                'headers' => [
+                    'Accept' => 'text/markdown,text/plain,*/*',
+                    'User-Agent' => 'Mozilla/5.0 (compatible; WordPress/' . get_bloginfo('version') . '; ' . home_url('/') . ')',
+                ],
+            ]);
+            if (!is_wp_error($response) && (int) wp_remote_retrieve_response_code($response) === 200) {
+                $markdown = (string) wp_remote_retrieve_body($response);
+                if (preg_match('/\[Apply[^\]]*\]\(([^)]+)\)/i', $markdown, $match)) {
+                    $hosted_url = esc_url_raw(trim((string) $match[1]));
+                }
+            }
+        }
+
+        if (preg_match('~^https://apply\.workable\.com/[^/]+/j/[^/]+/?$~i', $hosted_url)) {
+            $hosted_url = rtrim($hosted_url, '/') . '/apply';
+        }
+
+        $response = wp_remote_get($hosted_url, [
+            'timeout' => 25,
+            'redirection' => 4,
+            'headers' => [
+                'Accept' => 'text/html,application/xhtml+xml',
+                'User-Agent' => 'Mozilla/5.0 (compatible; WordPress/' . get_bloginfo('version') . '; ' . home_url('/') . ')',
+            ],
+        ]);
+        if (is_wp_error($response) || (int) wp_remote_retrieve_response_code($response) !== 200) {
+            return [];
+        }
+
+        $questions = $this->extract_application_workspace_questions_from_html_form((string) wp_remote_retrieve_body($response));
+
+        return $this->build_application_workspace_schema(
+            'workable',
+            $job,
+            $feed,
+            $source_key,
+            $hosted_url,
+            $hosted_url,
+            $questions,
+            [
+                'application_embed_url' => $hosted_url,
+            ]
         );
     }
 
