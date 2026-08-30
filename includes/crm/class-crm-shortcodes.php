@@ -788,8 +788,12 @@ class SFFC_CRM_Shortcodes
         add_action('wp_ajax_nopriv_sffc_crm_apply_chat_queue_application_task', [$this, 'ajax_crm_apply_chat_queue_application_task']);
         add_action('wp_ajax_sffc_crm_apply_chat_application_task_status', [$this, 'ajax_crm_apply_chat_application_task_status']);
         add_action('wp_ajax_nopriv_sffc_crm_apply_chat_application_task_status', [$this, 'ajax_crm_apply_chat_application_task_status']);
+        add_action('wp_ajax_sffc_crm_apply_chat_application_task_verification_code', [$this, 'ajax_crm_apply_chat_application_task_verification_code']);
+        add_action('wp_ajax_nopriv_sffc_crm_apply_chat_application_task_verification_code', [$this, 'ajax_crm_apply_chat_application_task_verification_code']);
         add_action('wp_ajax_sffc_crm_application_worker_claim', [$this, 'ajax_crm_application_worker_claim']);
         add_action('wp_ajax_nopriv_sffc_crm_application_worker_claim', [$this, 'ajax_crm_application_worker_claim']);
+        add_action('wp_ajax_sffc_crm_application_worker_get_task', [$this, 'ajax_crm_application_worker_get_task']);
+        add_action('wp_ajax_nopriv_sffc_crm_application_worker_get_task', [$this, 'ajax_crm_application_worker_get_task']);
         add_action('wp_ajax_sffc_crm_application_worker_complete', [$this, 'ajax_crm_application_worker_complete']);
         add_action('wp_ajax_nopriv_sffc_crm_application_worker_complete', [$this, 'ajax_crm_application_worker_complete']);
         add_action('wp_ajax_sffc_crm_apply_chat_send_catch_up_invite', [$this, 'ajax_crm_apply_chat_send_catch_up_invite']);
@@ -43859,6 +43863,69 @@ CRITICAL INSTRUCTIONS:
             ]);
         }
 
+        public function ajax_crm_apply_chat_application_task_verification_code()
+        {
+            check_ajax_referer('sffc_crm_apply_chat_queue_application_task', 'nonce');
+
+            global $wpdb;
+
+            $this->maybe_create_crm_application_tasks_table();
+            $table = $wpdb->prefix . 'sffc_crm_application_tasks';
+            $task_uuid = sanitize_text_field(wp_unslash((string) ($_POST['task_uuid'] ?? '')));
+            $session_token = sanitize_text_field(wp_unslash((string) ($_POST['session_token'] ?? '')));
+            $verification_code = sanitize_text_field(wp_unslash((string) ($_POST['verification_code'] ?? '')));
+            if ($task_uuid === '' || $verification_code === '') {
+                wp_send_json_error(['message' => __('Missing application task or verification code.', 'senna-finance')], 422);
+            }
+
+            $task = $wpdb->get_row(
+                $wpdb->prepare(
+                    "SELECT task_uuid, status, session_token, user_id, payload FROM {$table} WHERE task_uuid = %s LIMIT 1",
+                    $task_uuid
+                ),
+                ARRAY_A
+            );
+            if (!is_array($task)) {
+                wp_send_json_error(['message' => __('Application task not found.', 'senna-finance')], 404);
+            }
+
+            $current_user_id = get_current_user_id();
+            $task_user_id = absint($task['user_id'] ?? 0);
+            $task_session_token = sanitize_text_field((string) ($task['session_token'] ?? ''));
+            $can_update = ($current_user_id > 0 && $task_user_id > 0 && $current_user_id === $task_user_id)
+                || ($session_token !== '' && $task_session_token !== '' && hash_equals($task_session_token, $session_token));
+            if (!$can_update) {
+                wp_send_json_error(['message' => __('You do not have access to this application task.', 'senna-finance')], 403);
+            }
+
+            $payload = [];
+            if (is_string($task['payload'] ?? '') && trim((string) $task['payload']) !== '') {
+                $decoded = json_decode((string) $task['payload'], true);
+                $payload = is_array($decoded) ? $decoded : [];
+            }
+            $payload['verification_code'] = $verification_code;
+            $payload['verification_code_received_at'] = current_time('mysql');
+
+            $updated = $wpdb->update($table, [
+                'status' => sanitize_key((string) ($task['status'] ?? '')) === 'verification_required' ? 'processing' : sanitize_key((string) ($task['status'] ?? 'processing')),
+                'last_error' => '',
+                'payload' => wp_json_encode($payload),
+                'updated_at' => current_time('mysql'),
+            ], [
+                'task_uuid' => $task_uuid,
+            ]);
+
+            if ($updated === false) {
+                wp_send_json_error(['message' => __('Could not save the Greenhouse verification code.', 'senna-finance')], 500);
+            }
+
+            wp_send_json_success([
+                'task_uuid' => $task_uuid,
+                'status' => sanitize_key((string) ($task['status'] ?? 'verification_required')),
+                'message' => __('I have added the verification code to the active application task.', 'senna-finance'),
+            ]);
+        }
+
         public function ajax_crm_application_worker_claim()
         {
             if (!$this->verify_crm_application_worker_token()) {
@@ -43909,6 +43976,34 @@ CRITICAL INSTRUCTIONS:
 
             $task['status'] = 'processing';
             $task['worker_id'] = $worker_id;
+            $task['payload'] = is_string($task['payload'] ?? '') ? json_decode((string) $task['payload'], true) : [];
+            $task['result_payload'] = is_string($task['result_payload'] ?? '') ? json_decode((string) $task['result_payload'], true) : [];
+
+            wp_send_json_success(['task' => $task]);
+        }
+
+        public function ajax_crm_application_worker_get_task()
+        {
+            if (!$this->verify_crm_application_worker_token()) {
+                wp_send_json_error(['message' => __('Invalid worker token.', 'senna-finance')], 403);
+            }
+
+            global $wpdb;
+            $this->maybe_create_crm_application_tasks_table();
+            $table = $wpdb->prefix . 'sffc_crm_application_tasks';
+            $task_uuid = sanitize_text_field(wp_unslash((string) ($_POST['task_uuid'] ?? '')));
+            if ($task_uuid === '') {
+                wp_send_json_error(['message' => __('Missing task UUID.', 'senna-finance')], 422);
+            }
+
+            $task = $wpdb->get_row(
+                $wpdb->prepare("SELECT * FROM {$table} WHERE task_uuid = %s LIMIT 1", $task_uuid),
+                ARRAY_A
+            );
+            if (!is_array($task)) {
+                wp_send_json_error(['message' => __('Application task not found.', 'senna-finance')], 404);
+            }
+
             $task['payload'] = is_string($task['payload'] ?? '') ? json_decode((string) $task['payload'], true) : [];
             $task['result_payload'] = is_string($task['result_payload'] ?? '') ? json_decode((string) $task['result_payload'], true) : [];
 

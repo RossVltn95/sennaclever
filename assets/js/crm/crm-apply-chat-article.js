@@ -89676,6 +89676,38 @@
           });
       }
 
+      function submitBrowserApplicationVerificationCode(taskUuid, code) {
+        var config = getConfig();
+        var formData = new FormData();
+        formData.append("action", "sffc_crm_apply_chat_application_task_verification_code");
+        formData.append(
+          "nonce",
+          config.applicationTaskNonce ||
+            config.autoSubmitSchemaNonce ||
+            config.nonce ||
+            ""
+        );
+        formData.append("task_uuid", cleanMessageText(taskUuid || ""));
+        formData.append("session_token", ensureApplyChatSessionToken());
+        formData.append("verification_code", code || "");
+        return window
+          .fetch(config.ajaxUrl || "/wp-admin/admin-ajax.php", {
+            method: "POST",
+            credentials: "same-origin",
+            body: formData,
+          })
+          .then(parseAjaxJson)
+          .then(function (payload) {
+            if (!payload || !payload.success) {
+              throw new Error(
+                (payload && payload.data && payload.data.message) ||
+                  "I could not send this verification code to the active application."
+              );
+            }
+            return payload.data || {};
+          });
+      }
+
       function pollBrowserApplicationTask(taskUuid, attempt) {
         var currentAttempt = Number(attempt || 0);
         if (!taskUuid || currentAttempt > 60) {
@@ -89738,15 +89770,14 @@
                           applicationVerificationCode = code;
                           clearPromptState();
                           echoPromptChoice(value);
-                          queueBrowserApplicationTask()
-                            .then(function (nextData) {
-                              var nextTaskId = cleanMessageText((nextData && nextData.task_uuid) || "");
+                          submitBrowserApplicationVerificationCode(taskUuid, code)
+                            .then(function () {
                               botMessage(
-                                "Thanks. I’ve queued the verification step now.",
+                                "Thanks. I’ve sent that code to the active Greenhouse session now.",
                                 humanComposeDelay("Verification queued.", 900, 1800),
                                 function () {
-                                  if (nextTaskId && typeof pollBrowserApplicationTask === "function") {
-                                    pollBrowserApplicationTask(nextTaskId, 0);
+                                  if (typeof pollBrowserApplicationTask === "function") {
+                                    pollBrowserApplicationTask(taskUuid, 0);
                                   }
                                   focusComposer("I’ll update you when Greenhouse confirms the result");
                                 }

@@ -10,6 +10,7 @@ const ajaxUrl = process.env.SFFC_WP_AJAX_URL || "";
 const workerToken = process.env.SFFC_APPLICATION_WORKER_TOKEN || "";
 const workerId = process.env.SFFC_WORKER_ID || `sffc-worker-${os.hostname()}`;
 const pollIntervalMs = Number(process.env.SFFC_WORKER_POLL_INTERVAL_MS || 15000);
+const verificationWaitMs = Number(process.env.SFFC_WORKER_VERIFICATION_WAIT_MS || 10 * 60 * 1000);
 const allowFinalSubmit = process.env.SFFC_WORKER_ALLOW_FINAL_SUBMIT === "1";
 const interceptFinalSubmit = process.env.SFFC_WORKER_INTERCEPT_FINAL_SUBMIT === "1";
 const healthPort = Number(process.env.PORT || 0);
@@ -105,6 +106,13 @@ async function completeTask(taskUuid, status, result) {
     screenshot_url: result.screenshot_url || "",
     result_payload: result,
   });
+}
+
+async function getTaskUpdate(taskUuid) {
+  const data = await postAjax("sffc_crm_application_worker_get_task", {
+    task_uuid: taskUuid,
+  });
+  return data.task || null;
 }
 
 function splitName(fullName) {
@@ -462,6 +470,21 @@ function getApplicationAnswers(task) {
 function getVerificationCode(task) {
   const payload = getTaskPayload(task);
   return cleanText(payload.verification_code || task.verification_code || "");
+}
+
+async function waitForVerificationCode(taskUuid, ignoredCodes = []) {
+  const ignored = new Set((ignoredCodes || []).map((code) => cleanText(code)).filter(Boolean));
+  const startedAt = Date.now();
+  while (Date.now() - startedAt < verificationWaitMs) {
+    const latest = await getTaskUpdate(taskUuid).catch(() => null);
+    const payload = latest && typeof latest.payload === "object" && latest.payload ? latest.payload : {};
+    const code = cleanText(payload.verification_code || latest?.verification_code || "");
+    if (code && !ignored.has(code)) {
+      return code;
+    }
+    await new Promise((resolve) => setTimeout(resolve, 5000));
+  }
+  return "";
 }
 
 function answerHasValue(value) {
@@ -1798,13 +1821,82 @@ async function processTask(task) {
       };
     }
 
+    const buildVerificationRequiredResult = async (message, submitState = {}) => {
+      browserDiagnostics = await getBrowserEnvironmentDiagnostics(page).catch(() => browserDiagnostics || {});
+      await page.screenshot({ path: screenshotPath, fullPage: true }).catch(() => {});
+      return {
+        provider: task.provider || "",
+        url,
+        allow_final_submit: allowFinalSubmit,
+        clicked_submit: Boolean(submitState.clicked),
+        form_opened: formReady.opened,
+        form_ready: formReady.ready,
+        submit_before_url: submitState.beforeUrl || page.url(),
+        submit_after_url: submitState.afterUrl || page.url(),
+        uploaded_resume: uploadedResume,
+        browser_diagnostics: browserDiagnostics,
+        intercept_final_submit: interceptFinalSubmit,
+        application_answers_attempted: applicationAnswers.attempted,
+        application_answers_filled: applicationAnswers.filled,
+        application_choice_answers_attempted: applicationAnswers.choice_attempted,
+        application_choice_answers_filled: applicationAnswers.choice_filled,
+        application_field_diagnostics: applicationAnswers.field_diagnostics || [],
+        application_answer_items: applicationAnswers.items || [],
+        complete_required_fields: formCompletion.complete_required_fields,
+        page_title: await page.title().catch(() => ""),
+        final_url: page.url(),
+        local_screenshot_path: screenshotPath,
+        submission_confirmed: false,
+        verification_required: true,
+        verification_code_used: Boolean(submitState.verification_code_used),
+        verification_code_filled: Boolean(submitState.verification_code_filled),
+        verification_code_incorrect: Boolean(submitState.verification_code_used),
+        intercepted_submit_request: submitState.intercepted_submit_request || null,
+        validation_detected: Boolean(submitState.validation_detected),
+        validation_errors: submitState.validation_errors || [],
+        missing_required_fields: submitState.missing_required_fields || [],
+        last_error: message,
+        status: "verification_required",
+      };
+    };
+
     let clickedSubmit = false;
     let submitResult = { clicked: false, beforeUrl: page.url(), afterUrl: page.url() };
+    let verificationAttempts = 0;
+    const usedVerificationCodes = [];
+    let verificationWaitTimedOut = false;
     if (allowFinalSubmit) {
       submitResult = await clickLikelyApplyButton(page);
       clickedSubmit = submitResult.clicked;
-      if (clickedSubmit && verificationCode && (await pageNeedsGreenhouseVerification(page).catch(() => false))) {
-        const filledVerificationCode = await fillGreenhouseVerificationCode(page, verificationCode);
+      while (
+        clickedSubmit &&
+        !submitResult.submission_confirmed &&
+        (await pageNeedsGreenhouseVerification(page).catch(() => false)) &&
+        verificationAttempts < 3
+      ) {
+        let nextVerificationCode =
+          verificationAttempts === 0 && verificationCode && !usedVerificationCodes.includes(verificationCode)
+            ? verificationCode
+            : "";
+        if (!nextVerificationCode) {
+          const message =
+            verificationAttempts > 0
+              ? "Greenhouse rejected that security code. Paste the latest code exactly as shown in the email, including capital letters."
+              : "Greenhouse sent a security code to the candidate email. Paste the code here so the worker can resubmit the employer form in the same browser session.";
+          await completeTask(
+            task.task_uuid,
+            "verification_required",
+            await buildVerificationRequiredResult(message, submitResult)
+          );
+          nextVerificationCode = await waitForVerificationCode(task.task_uuid, usedVerificationCodes);
+        }
+        if (!nextVerificationCode) {
+          verificationWaitTimedOut = true;
+          break;
+        }
+        usedVerificationCodes.push(nextVerificationCode);
+        verificationAttempts += 1;
+        const filledVerificationCode = await fillGreenhouseVerificationCode(page, nextVerificationCode);
         if (filledVerificationCode) {
           const verificationSubmitResult = await clickLikelyApplyButton(page);
           submitResult = {
@@ -1820,6 +1912,7 @@ async function processTask(task) {
             verification_code_used: true,
             verification_code_filled: false,
           };
+          break;
         }
       }
       await page.screenshot({ path: screenshotPath, fullPage: true }).catch(() => {});
@@ -1836,7 +1929,9 @@ async function processTask(task) {
         status = "submitted";
       } else if (needsVerification || incorrectVerificationCode) {
         status = "verification_required";
-        lastError = incorrectVerificationCode
+        lastError = verificationWaitTimedOut
+          ? "Greenhouse sent a security code, but the worker did not receive a code before the active browser session timed out. Start the application again and paste the newest code as soon as it arrives."
+          : incorrectVerificationCode
           ? "Greenhouse rejected that security code. Paste the latest code exactly as shown in the email, including capital letters."
           : "Greenhouse sent a security code to the candidate email. Enter the code in the chat so the worker can resubmit the employer form.";
       } else {
