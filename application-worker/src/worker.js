@@ -672,6 +672,9 @@ async function fillApplicationAnswers(page, task) {
     let filledCount = 0;
     for (const item of items) {
       const answer = clean(item.answer);
+      if (item.choices && item.choices.length) {
+        continue;
+      }
       const container = findQuestionContainer(item.label);
       const field =
         findByName(item.fieldNames) ||
@@ -951,9 +954,90 @@ async function selectInteractiveOption(page, element, item) {
   return true;
 }
 
+async function selectGreenhouseReactSelect(page, item) {
+  const fieldName = (item.fieldNames || [])[0] || "";
+  if (!fieldName || !item.choices.length) {
+    return false;
+  }
+  const answer = getBestChoiceLabel(item.answer, item.choices);
+  const selected = await page.evaluate(
+    async ({ id, wanted }) => {
+      const clean = (value) => String(value || "").replace(/\s+/g, " ").trim();
+      const normalize = (value) => clean(value).toLowerCase();
+      const compact = (value) => normalize(value).replace(/[^a-z0-9]+/g, "");
+      const score = (candidate) => {
+        const wantedNorm = normalize(wanted);
+        const optionNorm = normalize(candidate);
+        const wantedCompact = compact(wanted);
+        const optionCompact = compact(candidate);
+        if (!wantedNorm || !optionNorm) return 0;
+        if (optionNorm === wantedNorm || optionCompact === wantedCompact) return 100;
+        if (/^\d+$/.test(wantedCompact) && optionCompact.startsWith(wantedCompact)) return 92;
+        if (wantedCompact && optionCompact.includes(wantedCompact)) return 86;
+        if (wantedCompact && wantedCompact.includes(optionCompact)) return 82;
+        if (optionNorm.includes(wantedNorm)) return 78;
+        if (wantedNorm.includes(optionNorm)) return 74;
+        return 0;
+      };
+      const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+      const dispatchPointerClick = (element) => {
+        element.scrollIntoView({ block: "center" });
+        element.dispatchEvent(new MouseEvent("mouseover", { bubbles: true, cancelable: true, view: window }));
+        element.dispatchEvent(new MouseEvent("mousedown", { bubbles: true, cancelable: true, view: window }));
+        element.dispatchEvent(new MouseEvent("mouseup", { bubbles: true, cancelable: true, view: window }));
+        element.click();
+      };
+      const getSelectedText = (input) => {
+        const shell = input.closest(".select-shell") || input.closest(".select") || input.parentElement;
+        return clean(
+          shell?.querySelector(
+            ".select__single-value, [class*='singleValue'], [class*='single-value' i], [data-testid*='single-value' i]"
+          )?.textContent || ""
+        );
+      };
+      const input = document.getElementById(id);
+      if (!input || input.getAttribute("role") !== "combobox") {
+        return { ok: false, reason: "missing_combobox", selected: "" };
+      }
+
+      for (let attempt = 0; attempt < 3; attempt += 1) {
+        const shell = input.closest(".select-shell") || input.closest(".select") || input.parentElement;
+        const control = shell?.querySelector(".select__control") || input;
+        dispatchPointerClick(control);
+        input.focus();
+        await sleep(350);
+
+        const options = Array.from(document.querySelectorAll(`[id^="react-select-${CSS.escape(id)}-option-"], [role='option']`))
+          .map((node) => ({ node, text: clean(node.textContent || node.getAttribute("aria-label") || "") }))
+          .filter((entry) => entry.text)
+          .map((entry) => ({ ...entry, score: score(entry.text) }))
+          .filter((entry) => entry.score > 0)
+          .sort((a, b) => b.score - a.score);
+
+        if (options[0]) {
+          dispatchPointerClick(options[0].node);
+          await sleep(350);
+          const selectedText = getSelectedText(input);
+          if (score(selectedText) > 0) {
+            return { ok: true, selected: selectedText };
+          }
+        }
+      }
+
+      return { ok: false, reason: "option_not_selected", selected: getSelectedText(input) };
+    },
+    { id: fieldName, wanted: answer }
+  );
+  return Boolean(selected && selected.ok);
+}
+
 async function fillInteractiveChoiceAnswers(page, fillItems) {
   let filled = 0;
   for (const item of fillItems) {
+    if (await selectGreenhouseReactSelect(page, item)) {
+      filled += 1;
+      continue;
+    }
     const element = await findVisibleControlForItem(page, item);
     if (!element) {
       continue;
