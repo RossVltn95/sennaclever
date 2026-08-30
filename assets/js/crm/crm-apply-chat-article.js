@@ -80653,7 +80653,7 @@
         return false;
       }
       if (
-        /^(job_search_(?:collect_preferred_email|collect_full_name|confirm_email|check_inbox|email_received|delivery_frequency|reuse_preferred_email|signed_in)|catch_up_collect_full_name|catch_up_collect_email|catch_up_confirm_email|apply_account_email|apply_waiting_for_signup|apply_select_pricing_option|apply_confirm_preferred_email|apply_collect_preferred_email|apply_collect_full_name|apply_employer_question)$/.test(
+        /^(greenhouse_security_code|job_search_(?:collect_preferred_email|collect_full_name|confirm_email|check_inbox|email_received|delivery_frequency|reuse_preferred_email|signed_in)|catch_up_collect_full_name|catch_up_collect_email|catch_up_confirm_email|apply_account_email|apply_waiting_for_signup|apply_select_pricing_option|apply_confirm_preferred_email|apply_collect_preferred_email|apply_collect_full_name|apply_employer_question)$/.test(
           promptKey
         )
       ) {
@@ -80670,7 +80670,7 @@
 
     function isStrictPromptOwnedState(state) {
       var promptKey = String(state || "");
-      return /^(profile_review_target_role|job_search_(?:similar_roles|location|visa|other_roles|other_roles_text|target_roles_text|anything_missed|anything_missed_text|member_follow_up|matching_cv_follow_up|package_choice)|recruiter_outreach_(?:role|seniority|locations|sectors|targets|outcome)|apply_(?:role_search_type|matching_roles|cv_decision|other_roles_text|qualification_check|qualification_present|qualification_alternative|qualification_alternative_detail|work_authorization_check|cover_letter_check|tailoring_progress_check|tailored_versions|final_questions)|apply_intro_(?:home_query_confirm|home_query_correct)|member_desk_refine_(?:roles|sectors|locations)|review_clarification_check|confirm_recent_role|show_issue_decision|continue_fix|consultant_route_confirm|consultant_route_clarify|direct_apply_cv_review_offer)$/.test(
+      return /^(greenhouse_security_code|profile_review_target_role|job_search_(?:similar_roles|location|visa|other_roles|other_roles_text|target_roles_text|anything_missed|anything_missed_text|member_follow_up|matching_cv_follow_up|package_choice)|recruiter_outreach_(?:role|seniority|locations|sectors|targets|outcome)|apply_(?:role_search_type|matching_roles|cv_decision|other_roles_text|qualification_check|qualification_present|qualification_alternative|qualification_alternative_detail|work_authorization_check|cover_letter_check|tailoring_progress_check|tailored_versions|final_questions)|apply_intro_(?:home_query_confirm|home_query_correct)|member_desk_refine_(?:roles|sectors|locations)|review_clarification_check|confirm_recent_role|show_issue_decision|continue_fix|consultant_route_confirm|consultant_route_clarify|direct_apply_cv_review_offer)$/.test(
         promptKey
       );
     }
@@ -82803,7 +82803,7 @@
       preferSemanticFirst = false;
       simpleBinaryOnlyReply = false;
       operationalPromptState =
-        /^(job_search_(?:collect_preferred_email|collect_full_name|confirm_email|check_inbox|email_received|delivery_frequency|reuse_preferred_email|signed_in)|catch_up_collect_full_name|catch_up_collect_email|catch_up_confirm_email|apply_account_email|apply_waiting_for_signup|apply_select_pricing_option|apply_confirm_preferred_email|apply_collect_preferred_email|apply_collect_full_name|apply_employer_question)$/.test(
+        /^(greenhouse_security_code|job_search_(?:collect_preferred_email|collect_full_name|confirm_email|check_inbox|email_received|delivery_frequency|reuse_preferred_email|signed_in)|catch_up_collect_full_name|catch_up_collect_email|catch_up_confirm_email|apply_account_email|apply_waiting_for_signup|apply_select_pricing_option|apply_confirm_preferred_email|apply_collect_preferred_email|apply_collect_full_name|apply_employer_question)$/.test(
           promptStateValue
         );
       conversationalPromptState = isConversationalPromptState(promptStateValue);
@@ -82815,6 +82815,18 @@
 
       if (
         promptStateValue === "apply_employer_question" &&
+        typeof otherHandler === "function" &&
+        cleanMessageText(value || "")
+      ) {
+        clearResponseWatchdog();
+        promptReplyWasTyped = true;
+        runAfterCurrentThought(function () {
+          otherHandler(value);
+        });
+        return true;
+      }
+      if (
+        promptStateValue === "greenhouse_security_code" &&
         typeof otherHandler === "function" &&
         cleanMessageText(value || "")
       ) {
@@ -83107,7 +83119,8 @@
         promptState === "catch_up_collect_full_name" ||
         promptState === "catch_up_collect_email" ||
         promptState === "catch_up_confirm_email" ||
-        promptState === "apply_employer_question"
+        promptState === "apply_employer_question" ||
+        promptState === "greenhouse_security_code"
       ) {
         if (
           typeof otherHandler === "function" &&
