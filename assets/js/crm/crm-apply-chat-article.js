@@ -952,6 +952,12 @@
       .trim();
   }
 
+  function extractGreenhouseSecurityCode(text) {
+    var clean = cleanMessageText(text || "");
+    var match = clean.match(/\b[A-Za-z0-9]{6,12}\b/);
+    return match ? match[0] : clean;
+  }
+
   function escapeRegex(text) {
     return String(text || "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   }
@@ -89704,21 +89710,26 @@
                 return;
               }
               if (status === "verification_required") {
+                var verificationMessage = cleanMessageText((data && data.last_error) || "");
+                if (!verificationMessage) {
+                  verificationMessage =
+                    "Greenhouse has sent a security code to the candidate email. Paste the 8-character code exactly as shown, including capital letters, and I’ll enter it into the employer form and resubmit.";
+                }
                 botMessage(
-                  "Greenhouse has sent a security code to the candidate email. Paste the code here and I’ll enter it into the employer form and resubmit.",
+                  verificationMessage,
                   humanComposeDelay("Greenhouse security code required.", 1200, 2600),
                   function () {
                     setPromptState(
                       "greenhouse_security_code",
                       {
                         other: function (value) {
-                          var code = cleanMessageText(value || "");
-                          if (!/^[a-z0-9-]{4,20}$/i.test(code)) {
+                          var code = extractGreenhouseSecurityCode(value || "");
+                          if (!/^[A-Za-z0-9-]{4,20}$/.test(code)) {
                             botMessage(
-                              "Send just the Greenhouse security code from the email.",
+                              "Send just the Greenhouse security code from the email. It is case-sensitive, so paste it exactly as shown.",
                               humanComposeDelay("Send just the code.", 900, 1800),
                               function () {
-                                focusComposer("Paste the Greenhouse security code");
+                                focusComposer("Paste the code exactly as shown");
                               },
                               humanReadDelay(value, 450)
                             );
@@ -89749,7 +89760,7 @@
                                 message,
                                 humanComposeDelay(message, 1200, 2600),
                                 function () {
-                                  focusComposer("Paste the Greenhouse security code again");
+                                  focusComposer("Paste the latest Greenhouse code exactly");
                                 }
                               );
                             });

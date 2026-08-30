@@ -1452,21 +1452,8 @@ async function fillGreenhouseVerificationCode(page, code) {
   if (!code) {
     return false;
   }
-  return page.evaluate((securityCode) => {
+  const handle = await page.evaluateHandle(() => {
     const clean = (value) => String(value || "").replace(/\s+/g, " ").trim();
-    const setNativeValue = (element, value) => {
-      const prototype = element instanceof HTMLTextAreaElement ? HTMLTextAreaElement.prototype : HTMLInputElement.prototype;
-      const descriptor = Object.getOwnPropertyDescriptor(prototype, "value");
-      element.focus();
-      if (descriptor && descriptor.set) {
-        descriptor.set.call(element, value);
-      } else {
-        element.value = value;
-      }
-      element.dispatchEvent(new Event("input", { bubbles: true }));
-      element.dispatchEvent(new Event("change", { bubbles: true }));
-      element.dispatchEvent(new Event("blur", { bubbles: true }));
-    };
     const controls = Array.from(document.querySelectorAll("input, textarea"));
     const candidates = controls.filter((control) => {
       if (control.disabled || control.type === "hidden") {
@@ -1480,20 +1467,43 @@ async function fillGreenhouseVerificationCode(page, code) {
       const text = clean(`${id} ${name} ${label} ${placeholder} ${aria} ${control.closest("div, label, fieldset")?.textContent || ""}`);
       return /security code|verification code|enter.*code|code field|confirmation code/i.test(text);
     });
-    const target = candidates[0] || controls.find((control) => {
+    return candidates[0] || controls.find((control) => {
       if (control.disabled || control.type === "hidden") {
         return false;
       }
       const maxLength = Number(control.getAttribute("maxlength") || 0);
       return maxLength >= 4 && maxLength <= 20;
-    });
-    if (!target) {
-      return false;
-    }
-    target.scrollIntoView({ block: "center" });
-    setNativeValue(target, securityCode);
-    return true;
-  }, code);
+    }) || null;
+  });
+  const element = handle.asElement();
+  if (!element) {
+    await handle.dispose().catch(() => {});
+    return false;
+  }
+  await element.evaluate((target) => target.scrollIntoView({ block: "center", inline: "nearest" })).catch(() => {});
+  await element.click({ clickCount: 3 }).catch(async () => {
+    await element.focus().catch(() => {});
+  });
+  const modifier = process.platform === "darwin" ? "Meta" : "Control";
+  await page.keyboard.down(modifier).catch(() => {});
+  await page.keyboard.press("KeyA").catch(() => {});
+  await page.keyboard.up(modifier).catch(() => {});
+  await page.keyboard.type(String(code), { delay: 35 });
+  await element.evaluate((target) => {
+    target.dispatchEvent(new Event("input", { bubbles: true }));
+    target.dispatchEvent(new Event("change", { bubbles: true }));
+    target.dispatchEvent(new Event("blur", { bubbles: true }));
+  }).catch(() => {});
+  await element.dispose().catch(() => {});
+  await new Promise((resolve) => setTimeout(resolve, 350));
+  return true;
+}
+
+async function pageHasIncorrectGreenhouseVerificationCode(page) {
+  return page.evaluate(() => {
+    const text = String(document.body?.innerText || "").replace(/\s+/g, " ").trim();
+    return /incorrect security code|security code incorrect|invalid security code|incorrect verification code|invalid verification code/i.test(text);
+  });
 }
 
 async function pageNeedsGreenhouseVerification(page) {
@@ -1774,16 +1784,16 @@ async function processTask(task) {
     let status = "dry_run_ready";
     let lastError = "";
     if (allowFinalSubmit) {
+      const needsVerification = clickedSubmit && (await pageNeedsGreenhouseVerification(page).catch(() => false));
+      const incorrectVerificationCode =
+        Boolean(verificationCode) && (await pageHasIncorrectGreenhouseVerificationCode(page).catch(() => false));
       if (submitResult.submission_confirmed) {
         status = "submitted";
-      } else if (
-        clickedSubmit &&
-        !verificationCode &&
-        (await pageNeedsGreenhouseVerification(page).catch(() => false))
-      ) {
+      } else if (needsVerification || incorrectVerificationCode) {
         status = "verification_required";
-        lastError =
-          "Greenhouse sent a security code to the candidate email. Enter the code in the chat so the worker can resubmit the employer form.";
+        lastError = incorrectVerificationCode
+          ? "Greenhouse rejected that security code. Paste the latest code exactly as shown in the email, including capital letters."
+          : "Greenhouse sent a security code to the candidate email. Enter the code in the chat so the worker can resubmit the employer form.";
       } else {
         status = "review_required";
         if (!clickedSubmit) {
@@ -1831,6 +1841,7 @@ async function processTask(task) {
       verification_required: status === "verification_required",
       verification_code_used: Boolean(submitResult.verification_code_used),
       verification_code_filled: Boolean(submitResult.verification_code_filled),
+      verification_code_incorrect: Boolean(submitResult.verification_code_used) && status === "verification_required",
       intercepted_submit_request: submitResult.intercepted_submit_request || null,
       validation_detected: Boolean(submitResult.validation_detected),
       validation_errors: submitResult.validation_errors || [],
