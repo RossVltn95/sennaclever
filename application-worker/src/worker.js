@@ -1506,6 +1506,38 @@ async function pageHasIncorrectGreenhouseVerificationCode(page) {
   });
 }
 
+async function getBrowserEnvironmentDiagnostics(page) {
+  return page.evaluate(() => {
+    const clean = (value) => String(value || "").replace(/\s+/g, " ").trim();
+    const bodyText = clean(document.body?.innerText || "");
+    const verificationInputs = Array.from(document.querySelectorAll("input, textarea"))
+      .map((control) => {
+        const id = control.getAttribute("id") || "";
+        const name = control.getAttribute("name") || "";
+        const label = id ? document.querySelector(`label[for="${CSS.escape(id)}"]`)?.textContent || "" : "";
+        const placeholder = control.getAttribute("placeholder") || "";
+        const aria = control.getAttribute("aria-label") || "";
+        const surroundingText = control.closest("div, label, fieldset")?.textContent || "";
+        return clean(`${id} ${name} ${label} ${placeholder} ${aria} ${surroundingText}`);
+      })
+      .filter((text) => /security code|verification code|confirmation code|code field/i.test(text))
+      .slice(0, 5);
+    return {
+      user_agent: navigator.userAgent || "",
+      webdriver: Boolean(navigator.webdriver),
+      languages: Array.from(navigator.languages || []),
+      platform: navigator.platform || "",
+      vendor: navigator.vendor || "",
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || "",
+      viewport_width: window.innerWidth,
+      viewport_height: window.innerHeight,
+      has_greenhouse_verification_text: /security code|verification code|copy and paste.*code|enter.*code.*resubmit|code field/i.test(bodyText),
+      has_incorrect_verification_text: /incorrect security code|security code incorrect|invalid security code|incorrect verification code|invalid verification code/i.test(bodyText),
+      verification_input_samples: verificationInputs,
+    };
+  });
+}
+
 async function pageNeedsGreenhouseVerification(page) {
   return page.evaluate(() => {
     const text = String(document.body?.innerText || "").replace(/\s+/g, " ").trim();
@@ -1601,19 +1633,26 @@ async function clickLikelyApplyButton(page) {
     };
     page.on("request", requestHandler);
   }
-  const clicked = await page.evaluate(() => {
+  const submitHandle = await page.evaluateHandle(() => {
     const buttons = Array.from(document.querySelectorAll("button, input[type=submit]"));
-    const target = buttons.find((button) =>
+    return buttons.find((button) =>
       /submit application|send application|submit$/i.test(
         `${button.textContent || ""} ${button.getAttribute("value") || ""} ${button.getAttribute("aria-label") || ""}`
       )
-    );
-    if (!target) {
-      return false;
-    }
-    target.click();
-    return true;
+    ) || null;
   });
+  const submitElement = submitHandle.asElement();
+  let clicked = false;
+  if (submitElement) {
+    await submitElement.evaluate((button) => button.scrollIntoView({ block: "center", inline: "nearest" })).catch(() => {});
+    await new Promise((resolve) => setTimeout(resolve, 250));
+    await submitElement.click().then(() => {
+      clicked = true;
+    }).catch(() => {});
+    await submitElement.dispose().catch(() => {});
+  } else {
+    await submitHandle.dispose().catch(() => {});
+  }
   if (clicked) {
     if (interceptFinalSubmit) {
       await new Promise((resolve) => setTimeout(resolve, 1800));
@@ -1692,6 +1731,7 @@ async function processTask(task) {
     await fillByLabelText(page, ["phone", "mobile"], candidate.phone);
     const uploadedResume = await uploadResume(page, cvPath);
     const applicationAnswers = await fillApplicationAnswers(page, task);
+    let browserDiagnostics = await getBrowserEnvironmentDiagnostics(page).catch(() => ({}));
 
     const screenshotPath = path.join(os.tmpdir(), `${task.task_uuid}.png`);
     await page.screenshot({ path: screenshotPath, fullPage: true });
@@ -1706,6 +1746,8 @@ async function processTask(task) {
         form_opened: formReady.opened,
         form_ready: formReady.ready,
         uploaded_resume: uploadedResume,
+        browser_diagnostics: browserDiagnostics,
+        intercept_final_submit: interceptFinalSubmit,
         application_answers_attempted: applicationAnswers.attempted,
         application_answers_filled: applicationAnswers.filled,
         application_choice_answers_attempted: applicationAnswers.choice_attempted,
@@ -1736,6 +1778,8 @@ async function processTask(task) {
         form_opened: formReady.opened,
         form_ready: formReady.ready,
         uploaded_resume: uploadedResume,
+        browser_diagnostics: browserDiagnostics,
+        intercept_final_submit: interceptFinalSubmit,
         application_answers_attempted: applicationAnswers.attempted,
         application_answers_filled: applicationAnswers.filled,
         application_choice_answers_attempted: applicationAnswers.choice_attempted,
@@ -1779,6 +1823,7 @@ async function processTask(task) {
         }
       }
       await page.screenshot({ path: screenshotPath, fullPage: true }).catch(() => {});
+      browserDiagnostics = await getBrowserEnvironmentDiagnostics(page).catch(() => browserDiagnostics || {});
     }
 
     let status = "dry_run_ready";
@@ -1827,6 +1872,8 @@ async function processTask(task) {
       submit_before_url: submitResult.beforeUrl,
       submit_after_url: submitResult.afterUrl,
       uploaded_resume: uploadedResume,
+      browser_diagnostics: browserDiagnostics,
+      intercept_final_submit: interceptFinalSubmit,
       application_answers_attempted: applicationAnswers.attempted,
       application_answers_filled: applicationAnswers.filled,
       application_choice_answers_attempted: applicationAnswers.choice_attempted,
