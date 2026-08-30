@@ -34380,6 +34380,24 @@
       return hasKnownApplicationWorkerSubmitRoute();
     }
 
+    function hasApplicationWorkerProAccess() {
+      return !!(isLoggedIn && hasPremiumAccess);
+    }
+
+    function renderApplicationWorkerAction(canWorkerSubmit) {
+      if (!canWorkerSubmit) {
+        return "";
+      }
+      if (hasApplicationWorkerProAccess()) {
+        return '<button type="button" class="sffc-crm-apply-chat__greenhouse-primary-action" data-sffc-application-worker-queue>Apply for me</button>';
+      }
+      return (
+        '<button type="button" class="sffc-crm-apply-chat__greenhouse-primary-action is-locked" data-sffc-application-worker-locked>' +
+        '<span class="sffc-crm-apply-chat__pro-badge">Pro+</span>' +
+        "Apply for me</button>"
+      );
+    }
+
     function isGreenhouseApplicationUrl(url) {
       return /(?:^|\/\/)(?:job-boards|boards)(?:\.eu)?\.greenhouse\.io\//i.test(
         cleanMessageText(url || "")
@@ -92282,34 +92300,17 @@
         var fallbackUrl = hostedUrl || "#";
         var hasSchemaSignals = getGreenhouseApplicationQuestionLabels(schema).length > 0;
         var canWorkerSubmit = hasApplicationWorkerSubmitCapability();
+        var hasWorkerProAccess = hasApplicationWorkerProAccess();
         var html =
           '<div class="sffc-crm-apply-chat__greenhouse-workspace">' +
           '<div class="sffc-crm-apply-chat__greenhouse-header">' +
           '<strong>' +
-          'Senna can apply for you</strong>' +
+          'Apply inside Senna</strong>' +
           '<span>' +
           (hasSchemaSignals
             ? 'I checked the ' + escapeHtml(providerLabel) + ' form and pulled out the main screening signals.'
             : 'I found the employer form and can keep it available here for review.') +
           '</span>' +
-          '</div>' +
-          '<div class="sffc-crm-apply-chat__greenhouse-primary">' +
-          '<div class="sffc-crm-apply-chat__greenhouse-primary-copy">' +
-          '<small>' +
-          (canWorkerSubmit ? 'Recommended' : 'Application form') +
-          '</small>' +
-          '<strong>' +
-          (canWorkerSubmit ? 'Let Senna complete this application' : 'Complete the employer form inside Senna') +
-          '</strong>' +
-          '<p>' +
-          (canWorkerSubmit
-            ? 'I’ll use your CV, name, and email, then ask any employer-required questions in a cleaner format before the worker submits the form.'
-            : 'The form is available here. I’ll keep the role context and screening signals beside it while you apply.') +
-          '</p>' +
-          '</div>' +
-          (canWorkerSubmit
-            ? '<button type="button" class="sffc-crm-apply-chat__greenhouse-primary-action" data-sffc-application-worker-queue>Apply for me</button>'
-            : '<a class="sffc-crm-apply-chat__greenhouse-primary-action" href="' + escapeHtml(fallbackUrl) + '" target="_blank" rel="noopener noreferrer">Open form</a>') +
           '</div>' +
           '<div class="sffc-crm-apply-chat__greenhouse-grid sffc-crm-apply-chat__greenhouse-grid--compact">' +
           '<div class="sffc-crm-apply-chat__greenhouse-answers">' +
@@ -92318,8 +92319,8 @@
           getGreenhouseApplicationInsightsHtml(schema) +
           '</ul>' +
           '</div>' +
-          '<details class="sffc-crm-apply-chat__greenhouse-preview">' +
-          '<summary><span>Preview employer form inside Senna</span><small>' +
+          '<details class="sffc-crm-apply-chat__greenhouse-preview" open>' +
+          '<summary><span>Employer form inside Senna</span><small>' +
           escapeHtml(providerLabel) +
           ' form</small></summary>' +
           '<div class="sffc-crm-apply-chat__greenhouse-frame-wrap">' +
@@ -92329,6 +92330,26 @@
           '</div>' +
           '</details>' +
           '</div>' +
+          '<div class="sffc-crm-apply-chat__greenhouse-primary">' +
+          '<div class="sffc-crm-apply-chat__greenhouse-primary-copy">' +
+          '<small>' +
+          (canWorkerSubmit ? 'Pro+ option' : 'Application form') +
+          '</small>' +
+          '<strong>' +
+          (canWorkerSubmit ? 'Want Senna to complete it for you?' : 'Complete the employer form inside Senna') +
+          '</strong>' +
+          '<p>' +
+          (canWorkerSubmit
+            ? hasWorkerProAccess
+              ? 'I’ll use your CV, name, and email, then ask any employer-required questions in a cleaner format before the worker submits the form.'
+              : 'Apply for me is available with a Pro+ subscription. You can still complete the embedded employer form here.'
+            : 'The form is available here. I’ll keep the role context and screening signals beside it while you apply.') +
+          '</p>' +
+          '</div>' +
+          (canWorkerSubmit
+            ? renderApplicationWorkerAction(canWorkerSubmit)
+            : '<a class="sffc-crm-apply-chat__greenhouse-primary-action" href="' + escapeHtml(fallbackUrl) + '" target="_blank" rel="noopener noreferrer">Open form</a>') +
+          '</div>' +
           '<div class="sffc-crm-apply-chat__greenhouse-actions">' +
           '<a href="' +
           escapeHtml(fallbackUrl) +
@@ -92337,7 +92358,7 @@
           '</div>' +
           '</div>';
         botMessage(html, humanComposeDelay("Application workspace ready.", 1000, 2200), function () {
-          focusComposer(canWorkerSubmit ? "Choose Apply for me, or preview the employer form" : "Preview the form, or tell me what you want to check");
+          focusComposer(canWorkerSubmit ? "Complete the form here, or choose Apply for me" : "Complete the form here, or tell me what you want to check");
         });
       }
 
@@ -96825,6 +96846,9 @@
       var applicationWorkerQueue = event.target.closest(
         "[data-sffc-application-worker-queue]"
       );
+      var applicationWorkerLocked = event.target.closest(
+        "[data-sffc-application-worker-locked]"
+      );
       if (greenhouseCopyAnswer) {
         event.preventDefault();
         copyTextToClipboard(
@@ -96923,8 +96947,33 @@
         );
         return;
       }
+      if (applicationWorkerLocked) {
+        event.preventDefault();
+        botMessage(
+          isLoggedIn
+            ? "Apply for me is a Pro+ feature. You can complete the employer form here, or upgrade to let Senna handle the submission for you."
+            : "Apply for me needs a Pro+ subscription. Create an account or sign in to use managed application submission.",
+          humanComposeDelay("Apply for me needs Pro+.", 900, 1800),
+          function () {
+            focusComposer("Complete the embedded form, or join Pro+ for Apply for me");
+          }
+        );
+        return;
+      }
       if (applicationWorkerQueue) {
         event.preventDefault();
+        if (!hasApplicationWorkerProAccess()) {
+          botMessage(
+            isLoggedIn
+              ? "Apply for me is a Pro+ feature. You can complete the employer form here, or upgrade to let Senna handle the submission for you."
+              : "Apply for me needs a Pro+ subscription. Create an account or sign in to use managed application submission.",
+            humanComposeDelay("Apply for me needs Pro+.", 900, 1800),
+            function () {
+              focusComposer("Complete the embedded form, or join Pro+ for Apply for me");
+            }
+          );
+          return;
+        }
         if (!hasApplicationWorkerSubmitCapability()) {
           botMessage(
             "This employer form can be completed inside Senna, but managed worker submission is not switched on for this provider yet.",

@@ -10615,6 +10615,28 @@ body.sffc-crm-apply-chat-lock {
   white-space: nowrap;
 }
 
+.sffc-crm-apply-chat__greenhouse-primary-action.is-locked {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+  border-color: #243b53;
+  background: #243b53;
+}
+
+.sffc-crm-apply-chat__pro-badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 22px;
+  padding: 0 8px;
+  border-radius: 999px;
+  background: #fff;
+  color: #0a66c2;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
 .sffc-crm-apply-chat__greenhouse-primary-action:disabled {
   opacity: 0.55;
   cursor: wait;
@@ -10632,7 +10654,8 @@ body.sffc-crm-apply-chat-lock {
 
 .sffc-crm-apply-chat__greenhouse-grid--compact {
   grid-template-columns: minmax(220px, 320px) minmax(0, 1fr);
-  min-height: 0;
+  min-height: 680px;
+  box-shadow: 0 16px 38px rgba(15, 23, 42, 0.1);
 }
 
 .sffc-crm-apply-chat__greenhouse-answers {
@@ -10734,14 +10757,14 @@ body.sffc-crm-apply-chat-lock {
 
 .sffc-crm-apply-chat__greenhouse-frame-wrap {
   min-width: 0;
-  min-height: 620px;
+  min-height: 680px;
   background: #fff;
 }
 
 .sffc-crm-apply-chat__greenhouse-frame {
   display: block;
   width: 100%;
-  height: 720px;
+  height: 760px;
   border: 0;
   background: #fff;
 }
