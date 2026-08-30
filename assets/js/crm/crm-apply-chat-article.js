@@ -18153,6 +18153,7 @@
     var applicationWorkspaceSchema = null;
     var applicationAnswerDraft = {};
     var applicationEmployerBulkAsked = false;
+    var pendingApplicationQuestionQueueCallback = null;
     var applicationVerificationCode = "";
     var applyChatSessionToken = "";
     var applyChatConversationId = 0;
@@ -89972,6 +89973,134 @@
         );
       }
 
+      function getEmployerQuestionControlHint(question, choices) {
+        var label = cleanGreenhouseAnswerText((question && question.label) || "");
+        if (choices.length) {
+          return "Choose one";
+        }
+        if (/salary|compensation|base pay|pay expectation/i.test(label)) {
+          return "e.g. 40,000";
+        }
+        if (/notice period|available to start/i.test(label)) {
+          return "e.g. 1 month";
+        }
+        if (/days.*office|office.*days|work from the office/i.test(label)) {
+          return "e.g. 4 days";
+        }
+        return "Type your answer";
+      }
+
+      function renderEmployerQuestionControl(question, schema) {
+        var key = getApplicationQuestionKey(question);
+        var number = getApplicationQuestionDisplayNumber(question, schema);
+        var label = cleanGreenhouseAnswerText((question && question.label) || key);
+        var displayLabel = getEmployerQuestionSimpleLabel(question);
+        var choices = getApplicationQuestionChoices(question);
+        var saved = cleanMessageText(applicationAnswerDraft[key] || "");
+        var html =
+          '<div class="sffc-crm-apply-chat__employer-question" data-sffc-employer-question data-key="' +
+          escapeHtml(key) +
+          '">' +
+          '<div class="sffc-crm-apply-chat__employer-question-head">' +
+          '<span>' +
+          number +
+          '</span>' +
+          '<strong>' +
+          escapeHtml(displayLabel) +
+          '</strong>' +
+          '</div>';
+        if (label && label !== displayLabel) {
+          html +=
+            '<details class="sffc-crm-apply-chat__employer-question-detail"><summary>View wording</summary><p>' +
+            escapeHtml(label) +
+            '</p></details>';
+        }
+        html += '<div class="sffc-crm-apply-chat__employer-question-control">';
+        if (choices.length && choices.length <= 6) {
+          html +=
+            '<input type="hidden" data-sffc-employer-answer data-key="' +
+            escapeHtml(key) +
+            '" value="' +
+            escapeHtml(saved) +
+            '">';
+          html += '<div class="sffc-crm-apply-chat__employer-choice-grid">';
+          choices.forEach(function (choice) {
+            var selected =
+              saved &&
+              cleanMessageText(choice).toLowerCase() === saved.toLowerCase();
+            html +=
+              '<button type="button" class="' +
+              (selected ? "is-selected" : "") +
+              '" data-sffc-employer-choice data-key="' +
+              escapeHtml(key) +
+              '" data-value="' +
+              escapeHtml(choice) +
+              '" aria-pressed="' +
+              (selected ? "true" : "false") +
+              '">' +
+              escapeHtml(choice) +
+              '</button>';
+          });
+          html += '</div>';
+        } else if (choices.length) {
+          html +=
+            '<select data-sffc-employer-answer data-key="' +
+            escapeHtml(key) +
+            '">' +
+            '<option value="">Choose one</option>';
+          choices.forEach(function (choice) {
+            var selected =
+              saved &&
+              cleanMessageText(choice).toLowerCase() === saved.toLowerCase();
+            html +=
+              '<option value="' +
+              escapeHtml(choice) +
+              '"' +
+              (selected ? " selected" : "") +
+              '>' +
+              escapeHtml(choice) +
+              '</option>';
+          });
+          html += '</select>';
+        } else {
+          html +=
+            '<input type="text" data-sffc-employer-answer data-key="' +
+            escapeHtml(key) +
+            '" value="' +
+            escapeHtml(saved) +
+            '" placeholder="' +
+            escapeHtml(getEmployerQuestionControlHint(question, choices)) +
+            '">';
+        }
+        html +=
+          '<small data-sffc-employer-question-error hidden>This answer is required.</small>' +
+          '</div>' +
+          '</div>';
+        return html;
+      }
+
+      function getEmployerQuestionPanelHtml(schema, remaining) {
+        var rows = remaining
+          .map(function (question) {
+            return renderEmployerQuestionControl(question, schema);
+          })
+          .join("");
+        return (
+          '<form class="sffc-crm-apply-chat__employer-form" data-sffc-employer-questions-form>' +
+          '<div class="sffc-crm-apply-chat__employer-form-head">' +
+          '<strong>Employer questions</strong>' +
+          '<span>Answer these so I can submit the application for you. Buttons use the exact employer options.</span>' +
+          '</div>' +
+          '<div class="sffc-crm-apply-chat__employer-form-list">' +
+          rows +
+          '</div>' +
+          '<div class="sffc-crm-apply-chat__employer-form-actions">' +
+          '<button type="submit" data-sffc-employer-questions-submit>Submit application</button>' +
+          '</div>' +
+          '</form>'
+        );
+      }
+
       function getPostApplicationSearchQuery() {
         var parts = [];
         var title = cleanMessageText(roleTitle || "");
@@ -90409,13 +90538,110 @@
         );
       }
 
+      function focusFirstEmployerQuestionInput() {
+        var panels = messages.querySelectorAll("[data-sffc-employer-questions-form]");
+        var panel = panels.length ? panels[panels.length - 1] : null;
+        var inputEl = panel
+          ? panel.querySelector("[data-sffc-employer-answer]")
+          : null;
+        if (inputEl && typeof inputEl.focus === "function") {
+          inputEl.focus();
+        } else {
+          focusComposer("Complete the employer questions");
+        }
+      }
+
+      function findEmployerQuestionAnswerField(form, key) {
+        var fields = form
+          ? form.querySelectorAll("[data-sffc-employer-answer]")
+          : [];
+        var cleanKey = String(key || "");
+        return (
+          Array.prototype.find.call(fields, function (field) {
+            return String(field.getAttribute("data-key") || "") === cleanKey;
+          }) || null
+        );
+      }
+
+      function findEmployerQuestionWrapper(form, key) {
+        var wrappers = form
+          ? form.querySelectorAll("[data-sffc-employer-question]")
+          : [];
+        var cleanKey = String(key || "");
+        return (
+          Array.prototype.find.call(wrappers, function (wrapper) {
+            return String(wrapper.getAttribute("data-key") || "") === cleanKey;
+          }) || null
+        );
+      }
+
+      function findEmployerQuestionChoiceButtons(form, key) {
+        var buttons = form
+          ? form.querySelectorAll("[data-sffc-employer-choice]")
+          : [];
+        var cleanKey = String(key || "");
+        return Array.prototype.filter.call(buttons, function (button) {
+          return String(button.getAttribute("data-key") || "") === cleanKey;
+        });
+      }
+
+      function collectEmployerQuestionPanelAnswers(form) {
+        var schema = applicationWorkspaceSchema || {};
+        var requiredQuestions = getApplicationUnansweredRequiredQuestions(schema);
+        var missing = [];
+        if (!form) {
+          return { valid: false, missing: requiredQuestions };
+        }
+        requiredQuestions.forEach(function (question) {
+          var key = getApplicationQuestionKey(question);
+          var choices = getApplicationQuestionChoices(question);
+          var field = findEmployerQuestionAnswerField(form, key);
+          var wrapper = findEmployerQuestionWrapper(form, key);
+          var error = wrapper
+            ? wrapper.querySelector("[data-sffc-employer-question-error]")
+            : null;
+          var answer = field ? cleanMessageText(field.value || "") : "";
+          answer = normalizeApplicationChoiceAnswer(answer, choices);
+          if (
+            choices.length &&
+            !choices.some(function (choice) {
+              return cleanMessageText(choice).toLowerCase() === answer.toLowerCase();
+            })
+          ) {
+            answer = "";
+          }
+          if (answer) {
+            applicationAnswerDraft[key] = answer;
+            if (wrapper) {
+              wrapper.classList.remove("is-missing");
+            }
+            if (error) {
+              error.hidden = true;
+            }
+          } else {
+            delete applicationAnswerDraft[key];
+            missing.push(question);
+            if (wrapper) {
+              wrapper.classList.add("is-missing");
+            }
+            if (error) {
+              error.hidden = false;
+            }
+          }
+        });
+        return {
+          valid: missing.length === 0,
+          missing: missing,
+        };
+      }
+
       function askBulkApplicationWorkerQuestions(startQueueCallback) {
         var schema = applicationWorkspaceSchema || {};
         var remaining = getApplicationUnansweredRequiredQuestions(schema);
-        var prompt = getEmployerQuestionBulkPrompt(schema, remaining);
         applicationEmployerBulkAsked = true;
+        pendingApplicationQuestionQueueCallback = startQueueCallback;
         botMessage(
-          prompt,
+          getEmployerQuestionPanelHtml(schema, remaining),
           humanComposeDelay("I need the employer-required details.", 1200, 2600),
           function () {
             setPromptState(
@@ -90431,7 +90657,7 @@
                       humanComposeDelay("Got it.", 900, 1800),
                       function () {
                         window.setTimeout(function () {
-                          askNextApplicationWorkerQuestion(startQueueCallback);
+                          ensureApplicationWorkerAnswersThenQueue(startQueueCallback);
                         }, randomBetween(450, 900));
                       },
                       humanReadDelay(value, 450)
@@ -90450,9 +90676,9 @@
                   );
                 },
               },
-              "Answer all details in one message"
+              "Complete the employer questions, or type the answers"
             );
-            focusComposer("Salary, notice, visa, local, education...");
+            focusFirstEmployerQuestionInput();
           }
         );
       }
@@ -94840,6 +95066,12 @@
       var greenhouseCompleted = event.target.closest(
         "[data-sffc-greenhouse-completed]"
       );
+      var employerChoice = event.target.closest(
+        "[data-sffc-employer-choice]"
+      );
+      var employerQuestionsSubmit = event.target.closest(
+        "[data-sffc-employer-questions-submit]"
+      );
       var applicationWorkerQueue = event.target.closest(
         "[data-sffc-application-worker-queue]"
       );
@@ -94856,6 +95088,76 @@
             }, 1200);
           })
           .catch(function () {});
+        return;
+      }
+      if (employerChoice) {
+        event.preventDefault();
+        var choiceKey = employerChoice.getAttribute("data-key") || "";
+        var choiceValue = employerChoice.getAttribute("data-value") || "";
+        var choiceForm = employerChoice.closest(
+          "[data-sffc-employer-questions-form]"
+        );
+        var choiceInput = findEmployerQuestionAnswerField(choiceForm, choiceKey);
+        if (choiceInput) {
+          choiceInput.value = choiceValue;
+        }
+        if (choiceForm) {
+          findEmployerQuestionChoiceButtons(choiceForm, choiceKey).forEach(function (button) {
+            var isSelected = button === employerChoice;
+            button.classList.toggle("is-selected", isSelected);
+            button.setAttribute("aria-pressed", isSelected ? "true" : "false");
+          });
+          var wrapper = employerChoice.closest("[data-sffc-employer-question]");
+          var error = wrapper
+            ? wrapper.querySelector("[data-sffc-employer-question-error]")
+            : null;
+          if (wrapper) {
+            wrapper.classList.remove("is-missing");
+          }
+          if (error) {
+            error.hidden = true;
+          }
+        }
+        return;
+      }
+      if (employerQuestionsSubmit) {
+        event.preventDefault();
+        var employerForm = employerQuestionsSubmit.closest(
+          "[data-sffc-employer-questions-form]"
+        );
+        var result = collectEmployerQuestionPanelAnswers(employerForm);
+        if (!result.valid) {
+          botMessage(
+            "I still need the highlighted employer answers before I can submit this.",
+            humanComposeDelay("Some employer answers are missing.", 900, 1800),
+            function () {
+              var firstMissing = employerForm
+                ? employerForm.querySelector(".sffc-crm-apply-chat__employer-question.is-missing [data-sffc-employer-answer]")
+                : null;
+              if (firstMissing && typeof firstMissing.focus === "function") {
+                firstMissing.focus();
+              } else {
+                focusComposer("Complete the highlighted answers");
+              }
+            }
+          );
+          return;
+        }
+        employerQuestionsSubmit.disabled = true;
+        clearPromptState();
+        botMessage(
+          "Got it. I’ve captured the employer answers and I’m queuing the application now.",
+          humanComposeDelay("Employer answers captured.", 900, 1800),
+          function () {
+            var callback = pendingApplicationQuestionQueueCallback;
+            pendingApplicationQuestionQueueCallback = null;
+            if (typeof callback === "function") {
+              callback();
+              return;
+            }
+            focusComposer("Click Apply for me again if needed");
+          }
+        );
         return;
       }
       if (greenhouseCompleted) {
@@ -95945,6 +96247,19 @@
     });
 
     root.addEventListener("submit", function (event) {
+      var employerQuestionsForm = event.target.closest(
+        "[data-sffc-employer-questions-form]"
+      );
+      if (employerQuestionsForm && root.contains(employerQuestionsForm)) {
+        event.preventDefault();
+        var submitButton = employerQuestionsForm.querySelector(
+          "[data-sffc-employer-questions-submit]"
+        );
+        if (submitButton) {
+          submitButton.click();
+        }
+        return;
+      }
       var applyForMeForm = event.target.closest("[data-sffc-apply-for-me-form]");
       if (!applyForMeForm || !root.contains(applyForMeForm)) {
         return;

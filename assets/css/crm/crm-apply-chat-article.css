@@ -10538,6 +10538,160 @@ body.sffc-crm-apply-chat-lock {
   background: #fff;
 }
 
+.sffc-crm-apply-chat__employer-form {
+  display: grid;
+  gap: 16px;
+  width: min(100%, 760px);
+  padding: 18px;
+  border: 1px solid #d7dee6;
+  border-radius: 8px;
+  background: #fff;
+  color: #1f2933;
+}
+
+.sffc-crm-apply-chat__employer-form-head {
+  display: grid;
+  gap: 4px;
+}
+
+.sffc-crm-apply-chat__employer-form-head strong {
+  font-size: 18px;
+  line-height: 1.25;
+}
+
+.sffc-crm-apply-chat__employer-form-head span {
+  color: #606b77;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.sffc-crm-apply-chat__employer-form-list {
+  display: grid;
+  gap: 12px;
+}
+
+.sffc-crm-apply-chat__employer-question {
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid #e1e6eb;
+  border-radius: 8px;
+  background: #f9fafb;
+}
+
+.sffc-crm-apply-chat__employer-question.is-missing {
+  border-color: #c7372f;
+  background: #fff8f7;
+}
+
+.sffc-crm-apply-chat__employer-question-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sffc-crm-apply-chat__employer-question-head span {
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 26px;
+  height: 26px;
+  border-radius: 999px;
+  background: #0a66c2;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.sffc-crm-apply-chat__employer-question-head strong {
+  font-size: 14px;
+  line-height: 1.3;
+}
+
+.sffc-crm-apply-chat__employer-question-detail {
+  color: #606b77;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.sffc-crm-apply-chat__employer-question-detail summary {
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.sffc-crm-apply-chat__employer-question-detail p {
+  margin: 8px 0 0;
+}
+
+.sffc-crm-apply-chat__employer-question-control {
+  display: grid;
+  gap: 6px;
+}
+
+.sffc-crm-apply-chat__employer-question-control input,
+.sffc-crm-apply-chat__employer-question-control select {
+  width: 100%;
+  min-height: 42px;
+  padding: 0 12px;
+  border: 1px solid #cfd7df;
+  border-radius: 8px;
+  background: #fff;
+  color: #1f2933;
+  font-size: 14px;
+}
+
+.sffc-crm-apply-chat__employer-choice-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.sffc-crm-apply-chat__employer-choice-grid button {
+  min-height: 38px;
+  padding: 0 12px;
+  border: 1px solid #cfd7df;
+  border-radius: 999px;
+  background: #fff;
+  color: #26323f;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.sffc-crm-apply-chat__employer-choice-grid button.is-selected {
+  border-color: #0a66c2;
+  background: #0a66c2;
+  color: #fff;
+}
+
+.sffc-crm-apply-chat__employer-question-control small {
+  color: #a12a24;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.sffc-crm-apply-chat__employer-form-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.sffc-crm-apply-chat__employer-form-actions button {
+  min-height: 42px;
+  padding: 0 18px;
+  border: 1px solid #0a66c2;
+  border-radius: 999px;
+  background: #0a66c2;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.sffc-crm-apply-chat__employer-form-actions button:disabled {
+  opacity: 0.55;
+  cursor: wait;
+}
+
 .sffc-crm-apply-chat__greenhouse-actions {
   display: flex;
   flex-wrap: wrap;
