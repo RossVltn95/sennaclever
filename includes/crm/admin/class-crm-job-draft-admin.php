@@ -950,6 +950,41 @@ class SFFC_CRM_Job_Draft_Admin {
                     border: 1px solid #cbd5e1;
                     color: #334155;
                 }
+
+                .sffc-crm-job-scanner .sffc-crm-job-embed-status-badge {
+                    display: inline-flex;
+                    align-items: center;
+                    min-height: 24px;
+                    padding: 3px 10px;
+                    border-radius: 999px;
+                    font-size: 11px;
+                    font-weight: 800;
+                    line-height: 1.2;
+                    letter-spacing: .04em;
+                    text-transform: uppercase;
+                    background: #f1f5f9;
+                    border: 1px solid #cbd5e1;
+                    color: #334155;
+                }
+
+                .sffc-crm-job-scanner .sffc-crm-job-embed-status-badge.is-embeddable,
+                .sffc-crm-job-scanner .sffc-crm-job-embed-status-badge.is-likely {
+                    background: #dcfce7;
+                    border-color: #86efac;
+                    color: #166534;
+                }
+
+                .sffc-crm-job-scanner .sffc-crm-job-embed-status-badge.is-blocked {
+                    background: #fee2e2;
+                    border-color: #fca5a5;
+                    color: #991b1b;
+                }
+
+                .sffc-crm-job-scanner .sffc-crm-job-embed-status-badge.is-unknown {
+                    background: #fef3c7;
+                    border-color: #fcd34d;
+                    color: #92400e;
+                }
             </style>
 
             <?php $this->render_notice(); ?>
@@ -1288,6 +1323,17 @@ class SFFC_CRM_Job_Draft_Admin {
         $cleanup_signals = $this->format_title_cleanup_signals($title_cleanup);
         $warning_badges = $this->get_draft_warning_badges($draft, $saved_group_ids, $suggested_group_ids);
         $audit_label = $this->get_draft_audit_label($draft);
+        $embed_url = trim((string) ($draft['application_url'] ?? ''));
+        if ($embed_url === '') {
+            $embed_url = trim((string) ($draft['source_url'] ?? ''));
+        }
+        $embed_badge = class_exists('SFFC_CRM_Admin')
+            ? SFFC_CRM_Admin::get_embed_test_result($embed_url, (string) ($draft['source_platform'] ?? ''))
+            : [
+                'label' => __('Embed unknown', 'senna-finance'),
+                'class' => 'is-unknown',
+                'detail' => __('No reliable embed signal was detected yet.', 'senna-finance'),
+            ];
         $card_body_id = 'sffc-crm-job-draft-card-body-' . absint($draft['id'] ?? 0);
         $card_border = $this->get_draft_card_border_style($status, !empty($warning_badges));
         $card_status_class = sanitize_html_class('sffc-crm-job-draft-card--' . ($status !== '' ? $status : 'new'));
@@ -1299,6 +1345,7 @@ class SFFC_CRM_Job_Draft_Admin {
                         <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin:0 0 8px;">
                             <input type="checkbox" form="sffc-crm-job-draft-bulk-form" name="draft_ids[]" value="<?php echo esc_attr($draft['id']); ?>" class="sffc-crm-job-draft-select" style="margin-right:8px;">
                             <span class="sffc-crm-job-draft-status-badge <?php echo esc_attr($status_badge['class']); ?>"><?php echo esc_html($status_badge['label']); ?></span>
+                            <span class="sffc-crm-job-embed-status-badge <?php echo esc_attr($embed_badge['class'] ?? 'is-unknown'); ?>" title="<?php echo esc_attr($embed_badge['detail'] ?? ''); ?>"><?php echo esc_html($embed_badge['label'] ?? __('Embed unknown', 'senna-finance')); ?></span>
                             <?php if (!empty($warning_badges)) : ?>
                                 <?php foreach ($warning_badges as $badge) : ?>
                                     <span style="display:inline-flex; align-items:center; min-height:22px; padding:3px 9px; border:1px solid <?php echo esc_attr($badge['border']); ?>; border-radius:999px; background:<?php echo esc_attr($badge['background']); ?>; color:<?php echo esc_attr($badge['color']); ?>; font-size:11px; line-height:1.2; font-weight:700; text-transform:uppercase;"><?php echo esc_html($badge['label']); ?></span>

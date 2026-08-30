@@ -53,6 +53,7 @@ class SFFC_CRM_Admin
         add_action('wp_ajax_sffc_crm_rewrite_post_content', [$this, 'ajax_rewrite_post_content']);
         add_action('wp_ajax_sffc_crm_autofill_post_fields_with_claude', [$this, 'ajax_autofill_post_fields_with_claude']);
         add_action('wp_ajax_sffc_crm_admin_search_recruiters', [$this, 'ajax_search_recruiters']);
+        add_action('wp_ajax_sffc_crm_test_embed_url', [$this, 'ajax_test_embed_url']);
         add_action('wp_ajax_sffc_crm_process_free_digest_build', [$this, 'ajax_process_free_digest_build']);
         add_action('wp_ajax_sffc_crm_process_free_digest_send', [$this, 'ajax_process_free_digest_send']);
     }
@@ -5590,6 +5591,72 @@ class SFFC_CRM_Admin
                     font-size: 12px;
                     line-height: 1.55;
                 }
+
+                .sffc-crm-embed-test {
+                    display: none;
+                    max-width: 980px;
+                    margin-top: 12px;
+                    border: 1px solid #dbe2ea;
+                    border-radius: 12px;
+                    overflow: hidden;
+                    background: #fff;
+                }
+
+                .sffc-crm-embed-test.is-active {
+                    display: block;
+                }
+
+                .sffc-crm-embed-test__bar {
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    gap: 10px;
+                    padding: 10px 12px;
+                    border-bottom: 1px solid #e2e8f0;
+                    background: #f8fafc;
+                }
+
+                .sffc-crm-embed-test__status {
+                    display: inline-flex;
+                    align-items: center;
+                    min-height: 24px;
+                    padding: 3px 10px;
+                    border-radius: 999px;
+                    font-size: 11px;
+                    font-weight: 800;
+                    letter-spacing: .04em;
+                    text-transform: uppercase;
+                    background: #f1f5f9;
+                    border: 1px solid #cbd5e1;
+                    color: #334155;
+                }
+
+                .sffc-crm-embed-test__status.is-embeddable,
+                .sffc-crm-embed-test__status.is-likely {
+                    background: #dcfce7;
+                    border-color: #86efac;
+                    color: #166534;
+                }
+
+                .sffc-crm-embed-test__status.is-blocked {
+                    background: #fee2e2;
+                    border-color: #fca5a5;
+                    color: #991b1b;
+                }
+
+                .sffc-crm-embed-test__copy {
+                    color: #475569;
+                    font-size: 12px;
+                    line-height: 1.45;
+                }
+
+                .sffc-crm-embed-test__frame {
+                    display: block;
+                    width: 100%;
+                    height: 680px;
+                    border: 0;
+                    background: #fff;
+                }
             </style>
 
             <?php if (isset($_GET['saved'])): ?>
@@ -6032,8 +6099,18 @@ class SFFC_CRM_Admin
                                 <button type="button" class="button button-secondary" id="format-application-mailto">
                                     <?php esc_html_e('Format Mailto', 'senna-finance'); ?>
                                 </button>
+                                <button type="button" class="button button-secondary" id="sffc-crm-test-embed-link">
+                                    <?php esc_html_e('Test Embed', 'senna-finance'); ?>
+                                </button>
                             </p>
                             <p class="description"><?php esc_html_e('Direct link where candidates can apply for this role', 'senna-finance'); ?></p>
+                            <div id="sffc-crm-embed-test" class="sffc-crm-embed-test" aria-live="polite">
+                                <div class="sffc-crm-embed-test__bar">
+                                    <span id="sffc-crm-embed-test-status" class="sffc-crm-embed-test__status"><?php esc_html_e('Not tested', 'senna-finance'); ?></span>
+                                    <span id="sffc-crm-embed-test-copy" class="sffc-crm-embed-test__copy"><?php esc_html_e('Use this to check whether the application page can appear inside the chat.', 'senna-finance'); ?></span>
+                                </div>
+                                <iframe id="sffc-crm-embed-test-frame" class="sffc-crm-embed-test__frame" title="<?php esc_attr_e('Application embed test preview', 'senna-finance'); ?>" loading="lazy"></iframe>
+                            </div>
                         </td>
                     </tr>
                     <tr>
@@ -7542,6 +7619,45 @@ class SFFC_CRM_Admin
                     runAutofill($button, function() {
                         $button.prop('disabled', false).text('<?php echo esc_js(__('Fetch Source + Auto-fill', 'senna-finance')); ?>');
                     }, 'claude');
+                });
+
+                $('#sffc-crm-test-embed-link').on('click', function() {
+                    var $button = $(this);
+                    var url = ($('#application_url').val() || $('#source_url').val() || '').trim();
+                    var provider = ($('#source_platform').val() || $('#source_platform_custom').val() || '').trim();
+                    var $panel = $('#sffc-crm-embed-test');
+                    var $status = $('#sffc-crm-embed-test-status');
+                    var $copy = $('#sffc-crm-embed-test-copy');
+                    var $frame = $('#sffc-crm-embed-test-frame');
+                    var nonce = $('input[name="sffc_crm_admin_nonce"]').first().val() || '';
+
+                    if (!url) {
+                        alert('<?php echo esc_js(__('Add an application URL first.', 'senna-finance')); ?>');
+                        return;
+                    }
+
+                    $panel.addClass('is-active');
+                    $status.removeClass('is-embeddable is-likely is-blocked is-unknown is-default').addClass('is-unknown').text('<?php echo esc_js(__('Testing...', 'senna-finance')); ?>');
+                    $copy.text('<?php echo esc_js(__('Checking response headers and loading the iframe preview.', 'senna-finance')); ?>');
+                    $frame.attr('src', url);
+                    $button.prop('disabled', true).text('<?php echo esc_js(__('Testing Embed...', 'senna-finance')); ?>');
+
+                    $.post(ajaxurl, {
+                        action: 'sffc_crm_test_embed_url',
+                        nonce: nonce,
+                        url: url,
+                        provider: provider
+                    }).done(function(response) {
+                        var data = response && response.success ? response.data || {} : {};
+                        var statusClass = data.class || 'is-unknown';
+                        $status.removeClass('is-embeddable is-likely is-blocked is-unknown is-default').addClass(statusClass).text(data.label || '<?php echo esc_js(__('Embed unknown', 'senna-finance')); ?>');
+                        $copy.text(data.detail || '<?php echo esc_js(__('Use the preview below to confirm whether the page visibly loads inside an iframe.', 'senna-finance')); ?>');
+                    }).fail(function() {
+                        $status.removeClass('is-embeddable is-likely is-blocked is-unknown is-default').addClass('is-unknown').text('<?php echo esc_js(__('Embed unknown', 'senna-finance')); ?>');
+                        $copy.text('<?php echo esc_js(__('The header check failed. Use the iframe preview below as the visual test.', 'senna-finance')); ?>');
+                    }).always(function() {
+                        $button.prop('disabled', false).text('<?php echo esc_js(__('Test Embed', 'senna-finance')); ?>');
+                    });
                 });
 
                 $('#sffc-crm-rewrite-post').on('click', function() {
@@ -14309,6 +14425,151 @@ class SFFC_CRM_Admin
         }
 
         return true;
+    }
+
+    public static function get_embed_test_result($url, $provider = '', $headers = [])
+    {
+        $url = trim((string) $url);
+        $provider = strtolower(trim((string) $provider));
+        $host = strtolower((string) wp_parse_url($url, PHP_URL_HOST));
+        $result = [
+            'status' => 'unknown',
+            'label' => __('Embed unknown', 'senna-finance'),
+            'class' => 'is-unknown',
+            'detail' => __('No reliable embed signal was detected yet.', 'senna-finance'),
+        ];
+
+        if ($url === '' || !preg_match('#^https?://#i', $url)) {
+            $result['status'] = 'missing';
+            $result['label'] = __('No embed link', 'senna-finance');
+            $result['class'] = 'is-default';
+            $result['detail'] = __('Add a valid https application URL before testing embed support.', 'senna-finance');
+            return $result;
+        }
+
+        $x_frame_options = strtolower(trim((string) ($headers['x-frame-options'] ?? '')));
+        $content_security_policy = strtolower(trim((string) ($headers['content-security-policy'] ?? '')));
+        if ($x_frame_options !== '' && preg_match('/\b(?:deny|sameorigin)\b/i', $x_frame_options)) {
+            $result['status'] = 'blocked';
+            $result['label'] = __('Embed blocked', 'senna-finance');
+            $result['class'] = 'is-blocked';
+            $result['detail'] = sprintf(__('The page sends X-Frame-Options: %s.', 'senna-finance'), $x_frame_options);
+            return $result;
+        }
+        if ($content_security_policy !== '' && preg_match('/frame-ancestors\s+([^;]+)/i', $content_security_policy, $matches)) {
+            $ancestors = trim((string) ($matches[1] ?? ''));
+            if ($ancestors !== '' && !preg_match('/\*|joinsenna\.com|senna/i', $ancestors)) {
+                $result['status'] = 'blocked';
+                $result['label'] = __('Embed blocked', 'senna-finance');
+                $result['class'] = 'is-blocked';
+                $result['detail'] = sprintf(__('The page restricts iframe parents with CSP frame-ancestors: %s.', 'senna-finance'), $ancestors);
+                return $result;
+            }
+        }
+
+        $clean_provider = str_replace(['_', '-'], ' ', $provider);
+        $known_blocked_provider = in_array($clean_provider, [
+            'ashby',
+            'smartrecruiters',
+            'oracle cx',
+            'oracle hcm',
+            'phenom',
+            'bayt careers',
+            'talentbrew',
+            'michael page',
+            'mubadala takafo',
+            'takafo',
+            'delta executive search',
+            'venture search',
+            'workday',
+        ], true);
+
+        $is_successfactors_embedded_apply = (
+            preg_match('/(?:successfactors\.(?:com|eu)|sapsf\.com)$/', $host) &&
+            preg_match('/[?&]career_ns=job_application\b/i', $url)
+        );
+
+        if (
+            preg_match('/(?:job-boards|boards)(?:\.eu)?\.greenhouse\.io$/', $host) ||
+            preg_match('/apply\.workable\.com$/', $host) ||
+            preg_match('/jobs\.lever\.co$/', $host) ||
+            $is_successfactors_embedded_apply
+        ) {
+            $result['status'] = 'embeddable';
+            $result['label'] = __('Embeddable', 'senna-finance');
+            $result['class'] = 'is-embeddable';
+            $result['detail'] = __('This application route is likely to work inside the Senna chat iframe.', 'senna-finance');
+            return $result;
+        }
+
+        if (
+            $known_blocked_provider ||
+            preg_match('/(?:ashbyhq|recruitee|teamtailor|smartrecruiters|comeet|oraclecloud|oracle|phenompeople|myworkdayjobs)\.com$/', $host) ||
+            preg_match('/(?:jobs\.adnoc\.ae|bayt\.com|careers\.(?:alrajhibank|gib|riyadbank|kafd)\.|talentbrew\.com|careers\.blackrock\.com|fishercareers\.com|michaelpage\.|mubadala\.com|takafo\.ai|deltaexec\.com|venturesearch\.com)$/', $host)
+        ) {
+            $result['status'] = 'blocked';
+            $result['label'] = __('Embed blocked', 'senna-finance');
+            $result['class'] = 'is-blocked';
+            $result['detail'] = __('This provider usually refuses cross-site iframes, so use external apply or worker testing instead.', 'senna-finance');
+            return $result;
+        }
+
+        if (!empty($headers)) {
+            $result['status'] = 'likely';
+            $result['label'] = __('Likely embeddable', 'senna-finance');
+            $result['class'] = 'is-likely';
+            $result['detail'] = __('No obvious iframe-blocking headers were returned. Use the preview to confirm visually.', 'senna-finance');
+        }
+
+        return $result;
+    }
+
+    public function ajax_test_embed_url()
+    {
+        $this->verify_admin_ajax();
+
+        $url = esc_url_raw((string) ($_POST['url'] ?? ''));
+        $provider = sanitize_text_field((string) ($_POST['provider'] ?? ''));
+        if ($url === '') {
+            wp_send_json_error(['message' => __('Add a URL first.', 'senna-finance')], 400);
+        }
+
+        $headers = [];
+        $response = wp_remote_head($url, [
+            'timeout' => 10,
+            'redirection' => 5,
+            'user-agent' => 'Mozilla/5.0 Senna Embed Tester',
+        ]);
+
+        if (is_wp_error($response)) {
+            $response = wp_remote_get($url, [
+                'timeout' => 10,
+                'redirection' => 5,
+                'user-agent' => 'Mozilla/5.0 Senna Embed Tester',
+            ]);
+        }
+
+        if (!is_wp_error($response)) {
+            $header_names = ['x-frame-options', 'content-security-policy'];
+            foreach ($header_names as $header_name) {
+                $value = wp_remote_retrieve_header($response, $header_name);
+                if (is_array($value)) {
+                    $value = implode(' ', array_map('strval', $value));
+                }
+                if (trim((string) $value) !== '') {
+                    $headers[$header_name] = trim((string) $value);
+                }
+            }
+        }
+
+        $result = self::get_embed_test_result($url, $provider, $headers);
+        $result['url'] = $url;
+        $result['headers'] = $headers;
+        if (is_wp_error($response)) {
+            $result['detail'] .= ' ' . sprintf(__('Header check failed: %s', 'senna-finance'), $response->get_error_message());
+        }
+
+        wp_send_json_success($result);
     }
 
     private function get_free_digest_build_payload($state, $result = [])
