@@ -4501,6 +4501,14 @@
         "review my cv",
         "check my cv",
         "check it first",
+        "show insights",
+        "surface insights",
+        "quick insights",
+        "profile insights",
+        "cv insights",
+        "role insights",
+        "what are the gaps",
+        "what is missing",
         "راجع cv",
         "شيك على cv",
         "review cv",
@@ -4724,6 +4732,17 @@
         "cv review",
         "resume review",
         "feedback on my cv",
+        "show insights",
+        "surface insights",
+        "quick insights",
+        "profile insights",
+        "cv insights",
+        "role insights",
+        "what are the gaps",
+        "what is missing",
+        "what's missing",
+        "whats missing",
+        "surface some insights",
         "review my resume",
         "راجع cv",
         "شيك على cv",
@@ -34701,6 +34720,11 @@
         { key: "healthcare", label: "Healthcare", query: "healthcare", weight: 3, phrases: ["patients", "clinical", "hospitals", "healthcare providers", "medical devices", "pharmaceuticals", "biotechnology", "clinical trials"] },
         { key: "logistics", label: "Logistics", query: "logistics", weight: 3, phrases: ["supply chain", "warehousing", "freight", "distribution", "fleet", "last-mile", "fulfilment", "transportation", "ports"] },
         { key: "hospitality_tourism", label: "Hospitality / Tourism", query: "hospitality tourism", weight: 3, phrases: ["hotels", "occupancy", "revpar", "adr", "rooms", "f&b", "hospitality operations", "tourism", "aviation", "airports"] },
+        { key: "engineering_industrials", label: "Engineering / Industrials", query: "engineering", weight: 3, phrases: ["mechanical engineer", "engineering", "cae", "fea", "cfd", "matlab", "ansys", "manufacturing", "production line", "plant", "factory", "lean manufacturing"] },
+        { key: "data_analytics", label: "Data / Analytics", query: "data analyst", weight: 3, phrases: ["data analyst", "data analytics", "sql", "python", "tableau", "power bi", "machine learning", "statistical modelling", "analytics"] },
+        { key: "sales_business_development", label: "Sales / Business Development", query: "business development", weight: 3, phrases: ["sales", "business development", "customer service", "account manager", "pipeline", "lead generation", "client acquisition", "revenue targets"] },
+        { key: "human_resources", label: "Human Resources", query: "human resources", weight: 3, phrases: ["human resources", "hr", "talent acquisition", "employee relations", "payroll", "people operations", "learning and development"] },
+        { key: "education", label: "Education", query: "education", weight: 3, phrases: ["education", "teaching", "students", "curriculum", "schools", "universities", "academic", "learning outcomes"] },
       ];
     }
 
@@ -34898,10 +34922,11 @@
       var queries = [];
 
       sectors.slice(0, 4).forEach(function (sector) {
-        queries.push(combineApplyForMeQuery(sector.query, seniority));
         queries.push(sector.query);
+        queries.push(combineApplyForMeQuery(sector.query, seniority));
       });
       functions.slice(0, 3).forEach(function (item) {
+        queries.push(item.query);
         queries.push(combineApplyForMeQuery(item.query, seniority));
       });
       if (seniority === "analyst" || seniority === "associate") {
@@ -82003,7 +82028,7 @@
 
       if (promptKey === "direct_apply_cv_review_offer") {
         if (
-          /(\bcareer assessment\b|\bassessment\b|\bcv review\b|\breview my cv\b|\bcheck my cv\b|\btailor my cv\b|\blinkedin\b|\bcertification\b|\bcredible case\b|\bcover letter\b|\bwrite the cover letter\b|\bprepare a cover letter\b)/i.test(
+          /(\bcareer assessment\b|\bassessment\b|\bcv review\b|\breview my cv\b|\bcheck my cv\b|\btailor my cv\b|\binsights?\b|\bsurface insights?\b|\bquick insights?\b|\blinkedin\b|\bcertification\b|\bcredible case\b|\bcover letter\b|\bwrite the cover letter\b|\bprepare a cover letter\b)/i.test(
             String(value || "")
           ) ||
           offScriptIntent === "review_cv"
@@ -83895,7 +83920,7 @@
               other: function (value) {
                 var clean = cleanMessageText(value || "").toLowerCase();
                 if (
-                  /(career assessment|assessment|cv review|review my cv|check my cv|review my profile|linkedin|certification|credible case|help me with this role|advice|feedback|am i a fit|fit for this|cover letter|tailor my cv)/i.test(
+                  /(career assessment|assessment|cv review|review my cv|check my cv|review my profile|insights?|surface insights?|quick insights?|linkedin|certification|credible case|help me with this role|advice|feedback|am i a fit|fit for this|cover letter|tailor my cv)/i.test(
                     clean
                   )
                 ) {
@@ -87073,6 +87098,48 @@
       return "";
     }
 
+    function getApplyQuickRoleInsightMessages(analysis) {
+      var backendInsights = (analysis && analysis.quick_role_insights) || [];
+      var messages = [];
+      backendInsights.forEach(function (item) {
+        var message = cleanMessageText(
+          item && item.message ? item.message : String(item || "")
+        );
+        if (message) {
+          messages.push(message);
+        }
+      });
+      if (!messages.length) {
+        getApplySecondaryGaps(analysis).forEach(function (gap) {
+          var label = cleanMessageText(gap && gap.label ? gap.label : "");
+          if (!label || messages.length >= 2) {
+            return;
+          }
+          messages.push(
+            "Worth noting: " +
+              label +
+              " is not obvious on the CV yet, so it may be worth checking before you apply."
+          );
+        });
+      }
+      return dedupeList(messages).slice(0, 2);
+    }
+
+    function renderApplyQuickRoleInsights(analysis) {
+      var messages = getApplyQuickRoleInsightMessages(analysis);
+      if (!messages.length) {
+        return "";
+      }
+      return (
+        messages
+          .map(function (message) {
+            return escapeHtml(message);
+          })
+          .join("<br>") +
+        "<br><br>Just let me know if you want me to do a full Career Assessment before you apply."
+      );
+    }
+
     function getReadableSignalLabels(signals, maxCount) {
       return dedupeList(
         (signals || []).map(getSignalLabel).filter(Boolean)
@@ -89172,6 +89239,7 @@
         askTailoringProceedQuestion();
       };
 
+      var quickInsightCopy = renderApplyQuickRoleInsights(analysis);
       botSequenceForCurrentTurn(
         [
           {
@@ -89189,7 +89257,15 @@
               3200
             ),
           },
-        ],
+        ].concat(quickInsightCopy ? [{
+            html: quickInsightCopy,
+            pause: 250,
+            delay: humanComposeDelay(
+              "I checked the role against the CV for quick application signals.",
+              1200,
+              2600
+            ),
+          }] : []),
         function () {
           applyCvReviewSkipped = true;
           window.setTimeout(askCoverLetterQuestion, randomBetween(650, 1200));

@@ -45215,6 +45215,8 @@ CRITICAL INSTRUCTIONS:
             ];
 
             $analysis['profile_review_ontology'] = $this->build_crm_apply_chat_profile_review_ontology($cv_text, '', [], $analysis);
+            $analysis['cv_signal_profile'] = $this->build_crm_apply_chat_cv_signal_profile($cv_text, '', [], $analysis);
+            $analysis['quick_role_insights'] = $this->build_crm_apply_chat_quick_role_insights($analysis);
 
             return $analysis;
         }
@@ -45325,8 +45327,249 @@ CRITICAL INSTRUCTIONS:
             ];
 
             $analysis['profile_review_ontology'] = $this->build_crm_apply_chat_profile_review_ontology($cv_text, $jd_text, $post, $analysis);
+            $analysis['cv_signal_profile'] = $this->build_crm_apply_chat_cv_signal_profile($cv_text, $jd_text, $post, $analysis);
+            $analysis['quick_role_insights'] = $this->build_crm_apply_chat_quick_role_insights($analysis);
 
             return $analysis;
+        }
+
+        private function build_crm_apply_chat_cv_signal_profile($cv_text, $jd_text = '', array $post = [], array $analysis = [])
+        {
+            $cv_norm = $this->normalize_crm_reddit_dashboard_cv_text((string) $cv_text);
+            $jd_norm = $this->normalize_crm_reddit_dashboard_cv_text(implode(' ', array_filter([
+                (string) $jd_text,
+                (string) ($post['role_title'] ?? ''),
+                (string) ($post['sector'] ?? ''),
+                (string) ($post['seniority'] ?? ''),
+            ])));
+            $score_terms = static function ($text, array $terms, $weight = 1) {
+                $score = 0;
+                $hits = [];
+                foreach ($terms as $term) {
+                    $term = trim((string) $term);
+                    if ($term === '') {
+                        continue;
+                    }
+                    $needle = preg_quote($term, '/');
+                    $count = preg_match_all('/\b' . $needle . '\b/i', $text, $matches);
+                    if ($count > 0) {
+                        $score += min(4, (int) $count) * (int) $weight;
+                        $hits[] = $term;
+                    }
+                }
+                return ['score' => $score, 'hits' => array_slice(array_values(array_unique($hits)), 0, 8)];
+            };
+
+            $seniority_groups = [
+                ['level' => 12, 'label' => 'C-suite', 'terms' => ['cfo', 'coo', 'cto', 'cio', 'cmo', 'cro', 'chro', 'ceo', 'founder ceo']],
+                ['level' => 11, 'label' => 'Head / Executive', 'terms' => ['global head', 'regional head', 'head of', 'general manager', 'president', 'svp', 'evp']],
+                ['level' => 10, 'label' => 'Managing Director / Partner', 'terms' => ['senior managing director', 'managing director', 'managing partner', 'equity partner', 'associate partner', 'partner']],
+                ['level' => 9, 'label' => 'Director', 'terms' => ['executive director', 'senior director', 'associate director', 'director']],
+                ['level' => 8, 'label' => 'VP / Principal', 'terms' => ['assistant vice president', 'vice president', 'senior principal', 'principal', 'vp', 'avp']],
+                ['level' => 7, 'label' => 'Senior Manager', 'terms' => ['senior manager', 'lead manager']],
+                ['level' => 6, 'label' => 'Manager', 'terms' => ['assistant manager', 'team manager', 'manager']],
+                ['level' => 5, 'label' => 'Senior Associate', 'terms' => ['senior associate', 'lead associate']],
+                ['level' => 4, 'label' => 'Associate', 'terms' => ['junior associate', 'associate']],
+                ['level' => 3, 'label' => 'Senior Analyst', 'terms' => ['senior analyst', 'lead analyst']],
+                ['level' => 2, 'label' => 'Analyst', 'terms' => ['investment analyst', 'research analyst', 'business analyst', 'financial analyst', 'junior analyst', 'analyst']],
+                ['level' => 1, 'label' => 'Entry / Graduate', 'terms' => ['graduate', 'junior', 'assistant', 'coordinator', 'administrator', 'officer']],
+                ['level' => 0, 'label' => 'Internship', 'terms' => ['apprentice', 'trainee', 'intern', 'internship', 'placement', 'work experience']],
+            ];
+            $action_groups = [
+                ['band' => 'support', 'level' => 1, 'weight' => 1, 'terms' => ['assisted', 'supported', 'helped', 'shadowed', 'participated', 'contributed', 'worked alongside', 'under supervision', 'gained exposure', 'helped prepare']],
+                ['band' => 'execute', 'level' => 3, 'weight' => 2, 'terms' => ['analysed', 'analyzed', 'built', 'prepared', 'modelled', 'modeled', 'researched', 'evaluated', 'calculated', 'forecasted', 'reviewed', 'monitored', 'identified', 'presented']],
+                ['band' => 'own', 'level' => 5, 'weight' => 3, 'terms' => ['owned', 'executed', 'delivered', 'managed workstream', 'managed workstreams', 'coordinated', 'drove execution', 'led analysis', 'managed process', 'reviewed junior work', 'mentored']],
+                ['band' => 'lead', 'level' => 8, 'weight' => 4, 'terms' => ['managed a team', 'led a team', 'supervised', 'coached', 'hired', 'developed team', 'allocated resources', 'managed performance', 'led transactions', 'originated', 'negotiated', 'approved', 'advised senior stakeholders']],
+                ['band' => 'direct', 'level' => 10, 'weight' => 5, 'terms' => ['defined strategy', 'set direction', 'set strategic direction', 'established', 'transformed', 'restructured', 'launched', 'expanded', 'entered new markets', 'owned p and l', 'owned pnl', 'generated revenue', 'won mandates', 'advised board', 'chaired']],
+            ];
+            $sector_groups = [
+                ['label' => 'Private Equity', 'terms' => ['lbo', 'leveraged buyout', 'moic', 'investment committee', 'portfolio company', 'value creation', 'bolt-on', 'add-on acquisition', 'buyout', 'investment thesis', 'exit'], 'weight' => 5],
+                ['label' => 'Investment Banking', 'terms' => ['investment banking', 'm&a', 'sell-side', 'buy-side', 'pitchbook', 'cim', 'information memorandum', 'fairness opinion', 'deal execution'], 'weight' => 4],
+                ['label' => 'Private Credit', 'terms' => ['direct lending', 'unitranche', 'senior secured', 'credit underwriting', 'covenant', 'debt capacity', 'interest coverage', 'credit committee'], 'weight' => 5],
+                ['label' => 'Asset Management', 'terms' => ['aum', 'portfolio management', 'fund performance', 'benchmark', 'alpha', 'asset allocation', 'investment mandate', 'institutional investors'], 'weight' => 4],
+                ['label' => 'Sovereign Investment', 'terms' => ['sovereign wealth fund', 'sovereign investments', 'national investment strategy', 'pif', 'mubadala', 'adia', 'adq', 'qia', 'gic', 'temasek'], 'weight' => 6],
+                ['label' => 'Family Office', 'terms' => ['family office', 'principal investments', 'family investments', 'family assets', 'strategic holdings'], 'weight' => 5],
+                ['label' => 'Islamic Finance', 'terms' => ['sharia', 'sharia compliant', 'sukuk', 'murabaha', 'ijara', 'musharaka', 'mudaraba', 'wakala'], 'weight' => 5],
+                ['label' => 'Infrastructure Investment', 'terms' => ['infrastructure assets', 'ppp', 'concessions', 'regulated assets', 'utilities', 'transport', 'digital infrastructure'], 'weight' => 5],
+                ['label' => 'Renewable Energy', 'terms' => ['solar', 'wind', 'bess', 'renewable energy', 'ppa', 'mw', 'gw', 'generation capacity', 'energy transition', 'clean energy', 'green hydrogen'], 'weight' => 5],
+                ['label' => 'Energy', 'terms' => ['oil and gas', 'upstream', 'downstream', 'lng', 'reserves', 'production', 'exploration', 'energy markets', 'noc'], 'weight' => 4],
+                ['label' => 'Corporate Finance', 'terms' => ['budgeting', 'forecasting', 'fp&a', 'management accounts', 'variance analysis', 'cash flow', 'business partnering'], 'weight' => 3],
+                ['label' => 'Risk & Compliance', 'terms' => ['risk management', 'market risk', 'credit risk', 'operational risk', 'var', 'stress testing', 'aml', 'kyc', 'sanctions', 'regulatory compliance'], 'weight' => 4],
+                ['label' => 'Insurance', 'terms' => ['insurance', 'underwriting', 'premiums', 'claims', 'loss ratio', 'combined ratio', 'actuarial', 'policyholders', 'reinsurance', 'solvency'], 'weight' => 4],
+                ['label' => 'Management Consulting', 'terms' => ['consulting', 'strategy consulting', 'management consulting', 'operating model', 'transformation', 'market assessment', 'stakeholder interviews', 'client engagement', 'workstream'], 'weight' => 4],
+                ['label' => 'Accounting / Audit', 'terms' => ['audit', 'ifrs', 'gaap', 'statutory accounts', 'financial statements', 'controls testing', 'substantive testing', 'audit procedures', 'month end', 'reconciliations'], 'weight' => 4],
+                ['label' => 'Legal', 'terms' => ['legal', 'law degree', 'jurisprudence', 'litigation', 'contracts', 'legal advice', 'regulatory counsel', 'disputes', 'legal research', 'compliance policies'], 'weight' => 3],
+                ['label' => 'Technology / Data', 'terms' => ['data analyst', 'data analytics', 'sql', 'python', 'tableau', 'power bi', 'machine learning', 'software', 'saas', 'cloud', 'api', 'digital transformation', 'erp'], 'weight' => 3],
+                ['label' => 'Engineering / Industrials', 'terms' => ['mechanical engineer', 'engineering', 'cae', 'fea', 'cfd', 'matlab', 'ansys', 'manufacturing', 'production line', 'plant', 'factory', 'lean manufacturing'], 'weight' => 3],
+                ['label' => 'Hospitality / Tourism', 'terms' => ['hospitality', 'restaurant', 'hotel', 'hotels', 'occupancy', 'revpar', 'adr', 'f&b', 'tourism', 'aviation', 'airports'], 'weight' => 3],
+                ['label' => 'Sales / Business Development', 'terms' => ['sales', 'business development', 'customer service', 'account manager', 'pipeline', 'lead generation', 'client acquisition', 'relationship management', 'revenue targets'], 'weight' => 3],
+                ['label' => 'Human Resources', 'terms' => ['human resources', 'hr', 'talent acquisition', 'recruitment', 'employee relations', 'payroll', 'people operations', 'learning and development'], 'weight' => 3],
+                ['label' => 'Education', 'terms' => ['education', 'teaching', 'students', 'curriculum', 'schools', 'universities', 'academic', 'learning outcomes'], 'weight' => 3],
+            ];
+
+            $seniority_scores = [];
+            foreach ($seniority_groups as $group) {
+                $result = $score_terms($cv_norm, (array) $group['terms'], (int) ($group['level'] >= 8 ? 4 : 3));
+                if ((int) $result['score'] > 0) {
+                    $seniority_scores[] = [
+                        'level' => (int) $group['level'],
+                        'label' => sanitize_text_field((string) $group['label']),
+                        'score' => (int) $result['score'],
+                        'hits' => array_map('sanitize_text_field', (array) $result['hits']),
+                    ];
+                }
+            }
+            usort($seniority_scores, static function ($left, $right) {
+                $score_compare = ((int) ($right['score'] ?? 0)) <=> ((int) ($left['score'] ?? 0));
+                return $score_compare !== 0 ? $score_compare : (((int) ($right['level'] ?? 0)) <=> ((int) ($left['level'] ?? 0)));
+            });
+
+            $action_scores = [];
+            foreach ($action_groups as $group) {
+                $result = $score_terms($cv_norm, (array) $group['terms'], (int) $group['weight']);
+                if ((int) $result['score'] > 0) {
+                    $action_scores[] = [
+                        'band' => sanitize_key((string) $group['band']),
+                        'level' => (int) $group['level'],
+                        'score' => (int) $result['score'],
+                        'hits' => array_map('sanitize_text_field', (array) $result['hits']),
+                    ];
+                }
+            }
+            usort($action_scores, static function ($left, $right) {
+                $score_compare = ((int) ($right['score'] ?? 0)) <=> ((int) ($left['score'] ?? 0));
+                return $score_compare !== 0 ? $score_compare : (((int) ($right['level'] ?? 0)) <=> ((int) ($left['level'] ?? 0)));
+            });
+
+            $title_level = isset($seniority_scores[0]) ? (int) $seniority_scores[0]['level'] : null;
+            $action_level = isset($action_scores[0]) ? (int) $action_scores[0]['level'] : 2;
+            if (preg_match('/\b(managed|led|supervised|mentored|coached)\s+(?:a\s+)?team\s+(?:of\s+)?\d+/i', $cv_norm)) {
+                $action_level = max($action_level, 7);
+            }
+            if (preg_match('/\b(board|investment committee|executive committee|c suite|senior stakeholders)\b/i', $cv_norm)) {
+                $action_level = max($action_level, 7);
+            }
+            if (preg_match('/\b([£$€]\s?\d+|\d+(?:\.\d+)?\s?(?:m|mm|bn|million|billion))\b/i', $cv_norm) && preg_match('/\b(owned|delivered|generated|grew|secured|raised|won|reduced|increased|managed)\b/i', $cv_norm)) {
+                $action_level = max($action_level, 8);
+            }
+            $demonstrated_level = $title_level === null ? $action_level : (int) round(($title_level * 0.65) + ($action_level * 0.35));
+
+            $sector_scores = [];
+            foreach ($sector_groups as $group) {
+                $result = $score_terms($cv_norm, (array) $group['terms'], (int) $group['weight']);
+                $role_result = $score_terms($jd_norm, (array) $group['terms'], (int) $group['weight']);
+                if ((int) $result['score'] > 0 || (int) $role_result['score'] > 0) {
+                    $sector_scores[] = [
+                        'label' => sanitize_text_field((string) $group['label']),
+                        'cv_score' => (int) $result['score'],
+                        'role_score' => (int) $role_result['score'],
+                        'hits' => array_map('sanitize_text_field', (array) $result['hits']),
+                    ];
+                }
+            }
+            usort($sector_scores, static function ($left, $right) {
+                return ((int) ($right['cv_score'] ?? 0)) <=> ((int) ($left['cv_score'] ?? 0));
+            });
+
+            $level_label = 'Analyst';
+            if ($demonstrated_level >= 10) {
+                $level_label = 'Director+';
+            } elseif ($demonstrated_level >= 8) {
+                $level_label = 'VP / Principal';
+            } elseif ($demonstrated_level >= 6) {
+                $level_label = 'Manager';
+            } elseif ($demonstrated_level >= 4) {
+                $level_label = 'Associate';
+            } elseif ($demonstrated_level <= 1) {
+                $level_label = 'Entry / Graduate';
+            }
+
+            return [
+                'seniority' => [
+                    'title_level' => $title_level,
+                    'title_label' => sanitize_text_field((string) ($seniority_scores[0]['label'] ?? '')),
+                    'demonstrated_level' => $demonstrated_level,
+                    'demonstrated_label' => $level_label,
+                    'action_band' => sanitize_text_field((string) ($action_scores[0]['band'] ?? '')),
+                    'title_signals' => array_slice($seniority_scores, 0, 4),
+                    'action_signals' => array_slice($action_scores, 0, 4),
+                ],
+                'sectors' => array_slice($sector_scores, 0, 6),
+                'summary' => sprintf(__('CV reads closest to %1$s level, with strongest detected sector evidence around %2$s.', 'senna-finance'), $level_label, !empty($sector_scores[0]['label']) ? (string) $sector_scores[0]['label'] : __('general finance', 'senna-finance')),
+            ];
+        }
+
+        private function build_crm_apply_chat_quick_role_insights(array $analysis)
+        {
+            $insights = [];
+            $add = static function ($message, $tone = 'watch', $type = 'general') use (&$insights) {
+                $message = trim(wp_strip_all_tags((string) $message));
+                if ($message === '') {
+                    return;
+                }
+                foreach ($insights as $existing) {
+                    if (strcasecmp((string) ($existing['message'] ?? ''), $message) === 0) {
+                        return;
+                    }
+                }
+                $insights[] = [
+                    'message' => sanitize_text_field($message),
+                    'tone' => sanitize_key($tone),
+                    'type' => sanitize_key($type),
+                ];
+            };
+
+            foreach ((array) ($analysis['requirement_gaps'] ?? []) as $gap) {
+                if (!is_array($gap)) {
+                    continue;
+                }
+                $type = sanitize_key((string) ($gap['type'] ?? ''));
+                $label = trim((string) ($gap['label'] ?? ''));
+                if ($label === '') {
+                    continue;
+                }
+                if ($type === 'language') {
+                    $add(sprintf(__('Heads up: this role appears to require %s, but I cannot see it clearly on the CV.', 'senna-finance'), $label), 'gap', 'language');
+                    continue;
+                }
+                if ($type === 'work_authorization') {
+                    $add(__('Heads up: work authorization or location readiness may be screened, and it is not clear from the CV yet.', 'senna-finance'), 'gap', 'work_authorization');
+                    continue;
+                }
+                if ($type === 'qualification') {
+                    $add(sprintf(__('Heads up: %s appears relevant to this role, but I cannot see it clearly on the CV.', 'senna-finance'), $label), 'gap', 'qualification');
+                    continue;
+                }
+            }
+
+            foreach ((array) ($analysis['unconfirmed_signals'] ?? []) as $signal) {
+                if (!is_array($signal) || count($insights) >= 2) {
+                    break;
+                }
+                $category = sanitize_key((string) ($signal['category'] ?? ''));
+                $label = trim((string) ($signal['label'] ?? ''));
+                if ($label === '' || in_array($category, ['language', 'credential', 'soft_signal'], true)) {
+                    continue;
+                }
+                $add(sprintf(__('Worth noting: the role asks for %s, but the CV does not make that obvious yet.', 'senna-finance'), $label), 'watch', 'missing_signal');
+            }
+
+            if (count($insights) < 2) {
+                $profile = (array) ($analysis['cv_signal_profile'] ?? []);
+                $summary = trim((string) ($profile['summary'] ?? ''));
+                if ($summary !== '') {
+                    $add($summary, 'strong', 'profile_signal');
+                }
+            }
+
+            if (empty($insights)) {
+                $matched = array_values(array_filter(array_map('strval', (array) ($analysis['matched_keywords'] ?? []))));
+                if (!empty($matched)) {
+                    $add(sprintf(__('Good signal: the CV already shows %s for this role.', 'senna-finance'), implode(', ', array_slice($matched, 0, 2))), 'strong', 'matched_signal');
+                }
+            }
+
+            return array_slice($insights, 0, 2);
         }
 
         private function build_crm_apply_chat_profile_review_ontology($cv_text, $jd_text, array $post = [], array $analysis = [])
@@ -47673,13 +47916,13 @@ CRITICAL INSTRUCTIONS:
         private function is_crm_apply_chat_cv_experience_section_heading($line)
         {
             $line = trim((string) $line);
-            return (bool) preg_match('/^(Professional\s+Experience|Work\s+Experience|Employment\s+History|Career\s+History|Experience)$/i', $line);
+            return (bool) preg_match('/^(Professional\s+Experience|Work\s+Experience|Employment\s+History|Career\s+History|Relevant\s+Experience|Selected\s+Experience|Professional\s+History|Work\s+History|Experience(?:\s*&\s*(?:Projects|Leadership|Achievements))?|Career\s+Experience|Employment\s+Experience)$/i', $line);
         }
 
         private function is_crm_apply_chat_cv_non_experience_section_heading($line)
         {
             $line = trim((string) $line);
-            return (bool) preg_match('/^(Education(?:\s*&\s*Qualifications)?|Education\s+and\s+Qualifications|Qualifications|Skills|Core\s+Competencies|Languages|Certifications|References|Training|Courses|Professional\s+Development)$/i', $line);
+            return (bool) preg_match('/^(Education(?:\s*&\s*Qualifications)?|Education\s+and\s+Qualifications|Academic\s+Background|Qualifications|Skills|Core\s+Competencies|Technical\s+Skills|Languages|Certifications|References|Training|Courses|Professional\s+Development|Interests|Additional\s+Information|Awards|Publications)$/i', $line);
         }
 
         private function extract_crm_apply_chat_required_years(array $post, $jd_text)
@@ -47735,6 +47978,22 @@ CRITICAL INSTRUCTIONS:
                 }
             }
 
+            foreach ($this->extract_crm_apply_chat_required_languages($jd_text, $post) as $language) {
+                $language_needles = [
+                    strtolower((string) $language),
+                    'fluent ' . strtolower((string) $language),
+                    'native ' . strtolower((string) $language),
+                    strtolower((string) $language) . ' speaker',
+                ];
+                if (!$this->crm_apply_chat_cv_mentions_requirement($cv_norm, $language_needles)) {
+                    $gaps[] = [
+                        'type' => 'language',
+                        'label' => (string) $language,
+                        'message' => sprintf(__('The role appears to require %s, but I cannot see it clearly on the CV yet.', 'senna-finance'), (string) $language),
+                    ];
+                }
+            }
+
             foreach ($this->extract_crm_apply_chat_required_qualifications($jd_text, $post) as $qualification) {
                 if (!$this->crm_apply_chat_cv_mentions_requirement($cv_norm, (array) ($qualification['needles'] ?? []))) {
                     $gaps[] = [
@@ -47745,7 +48004,23 @@ CRITICAL INSTRUCTIONS:
                 }
             }
 
-            return array_slice($gaps, 0, 4);
+            $deduped = [];
+            $seen = [];
+            foreach ($gaps as $gap) {
+                if (!is_array($gap)) {
+                    continue;
+                }
+                $key = sanitize_key(((string) ($gap['type'] ?? '')) . '_' . strtolower((string) ($gap['label'] ?? '')));
+                if ($key !== '_' && isset($seen[$key])) {
+                    continue;
+                }
+                if ($key !== '_') {
+                    $seen[$key] = true;
+                }
+                $deduped[] = $gap;
+            }
+
+            return array_slice($deduped, 0, 4);
         }
 
         private function parse_crm_apply_chat_required_years_range($required_years)
@@ -47780,6 +48055,7 @@ CRITICAL INSTRUCTIONS:
                 'English' => ['english', 'fluent english'],
                 'French' => ['french'],
                 'German' => ['german'],
+                'Dutch' => ['dutch'],
                 'Italian' => ['italian'],
                 'Spanish' => ['spanish'],
                 'Mandarin' => ['mandarin', 'chinese'],
@@ -47787,6 +48063,7 @@ CRITICAL INSTRUCTIONS:
                 'Korean' => ['korean'],
                 'Hindi' => ['hindi'],
                 'Portuguese' => ['portuguese'],
+                'Turkish' => ['turkish'],
             ];
             $required = [];
             $haystack_norm = $this->normalize_crm_reddit_dashboard_cv_text($haystack);
