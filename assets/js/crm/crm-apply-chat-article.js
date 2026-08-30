@@ -34522,50 +34522,432 @@
         });
     }
 
-    function getApplyForMeSearchTermsFromCvText() {
-      var clean = cleanMessageText(capturedCvText || "").toLowerCase();
-      var terms = [];
-      [
-        "investment analyst",
-        "financial analyst",
-        "private equity associate",
-        "investment associate",
-        "portfolio manager",
-        "finance manager",
-        "asset management",
-        "private equity",
-        "investment banking",
-        "corporate finance",
-        "credit analyst",
-        "risk analyst",
-        "analyst",
-        "associate",
-        "manager",
-      ].forEach(function (term) {
-        if (clean.indexOf(term) !== -1 && terms.indexOf(term) === -1) {
-          terms.push(term);
-        }
-      });
-      return terms.slice(0, 3).join(" ");
+    function fetchActualJobPostsWithFallbacks(queries, limit) {
+      var candidates = uniqueCleanItems(
+        Array.isArray(queries) ? queries : [queries]
+      );
+      var attempted = [];
+
+      function run(index) {
+        var query = candidates[index] || "finance";
+        attempted.push(query);
+        return fetchActualJobPosts(query, limit).then(function (items) {
+          if (items && items.length) {
+            return {
+              items: items,
+              query: query,
+              attempted: attempted,
+            };
+          }
+          if (index + 1 < candidates.length) {
+            return run(index + 1);
+          }
+          return {
+            items: [],
+            query: query,
+            attempted: attempted,
+          };
+        });
+      }
+
+      return run(0);
     }
 
-    function getApplyForMeRoleDiscoveryQuery(analysis) {
+    function normalizeApplyForMeSignalText(value) {
+      return cleanMessageText(value || "")
+        .toLowerCase()
+        .replace(/[’']/g, "'")
+        .replace(/&/g, " and ")
+        .replace(/[_/]+/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+    }
+
+    function uniqueCleanItems(items) {
+      var seen = {};
+      var output = [];
+      (items || []).forEach(function (item) {
+        var clean = cleanMessageText(item || "");
+        var key = clean.toLowerCase();
+        if (!clean || seen[key]) {
+          return;
+        }
+        seen[key] = true;
+        output.push(clean);
+      });
+      return output;
+    }
+
+    function applyForMePhraseCount(text, phrase) {
+      var normalized = normalizeApplyForMeSignalText(phrase);
+      var escaped;
+      if (!text || !normalized) {
+        return 0;
+      }
+      escaped = normalized.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      return (text.match(new RegExp("\\b" + escaped + "\\b", "g")) || [])
+        .length;
+    }
+
+    function scoreApplyForMeSignalGroup(text, signals) {
+      var score = 0;
+      var hits = [];
+      (signals || []).forEach(function (signal) {
+        var phrases = signal.phrases || [];
+        var weight = Number(signal.weight || 1);
+        phrases.forEach(function (phrase) {
+          var count = applyForMePhraseCount(text, phrase);
+          if (!count) {
+            return;
+          }
+          score += Math.min(count, 4) * weight;
+          hits.push(phrase);
+        });
+      });
+      return {
+        score: score,
+        hits: uniqueCleanItems(hits).slice(0, 8),
+      };
+    }
+
+    function getApplyForMeSenioritySignals() {
+      return [
+        { level: 12, label: "C-suite", terms: ["cfo", "coo", "cto", "cio", "cmo", "cro", "chro", "ceo", "founder ceo"] },
+        { level: 11, label: "Head / Executive", terms: ["global head", "regional head", "head of", "general manager", "president", "svp", "evp"] },
+        { level: 10, label: "Managing Director / Partner", terms: ["senior managing director", "managing director", "managing partner", "equity partner", "associate partner", "partner"] },
+        { level: 9, label: "Director", terms: ["executive director", "senior director", "associate director", "director"] },
+        { level: 8, label: "VP / Principal", terms: ["assistant vice president", "vice president", "senior principal", "principal", "vp", "avp"] },
+        { level: 7, label: "Senior Manager", terms: ["senior manager", "lead manager"] },
+        { level: 6, label: "Manager", terms: ["assistant manager", "team manager", "manager"] },
+        { level: 5, label: "Senior Associate", terms: ["senior associate", "lead associate"] },
+        { level: 4, label: "Associate", terms: ["junior associate", "associate"] },
+        { level: 3, label: "Senior Analyst", terms: ["senior analyst", "lead analyst"] },
+        { level: 2, label: "Analyst", terms: ["investment analyst", "research analyst", "business analyst", "financial analyst", "junior analyst", "analyst"] },
+        { level: 1, label: "Entry / Graduate", terms: ["graduate", "junior", "assistant", "coordinator", "administrator", "officer"] },
+        { level: 0, label: "Internship", terms: ["apprentice", "trainee", "intern", "internship", "placement", "work experience"] },
+      ];
+    }
+
+    function getApplyForMeActionSignalGroups() {
+      return [
+        {
+          band: "support",
+          level: 1,
+          weight: 1,
+          terms: ["assisted", "supported", "helped", "shadowed", "participated", "contributed", "worked alongside", "under supervision", "gained exposure", "helped prepare"],
+        },
+        {
+          band: "execute",
+          level: 3,
+          weight: 2,
+          terms: ["analysed", "analyzed", "built", "prepared", "modelled", "modeled", "researched", "evaluated", "calculated", "forecasted", "reviewed", "monitored", "identified", "presented"],
+        },
+        {
+          band: "own",
+          level: 5,
+          weight: 3,
+          terms: ["owned", "executed", "delivered", "managed workstream", "managed workstreams", "coordinated", "drove execution", "led analysis", "managed process", "reviewed junior work", "mentored"],
+        },
+        {
+          band: "lead",
+          level: 8,
+          weight: 4,
+          terms: ["managed a team", "led a team", "supervised", "coached", "hired", "developed team", "allocated resources", "managed performance", "led transactions", "originated", "negotiated", "approved", "advised senior stakeholders"],
+        },
+        {
+          band: "direct",
+          level: 10,
+          weight: 5,
+          terms: ["defined strategy", "set direction", "set strategic direction", "established", "transformed", "restructured", "launched", "expanded", "entered new markets", "owned p and l", "owned pnl", "generated revenue", "won mandates", "advised board", "chaired"],
+        },
+      ];
+    }
+
+    function getApplyForMeSectorSignals() {
+      return [
+        { key: "private_equity", label: "Private Equity", query: "private equity", weight: 5, phrases: ["lbo", "leveraged buyout", "moic", "investment committee", "portfolio company", "value creation", "bolt-on", "add-on acquisition", "buyout", "investment thesis", "exit"] },
+        { key: "growth_equity", label: "Growth Equity", query: "growth equity", weight: 5, phrases: ["growth investment", "minority investment", "growth capital", "unit economics", "tam", "cohort analysis", "recurring revenue", "arr", "series c", "series d"] },
+        { key: "venture_capital", label: "Venture Capital", query: "venture capital", weight: 5, phrases: ["seed", "series a", "series b", "startup", "startups", "founder", "venture", "cap table", "term sheet", "follow-on", "product-market fit"] },
+        { key: "private_credit", label: "Private Credit", query: "private credit", weight: 5, phrases: ["direct lending", "unitranche", "senior secured", "credit underwriting", "covenant", "debt capacity", "interest coverage", "credit committee", "leveraged loans"] },
+        { key: "investment_banking", label: "Investment Banking", query: "investment banking", weight: 4, phrases: ["investment banking", "m&a", "sell-side", "buy-side", "pitchbook", "cim", "information memorandum", "fairness opinion", "deal execution", "buyer list"] },
+        { key: "ecm", label: "ECM", query: "equity capital markets", weight: 5, phrases: ["ipo", "equity offering", "rights issue", "follow-on offering", "bookbuilding", "equity capital markets", "prospectus", "investor roadshow", "adx", "dfm", "tadawul"] },
+        { key: "dcm", label: "DCM", query: "debt capital markets", weight: 5, phrases: ["bond issuance", "debt issuance", "dcm", "refinancing", "credit rating", "sukuk", "issuance programme"] },
+        { key: "transaction_services", label: "Transaction Services / FDD", query: "transaction services", weight: 5, phrases: ["financial due diligence", "fdd", "qoe", "quality of earnings", "net debt", "working capital", "ebitda adjustments", "transaction services", "deal advisory"] },
+        { key: "asset_management", label: "Asset Management", query: "asset management", weight: 4, phrases: ["aum", "portfolio management", "fund performance", "benchmark", "alpha", "asset allocation", "investment mandate", "institutional investors", "stock selection"] },
+        { key: "hedge_fund", label: "Hedge Fund", query: "hedge fund", weight: 5, phrases: ["long/short", "short thesis", "gross exposure", "net exposure", "portfolio exposure", "p&l", "alpha generation", "systematic", "statistical arbitrage"] },
+        { key: "wealth_management", label: "Wealth Management", query: "wealth management", weight: 5, phrases: ["hnw", "uhnw", "private clients", "wealth planning", "discretionary portfolios", "investment advisory", "client assets", "relationship manager"] },
+        { key: "corporate_banking", label: "Corporate Banking", query: "corporate banking", weight: 4, phrases: ["corporate clients", "credit facilities", "working capital facility", "revolving credit facility", "corporate lending", "relationship management", "loan book"] },
+        { key: "corporate_finance", label: "Corporate Finance", query: "corporate finance", weight: 3, phrases: ["budgeting", "forecasting", "fp&a", "management accounts", "variance analysis", "working capital", "cash flow", "business partnering"] },
+        { key: "risk_compliance", label: "Risk & Compliance", query: "risk compliance", weight: 4, phrases: ["risk management", "market risk", "credit risk", "operational risk", "var", "stress testing", "aml", "kyc", "sanctions", "regulatory compliance"] },
+        { key: "real_estate", label: "Real Estate Investment", query: "real estate investment", weight: 5, phrases: ["real estate acquisitions", "property portfolio", "cap rate", "yield", "noi", "occupancy", "rent roll", "property valuation", "development appraisal", "gdv"] },
+        { key: "infrastructure", label: "Infrastructure Investment", query: "infrastructure investment", weight: 5, phrases: ["infrastructure assets", "ppp", "concessions", "regulated assets", "utilities", "transport", "digital infrastructure", "availability payments"] },
+        { key: "renewable_energy", label: "Renewable Energy", query: "renewable energy", weight: 5, phrases: ["solar", "wind", "bess", "renewable energy", "ppa", "mw", "gw", "generation capacity", "grid connection", "energy transition", "clean energy", "green hydrogen"] },
+        { key: "energy", label: "Energy", query: "energy", weight: 4, phrases: ["oil and gas", "oil & gas", "upstream", "downstream", "lng", "reserves", "production", "exploration", "commodities", "energy markets", "noc"] },
+        { key: "project_finance", label: "Project Finance", query: "project finance", weight: 5, phrases: ["project finance", "dscr", "project cash flows", "financial close", "spv", "concession agreement", "debt sizing", "project debt", "eca financing"] },
+        { key: "sovereign_investment", label: "Sovereign Investment", query: "sovereign investment", weight: 6, phrases: ["sovereign wealth fund", "sovereign investments", "strategic investments", "national investment strategy", "pif", "mubadala", "adia", "adq", "qia", "gic", "temasek"] },
+        { key: "family_office", label: "Family Office", query: "family office", weight: 5, phrases: ["family office", "principal investments", "family investments", "family assets", "strategic holdings", "wealth preservation"] },
+        { key: "islamic_finance", label: "Islamic Finance", query: "islamic finance", weight: 5, phrases: ["sharia", "sharia-compliant", "sukuk", "murabaha", "ijara", "musharaka", "mudaraba", "wakala"] },
+        { key: "government_gre", label: "Government / GRE", query: "government investment", weight: 5, phrases: ["government-related entity", "gre", "vision 2030", "national transformation", "economic development", "giga-project", "national champions"] },
+        { key: "management_consulting", label: "Management Consulting", query: "management consulting", weight: 4, phrases: ["strategy consulting", "management consulting", "operating model", "transformation", "market assessment", "stakeholder interviews", "client engagement", "workstream", "implementation roadmap"] },
+        { key: "accounting_audit", label: "Accounting / Audit", query: "accounting audit", weight: 4, phrases: ["audit", "ifrs", "gaap", "statutory accounts", "financial statements", "controls testing", "substantive testing", "audit procedures", "materiality", "month-end", "reconciliations"] },
+        { key: "insurance", label: "Insurance", query: "insurance", weight: 4, phrases: ["insurance", "underwriting", "premiums", "claims", "loss ratio", "combined ratio", "actuarial", "policyholders", "reinsurance", "solvency"] },
+        { key: "consumer_retail", label: "Consumer / Retail", query: "consumer retail", weight: 3, phrases: ["retail", "fmcg", "consumer goods", "merchandising", "same-store sales", "sku", "footfall", "e-commerce", "gmv", "marketplace"] },
+        { key: "manufacturing", label: "Manufacturing / Industrials", query: "manufacturing", weight: 3, phrases: ["manufacturing", "production line", "plant", "factory", "lean manufacturing", "oee", "procurement", "capacity utilisation", "industrials"] },
+        { key: "telecommunications", label: "Telecommunications", query: "telecommunications", weight: 3, phrases: ["telecoms", "telecommunications", "mobile network", "fibre", "broadband", "spectrum", "subscribers", "arpu", "5g", "towers"] },
+        { key: "legal", label: "Legal", query: "legal", weight: 3, phrases: ["legal", "litigation", "contracts", "legal advice", "regulatory counsel", "disputes", "legal research", "compliance policies"] },
+        { key: "recruitment", label: "Recruitment", query: "recruitment", weight: 3, phrases: ["recruitment", "candidates", "placements", "executive search", "headhunting", "vacancies", "hiring managers", "talent acquisition"] },
+        { key: "technology", label: "Technology / SaaS", query: "technology", weight: 3, phrases: ["saas", "arr", "mrr", "churn", "product roadmap", "api", "cloud", "software development", "devops", "agile", "digital transformation", "erp"] },
+        { key: "fintech", label: "FinTech", query: "fintech", weight: 4, phrases: ["fintech", "payments", "digital banking", "open banking", "embedded finance", "wallets", "acquiring", "issuing", "payment rails", "kyc"] },
+        { key: "healthcare", label: "Healthcare", query: "healthcare", weight: 3, phrases: ["patients", "clinical", "hospitals", "healthcare providers", "medical devices", "pharmaceuticals", "biotechnology", "clinical trials"] },
+        { key: "logistics", label: "Logistics", query: "logistics", weight: 3, phrases: ["supply chain", "warehousing", "freight", "distribution", "fleet", "last-mile", "fulfilment", "transportation", "ports"] },
+        { key: "hospitality_tourism", label: "Hospitality / Tourism", query: "hospitality tourism", weight: 3, phrases: ["hotels", "occupancy", "revpar", "adr", "rooms", "f&b", "hospitality operations", "tourism", "aviation", "airports"] },
+      ];
+    }
+
+    function getApplyForMeFunctionSignals() {
+      return [
+        { label: "Investment", query: "investment", phrases: ["investment", "investments", "direct investments", "co-investments", "portfolio monitoring", "deal sourcing", "investment thesis"] },
+        { label: "M&A Advisory", query: "m&a", phrases: ["m&a", "mergers and acquisitions", "sell-side", "buy-side", "transaction execution", "pitchbook", "cim"] },
+        { label: "Financial Analysis", query: "financial analyst", phrases: ["financial analyst", "financial modelling", "valuation", "forecasting", "financial analysis", "dcf"] },
+        { label: "Portfolio Management", query: "portfolio management", phrases: ["portfolio management", "asset allocation", "fund performance", "investment mandate", "aum"] },
+        { label: "Risk", query: "risk", phrases: ["risk management", "credit risk", "market risk", "operational risk", "risk appetite"] },
+        { label: "Compliance", query: "compliance", phrases: ["compliance", "aml", "kyc", "sanctions", "regulatory monitoring", "financial crime"] },
+        { label: "Finance", query: "finance", phrases: ["fp&a", "budgeting", "forecasting", "management reporting", "treasury", "financial control"] },
+      ];
+    }
+
+    function getApplyForMeSenioritySearchLabel(level) {
+      if (level >= 10) {
+        return "director";
+      }
+      if (level >= 8) {
+        return "vice president";
+      }
+      if (level >= 6) {
+        return "manager";
+      }
+      if (level >= 4) {
+        return "associate";
+      }
+      if (level >= 2) {
+        return "analyst";
+      }
+      return "intern";
+    }
+
+    function detectApplyForMeCvSignals(cvText, analysis) {
+      var text = normalizeApplyForMeSignalText(
+        [
+          cvText,
+          analysis && analysis.experience_title,
+          analysis && analysis.experience_company,
+          (analysis && analysis.matched_keywords || []).join(" "),
+          analysis &&
+            analysis.profile_review_ontology &&
+            analysis.profile_review_ontology.role_archetype,
+        ]
+          .filter(Boolean)
+          .join(" ")
+      );
+      var seniorityScores = [];
+      var actionScores = [];
+      var sectorScores = [];
+      var functionScores = [];
+      var titleLevel = null;
+      var actionLevel = 2;
+      var demonstratedLevel;
+
+      getApplyForMeSenioritySignals().forEach(function (group) {
+        var result = scoreApplyForMeSignalGroup(
+          text,
+          group.terms.map(function (term) {
+            return { phrases: [term], weight: group.level >= 8 ? 4 : 3 };
+          })
+        );
+        if (result.score > 0) {
+          seniorityScores.push({
+            level: group.level,
+            label: group.label,
+            score: result.score,
+            hits: result.hits,
+          });
+        }
+      });
+      seniorityScores.sort(function (a, b) {
+        if (b.score !== a.score) {
+          return b.score - a.score;
+        }
+        return b.level - a.level;
+      });
+      if (seniorityScores[0]) {
+        titleLevel = seniorityScores[0].level;
+      }
+
+      getApplyForMeActionSignalGroups().forEach(function (group) {
+        var result = scoreApplyForMeSignalGroup(
+          text,
+          group.terms.map(function (term) {
+            return { phrases: [term], weight: group.weight };
+          })
+        );
+        if (result.score > 0) {
+          actionScores.push({
+            band: group.band,
+            level: group.level,
+            score: result.score,
+            hits: result.hits,
+          });
+        }
+      });
+      actionScores.sort(function (a, b) {
+        if (b.score !== a.score) {
+          return b.score - a.score;
+        }
+        return b.level - a.level;
+      });
+      if (actionScores[0]) {
+        actionLevel = actionScores[0].level;
+      }
+      if (/\b(managed|led|supervised|mentored|coached)\s+(?:a\s+)?team\s+(?:of\s+)?\d+/i.test(text)) {
+        actionLevel = Math.max(actionLevel, 7);
+      }
+      if (/\b(board|investment committee|executive committee|c-suite|senior stakeholders)\b/i.test(text)) {
+        actionLevel = Math.max(actionLevel, 7);
+      }
+      if (/\b([£$€]\s?\d+|\d+(?:\.\d+)?\s?(?:m|mm|bn|million|billion))\b/i.test(text) && /\b(owned|delivered|generated|grew|secured|raised|won|reduced|increased|managed)\b/i.test(text)) {
+        actionLevel = Math.max(actionLevel, 8);
+      }
+      demonstratedLevel =
+        titleLevel === null ? actionLevel : Math.round(titleLevel * 0.65 + actionLevel * 0.35);
+
+      getApplyForMeSectorSignals().forEach(function (group) {
+        var result = scoreApplyForMeSignalGroup(text, [
+          { phrases: group.phrases, weight: group.weight },
+        ]);
+        if (result.score > 0) {
+          sectorScores.push({
+            key: group.key,
+            label: group.label,
+            query: group.query,
+            score: result.score,
+            hits: result.hits,
+          });
+        }
+      });
+      sectorScores.sort(function (a, b) {
+        return b.score - a.score;
+      });
+
+      getApplyForMeFunctionSignals().forEach(function (group) {
+        var result = scoreApplyForMeSignalGroup(text, [
+          { phrases: group.phrases, weight: 3 },
+        ]);
+        if (result.score > 0) {
+          functionScores.push({
+            label: group.label,
+            query: group.query,
+            score: result.score,
+            hits: result.hits,
+          });
+        }
+      });
+      functionScores.sort(function (a, b) {
+        return b.score - a.score;
+      });
+
+      return {
+        seniority: {
+          title_level: titleLevel,
+          title_label: seniorityScores[0] ? seniorityScores[0].label : "",
+          demonstrated_level: demonstratedLevel,
+          demonstrated_label: getApplyForMeSenioritySearchLabel(demonstratedLevel),
+          action_band: actionScores[0] ? actionScores[0].band : "",
+          signals: seniorityScores.slice(0, 4),
+          action_signals: actionScores.slice(0, 4),
+        },
+        sectors: sectorScores.slice(0, 6),
+        functions: functionScores.slice(0, 4),
+      };
+    }
+
+    function combineApplyForMeQuery(base, seniority) {
+      var cleanBase = cleanMessageText(base || "");
+      var cleanSeniority = cleanMessageText(seniority || "");
+      if (!cleanBase) {
+        return cleanSeniority;
+      }
+      if (
+        cleanSeniority &&
+        new RegExp(
+          "\\b" +
+            cleanSeniority.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") +
+            "\\b",
+          "i"
+        ).test(cleanBase)
+      ) {
+        return cleanBase;
+      }
+      return cleanMessageText(cleanBase + " " + cleanSeniority);
+    }
+
+    function buildApplyForMeCvSignalQueries(analysis) {
+      var signals = detectApplyForMeCvSignals(capturedCvText || "", analysis || {});
+      var seniority = signals.seniority.demonstrated_label || "analyst";
+      var sectors = signals.sectors || [];
+      var functions = signals.functions || [];
+      var queries = [];
+
+      sectors.slice(0, 4).forEach(function (sector) {
+        queries.push(combineApplyForMeQuery(sector.query, seniority));
+        queries.push(sector.query);
+      });
+      functions.slice(0, 3).forEach(function (item) {
+        queries.push(combineApplyForMeQuery(item.query, seniority));
+      });
+      if (seniority === "analyst" || seniority === "associate") {
+        queries.push("investment " + seniority);
+        queries.push("financial " + seniority);
+      }
+      queries.push(
+        combineApplyForMeQuery("private equity", seniority),
+        combineApplyForMeQuery("asset management", seniority),
+        combineApplyForMeQuery("investment banking", seniority),
+        combineApplyForMeQuery("corporate finance", seniority),
+        "finance"
+      );
+      return uniqueCleanItems(queries).slice(0, 12);
+    }
+
+    function getApplyForMeSearchTermsFromCvText(analysis) {
+      return buildApplyForMeCvSignalQueries(analysis || {})[0] || "finance";
+    }
+
+    function getApplyForMeRoleDiscoveryQueries(analysis) {
       var ontology =
         (analysis && analysis.profile_review_ontology) || {};
-      var queryParts = [
+      var directQueries = [
         roleTitle,
         standaloneProfileReviewTargetRole,
         jobSearchSeedContext && jobSearchSeedContext.roleTarget,
         jobSearchSeedContext && jobSearchSeedContext.query,
         conversationFacts.targetFunctions &&
           conversationFacts.targetFunctions[0],
+      ];
+      var cvQueries = buildApplyForMeCvSignalQueries(analysis || {});
+      var analysisQueries = [
         analysis && analysis.experience_title,
         ontology.role_archetype,
-        (analysis && analysis.matched_keywords || []).slice(0, 3).join(" "),
-        getApplyForMeSearchTermsFromCvText(),
       ];
-      var query = cleanMessageText(queryParts.filter(Boolean).join(" "));
-      return query || "finance";
+      return uniqueCleanItems(
+        directQueries
+          .concat(cvQueries)
+          .concat(analysisQueries)
+          .concat(["finance"])
+      ).slice(0, 14);
+    }
+
+    function getApplyForMeRoleDiscoveryQuery(analysis) {
+      return getApplyForMeRoleDiscoveryQueries(analysis || {})[0] || "finance";
     }
 
     function startApplyForMeRoleDiscoveryFlow() {
@@ -34608,7 +34990,7 @@
     }
 
     function showApplyForMeRoleSelection(analysis, sourceLabel) {
-      var query = getApplyForMeRoleDiscoveryQuery(analysis || {});
+      var queries = getApplyForMeRoleDiscoveryQueries(analysis || {});
       updateWorkspace({
         visible: getAutoWorkspaceVisibility(),
         stage: "Finding suitable roles",
@@ -34622,8 +35004,10 @@
         null,
         sourceLabel ? humanReadDelay(sourceLabel, 450) : 0
       );
-      fetchActualJobPosts(query, 8)
-        .then(function (items) {
+      fetchActualJobPostsWithFallbacks(queries, 8)
+        .then(function (result) {
+          var items = result && result.items ? result.items : [];
+          var query = result && result.query ? result.query : queries[0] || "finance";
           botMessage(
             renderActualJobPostSearchResults(items, query, {
               selectForApplication: true,
