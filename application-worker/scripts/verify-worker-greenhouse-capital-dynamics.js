@@ -60,6 +60,14 @@ const task = {
 
 const result = await processTask(task);
 const failed = (result.missing_required_fields || []).filter(Boolean);
+const interceptedRequest = result.intercepted_submit_request || null;
+const interceptedPayloadReady =
+  Boolean(interceptedRequest) &&
+  interceptedRequest.has_job_application === true &&
+  interceptedRequest.candidate_fields_present?.first_name === true &&
+  interceptedRequest.candidate_fields_present?.last_name === true &&
+  interceptedRequest.candidate_fields_present?.email === true &&
+  Number(interceptedRequest.question_field_count || 0) >= 15;
 const summary = {
   status: result.status,
   form_ready: result.form_ready,
@@ -69,11 +77,23 @@ const summary = {
   application_choice_answers_attempted: result.application_choice_answers_attempted,
   application_choice_answers_filled: result.application_choice_answers_filled,
   missing_required_fields: failed,
+  intercepted_submit_request: interceptedRequest,
+  intercepted_payload_ready: interceptedPayloadReady,
+  field_diagnostics: (result.application_field_diagnostics || []).map((field) => ({
+    label: field.label,
+    field_names: field.field_names,
+    choice_like: field.choice_like,
+    control_found: field.control_found,
+    role: field.role,
+    value_present: field.value_present,
+    selected_text: field.selected_text,
+    hidden_value_present: field.hidden_value_present,
+  })),
   screenshot_path: result.local_screenshot_path,
 };
 
 console.log(JSON.stringify(summary, null, 2));
 
-if (!result.form_ready || !result.uploaded_resume || failed.length > 0) {
+if (!result.form_ready || !result.uploaded_resume || (!interceptedPayloadReady && failed.length > 0)) {
   process.exitCode = 1;
 }

@@ -11,6 +11,7 @@ const workerToken = process.env.SFFC_APPLICATION_WORKER_TOKEN || "";
 const workerId = process.env.SFFC_WORKER_ID || `sffc-worker-${os.hostname()}`;
 const pollIntervalMs = Number(process.env.SFFC_WORKER_POLL_INTERVAL_MS || 15000);
 const allowFinalSubmit = process.env.SFFC_WORKER_ALLOW_FINAL_SUBMIT === "1";
+const interceptFinalSubmit = process.env.SFFC_WORKER_INTERCEPT_FINAL_SUBMIT === "1";
 const healthPort = Number(process.env.PORT || 0);
 let lastHeartbeat = new Date().toISOString();
 let lastTaskStatus = "idle";
@@ -340,6 +341,10 @@ function cleanText(value) {
   return String(value || "").replace(/\s+/g, " ").trim();
 }
 
+function cssIdSelector(id) {
+  return `#${String(id || "").replace(/[^a-zA-Z0-9_-]/g, "\\$&")}`;
+}
+
 function getTaskPayload(task) {
   const payload = task && task.payload;
   if (!payload) {
@@ -518,7 +523,7 @@ async function fillApplicationAnswers(page, task) {
   const answers = getApplicationAnswers(task);
   const questions = getSchemaQuestions(schema);
   if (!questions.length || !Object.keys(answers).length) {
-    return { attempted: 0, filled: 0 };
+    return { attempted: 0, filled: 0, choice_attempted: 0, choice_filled: 0, items: [] };
   }
 
   const fillItems = questions
@@ -539,7 +544,7 @@ async function fillApplicationAnswers(page, task) {
     .filter((item) => item.answer && (item.fieldNames.length || item.label));
 
   if (!fillItems.length) {
-    return { attempted: 0, filled: 0 };
+    return { attempted: 0, filled: 0, choice_attempted: 0, choice_filled: 0, items: [] };
   }
 
   let filled = await page.evaluate(async (items) => {
@@ -778,12 +783,22 @@ async function fillApplicationAnswers(page, task) {
 
   const choiceFilled = await fillInteractiveChoiceAnswers(page, fillItems);
   filled += choiceFilled;
+  const fieldDiagnostics = await inspectApplicationFieldState(page, fillItems).catch(() => []);
 
   return {
     attempted: fillItems.length,
     filled,
     choice_attempted: fillItems.filter((item) => item.choiceLike).length,
     choice_filled: choiceFilled,
+    field_diagnostics: fieldDiagnostics,
+    items: fillItems.map((item) => ({
+      label: item.label,
+      field_names: item.fieldNames,
+      field_types: item.fieldTypes,
+      choice_like: Boolean(item.choiceLike),
+      choice_count: item.choices.length,
+      answer_present: Boolean(item.answer),
+    })),
   };
 }
 
@@ -998,8 +1013,29 @@ async function selectGreenhouseReactSelect(page, item) {
     return false;
   }
   const answer = getBestChoiceLabel(item.answer, item.choices || []);
+  const selector = cssIdSelector(fieldName);
+  const input = await page.$(selector);
+  if (!input) {
+    return false;
+  }
+  const isCombobox = await input.evaluate((element) => element.getAttribute("role") === "combobox");
+  if (!isCombobox) {
+    await input.dispose();
+    return false;
+  }
+  await input.evaluate((element) => element.scrollIntoView({ block: "center" })).catch(() => {});
+  await input.click().catch(() => {});
+  await new Promise((resolve) => setTimeout(resolve, 150));
+  const modifier = process.platform === "darwin" ? "Meta" : "Control";
+  await page.keyboard.down(modifier).catch(() => {});
+  await page.keyboard.press("KeyA").catch(() => {});
+  await page.keyboard.up(modifier).catch(() => {});
+  await page.keyboard.type(answer, { delay: 15 }).catch(() => {});
+  await new Promise((resolve) => setTimeout(resolve, 300));
+  await page.keyboard.press("Enter").catch(() => {});
+  await new Promise((resolve) => setTimeout(resolve, 450));
   const selected = await page.evaluate(
-    async ({ id, wanted }) => {
+    ({ id, wanted }) => {
       const clean = (value) => String(value || "").replace(/\s+/g, " ").trim();
       const normalize = (value) => clean(value).toLowerCase();
       const compact = (value) => normalize(value).replace(/[^a-z0-9]+/g, "");
@@ -1017,14 +1053,6 @@ async function selectGreenhouseReactSelect(page, item) {
         if (wantedNorm.includes(optionNorm)) return 74;
         return 0;
       };
-      const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-      const dispatchPointerClick = (element) => {
-        element.scrollIntoView({ block: "center" });
-        element.dispatchEvent(new MouseEvent("mouseover", { bubbles: true, cancelable: true, view: window }));
-        element.dispatchEvent(new MouseEvent("mousedown", { bubbles: true, cancelable: true, view: window }));
-        element.dispatchEvent(new MouseEvent("mouseup", { bubbles: true, cancelable: true, view: window }));
-        element.click();
-      };
       const getSelectedText = (input) => {
         const shell = input.closest(".select-shell") || input.closest(".select") || input.parentElement;
         return clean(
@@ -1037,35 +1065,15 @@ async function selectGreenhouseReactSelect(page, item) {
       if (!input || input.getAttribute("role") !== "combobox") {
         return { ok: false, reason: "missing_combobox", selected: "" };
       }
-
-      for (let attempt = 0; attempt < 3; attempt += 1) {
-        const shell = input.closest(".select-shell") || input.closest(".select") || input.parentElement;
-        const control = shell?.querySelector(".select__control") || input;
-        dispatchPointerClick(control);
-        input.focus();
-        await sleep(350);
-
-        const options = Array.from(document.querySelectorAll(`[id^="react-select-${CSS.escape(id)}-option-"], [role='option']`))
-          .map((node) => ({ node, text: clean(node.textContent || node.getAttribute("aria-label") || "") }))
-          .filter((entry) => entry.text)
-          .map((entry) => ({ ...entry, score: score(entry.text) }))
-          .filter((entry) => entry.score > 0)
-          .sort((a, b) => b.score - a.score);
-
-        if (options[0]) {
-          dispatchPointerClick(options[0].node);
-          await sleep(350);
-          const selectedText = getSelectedText(input);
-          if (score(selectedText) > 0) {
-            return { ok: true, selected: selectedText };
-          }
-        }
+      const selectedText = getSelectedText(input);
+      if (score(selectedText) > 0) {
+        return { ok: true, selected: selectedText };
       }
-
-      return { ok: false, reason: "option_not_selected", selected: getSelectedText(input) };
+      return { ok: false, reason: "option_not_selected", selected: selectedText };
     },
     { id: fieldName, wanted: answer }
   );
+  await input.dispose();
   return Boolean(selected && selected.ok);
 }
 
@@ -1304,8 +1312,187 @@ async function getRequiredFormCompletionState(page) {
   });
 }
 
+async function inspectApplicationFieldState(page, fillItems) {
+  return page.evaluate((items) => {
+    const clean = (value) => String(value || "").replace(/\s+/g, " ").trim();
+    const isVisible = (element) => {
+      if (!element) {
+        return false;
+      }
+      const style = window.getComputedStyle(element);
+      const rect = element.getBoundingClientRect();
+      return style.visibility !== "hidden" && style.display !== "none" && rect.width > 0 && rect.height > 0;
+    };
+    const findByNames = (names) => {
+      for (const name of names || []) {
+        const byId = document.getElementById(name);
+        if (byId) {
+          return byId;
+        }
+        const byName = document.querySelector(`[name="${CSS.escape(name)}"]`);
+        if (byName) {
+          return byName;
+        }
+      }
+      return null;
+    };
+    const findByLabel = (labelText) => {
+      const wanted = clean(labelText).toLowerCase();
+      if (!wanted) {
+        return null;
+      }
+      for (const label of Array.from(document.querySelectorAll("label"))) {
+        const text = clean(label.textContent || "").toLowerCase();
+        if (!text || (!text.includes(wanted) && !wanted.includes(text))) {
+          continue;
+        }
+        const forId = label.getAttribute("for");
+        if (forId && document.getElementById(forId)) {
+          return document.getElementById(forId);
+        }
+        const nested = label.querySelector("input, textarea, select, [role='combobox']");
+        if (nested) {
+          return nested;
+        }
+      }
+      return null;
+    };
+    return items.map((item) => {
+      const control = findByNames(item.fieldNames) || findByLabel(item.label);
+      const wrapper = control
+        ? control.closest(".select-shell") ||
+          control.closest(".select") ||
+          control.closest("fieldset") ||
+          control.closest("section") ||
+          control.closest("li") ||
+          control.closest("div")
+        : null;
+      const selectedText = wrapper
+        ? clean(
+            wrapper.querySelector(
+              ".select__single-value, [class*='singleValue'], [data-testid*='single-value' i], [class*='single-value' i]"
+            )?.textContent || ""
+          )
+        : "";
+      const hiddenValues = wrapper
+        ? Array.from(
+            wrapper.querySelectorAll("input[type='hidden'], input[aria-hidden='true'], input[class*='requiredInput']")
+          )
+            .map((input) => clean(input.value || ""))
+            .filter(Boolean)
+        : [];
+      const value = control ? clean(control.value || "") : "";
+      return {
+        label: item.label,
+        field_names: item.fieldNames || [],
+        field_types: item.fieldTypes || [],
+        choice_like: Boolean(item.choiceLike),
+        choice_count: Array.isArray(item.choices) ? item.choices.length : 0,
+        answer_present: Boolean(clean(item.answer)),
+        control_found: Boolean(control),
+        control_visible: control ? isVisible(control) : false,
+        tag: control ? control.tagName : "",
+        type: control ? control.type || "" : "",
+        role: control ? control.getAttribute("role") || "" : "",
+        aria_expanded: control ? control.getAttribute("aria-expanded") || "" : "",
+        value_present: Boolean(value && !/^select/i.test(value)),
+        selected_text: selectedText,
+        hidden_value_present: hiddenValues.length > 0,
+        hidden_value_count: hiddenValues.length,
+        wrapper_text_sample: clean((wrapper && wrapper.textContent) || "").slice(0, 180),
+      };
+    });
+  }, fillItems);
+}
+
+function summarizeInterceptedSubmitRequest(request) {
+  const postData = request.postData() || "";
+  const collectStructure = (value, prefix = "", output = []) => {
+    if (!value || typeof value !== "object" || output.length >= 80) {
+      return output;
+    }
+    if (Array.isArray(value)) {
+      output.push({ path: prefix || "$", type: "array", length: value.length });
+      value.slice(0, 3).forEach((entry, index) => collectStructure(entry, `${prefix}[${index}]`, output));
+      return output;
+    }
+    const keys = Object.keys(value);
+    output.push({ path: prefix || "$", type: "object", keys: keys.slice(0, 30) });
+    keys.slice(0, 20).forEach((key) => {
+      const next = value[key];
+      if (next && typeof next === "object") {
+        collectStructure(next, prefix ? `${prefix}.${key}` : key, output);
+      }
+    });
+    return output;
+  };
+  const summary = {
+    captured: true,
+    url: request.url(),
+    method: request.method(),
+    post_data_length: postData.length,
+    top_level_keys: [],
+    has_job_application: false,
+    candidate_fields_present: {
+      first_name: false,
+      last_name: false,
+      email: false,
+      resume: false,
+    },
+    question_field_count: 0,
+    question_fields: [],
+    payload_structure: [],
+  };
+
+  try {
+    const parsed = JSON.parse(postData);
+    summary.top_level_keys = Object.keys(parsed || {});
+    const application = parsed?.job_application || parsed?.application || parsed || {};
+    summary.payload_structure = collectStructure(application);
+    summary.has_job_application = Boolean(parsed?.job_application || parsed?.application);
+    const serialized = JSON.stringify(application);
+    summary.candidate_fields_present = {
+      first_name: /first[_-]?name/i.test(serialized),
+      last_name: /last[_-]?name|surname|family[_-]?name/i.test(serialized),
+      email: /email/i.test(serialized),
+      resume: /resume|cv|attachment/i.test(serialized),
+    };
+    const questionFields = Array.from(new Set(serialized.match(/question_\d+|\b\d{8,}\b/g) || []));
+    summary.question_field_count = questionFields.length;
+    summary.question_fields = questionFields.slice(0, 40);
+  } catch (error) {
+    summary.parse_error = error && error.message ? error.message : String(error);
+    summary.post_data_sample = postData.slice(0, 240);
+  }
+
+  return summary;
+}
+
 async function clickLikelyApplyButton(page) {
   const beforeUrl = page.url();
+  let interceptedSubmitRequest = null;
+  let requestHandler = null;
+  if (interceptFinalSubmit) {
+    await page.setRequestInterception(true);
+    requestHandler = (request) => {
+      const method = request.method();
+      const postData = request.postData() || "";
+      const url = request.url();
+      const looksLikeApplicationSubmit =
+        method === "POST" &&
+        (/job_application/i.test(postData) ||
+          /greenhouse/i.test(url) ||
+          /\/jobs\/\d+/.test(url) ||
+          /\/applications/.test(url));
+      if (looksLikeApplicationSubmit && !interceptedSubmitRequest) {
+        interceptedSubmitRequest = summarizeInterceptedSubmitRequest(request);
+        request.abort("aborted").catch(() => {});
+        return;
+      }
+      request.continue().catch(() => {});
+    };
+    page.on("request", requestHandler);
+  }
   const clicked = await page.evaluate(() => {
     const buttons = Array.from(document.querySelectorAll("button, input[type=submit]"));
     const target = buttons.find((button) =>
@@ -1320,14 +1507,23 @@ async function clickLikelyApplyButton(page) {
     return true;
   });
   if (clicked) {
-    await page.waitForNetworkIdle({ idleTime: 1200, timeout: 10000 }).catch(() => {});
-    await new Promise((resolve) => setTimeout(resolve, 1500));
+    if (interceptFinalSubmit) {
+      await new Promise((resolve) => setTimeout(resolve, 1800));
+    } else {
+      await page.waitForNetworkIdle({ idleTime: 1200, timeout: 10000 }).catch(() => {});
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+    }
+  }
+  if (requestHandler) {
+    page.off("request", requestHandler);
+    await page.setRequestInterception(false).catch(() => {});
   }
   const submissionState = await extractSubmissionState(page).catch(() => ({}));
   return {
     clicked,
     beforeUrl,
     afterUrl: page.url(),
+    intercepted_submit_request: interceptedSubmitRequest,
     ...submissionState,
   };
 }
@@ -1405,6 +1601,8 @@ async function processTask(task) {
         application_answers_filled: applicationAnswers.filled,
         application_choice_answers_attempted: applicationAnswers.choice_attempted,
         application_choice_answers_filled: applicationAnswers.choice_filled,
+        application_field_diagnostics: applicationAnswers.field_diagnostics || [],
+        application_answer_items: applicationAnswers.items || [],
         page_title: await page.title().catch(() => ""),
         final_url: page.url(),
         local_screenshot_path: screenshotPath,
@@ -1433,6 +1631,8 @@ async function processTask(task) {
         application_answers_filled: applicationAnswers.filled,
         application_choice_answers_attempted: applicationAnswers.choice_attempted,
         application_choice_answers_filled: applicationAnswers.choice_filled,
+        application_field_diagnostics: applicationAnswers.field_diagnostics || [],
+        application_answer_items: applicationAnswers.items || [],
         complete_required_fields: formCompletion.complete_required_fields,
         page_title: await page.title().catch(() => ""),
         final_url: page.url(),
@@ -1495,11 +1695,14 @@ async function processTask(task) {
       application_answers_filled: applicationAnswers.filled,
       application_choice_answers_attempted: applicationAnswers.choice_attempted,
       application_choice_answers_filled: applicationAnswers.choice_filled,
+      application_field_diagnostics: applicationAnswers.field_diagnostics || [],
+      application_answer_items: applicationAnswers.items || [],
       complete_required_fields: formCompletion.complete_required_fields,
       page_title: await page.title().catch(() => ""),
       final_url: page.url(),
       local_screenshot_path: screenshotPath,
       submission_confirmed: Boolean(submitResult.submission_confirmed),
+      intercepted_submit_request: submitResult.intercepted_submit_request || null,
       validation_detected: Boolean(submitResult.validation_detected),
       validation_errors: submitResult.validation_errors || [],
       missing_required_fields: submitResult.missing_required_fields || [],
@@ -1524,7 +1727,12 @@ async function runOnce() {
     const result = await processTask(task);
     await completeTask(task.task_uuid, result.status, result);
     lastTaskStatus = `${task.task_uuid}:${result.status}`;
-    console.log(`[${new Date().toISOString()}] ${task.task_uuid} ${result.status}`);
+    console.log(
+      `[${new Date().toISOString()}] ${task.task_uuid} ${result.status}` +
+        ` answers=${result.application_answers_filled || 0}/${result.application_answers_attempted || 0}` +
+        ` choices=${result.application_choice_answers_filled || 0}/${result.application_choice_answers_attempted || 0}` +
+        ` missing=${(result.missing_required_fields || []).length}`
+    );
   } catch (error) {
     await completeTask(task.task_uuid, "failed", {
       last_error: error && error.message ? error.message : String(error),
@@ -1548,6 +1756,7 @@ function startHealthServer() {
           last_heartbeat: lastHeartbeat,
           last_task_status: lastTaskStatus,
           allow_final_submit: allowFinalSubmit,
+          intercept_final_submit: interceptFinalSubmit,
         })
       );
       return;
