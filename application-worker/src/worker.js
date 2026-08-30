@@ -894,11 +894,12 @@ async function selectNativeOption(element, answer, choices) {
 
 async function selectInteractiveOption(page, element, item) {
   const answer = getBestChoiceLabel(item.answer, item.choices);
+  const modifier = process.platform === "darwin" ? "Meta" : "Control";
   await element.evaluate((control) => control.scrollIntoView({ block: "center" })).catch(() => {});
   await element.click({ clickCount: 3 }).catch(() => {});
-  await page.keyboard.down("Control").catch(() => {});
+  await page.keyboard.down(modifier).catch(() => {});
   await page.keyboard.press("KeyA").catch(() => {});
-  await page.keyboard.up("Control").catch(() => {});
+  await page.keyboard.up(modifier).catch(() => {});
   await page.keyboard.type(answer, { delay: 15 }).catch(() => {});
   await new Promise((resolve) => setTimeout(resolve, 350));
 
@@ -1080,13 +1081,38 @@ async function getRequiredFormCompletionState(page) {
       const rect = element.getBoundingClientRect();
       return style.visibility !== "hidden" && style.display !== "none" && rect.width > 0 && rect.height > 0;
     };
+    const getAriaLabelElements = (control) => {
+      const labelledBy = control.getAttribute("aria-labelledby") || "";
+      return labelledBy
+        .split(/\s+/)
+        .map((part) => document.getElementById(part))
+        .filter(Boolean);
+    };
+    const getFieldScope = (control) => {
+      const labelElements = getAriaLabelElements(control);
+      const labelledScope = labelElements
+        .map((label) => label.closest("div, fieldset, section, li"))
+        .find((scope) => scope && scope.contains(control));
+      if (labelledScope) {
+        return labelledScope;
+      }
+      let scope = control;
+      for (let depth = 0; depth < 8 && scope && scope.parentElement; depth += 1) {
+        scope = scope.parentElement;
+        if (
+          scope.querySelector("label, [id*='label' i], [class*='label' i]") &&
+          scope.querySelector("input, textarea, select, [role='combobox']")
+        ) {
+          return scope;
+        }
+      }
+      return control.parentElement;
+    };
     const labelFor = (control) => {
       const id = control.getAttribute("id") || "";
       const explicit = id ? document.querySelector(`label[for="${CSS.escape(id)}"]`) : null;
-      const labelledBy = control.getAttribute("aria-labelledby") || "";
-      const ariaLabelled = labelledBy
-        .split(/\s+/)
-        .map((part) => document.getElementById(part)?.textContent || "")
+      const ariaLabelled = getAriaLabelElements(control)
+        .map((part) => part.textContent || "")
         .join(" ");
       return clean(
         (explicit && explicit.textContent) ||
@@ -1105,7 +1131,7 @@ async function getRequiredFormCompletionState(page) {
       if (control.getAttribute("aria-hidden") === "true" || control.type === "hidden" || control.disabled) {
         continue;
       }
-      const wrapper = control.closest(".field-wrapper, .select, fieldset, div") || control.parentElement;
+      const wrapper = getFieldScope(control);
       const label = labelFor(control);
       let hasValue = false;
       if (control.type === "checkbox" || control.type === "radio") {
