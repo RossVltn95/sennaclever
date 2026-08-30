@@ -7,7 +7,8 @@
     "start": "node src/worker.js",
     "worker": "node src/worker.js",
     "check": "node --check src/worker.js",
-    "verify:greenhouse": "node scripts/verify-greenhouse-capital-dynamics.js"
+    "verify:greenhouse": "node scripts/verify-greenhouse-capital-dynamics.js",
+    "verify:worker:greenhouse": "node scripts/verify-worker-greenhouse-capital-dynamics.js"
   },
   "dependencies": {
     "puppeteer": "^25.9.0"

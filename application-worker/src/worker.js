@@ -3,6 +3,7 @@ import fsSync from "node:fs";
 import http from "node:http";
 import os from "node:os";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 import puppeteer from "puppeteer";
 
 const ajaxUrl = process.env.SFFC_WP_AJAX_URL || "";
@@ -399,9 +400,14 @@ function getQuestionFieldNames(question) {
     .filter(Boolean);
 }
 
-function getQuestionChoiceLabels(question) {
+function getQuestionFieldTypes(question) {
   return getQuestionFields(question)
-    .flatMap((field) => field?.values || field?.options || field?.choices || [])
+    .map((field) => cleanText(field?.type || field?.field_type || field?.input_type || field?.component || ""))
+    .filter(Boolean);
+}
+
+function normalizeChoiceList(choices) {
+  return (Array.isArray(choices) ? choices : [])
     .map((choice) =>
       cleanText(
         choice?.label ||
@@ -409,10 +415,33 @@ function getQuestionChoiceLabels(question) {
           choice?.text ||
           choice?.value ||
           choice?.display_name ||
+          choice?.title ||
           ""
       )
     )
     .filter(Boolean);
+}
+
+function getQuestionChoiceLabels(question) {
+  const choices = [
+    ...normalizeChoiceList(question?.values),
+    ...normalizeChoiceList(question?.options),
+    ...normalizeChoiceList(question?.choices),
+  ];
+  for (const field of getQuestionFields(question)) {
+    choices.push(...normalizeChoiceList(field?.values));
+    choices.push(...normalizeChoiceList(field?.options));
+    choices.push(...normalizeChoiceList(field?.choices));
+  }
+  return Array.from(new Set(choices));
+}
+
+function questionLooksChoiceBased(question) {
+  const fieldTypes = getQuestionFieldTypes(question).join(" ").toLowerCase();
+  if (getQuestionChoiceLabels(question).length > 0) {
+    return true;
+  }
+  return /select|dropdown|choice|multi_value|single_value|boolean|radio|checkbox/.test(fieldTypes);
 }
 
 function questionIsRequired(question) {
@@ -497,10 +526,13 @@ async function fillApplicationAnswers(page, task) {
       const label = getQuestionLabel(question);
       const key = getQuestionFieldNames(question)[0] || label.toLowerCase();
       const answer = answers[key] ?? answers[String(key).toLowerCase()] ?? answers[label.toLowerCase()];
+      const choices = getQuestionChoiceLabels(question);
       return {
         label,
         fieldNames: getQuestionFieldNames(question),
-        choices: getQuestionChoiceLabels(question),
+        fieldTypes: getQuestionFieldTypes(question),
+        choices,
+        choiceLike: questionLooksChoiceBased(question),
         answer: cleanText(answer),
       };
     })
@@ -672,7 +704,7 @@ async function fillApplicationAnswers(page, task) {
     let filledCount = 0;
     for (const item of items) {
       const answer = clean(item.answer);
-      if (item.choices && item.choices.length) {
+      if (item.choiceLike) {
         continue;
       }
       const container = findQuestionContainer(item.label);
@@ -744,9 +776,15 @@ async function fillApplicationAnswers(page, task) {
     return filledCount;
   }, fillItems);
 
-  filled += await fillInteractiveChoiceAnswers(page, fillItems);
+  const choiceFilled = await fillInteractiveChoiceAnswers(page, fillItems);
+  filled += choiceFilled;
 
-  return { attempted: fillItems.length, filled };
+  return {
+    attempted: fillItems.length,
+    filled,
+    choice_attempted: fillItems.filter((item) => item.choiceLike).length,
+    choice_filled: choiceFilled,
+  };
 }
 
 function scoreChoice(answer, candidate) {
@@ -956,10 +994,10 @@ async function selectInteractiveOption(page, element, item) {
 
 async function selectGreenhouseReactSelect(page, item) {
   const fieldName = (item.fieldNames || [])[0] || "";
-  if (!fieldName || !item.choices.length) {
+  if (!fieldName) {
     return false;
   }
-  const answer = getBestChoiceLabel(item.answer, item.choices);
+  const answer = getBestChoiceLabel(item.answer, item.choices || []);
   const selected = await page.evaluate(
     async ({ id, wanted }) => {
       const clean = (value) => String(value || "").replace(/\s+/g, " ").trim();
@@ -1034,9 +1072,11 @@ async function selectGreenhouseReactSelect(page, item) {
 async function fillInteractiveChoiceAnswers(page, fillItems) {
   let filled = 0;
   for (const item of fillItems) {
-    if (await selectGreenhouseReactSelect(page, item)) {
-      filled += 1;
-      continue;
+    if (item.choiceLike || item.choices.length) {
+      if (await selectGreenhouseReactSelect(page, item)) {
+        filled += 1;
+        continue;
+      }
     }
     const element = await findVisibleControlForItem(page, item);
     if (!element) {
@@ -1363,6 +1403,8 @@ async function processTask(task) {
         uploaded_resume: uploadedResume,
         application_answers_attempted: applicationAnswers.attempted,
         application_answers_filled: applicationAnswers.filled,
+        application_choice_answers_attempted: applicationAnswers.choice_attempted,
+        application_choice_answers_filled: applicationAnswers.choice_filled,
         page_title: await page.title().catch(() => ""),
         final_url: page.url(),
         local_screenshot_path: screenshotPath,
@@ -1389,6 +1431,8 @@ async function processTask(task) {
         uploaded_resume: uploadedResume,
         application_answers_attempted: applicationAnswers.attempted,
         application_answers_filled: applicationAnswers.filled,
+        application_choice_answers_attempted: applicationAnswers.choice_attempted,
+        application_choice_answers_filled: applicationAnswers.choice_filled,
         complete_required_fields: formCompletion.complete_required_fields,
         page_title: await page.title().catch(() => ""),
         final_url: page.url(),
@@ -1449,6 +1493,8 @@ async function processTask(task) {
       uploaded_resume: uploadedResume,
       application_answers_attempted: applicationAnswers.attempted,
       application_answers_filled: applicationAnswers.filled,
+      application_choice_answers_attempted: applicationAnswers.choice_attempted,
+      application_choice_answers_filled: applicationAnswers.choice_filled,
       complete_required_fields: formCompletion.complete_required_fields,
       page_title: await page.title().catch(() => ""),
       final_url: page.url(),
@@ -1526,7 +1572,17 @@ async function main() {
   }
 }
 
-main().catch((error) => {
-  console.error(error);
-  process.exit(1);
-});
+export {
+  fillApplicationAnswers,
+  getMissingRequiredSchemaQuestions,
+  getRequiredFormCompletionState,
+  processTask,
+};
+
+const isMainModule = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
+if (isMainModule) {
+  main().catch((error) => {
+    console.error(error);
+    process.exit(1);
+  });
+}
