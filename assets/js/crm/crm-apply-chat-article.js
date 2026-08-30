@@ -18146,6 +18146,7 @@
     var currentCvFile = null;
     var applicationWorkspaceSchema = null;
     var applicationAnswerDraft = {};
+    var applicationVerificationCode = "";
     var applyChatSessionToken = "";
     var applyChatConversationId = 0;
     var applyChatLastSeenMessageId = 0;
@@ -89601,6 +89602,7 @@
         formData.append("cv_text", cleanMessageText(capturedCvText || ""));
         formData.append("cover_letter_requested", applyNeedsCoverLetter === "yes" ? "1" : "0");
         formData.append("application_answers", JSON.stringify(applicationAnswerDraft || {}));
+        formData.append("verification_code", cleanMessageText(applicationVerificationCode || ""));
         formData.append("consent", "candidate_clicked_apply_for_me_worker");
         if (currentCvFile && currentCvFile.name) {
           formData.append("cv_file", currentCvFile, currentCvFile.name);
@@ -89684,6 +89686,66 @@
                   humanComposeDelay("Application ready for review.", 1200, 2600),
                   function () {
                     focusComposer("Tell me if you want this worker switched to live submit mode");
+                  }
+                );
+                return;
+              }
+              if (status === "verification_required") {
+                botMessage(
+                  "Greenhouse has sent a security code to the candidate email. Paste the code here and I’ll enter it into the employer form and resubmit.",
+                  humanComposeDelay("Greenhouse security code required.", 1200, 2600),
+                  function () {
+                    setPromptState(
+                      "greenhouse_security_code",
+                      {
+                        other: function (value) {
+                          var code = cleanMessageText(value || "");
+                          if (!/^[a-z0-9-]{4,20}$/i.test(code)) {
+                            botMessage(
+                              "Send just the Greenhouse security code from the email.",
+                              humanComposeDelay("Send just the code.", 900, 1800),
+                              function () {
+                                focusComposer("Paste the Greenhouse security code");
+                              },
+                              humanReadDelay(value, 450)
+                            );
+                            return;
+                          }
+                          applicationVerificationCode = code;
+                          clearPromptState();
+                          echoPromptChoice(value);
+                          queueBrowserApplicationTask()
+                            .then(function (nextData) {
+                              var nextTaskId = cleanMessageText((nextData && nextData.task_uuid) || "");
+                              botMessage(
+                                "Thanks. I’ve queued the verification step now.",
+                                humanComposeDelay("Verification queued.", 900, 1800),
+                                function () {
+                                  if (nextTaskId && typeof pollBrowserApplicationTask === "function") {
+                                    pollBrowserApplicationTask(nextTaskId, 0);
+                                  }
+                                  focusComposer("I’ll update you when Greenhouse confirms the result");
+                                }
+                              );
+                            })
+                            .catch(function (error) {
+                              var message =
+                                cleanMessageText((error && error.message) || "") ||
+                                "I could not queue the verification step just now.";
+                              botMessage(
+                                message,
+                                humanComposeDelay(message, 1200, 2600),
+                                function () {
+                                  focusComposer("Paste the Greenhouse security code again");
+                                }
+                              );
+                            });
+                        },
+                      },
+                      "Paste the Greenhouse security code",
+                      { application_task_uuid: taskUuid }
+                    );
+                    focusComposer("Paste the Greenhouse security code");
                   }
                 );
                 return;

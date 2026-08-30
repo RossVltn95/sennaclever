@@ -43722,6 +43722,7 @@ CRITICAL INSTRUCTIONS:
                 'consent' => sanitize_text_field(wp_unslash((string) ($_POST['consent'] ?? 'candidate_clicked_apply_for_me'))),
                 'application_schema' => [],
                 'application_answers' => [],
+                'verification_code' => sanitize_text_field(wp_unslash((string) ($_POST['verification_code'] ?? ''))),
             ];
 
             $application_answers_raw = wp_unslash((string) ($_POST['application_answers'] ?? '{}'));
@@ -43847,6 +43848,11 @@ CRITICAL INSTRUCTIONS:
                 'final_url' => esc_url_raw((string) ($result_payload['final_url'] ?? '')),
                 'uploaded_resume' => !empty($result_payload['uploaded_resume']),
                 'submission_confirmed' => !empty($result_payload['submission_confirmed']),
+                'verification_required' => !empty($result_payload['verification_required']),
+                'application_answers_attempted' => absint($result_payload['application_answers_attempted'] ?? 0),
+                'application_answers_filled' => absint($result_payload['application_answers_filled'] ?? 0),
+                'application_choice_answers_attempted' => absint($result_payload['application_choice_answers_attempted'] ?? 0),
+                'application_choice_answers_filled' => absint($result_payload['application_choice_answers_filled'] ?? 0),
                 'validation_errors' => array_map('sanitize_text_field', array_slice((array) ($result_payload['validation_errors'] ?? []), 0, 10)),
                 'missing_required_fields' => array_map('sanitize_text_field', array_slice((array) ($result_payload['missing_required_fields'] ?? []), 0, 10)),
                 'updated_at' => sanitize_text_field((string) ($task['updated_at'] ?? '')),
@@ -43920,7 +43926,7 @@ CRITICAL INSTRUCTIONS:
             $table = $wpdb->prefix . 'sffc_crm_application_tasks';
             $task_uuid = sanitize_text_field(wp_unslash((string) ($_POST['task_uuid'] ?? '')));
             $status = sanitize_key((string) wp_unslash($_POST['status'] ?? ''));
-            if (!in_array($status, ['submitted', 'failed', 'review_required', 'dry_run_ready'], true)) {
+            if (!in_array($status, ['submitted', 'failed', 'review_required', 'verification_required', 'dry_run_ready'], true)) {
                 wp_send_json_error(['message' => __('Invalid task status.', 'senna-finance')], 422);
             }
             if ($task_uuid === '') {

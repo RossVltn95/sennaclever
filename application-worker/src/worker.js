@@ -459,6 +459,11 @@ function getApplicationAnswers(task) {
   return answers && typeof answers === "object" ? answers : {};
 }
 
+function getVerificationCode(task) {
+  const payload = getTaskPayload(task);
+  return cleanText(payload.verification_code || task.verification_code || "");
+}
+
 function answerHasValue(value) {
   if (Array.isArray(value)) {
     return value.some(answerHasValue);
@@ -1032,7 +1037,45 @@ async function selectGreenhouseReactSelect(page, item) {
   await page.keyboard.up(modifier).catch(() => {});
   await page.keyboard.type(answer, { delay: 15 }).catch(() => {});
   await new Promise((resolve) => setTimeout(resolve, 300));
-  await page.keyboard.press("Enter").catch(() => {});
+  const option = await page.evaluateHandle((wanted) => {
+    const clean = (value) => String(value || "").replace(/\s+/g, " ").trim();
+    const normalize = (value) => clean(value).toLowerCase();
+    const compact = (value) => normalize(value).replace(/[^a-z0-9]+/g, "");
+    const score = (candidate) => {
+      const wantedNorm = normalize(wanted);
+      const optionNorm = normalize(candidate);
+      const wantedCompact = compact(wanted);
+      const optionCompact = compact(candidate);
+      if (!wantedNorm || !optionNorm) return 0;
+      if (optionNorm === wantedNorm || optionCompact === wantedCompact) return 100;
+      if (/^\d+$/.test(wantedCompact) && optionCompact.startsWith(wantedCompact)) return 92;
+      if (wantedCompact && optionCompact.includes(wantedCompact)) return 86;
+      if (wantedCompact && wantedCompact.includes(optionCompact)) return 82;
+      if (optionNorm.includes(wantedNorm)) return 78;
+      if (wantedNorm.includes(optionNorm)) return 74;
+      return 0;
+    };
+    const isVisible = (element) => {
+      const style = window.getComputedStyle(element);
+      const rect = element.getBoundingClientRect();
+      return style.visibility !== "hidden" && style.display !== "none" && rect.width > 0 && rect.height > 0;
+    };
+    const options = Array.from(document.querySelectorAll("[role='option'], [id*='-option-']"))
+      .filter(isVisible)
+      .map((node) => ({ node, text: clean(node.textContent || node.getAttribute("aria-label") || "") }))
+      .filter((entry) => entry.text)
+      .map((entry) => ({ ...entry, score: score(entry.text) }))
+      .filter((entry) => entry.score > 0)
+      .sort((a, b) => b.score - a.score);
+    return options[0]?.node || null;
+  }, answer);
+  const optionElement = option.asElement();
+  if (optionElement) {
+    await optionElement.click().catch(() => {});
+  } else {
+    await page.keyboard.press("Enter").catch(() => {});
+  }
+  await option.dispose();
   await new Promise((resolve) => setTimeout(resolve, 450));
   const selected = await page.evaluate(
     ({ id, wanted }) => {
@@ -1405,6 +1448,61 @@ async function inspectApplicationFieldState(page, fillItems) {
   }, fillItems);
 }
 
+async function fillGreenhouseVerificationCode(page, code) {
+  if (!code) {
+    return false;
+  }
+  return page.evaluate((securityCode) => {
+    const clean = (value) => String(value || "").replace(/\s+/g, " ").trim();
+    const setNativeValue = (element, value) => {
+      const prototype = element instanceof HTMLTextAreaElement ? HTMLTextAreaElement.prototype : HTMLInputElement.prototype;
+      const descriptor = Object.getOwnPropertyDescriptor(prototype, "value");
+      element.focus();
+      if (descriptor && descriptor.set) {
+        descriptor.set.call(element, value);
+      } else {
+        element.value = value;
+      }
+      element.dispatchEvent(new Event("input", { bubbles: true }));
+      element.dispatchEvent(new Event("change", { bubbles: true }));
+      element.dispatchEvent(new Event("blur", { bubbles: true }));
+    };
+    const controls = Array.from(document.querySelectorAll("input, textarea"));
+    const candidates = controls.filter((control) => {
+      if (control.disabled || control.type === "hidden") {
+        return false;
+      }
+      const id = control.getAttribute("id") || "";
+      const name = control.getAttribute("name") || "";
+      const label = id ? document.querySelector(`label[for="${CSS.escape(id)}"]`)?.textContent || "" : "";
+      const placeholder = control.getAttribute("placeholder") || "";
+      const aria = control.getAttribute("aria-label") || "";
+      const text = clean(`${id} ${name} ${label} ${placeholder} ${aria} ${control.closest("div, label, fieldset")?.textContent || ""}`);
+      return /security code|verification code|enter.*code|code field|confirmation code/i.test(text);
+    });
+    const target = candidates[0] || controls.find((control) => {
+      if (control.disabled || control.type === "hidden") {
+        return false;
+      }
+      const maxLength = Number(control.getAttribute("maxlength") || 0);
+      return maxLength >= 4 && maxLength <= 20;
+    });
+    if (!target) {
+      return false;
+    }
+    target.scrollIntoView({ block: "center" });
+    setNativeValue(target, securityCode);
+    return true;
+  }, code);
+}
+
+async function pageNeedsGreenhouseVerification(page) {
+  return page.evaluate(() => {
+    const text = String(document.body?.innerText || "").replace(/\s+/g, " ").trim();
+    return /security code|verification code|copy and paste.*code|enter.*code.*resubmit|code field/i.test(text);
+  });
+}
+
 function summarizeInterceptedSubmitRequest(request) {
   const postData = request.postData() || "";
   const collectStructure = (value, prefix = "", output = []) => {
@@ -1530,6 +1628,7 @@ async function clickLikelyApplyButton(page) {
 
 async function processTask(task) {
   const url = task.application_workspace_url || task.application_url;
+  const verificationCode = getVerificationCode(task);
   const candidate = {
     name: task.candidate_name || "",
     email: task.candidate_email || "",
@@ -1650,6 +1749,25 @@ async function processTask(task) {
     if (allowFinalSubmit) {
       submitResult = await clickLikelyApplyButton(page);
       clickedSubmit = submitResult.clicked;
+      if (clickedSubmit && verificationCode && (await pageNeedsGreenhouseVerification(page).catch(() => false))) {
+        const filledVerificationCode = await fillGreenhouseVerificationCode(page, verificationCode);
+        if (filledVerificationCode) {
+          const verificationSubmitResult = await clickLikelyApplyButton(page);
+          submitResult = {
+            ...verificationSubmitResult,
+            verification_code_used: true,
+            verification_code_filled: true,
+            first_submit_result: submitResult,
+          };
+          clickedSubmit = verificationSubmitResult.clicked;
+        } else {
+          submitResult = {
+            ...submitResult,
+            verification_code_used: true,
+            verification_code_filled: false,
+          };
+        }
+      }
       await page.screenshot({ path: screenshotPath, fullPage: true }).catch(() => {});
     }
 
@@ -1658,6 +1776,14 @@ async function processTask(task) {
     if (allowFinalSubmit) {
       if (submitResult.submission_confirmed) {
         status = "submitted";
+      } else if (
+        clickedSubmit &&
+        !verificationCode &&
+        (await pageNeedsGreenhouseVerification(page).catch(() => false))
+      ) {
+        status = "verification_required";
+        lastError =
+          "Greenhouse sent a security code to the candidate email. Enter the code in the chat so the worker can resubmit the employer form.";
       } else {
         status = "review_required";
         if (!clickedSubmit) {
@@ -1702,6 +1828,9 @@ async function processTask(task) {
       final_url: page.url(),
       local_screenshot_path: screenshotPath,
       submission_confirmed: Boolean(submitResult.submission_confirmed),
+      verification_required: status === "verification_required",
+      verification_code_used: Boolean(submitResult.verification_code_used),
+      verification_code_filled: Boolean(submitResult.verification_code_filled),
       intercepted_submit_request: submitResult.intercepted_submit_request || null,
       validation_detected: Boolean(submitResult.validation_detected),
       validation_errors: submitResult.validation_errors || [],
