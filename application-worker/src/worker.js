@@ -546,6 +546,98 @@ async function uploadResume(page, cvPath) {
   return false;
 }
 
+async function waitForWorkableResumeImport(page) {
+  const imported = await page
+    .waitForFunction(
+      () => {
+        const clean = (value) => String(value || "").replace(/\s+/g, " ").trim();
+        const bodyText = clean(document.body ? document.body.innerText : "");
+        if (/autofill completed|resume imported|cv imported|resume parsed|parsed your resume/i.test(bodyText)) {
+          return true;
+        }
+        const coreFields = ["firstname", "lastname", "email", "phone"]
+          .map((name) => document.querySelector(`[name="${name}"]`))
+          .filter(Boolean);
+        return coreFields.some((field) => clean(field.value || "") !== "");
+      },
+      { timeout: 60000 }
+    )
+    .then(() => true)
+    .catch(() => false);
+  await page.waitForNetworkIdle({ idleTime: 1000, timeout: 12000 }).catch(() => {});
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+  return imported;
+}
+
+async function uploadWorkableResumeViaImport(page, cvPath) {
+  if (!cvPath) {
+    return { uploaded: false, imported: false, clicked_import: false, fallback_upload: false };
+  }
+
+  const clickedImport = await page.evaluate(() => {
+    const clean = (value) => String(value || "").replace(/\s+/g, " ").trim();
+    const isVisible = (element) => {
+      if (!element) return false;
+      const style = window.getComputedStyle(element);
+      const rect = element.getBoundingClientRect();
+      return style.visibility !== "hidden" && style.display !== "none" && rect.width > 0 && rect.height > 0;
+    };
+    const target = Array.from(document.querySelectorAll("button, a, [role='button']"))
+      .filter(isVisible)
+      .find((node) => /import resume from|import cv from|import resume|import cv/i.test(clean(`${node.textContent || ""} ${node.getAttribute("aria-label") || ""}`)));
+    if (!target) {
+      return false;
+    }
+    target.scrollIntoView({ block: "center", inline: "nearest" });
+    target.click();
+    return true;
+  }).catch(() => false);
+
+  if (clickedImport) {
+    await new Promise((resolve) => setTimeout(resolve, 500));
+    try {
+      const [fileChooser] = await Promise.all([
+        page.waitForFileChooser({ timeout: 15000 }),
+        page.evaluate(() => {
+          const clean = (value) => String(value || "").replace(/\s+/g, " ").trim();
+          const isVisible = (element) => {
+            if (!element) return false;
+            const style = window.getComputedStyle(element);
+            const rect = element.getBoundingClientRect();
+            return style.visibility !== "hidden" && style.display !== "none" && rect.width > 0 && rect.height > 0;
+          };
+          const computerTarget = Array.from(document.querySelectorAll("button, a, [role='button'], li, div, span"))
+            .filter(isVisible)
+            .filter((node) => clean(node.textContent || "").length < 80)
+            .find((node) => /^my computer$|computer|device|upload from computer/i.test(clean(node.textContent || "")));
+          if (computerTarget) {
+            computerTarget.scrollIntoView({ block: "center", inline: "nearest" });
+            computerTarget.click();
+          }
+        }),
+      ]);
+      await fileChooser.accept([cvPath]);
+      return {
+        uploaded: true,
+        imported: await waitForWorkableResumeImport(page),
+        clicked_import: true,
+        fallback_upload: false,
+      };
+    } catch (error) {
+      debugLog("workable_resume_import_filechooser_failed", error && error.message ? error.message : String(error));
+      await page.keyboard.press("Escape").catch(() => {});
+    }
+  }
+
+  const fallbackUpload = await uploadResume(page, cvPath);
+  return {
+    uploaded: fallbackUpload,
+    imported: false,
+    clicked_import: clickedImport,
+    fallback_upload: fallbackUpload,
+  };
+}
+
 async function clickWorkableResumeImport(page) {
   return page.evaluate(() => {
     const clean = (value) => String(value || "").replace(/\s+/g, " ").trim();
@@ -696,6 +788,7 @@ function getQuestionChoiceLabels(question) {
 
 function mergeQuestionsByFieldOrLabel(primaryQuestions, fallbackQuestions) {
   const normalizeKey = (value) => cleanText(value).toLowerCase().replace(/[^a-z0-9]+/g, "");
+  const hasRequiredFlag = (question) => Object.prototype.hasOwnProperty.call(question || {}, "required");
   const merged = [];
   const seen = new Set();
   const fallbackByField = new Map();
@@ -726,7 +819,7 @@ function mergeQuestionsByFieldOrLabel(primaryQuestions, fallbackQuestions) {
           options: getQuestionChoiceLabels(question).length
             ? getQuestionChoiceLabels(question)
             : getQuestionChoiceLabels(match),
-          required: questionIsRequired(question) || questionIsRequired(match),
+          required: hasRequiredFlag(question) ? questionIsRequired(question) : questionIsRequired(match),
         }
       : question;
     const key = fieldNames.map(normalizeKey).find(Boolean) || normalizeKey(label);
@@ -4169,6 +4262,83 @@ async function clickLikelyApplyButton(page) {
   };
 }
 
+async function fillCoreCandidateFields(page, candidate, isWorkable) {
+  debugLog("core_fields", "fill_first_name");
+  const filledFirstName = await withTimeout(fillBySelectors(page, [
+    "#first_name",
+    "#firstname",
+    'input[name="first_name"]',
+    'input[name="firstname"]',
+    'input[name="firstName"]',
+    'input[name*="first" i]',
+  ], candidate.firstName), 7000, false);
+  debugLog("core_fields", "fill_last_name");
+  const filledLastName = await withTimeout(fillBySelectors(page, [
+    "#last_name",
+    "#lastname",
+    'input[name="last_name"]',
+    'input[name="lastname"]',
+    'input[name="lastName"]',
+    'input[name*="last" i]',
+  ], candidate.lastName), 7000, false);
+  debugLog("core_fields", "fill_email");
+  const filledEmail = await withTimeout(fillBySelectors(page, [
+    "#email",
+    'input[type="email"]',
+    'input[name="email"]',
+    'input[name*="email" i]',
+  ], candidate.email), 7000, false);
+  debugLog("core_fields", "fill_phone");
+  const filledPhone = await withTimeout(fillBySelectors(page, [
+    "#phone",
+    'input[type="tel"]',
+    'input[name*="phone" i]',
+    'input[name*="mobile" i]',
+  ], candidate.phone), 7000, false);
+  debugLog("core_fields", "fill_address");
+  const filledAddress = await withTimeout(fillBySelectors(page, [
+    "#address",
+    'input[name="address"]',
+    'input[name*="address" i]',
+    'input[name*="location" i]',
+    'input[name*="city" i]',
+  ], candidate.address), 7000, false);
+
+  debugLog("core_fields", "label_fallbacks");
+  if (!filledFirstName) {
+    await withTimeout(fillByLabelText(page, ["first name", "given name"], candidate.firstName), 7000, false);
+  }
+  if (!filledLastName) {
+    await withTimeout(fillByLabelText(page, ["last name", "family name", "surname"], candidate.lastName), 7000, false);
+  }
+  if (!filledEmail) {
+    await withTimeout(fillByLabelText(page, ["email"], candidate.email), 7000, false);
+  }
+  if (!filledPhone) {
+    await withTimeout(fillByLabelText(page, ["phone", "mobile"], candidate.phone), 7000, false);
+  }
+  if (!filledAddress) {
+    await withTimeout(fillByLabelText(page, ["address", "current location", "location", "city"], candidate.address), 7000, false);
+  }
+  if (isWorkable) {
+    debugLog("core_fields", "workable_visual_repair");
+    await withTimeout(fillWorkableCoreTextByVisualLabel(page, [
+      { key: "first_name", patterns: ["^\\*?\\s*first\\s*name\\b"], value: candidate.firstName },
+      { key: "last_name", patterns: ["^\\*?\\s*last\\s*name\\b"], value: candidate.lastName },
+      { key: "email", patterns: ["^\\*?\\s*email\\b"], value: candidate.email },
+      { key: "phone", patterns: ["^\\*?\\s*phone\\b", "^\\*?\\s*mobile\\b"], value: candidate.phone },
+    ]), 7000, {});
+  }
+
+  return {
+    first_name: filledFirstName,
+    last_name: filledLastName,
+    email: filledEmail,
+    phone: filledPhone,
+    address: filledAddress,
+  };
+}
+
 async function processTask(task) {
   const url = task.application_workspace_url || task.application_url;
   const verificationCode = getVerificationCode(task);
@@ -4204,80 +4374,27 @@ async function processTask(task) {
     debugLog(task.task_uuid || "task", "cookies_dismissed", Boolean(dismissedCookies));
     debugLog(task.task_uuid || "task", "form_ready", JSON.stringify(formReady));
 
-    debugLog(task.task_uuid || "task", "fill_core_first_name");
-    const filledFirstName = await withTimeout(fillBySelectors(page, [
-      "#first_name",
-      "#firstname",
-      'input[name="first_name"]',
-      'input[name="firstname"]',
-      'input[name="firstName"]',
-      'input[name*="first" i]',
-    ], firstName), 7000, false);
-    debugLog(task.task_uuid || "task", "fill_core_last_name");
-    const filledLastName = await withTimeout(fillBySelectors(page, [
-      "#last_name",
-      "#lastname",
-      'input[name="last_name"]',
-      'input[name="lastname"]',
-      'input[name="lastName"]',
-      'input[name*="last" i]',
-    ], lastName), 7000, false);
-    debugLog(task.task_uuid || "task", "fill_core_email");
-    const filledEmail = await withTimeout(fillBySelectors(page, [
-      "#email",
-      'input[type="email"]',
-      'input[name="email"]',
-      'input[name*="email" i]',
-    ], candidate.email), 7000, false);
-    debugLog(task.task_uuid || "task", "fill_core_phone");
-    const filledPhone = await withTimeout(fillBySelectors(page, [
-      "#phone",
-      'input[type="tel"]',
-      'input[name*="phone" i]',
-      'input[name*="mobile" i]',
-    ], candidate.phone), 7000, false);
-    debugLog(task.task_uuid || "task", "fill_core_address");
-    const filledAddress = await withTimeout(fillBySelectors(page, [
-      "#address",
-      'input[name="address"]',
-      'input[name*="address" i]',
-      'input[name*="location" i]',
-      'input[name*="city" i]',
-    ], candidate.address), 7000, false);
-
-    debugLog(task.task_uuid || "task", "fill_core_label_fallbacks");
-    if (!filledFirstName) {
-      await withTimeout(fillByLabelText(page, ["first name", "given name"], firstName), 7000, false);
+    const isWorkable = isWorkableApplication(task, url);
+    let uploadedResume = false;
+    let workableResumeImport = null;
+    if (isWorkable) {
+      debugLog(task.task_uuid || "task", "workable_resume_import_start");
+      workableResumeImport = await withTimeout(
+        uploadWorkableResumeViaImport(page, cvPath),
+        90000,
+        { uploaded: false, imported: false, clicked_import: false, fallback_upload: false }
+      );
+      uploadedResume = Boolean(workableResumeImport.uploaded);
+      debugLog(task.task_uuid || "task", "workable_resume_import", JSON.stringify(workableResumeImport));
+      await withTimeout(fillCoreCandidateFields(page, candidate, true), 12000, {});
+    } else {
+      debugLog(task.task_uuid || "task", "fill_core_candidate_fields");
+      await withTimeout(fillCoreCandidateFields(page, candidate, false), 12000, {});
+      debugLog(task.task_uuid || "task", "upload_resume");
+      uploadedResume = await uploadResume(page, cvPath);
     }
-    if (!filledLastName) {
-      await withTimeout(fillByLabelText(page, ["last name", "family name", "surname"], lastName), 7000, false);
-    }
-    if (!filledEmail) {
-      await withTimeout(fillByLabelText(page, ["email"], candidate.email), 7000, false);
-    }
-    if (!filledPhone) {
-      await withTimeout(fillByLabelText(page, ["phone", "mobile"], candidate.phone), 7000, false);
-    }
-    if (!filledAddress) {
-      await withTimeout(fillByLabelText(page, ["address", "current location", "location", "city"], candidate.address), 7000, false);
-    }
-    if (isWorkableApplication(task, url)) {
-      debugLog(task.task_uuid || "task", "workable_core_repair");
-      await withTimeout(fillWorkableCoreTextByVisualLabel(page, [
-        { key: "first_name", patterns: ["^\\*?\\s*first\\s*name\\b"], value: firstName },
-        { key: "last_name", patterns: ["^\\*?\\s*last\\s*name\\b"], value: lastName },
-      ]), 7000, {});
-    }
-    debugLog(task.task_uuid || "task", "upload_resume");
-    const uploadedResume = await uploadResume(page, cvPath);
     let liveApplicationSchema = null;
-    if (isWorkableApplication(task, url)) {
-      const clickedResumeImport = await withTimeout(clickWorkableResumeImport(page), 5000, false);
-      debugLog(task.task_uuid || "task", "workable_resume_import_clicked", Boolean(clickedResumeImport));
-      if (clickedResumeImport) {
-        await page.waitForNetworkIdle({ idleTime: 1000, timeout: 12000 }).catch(() => {});
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-      }
+    if (isWorkable) {
       debugLog(task.task_uuid || "task", "workable_live_schema_discovery");
       liveApplicationSchema = await discoverWorkableLiveSchema(page).catch(() => null);
       debugLog(
@@ -4308,6 +4425,12 @@ async function processTask(task) {
       `choices=${applicationAnswers.choice_filled}/${applicationAnswers.choice_attempted}`
     );
     let browserDiagnostics = await getBrowserEnvironmentDiagnostics(page).catch(() => ({}));
+    if (workableResumeImport) {
+      browserDiagnostics = {
+        ...browserDiagnostics,
+        workable_resume_import: workableResumeImport,
+      };
+    }
 
     const screenshotPath = path.join(os.tmpdir(), `${task.task_uuid}.png`);
     debugLog(task.task_uuid || "task", "screenshot_before_submit", screenshotPath);

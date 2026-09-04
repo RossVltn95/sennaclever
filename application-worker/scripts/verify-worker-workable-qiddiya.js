@@ -1,11 +1,65 @@
 process.env.SFFC_WORKER_ALLOW_FINAL_SUBMIT ||= "1";
 process.env.SFFC_WORKER_INTERCEPT_FINAL_SUBMIT ||= "1";
 
+import fs from "node:fs/promises";
+import path from "node:path";
+
 const { processTask } = await import("../src/worker.js");
 
 const WORKABLE_URL =
   process.env.SFFC_WORKABLE_TEST_URL ||
-  "https://apply.workable.com/qiddiya-investment-company-1/j/75DCF9FFBC/apply/";
+  "https://apply.workable.com/qiddiya-investment-company-1/j/F2F2483923/apply/";
+
+async function getCvFixture() {
+  const cvPath = process.env.SFFC_WORKABLE_CV_PATH || "";
+  if (cvPath) {
+    const buffer = await fs.readFile(cvPath);
+    const mime = cvPath.toLowerCase().endsWith(".pdf") ? "application/pdf" : "application/octet-stream";
+    return {
+      fileName: path.basename(cvPath),
+      dataUrl: `data:${mime};base64,${buffer.toString("base64")}`,
+    };
+  }
+
+  return {
+    fileName: "sffc-workable-test-cv.pdf",
+    dataUrl:
+      "data:application/pdf;base64," +
+      Buffer.from(
+        "%PDF-1.4\n1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 4 0 R >>\nendobj\n4 0 obj\n<< /Length 93 >>\nstream\nBT /F1 12 Tf 72 720 Td (Luca Valentino Rosati - FP&A and investment analysis CV) Tj ET\nendstream\nendobj\nxref\n0 5\n0000000000 65535 f \n0000000009 00000 n \n0000000058 00000 n \n0000000115 00000 n \n0000000204 00000 n \ntrailer\n<< /Root 1 0 R /Size 5 >>\nstartxref\n347\n%%EOF\n"
+      ).toString("base64"),
+  };
+}
+
+function getApplicationAnswers() {
+  const baseAnswers = {
+    address: "Dubai, United Arab Emirates",
+    phone: "+447911123456",
+    CA_35795: "Bachelor Degree",
+    CA_46626: "No",
+    CA_35810: "No",
+    CA_49991: "Dubai, UAE",
+    CA_50334: "01/01/1990",
+    CA_50380: "SAR 45000",
+    CA_35796: "SAR 35000",
+    CA_50967: "Mr",
+    CA_50968: "United Kingdom",
+    CA_33138: "8",
+    CA_50017: "No",
+    CA_46634: "Yes",
+    519266: "Yes",
+    519267: "Yes",
+  };
+
+  if (!process.env.SFFC_WORKABLE_TEST_ANSWERS_JSON) {
+    return baseAnswers;
+  }
+
+  return {
+    ...baseAnswers,
+    ...JSON.parse(process.env.SFFC_WORKABLE_TEST_ANSWERS_JSON),
+  };
+}
 
 const schema = {
   provider: "workable",
@@ -41,14 +95,14 @@ const schema = {
       options: ["Yes", "No", "I don't know"],
     },
     { name: "CA_49991", label: "Current Location", type: "text", required: true },
-    { name: "CA_50334", label: "Date of Birth", type: "text", required: true },
-    { name: "CA_50380", label: "Expected Salary", type: "text", required: true },
-    { name: "CA_35796", label: "Current monthly salary", type: "text", required: true },
+    { name: "CA_50334", label: "Date of Birth", type: "text", required: false },
+    { name: "CA_50380", label: "Expected Salary", type: "text", required: false },
+    { name: "CA_35796", label: "Current monthly salary", type: "text", required: false },
     {
       name: "CA_50967",
       label: "Salutation",
       type: "select",
-      required: true,
+      required: false,
       options: ["Mr", "Mrs", "Ms", "Miss", "Dr"],
     },
     {
@@ -90,6 +144,8 @@ const schema = {
   ],
 };
 
+const cvFixture = await getCvFixture();
+
 const task = {
   task_uuid: "workable-qiddiya-dry-run",
   provider: "workable",
@@ -98,32 +154,11 @@ const task = {
   candidate_name: "Luca Valentino Rosati",
   candidate_email: "workable-dry-run@example.com",
   candidate_phone: "+447911123456",
-  cv_file_name: "sffc-workable-test-cv.pdf",
-  cv_file_url:
-    "data:application/pdf;base64," +
-    Buffer.from(
-      "%PDF-1.4\n1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 4 0 R >>\nendobj\n4 0 obj\n<< /Length 93 >>\nstream\nBT /F1 12 Tf 72 720 Td (Luca Valentino Rosati - FP&A and investment analysis CV) Tj ET\nendstream\nendobj\nxref\n0 5\n0000000000 65535 f \n0000000009 00000 n \n0000000058 00000 n \n0000000115 00000 n \n0000000204 00000 n \ntrailer\n<< /Root 1 0 R /Size 5 >>\nstartxref\n347\n%%EOF\n"
-    ).toString("base64"),
+  cv_file_name: cvFixture.fileName,
+  cv_file_url: cvFixture.dataUrl,
   payload: {
     application_schema: schema,
-    application_answers: {
-      address: "Dubai, United Arab Emirates",
-      phone: "+447911123456",
-      CA_35795: "Bachelor Degree",
-      CA_46626: "No",
-      CA_35810: "No",
-      CA_49991: "Dubai, UAE",
-      CA_50334: "01/01/1990",
-      CA_50380: "SAR 45000",
-      CA_35796: "SAR 35000",
-      CA_50967: "Mr",
-      CA_50968: "United Kingdom",
-      CA_33138: "8",
-      CA_50017: "No",
-      CA_46634: "Yes",
-      519266: "Yes",
-      519267: "Yes",
-    },
+    application_answers: getApplicationAnswers(),
   },
   cover_letter_requested: 0,
 };

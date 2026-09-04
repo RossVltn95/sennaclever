@@ -2,7 +2,7 @@ import puppeteer from "puppeteer";
 
 const url =
   process.env.SFFC_WORKABLE_TEST_URL ||
-  "https://apply.workable.com/qiddiya-investment-company-1/j/75DCF9FFBC/apply/";
+  "https://apply.workable.com/qiddiya-investment-company-1/j/F2F2483923/apply/";
 
 const browser = await puppeteer.launch({
   headless: "new",
