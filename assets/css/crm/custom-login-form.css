@@ -1,0 +1,670 @@
+.sffc-custom-login {
+  --sffc-login-ink: #14171f;
+  --sffc-login-muted: #656d78;
+  --sffc-login-line: #d8dde3;
+  --sffc-login-accent: #a17654;
+  --sffc-login-action: #27343a;
+  min-height: 100vh;
+  background: #ffffff;
+  color: var(--sffc-login-ink);
+  font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.sffc-custom-login,
+.sffc-custom-login * {
+  box-sizing: border-box;
+}
+
+.sffc-custom-login__panel {
+  display: grid;
+  grid-template-columns: minmax(420px, 1fr) minmax(480px, 1fr);
+  min-height: 100vh;
+}
+
+.sffc-custom-login__form-side {
+  display: grid;
+  grid-template-rows: 1fr auto;
+  min-width: 0;
+  padding: clamp(34px, 6vw, 86px) clamp(24px, 7vw, 118px) 28px;
+}
+
+.sffc-custom-login__form-inner {
+  align-self: center;
+  width: min(100%, 470px);
+}
+
+.sffc-custom-login[data-active-panel="brief"] .sffc-custom-login__form-inner {
+  width: min(100%, 620px);
+}
+
+.sffc-custom-login__brand {
+  display: inline-grid;
+  gap: 8px;
+  margin-bottom: 32px;
+  color: inherit;
+  text-decoration: none;
+}
+
+.sffc-custom-login__brand-name {
+  color: #171923;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(32px, 4vw, 44px);
+  font-weight: 500;
+  letter-spacing: 0;
+  line-height: 1;
+}
+
+.sffc-custom-login__brand-label {
+  color: var(--sffc-login-accent);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.sffc-custom-login__heading {
+  margin-bottom: 26px;
+}
+
+.sffc-custom-login__heading h1 {
+  margin: 0 0 12px;
+  color: #12151d;
+  font-size: clamp(30px, 4.2vw, 48px);
+  font-weight: 750;
+  letter-spacing: 0;
+  line-height: 1.08;
+}
+
+.sffc-custom-login__heading p {
+  max-width: 410px;
+  margin: 0;
+  color: var(--sffc-login-muted);
+  font-size: 16px;
+  line-height: 1.55;
+}
+
+.sffc-custom-login__value-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: -10px 0 26px;
+}
+
+.sffc-custom-login__value-strip span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+  padding: 7px 11px;
+  border: 1px solid #e0d6ce;
+  border-radius: 8px;
+  background: #fbf7f2;
+  color: #5f4634;
+  font-size: 13px;
+  font-weight: 750;
+  line-height: 1.2;
+}
+
+.sffc-custom-login__form {
+  display: grid;
+  gap: 22px;
+}
+
+.sffc-custom-login__form[hidden] {
+  display: none;
+}
+
+.sffc-custom-login__field {
+  display: grid;
+  gap: 10px;
+}
+
+.sffc-custom-login__field > span:first-child,
+.sffc-custom-login__remember {
+  color: #242833;
+  font-size: 16px;
+  font-weight: 650;
+}
+
+.sffc-custom-login__field input[type="text"],
+.sffc-custom-login__field input[type="email"],
+.sffc-custom-login__field input[type="password"],
+.sffc-custom-login__field select,
+.sffc-custom-login__field textarea {
+  width: 100%;
+  min-height: 58px;
+  padding: 0 18px;
+  border: 1px solid #9da5ae;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #111827;
+  font: inherit;
+  font-size: 17px;
+  outline: none;
+  resize: vertical;
+  transition: border-color .18s ease, box-shadow .18s ease;
+}
+
+.sffc-custom-login__field textarea {
+  min-height: 124px;
+  padding-top: 15px;
+}
+
+.sffc-custom-login__field select {
+  appearance: none;
+  background:
+    linear-gradient(45deg, transparent 50%, #4b5563 50%),
+    linear-gradient(135deg, #4b5563 50%, transparent 50%),
+    #ffffff;
+  background-position:
+    calc(100% - 22px) 25px,
+    calc(100% - 15px) 25px,
+    0 0;
+  background-repeat: no-repeat;
+  background-size: 7px 7px, 7px 7px, 100% 100%;
+  padding-right: 46px;
+}
+
+.sffc-custom-login__field input:focus,
+.sffc-custom-login__field select:focus,
+.sffc-custom-login__field textarea:focus {
+  border-color: #246bfe;
+  box-shadow: 0 0 0 4px rgba(36, 107, 254, .13);
+}
+
+.sffc-custom-login__password-shell {
+  position: relative;
+  display: block;
+}
+
+.sffc-custom-login__password-shell input[type="password"],
+.sffc-custom-login__password-shell input[type="text"] {
+  padding-right: 86px;
+}
+
+.sffc-custom-login__password-shell button {
+  position: absolute;
+  top: 50%;
+  right: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 48px;
+  height: 36px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #1f5f9f;
+  cursor: pointer;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 750;
+  transform: translateY(-50%);
+}
+
+.sffc-custom-login__options {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: -6px;
+}
+
+.sffc-custom-login__remember {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.sffc-custom-login__remember input {
+  width: 22px;
+  height: 22px;
+  margin: 0;
+  accent-color: var(--sffc-login-action);
+}
+
+.sffc-custom-login__options button,
+.sffc-custom-login__signup button,
+.sffc-custom-login__footer a {
+  color: #7a5437;
+  font-weight: 650;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.sffc-custom-login__options button,
+.sffc-custom-login__signup button,
+.sffc-custom-login__text-button {
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
+}
+
+.sffc-custom-login__submit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  justify-self: start;
+  min-height: 58px;
+  padding: 0 30px;
+  border: 0;
+  border-radius: 8px;
+  background: var(--sffc-login-action);
+  color: #ffffff;
+  cursor: pointer;
+  font: inherit;
+  font-size: 18px;
+  font-weight: 750;
+  line-height: 1;
+  text-decoration: none;
+  transition: background .18s ease, transform .18s ease, box-shadow .18s ease;
+}
+
+.sffc-custom-login__submit:hover {
+  background: #172126;
+  box-shadow: 0 16px 30px rgba(23, 33, 38, .2);
+  transform: translateY(-1px);
+}
+
+.sffc-custom-login__error {
+  margin: 0 0 18px;
+  padding: 13px 15px;
+  border: 1px solid #f0b7ae;
+  border-radius: 8px;
+  background: #fff4f2;
+  color: #9f2d20;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.sffc-custom-login__notice {
+  margin: 0 0 18px;
+  padding: 13px 15px;
+  border-radius: 8px;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.sffc-custom-login__notice.is-success {
+  border: 1px solid #b9dbc5;
+  background: #f0faf3;
+  color: #17603a;
+}
+
+.sffc-custom-login__notice.is-error {
+  border: 1px solid #f0b7ae;
+  background: #fff4f2;
+  color: #9f2d20;
+}
+
+.sffc-custom-login__panel-heading {
+  display: grid;
+  gap: 8px;
+}
+
+.sffc-custom-login__panel-heading h2 {
+  margin: 0;
+  color: #12151d;
+  font-size: 25px;
+  font-weight: 780;
+  letter-spacing: 0;
+  line-height: 1.16;
+}
+
+.sffc-custom-login__panel-heading p {
+  max-width: 520px;
+  margin: 0;
+  color: var(--sffc-login-muted);
+  font-size: 15px;
+  line-height: 1.55;
+}
+
+.sffc-custom-login__field-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.sffc-custom-login__brief-form {
+  gap: 18px;
+}
+
+.sffc-custom-login__panel-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px 18px;
+}
+
+.sffc-custom-login__panel-actions .sffc-custom-login__submit {
+  justify-self: auto;
+}
+
+.sffc-custom-login__text-button {
+  min-height: 44px;
+  padding: 0;
+  color: #7a5437;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.sffc-custom-login__signup {
+  margin: 28px 0 0;
+  color: var(--sffc-login-muted);
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.sffc-custom-login__signup button {
+  padding: 0;
+}
+
+.sffc-custom-login__secure-card {
+  display: grid;
+  grid-template-columns: 58px 1fr;
+  gap: 18px;
+  align-items: center;
+  width: min(100%, 470px);
+  margin-top: 52px;
+  padding: 20px 22px;
+  border-radius: 8px;
+  background: #fbf1e8;
+}
+
+.sffc-custom-login[data-active-panel="brief"] .sffc-custom-login__secure-card,
+.sffc-custom-login[data-active-panel="reset"] .sffc-custom-login__secure-card {
+  display: none;
+}
+
+.sffc-custom-login__secure-icon {
+  display: grid;
+  place-items: center;
+  width: 58px;
+  height: 58px;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #1b775e;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 30px;
+  font-weight: 700;
+}
+
+.sffc-custom-login__secure-copy {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.sffc-custom-login__secure-copy strong {
+  color: #171923;
+  font-size: 18px;
+  font-weight: 800;
+  line-height: 1.25;
+}
+
+.sffc-custom-login__secure-copy span {
+  color: #2f3742;
+  font-size: 15px;
+  line-height: 1.35;
+}
+
+.sffc-custom-login__footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px 0;
+  justify-content: center;
+  margin-top: 36px;
+  color: #6b7280;
+  font-size: 14px;
+  line-height: 1.4;
+  text-align: center;
+}
+
+.sffc-custom-login__footer a,
+.sffc-custom-login__footer button,
+.sffc-custom-login__footer span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 20px;
+  padding: 0 16px;
+}
+
+.sffc-custom-login__footer a + a,
+.sffc-custom-login__footer a + button,
+.sffc-custom-login__footer button + a,
+.sffc-custom-login__footer button + button,
+.sffc-custom-login__footer button + span,
+.sffc-custom-login__footer a + span {
+  border-left: 1px solid #9ca3af;
+}
+
+.sffc-custom-login__footer a,
+.sffc-custom-login__footer button {
+  color: #3e444c;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.sffc-custom-login__footer button {
+  border-top: 0;
+  border-right: 0;
+  border-bottom: 0;
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
+}
+
+.sffc-custom-login__footer button:hover,
+.sffc-custom-login__footer a:hover {
+  color: #7a5437;
+}
+
+.sffc-custom-login__footer span {
+  flex-basis: 100%;
+  justify-content: center;
+  color: #3e444c;
+  font-weight: 600;
+}
+
+.sffc-custom-login__footer small {
+  flex-basis: 100%;
+  color: #7a818c;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.sffc-custom-login__image-side {
+  position: relative;
+  min-height: 100vh;
+  overflow: hidden;
+  background: #f0f2f4;
+}
+
+.sffc-custom-login__image-side img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: 100vh;
+  object-fit: cover;
+}
+
+.sffc-custom-login__image-side::after {
+  content: none;
+}
+
+.sffc-custom-login__dialog {
+  position: fixed;
+  inset: 0;
+  z-index: 100000;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(17, 24, 39, .54);
+}
+
+.sffc-custom-login__dialog[hidden] {
+  display: none;
+}
+
+.sffc-custom-login__dialog-panel {
+  width: min(100%, 620px);
+  max-height: min(720px, calc(100vh - 48px));
+  overflow: auto;
+  border: 1px solid rgba(17, 24, 39, .12);
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: 0 28px 70px rgba(17, 24, 39, .22);
+}
+
+.sffc-custom-login__dialog-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 24px 26px 18px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.sffc-custom-login__dialog-head h2 {
+  margin: 0;
+  color: #12151d;
+  font-size: 24px;
+  font-weight: 780;
+  line-height: 1.15;
+}
+
+.sffc-custom-login__dialog-close {
+  display: inline-grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border: 1px solid #d8dde3;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #1f2937;
+  cursor: pointer;
+  font: inherit;
+  font-size: 24px;
+  line-height: 1;
+}
+
+.sffc-custom-login__dialog-body {
+  display: grid;
+  gap: 14px;
+  padding: 22px 26px 26px;
+  color: #374151;
+  font-size: 15px;
+  line-height: 1.65;
+}
+
+.sffc-custom-login__dialog-body h3 {
+  margin: 8px 0 0;
+  color: #171923;
+  font-size: 17px;
+  font-weight: 760;
+}
+
+.sffc-custom-login__dialog-body p {
+  margin: 0;
+}
+
+.sffc-custom-login--signed-in {
+  display: grid;
+  place-items: center;
+  padding: 28px;
+  background:
+    linear-gradient(135deg, rgba(255,255,255,.94), rgba(255,255,255,.78)),
+    url("https://media.joinsenna.com/2026/08/vecteezy_low-angle-view-of-a-modern-white-and-orange-building-under_28139720_755-scaled.jpg") center/cover no-repeat;
+}
+
+.sffc-custom-login__signed-card {
+  width: min(100%, 460px);
+  padding: 34px;
+  border: 1px solid rgba(17, 24, 39, .12);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, .92);
+  box-shadow: 0 24px 70px rgba(17, 24, 39, .14);
+  text-align: center;
+}
+
+.sffc-custom-login__brand-mark {
+  display: inline-grid;
+  place-items: center;
+  width: 54px;
+  height: 54px;
+  margin-bottom: 18px;
+  border-radius: 14px;
+  background: #123f34;
+  color: #ffffff;
+  font-size: 30px;
+  font-weight: 800;
+}
+
+.sffc-custom-login__signed-card h1 {
+  margin: 0 0 10px;
+  font-size: 30px;
+  line-height: 1.15;
+}
+
+.sffc-custom-login__signed-card p {
+  margin: 0 0 24px;
+  color: var(--sffc-login-muted);
+}
+
+@media (max-width: 900px) {
+  .sffc-custom-login__panel {
+    grid-template-columns: 1fr;
+  }
+
+  .sffc-custom-login__image-side {
+    min-height: 280px;
+    order: -1;
+  }
+
+  .sffc-custom-login__image-side img {
+    min-height: 280px;
+    max-height: 360px;
+  }
+
+  .sffc-custom-login__form-side {
+    min-height: auto;
+    padding: 32px 22px 24px;
+  }
+
+  .sffc-custom-login__form-inner {
+    width: 100%;
+  }
+
+  .sffc-custom-login__brand {
+    margin-bottom: 32px;
+  }
+
+  .sffc-custom-login__secure-card {
+    margin-top: 34px;
+  }
+}
+
+@media (max-width: 560px) {
+  .sffc-custom-login__field-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .sffc-custom-login__options {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .sffc-custom-login__panel-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .sffc-custom-login__text-button {
+    text-align: center;
+  }
+
+  .sffc-custom-login__submit {
+    width: 100%;
+  }
+}

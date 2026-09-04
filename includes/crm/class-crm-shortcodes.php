@@ -579,6 +579,12 @@ class SFFC_CRM_Shortcodes
     {
         add_action('init', [$this, 'ensure_signup_cookie_scope'], 1);
         add_action('init', [$this, 'ensure_signup_prefill_token'], 2);
+        add_action('wp_login_failed', [$this, 'redirect_custom_login_failed']);
+        add_filter('authenticate', [$this, 'redirect_custom_login_empty_fields'], 30, 3);
+        add_action('admin_post_nopriv_sffc_custom_login_password_reset', [$this, 'handle_custom_login_password_reset']);
+        add_action('admin_post_sffc_custom_login_password_reset', [$this, 'handle_custom_login_password_reset']);
+        add_action('admin_post_nopriv_sffc_custom_login_service_enquiry', [$this, 'handle_custom_login_service_enquiry']);
+        add_action('admin_post_sffc_custom_login_service_enquiry', [$this, 'handle_custom_login_service_enquiry']);
         add_shortcode('sffc_crm', [$this, 'render_crm']);
         add_shortcode('sffc_crm_linkedin', [$this, 'render_crm_linkedin']);
         add_shortcode('sffc_crm_linkedin_header_right', [$this, 'render_crm_linkedin_header_right_shortcode']);
@@ -602,6 +608,7 @@ class SFFC_CRM_Shortcodes
         add_shortcode('sffc_conversion_carousel', [$this, 'render_conversion_carousel']);
         add_shortcode('sffc_signup_flow', [$this, 'render_signup_flow']);
         add_shortcode('sffc_signup_form', [$this, 'render_signup_form']);
+        add_shortcode('sffc_custom_login_form', [$this, 'render_custom_login_form']);
         add_shortcode('sffc_crm_matching_engine', [$this, 'render_matching_engine_landing']);
         add_shortcode('sffc_crm_console_search', [$this, 'render_crm_console_search']);
         add_shortcode('sffc_mena_search_landing', [$this, 'render_mena_search_landing']);
@@ -18215,7 +18222,7 @@ CSS;
                                             </svg>
                                         </span>
                                     </h2>
-                                    <p class="sffc-crm-dashboard-app-profile-titleline"><?php echo esc_html($profile_headline !== '' ? $profile_headline : __('Growth & Automation @ Senna', 'senna-finance')); ?></p>
+                                    <p class="sffc-crm-dashboard-app-profile-titleline"><?php echo esc_html($profile_headline !== '' ? $profile_headline : __('Growth @ Senna', 'senna-finance')); ?></p>
                                     <p class="sffc-crm-dashboard-app-profile-locationline">
                                         <?php echo esc_html($profile_location_label); ?>
                                         <span aria-hidden="true">·</span>
@@ -40892,6 +40899,7 @@ CRITICAL INSTRUCTIONS:
 
             wp_localize_script('sffc-crm-apply-chat-article', 'sffcCrmApplyChatArticle', [
                 'ajaxUrl' => admin_url('admin-ajax.php'),
+                'crmNonce' => wp_create_nonce('sffc_crm_nonce'),
                 'nonce' => wp_create_nonce('sffc_crm_apply_chat_analyze_cv'),
                 'accountNonce' => wp_create_nonce('sffc_crm_reddit_account'),
                 'resumeUploadNonce' => wp_create_nonce('sffc_cv_upload'),
@@ -40913,6 +40921,7 @@ CRITICAL INSTRUCTIONS:
                 'applyChatPricingOptions' => $this->get_apply_chat_pricing_options(),
                 'isLoggedIn' => is_user_logged_in(),
                 'currentUserFirstName' => $this->get_crm_apply_chat_current_user_first_name(),
+                'currentUserAvatarUrl' => is_user_logged_in() ? (string) get_avatar_url(get_current_user_id(), ['size' => 96]) : 'https://media.joinsenna.com/2025/05/bb-profile-avatar-buddyboss.webp',
                 'pdfScriptUrl' => 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js',
                 'pdfWorker' => 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js',
                 'mammothScriptUrl' => 'https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js',
@@ -41308,7 +41317,6 @@ CRITICAL INSTRUCTIONS:
                                     <span class="sffc-crm-apply-chat__app-rail-brand-mark" aria-hidden="true">
                                         <span class="sffc-crm-apply-chat__app-rail-brand-glyph">S</span>
                                     </span>
-                                    <span class="sffc-crm-apply-chat__app-rail-brand-dot" aria-hidden="true"></span>
                                 </div>
                                 <div class="sffc-crm-apply-chat__app-rail-group">
                                     <button type="button" class="sffc-crm-apply-chat__app-rail-button is-active" data-sffc-apply-chat-rail-view="chat" aria-label="<?php esc_attr_e('Chat', 'senna-finance'); ?>">
@@ -41317,11 +41325,11 @@ CRITICAL INSTRUCTIONS:
                                         </span>
                                         <span class="sffc-crm-apply-chat__app-rail-button-label"><?php esc_html_e('Chat', 'senna-finance'); ?></span>
                                     </button>
-                                    <button type="button" class="sffc-crm-apply-chat__app-rail-button" data-sffc-apply-chat-rail-view="results" aria-label="<?php esc_attr_e('Results', 'senna-finance'); ?>">
+                                    <button type="button" class="sffc-crm-apply-chat__app-rail-button" data-sffc-apply-chat-rail-view="tracked" aria-label="<?php esc_attr_e('Tracked Jobs', 'senna-finance'); ?>">
                                         <span class="sffc-crm-apply-chat__app-rail-button-icon" aria-hidden="true">
                                             <svg viewBox="0 0 24 24" fill="none"><path d="M5 7.25C5 6.55964 5.55964 6 6.25 6H17.75C18.4404 6 19 6.55964 19 7.25V9.75C19 10.4404 18.4404 11 17.75 11H6.25C5.55964 11 5 10.4404 5 9.75V7.25Z" stroke="currentColor" stroke-width="1.8"/><path d="M5 14.25C5 13.5596 5.55964 13 6.25 13H17.75C18.4404 13 19 13.5596 19 14.25V16.75C19 17.4404 18.4404 18 17.75 18H6.25C5.55964 18 5 17.4404 5 16.75V14.25Z" stroke="currentColor" stroke-width="1.8"/></svg>
                                         </span>
-                                        <span class="sffc-crm-apply-chat__app-rail-button-label"><?php esc_html_e('Results', 'senna-finance'); ?></span>
+                                        <span class="sffc-crm-apply-chat__app-rail-button-label"><?php esc_html_e('Tracked Jobs', 'senna-finance'); ?></span>
                                     </button>
                                     <button type="button" class="sffc-crm-apply-chat__app-rail-button" data-sffc-apply-chat-rail-view="intros" aria-label="<?php esc_attr_e('Intros', 'senna-finance'); ?>" data-sffc-apply-chat-membership-gated="1">
                                         <span class="sffc-crm-apply-chat__app-rail-button-icon" aria-hidden="true">
@@ -41346,7 +41354,7 @@ CRITICAL INSTRUCTIONS:
 
                             <aside class="sffc-crm-apply-chat__lists-panel" data-sffc-apply-chat-lists-panel hidden aria-hidden="true">
                                 <div class="sffc-crm-apply-chat__lists-head">
-                                    <strong><?php esc_html_e('Results', 'senna-finance'); ?></strong>
+                                    <strong><?php esc_html_e('Tracked Jobs', 'senna-finance'); ?></strong>
                                 </div>
                                 <div class="sffc-crm-apply-chat__lists-stack" data-sffc-apply-chat-lists-stack>
                                     <button type="button" class="sffc-crm-apply-chat__list-card is-highlighted" data-sffc-apply-chat-list-card="matching_cv">
@@ -41389,8 +41397,8 @@ CRITICAL INSTRUCTIONS:
                                     <div class="sffc-crm-apply-chat__lists-results-head">
                                         <button type="button" class="sffc-crm-apply-chat__lists-results-back" data-sffc-apply-chat-lists-back><?php esc_html_e('Back', 'senna-finance'); ?></button>
                                         <div class="sffc-crm-apply-chat__lists-results-copy">
-                                            <strong data-sffc-apply-chat-lists-title><?php esc_html_e('Results', 'senna-finance'); ?></strong>
-                                            <p data-sffc-apply-chat-lists-description><?php esc_html_e('Matching roles will appear here.', 'senna-finance'); ?></p>
+                                            <strong data-sffc-apply-chat-lists-title><?php esc_html_e('Tracked Jobs', 'senna-finance'); ?></strong>
+                                            <p data-sffc-apply-chat-lists-description><?php esc_html_e('Submitted and saved roles will appear here.', 'senna-finance'); ?></p>
                                         </div>
                                     </div>
                                     <div class="sffc-crm-apply-chat__lists-results-body" data-sffc-apply-chat-lists-body></div>
@@ -41409,13 +41417,6 @@ CRITICAL INSTRUCTIONS:
                                         </div>
                                     </div>
                                     <div class="sffc-crm-apply-chat__desk-head-actions">
-                                        <?php if (!$has_paid_editorial_access) : ?>
-                                            <button type="button" class="sffc-crm-apply-chat__desk-upgrade" data-sffc-apply-chat-open-membership="mentorship" aria-label="<?php esc_attr_e('Free plan · Join MENA Careers', 'senna-finance'); ?>">
-                                                <span class="sffc-crm-apply-chat__desk-upgrade-plan"><?php esc_html_e('Free plan', 'senna-finance'); ?></span>
-                                                <span class="sffc-crm-apply-chat__desk-upgrade-separator" aria-hidden="true">·</span>
-                                                <span class="sffc-crm-apply-chat__desk-upgrade-action"><?php esc_html_e('Join MENA Careers', 'senna-finance'); ?></span>
-                                            </button>
-                                        <?php endif; ?>
                                         <div class="sffc-crm-apply-chat__desk-search" data-sffc-apply-chat-desk-search hidden>
                                             <input type="search" class="sffc-crm-apply-chat__desk-search-input" data-sffc-apply-chat-desk-search-input placeholder="<?php esc_attr_e('Search this chat', 'senna-finance'); ?>" autocomplete="off">
                                             <span class="sffc-crm-apply-chat__desk-search-count" data-sffc-apply-chat-desk-search-count><?php esc_html_e('0 results', 'senna-finance'); ?></span>
@@ -41512,7 +41513,7 @@ CRITICAL INSTRUCTIONS:
                                 <div class="sffc-crm-apply-chat__workspace-tabs" role="tablist" aria-label="<?php esc_attr_e('Workspace tabs', 'senna-finance'); ?>">
                                     <button type="button" class="sffc-crm-apply-chat__workspace-back" data-sffc-apply-chat-workspace-back><?php esc_html_e('Back to chat', 'senna-finance'); ?></button>
                                     <button type="button" class="sffc-crm-apply-chat__workspace-tab is-active" data-sffc-apply-chat-workspace-tab="original" aria-selected="true"><?php esc_html_e('Uploaded Profile', 'senna-finance'); ?></button>
-                                    <button type="button" class="sffc-crm-apply-chat__workspace-tab" data-sffc-apply-chat-workspace-tab="roles" aria-selected="false" hidden><?php esc_html_e('Role Fit', 'senna-finance'); ?></button>
+                                    <button type="button" class="sffc-crm-apply-chat__workspace-tab" data-sffc-apply-chat-workspace-tab="roles" aria-selected="false"><?php esc_html_e('Jobs', 'senna-finance'); ?></button>
                                     <button type="button" class="sffc-crm-apply-chat__workspace-tab" data-sffc-apply-chat-workspace-tab="draft" aria-selected="false" hidden><?php esc_html_e('Career Assessment', 'senna-finance'); ?></button>
                                     <button type="button" class="sffc-crm-apply-chat__workspace-tab" data-sffc-apply-chat-workspace-tab="cover" aria-selected="false" hidden><?php esc_html_e('Cover Letter', 'senna-finance'); ?></button>
                                     <button type="button" class="sffc-crm-apply-chat__workspace-tab" data-sffc-apply-chat-workspace-tab="support" aria-selected="false" hidden><?php esc_html_e('Expert Notes', 'senna-finance'); ?></button>
@@ -41530,8 +41531,8 @@ CRITICAL INSTRUCTIONS:
                                 <div class="sffc-crm-apply-chat__workspace-panel" data-sffc-apply-chat-workspace-panel="roles" hidden>
                                     <div class="sffc-crm-apply-chat__workspace-matches" data-sffc-apply-chat-workspace-roles>
                                         <div class="sffc-crm-apply-chat__workspace-empty">
-                                            <strong><?php esc_html_e('Role-fit notes will appear here', 'senna-finance'); ?></strong>
-                                            <p><?php esc_html_e('Once your CV has been read, MENA Careers will show where your profile fits the role and which evidence matters most.', 'senna-finance'); ?></p>
+                                            <strong><?php esc_html_e('Jobs will appear here', 'senna-finance'); ?></strong>
+                                            <p><?php esc_html_e('Search loaded roles, add the best ones to the application queue, and remove anything that should not be processed.', 'senna-finance'); ?></p>
                                         </div>
                                     </div>
                                 </div>
@@ -41719,6 +41720,11 @@ CRITICAL INSTRUCTIONS:
                 'mode' => 'role_entry',
                 'surface' => 'home_launcher',
                 'review_only' => '0',
+                'post_id' => '0',
+                'jobs_post_id' => '0',
+                'role_title' => '',
+                'company' => '',
+                'location' => '',
             ], $atts, 'sffc_crm_apply_chat_launcher');
             $surface = sanitize_key((string) $atts['surface']);
             $is_member_desk_surface = $surface === 'member_desk';
@@ -41775,6 +41781,7 @@ CRITICAL INSTRUCTIONS:
 
             wp_localize_script('sffc-crm-apply-chat-article', 'sffcCrmApplyChatArticle', [
                 'ajaxUrl' => admin_url('admin-ajax.php'),
+                'crmNonce' => wp_create_nonce('sffc_crm_nonce'),
                 'nonce' => wp_create_nonce('sffc_crm_apply_chat_analyze_cv'),
                 'accountNonce' => wp_create_nonce('sffc_crm_reddit_account'),
                 'resumeUploadNonce' => wp_create_nonce('sffc_cv_upload'),
@@ -41796,20 +41803,27 @@ CRITICAL INSTRUCTIONS:
                 'applyChatPricingOptions' => $this->get_apply_chat_pricing_options(),
                 'isLoggedIn' => is_user_logged_in(),
                 'currentUserFirstName' => $this->get_crm_apply_chat_current_user_first_name(),
+                'currentUserAvatarUrl' => is_user_logged_in() ? (string) get_avatar_url(get_current_user_id(), ['size' => 96]) : 'https://media.joinsenna.com/2025/05/bb-profile-avatar-buddyboss.webp',
                 'pdfScriptUrl' => 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js',
                 'pdfWorker' => 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js',
                 'mammothScriptUrl' => 'https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js',
             ]);
 
             $post_model = new SFFC_CRM_Post();
-            $launch_post_id_raw = isset($_GET['post_id']) ? wp_unslash($_GET['post_id']) : 0;
+            $launch_post_id_raw = isset($_GET['post_id']) ? wp_unslash($_GET['post_id']) : $atts['post_id'];
             $launch_post_id = is_array($launch_post_id_raw) ? 0 : absint($launch_post_id_raw);
             if ($launch_post_id <= 0 && isset($_GET['crm_post_id'])) {
                 $launch_crm_post_id_raw = wp_unslash($_GET['crm_post_id']);
                 $launch_post_id = is_array($launch_crm_post_id_raw) ? 0 : absint($launch_crm_post_id_raw);
             }
-            $launch_jobs_post_id_raw = isset($_GET['jobs_post_id']) ? wp_unslash($_GET['jobs_post_id']) : 0;
+            $launch_jobs_post_id_raw = isset($_GET['jobs_post_id']) ? wp_unslash($_GET['jobs_post_id']) : $atts['jobs_post_id'];
             $launch_jobs_post_id = is_array($launch_jobs_post_id_raw) ? 0 : absint($launch_jobs_post_id_raw);
+            if ($launch_post_id > 0 && get_post_type($launch_post_id) === 'jobs') {
+                if ($launch_jobs_post_id <= 0) {
+                    $launch_jobs_post_id = $launch_post_id;
+                }
+                $launch_post_id = 0;
+            }
             if ($launch_jobs_post_id <= 0) {
                 $launch_jobs_post_id = $this->resolve_crm_reddit_jobs_post_id(0);
             }
@@ -41832,20 +41846,29 @@ CRITICAL INSTRUCTIONS:
                 : 'role';
             $launch_post = $launch_post_id > 0 ? $post_model->get_full_detail($launch_post_id, get_current_user_id()) : [];
             $launch_post = is_array($launch_post) ? $launch_post : [];
-            $launch_jobs_item = ($launch_jobs_post_id > 0 && empty($launch_post))
+            $launch_jobs_item = $launch_jobs_post_id > 0
                 ? (array) $this->get_crm_reddit_jobs_item($launch_jobs_post_id)
                 : [];
             $launch_role_title = trim((string) ($launch_post['role_title'] ?? ''));
             if ($launch_role_title === '' && !empty($launch_jobs_item['role_title'])) {
                 $launch_role_title = trim((string) $launch_jobs_item['role_title']);
             }
+            if ($launch_role_title === '' && !empty($atts['role_title'])) {
+                $launch_role_title = sanitize_text_field((string) $atts['role_title']);
+            }
             $launch_company_name = trim((string) ($launch_post['company'] ?? ''));
             if ($launch_company_name === '' && !empty($launch_jobs_item['company'])) {
                 $launch_company_name = trim((string) $launch_jobs_item['company']);
             }
+            if ($launch_company_name === '' && !empty($atts['company'])) {
+                $launch_company_name = sanitize_text_field((string) $atts['company']);
+            }
             $launch_location = trim((string) ($launch_post['location'] ?? ''));
             if ($launch_location === '' && !empty($launch_jobs_item['location'])) {
                 $launch_location = trim((string) $launch_jobs_item['location']);
+            }
+            if ($launch_location === '' && !empty($atts['location'])) {
+                $launch_location = sanitize_text_field((string) $atts['location']);
             }
             $launch_salary = trim((string) ($launch_post['salary_text'] ?? ''));
             if ($launch_salary === '' && !empty($launch_jobs_item['salary_text'])) {
@@ -42040,6 +42063,7 @@ CRITICAL INSTRUCTIONS:
                                 class="sffc-crm-apply-chat__home-launcher-input"
                                 data-sffc-apply-chat-home-query
                                 autocomplete="off"
+                                value="<?php echo esc_attr($launch_role_title); ?>"
                                 placeholder="<?php echo esc_attr((string) $atts['prompt']); ?>">
                             <span class="sffc-crm-apply-chat__home-launcher-mode is-static" aria-label="<?php esc_attr_e('Apply for Me', 'senna-finance'); ?>">
                                 <span class="sffc-crm-apply-chat__home-launcher-mode-dot" aria-hidden="true"></span>
@@ -42063,7 +42087,6 @@ CRITICAL INSTRUCTIONS:
                                     <span class="sffc-crm-apply-chat__app-rail-brand-mark" aria-hidden="true">
                                         <span class="sffc-crm-apply-chat__app-rail-brand-glyph">S</span>
                                     </span>
-                                    <span class="sffc-crm-apply-chat__app-rail-brand-dot" aria-hidden="true"></span>
                                 </div>
                                 <div class="sffc-crm-apply-chat__app-rail-group">
                                     <button type="button" class="sffc-crm-apply-chat__app-rail-button is-active" data-sffc-apply-chat-rail-view="chat" aria-label="<?php esc_attr_e('Chat', 'senna-finance'); ?>">
@@ -42072,11 +42095,11 @@ CRITICAL INSTRUCTIONS:
                                         </span>
                                         <span class="sffc-crm-apply-chat__app-rail-button-label"><?php esc_html_e('Chat', 'senna-finance'); ?></span>
                                     </button>
-                                    <button type="button" class="sffc-crm-apply-chat__app-rail-button" data-sffc-apply-chat-rail-view="results" aria-label="<?php esc_attr_e('Results', 'senna-finance'); ?>">
+                                    <button type="button" class="sffc-crm-apply-chat__app-rail-button" data-sffc-apply-chat-rail-view="tracked" aria-label="<?php esc_attr_e('Tracked Jobs', 'senna-finance'); ?>">
                                         <span class="sffc-crm-apply-chat__app-rail-button-icon" aria-hidden="true">
                                             <svg viewBox="0 0 24 24" fill="none"><path d="M5 7.25C5 6.55964 5.55964 6 6.25 6H17.75C18.4404 6 19 6.55964 19 7.25V9.75C19 10.4404 18.4404 11 17.75 11H6.25C5.55964 11 5 10.4404 5 9.75V7.25Z" stroke="currentColor" stroke-width="1.8"/><path d="M5 14.25C5 13.5596 5.55964 13 6.25 13H17.75C18.4404 13 19 13.5596 19 14.25V16.75C19 17.4404 18.4404 18 17.75 18H6.25C5.55964 18 5 17.4404 5 16.75V14.25Z" stroke="currentColor" stroke-width="1.8"/></svg>
                                         </span>
-                                        <span class="sffc-crm-apply-chat__app-rail-button-label"><?php esc_html_e('Results', 'senna-finance'); ?></span>
+                                        <span class="sffc-crm-apply-chat__app-rail-button-label"><?php esc_html_e('Tracked Jobs', 'senna-finance'); ?></span>
                                     </button>
                                     <button type="button" class="sffc-crm-apply-chat__app-rail-button" data-sffc-apply-chat-rail-view="intros" aria-label="<?php esc_attr_e('Intros', 'senna-finance'); ?>" data-sffc-apply-chat-membership-gated="1">
                                         <span class="sffc-crm-apply-chat__app-rail-button-icon" aria-hidden="true">
@@ -42101,7 +42124,7 @@ CRITICAL INSTRUCTIONS:
 
                             <aside class="sffc-crm-apply-chat__lists-panel" data-sffc-apply-chat-lists-panel hidden aria-hidden="true">
                                 <div class="sffc-crm-apply-chat__lists-head">
-                                    <strong><?php esc_html_e('Results', 'senna-finance'); ?></strong>
+                                    <strong><?php esc_html_e('Tracked Jobs', 'senna-finance'); ?></strong>
                                 </div>
                                 <div class="sffc-crm-apply-chat__lists-stack" data-sffc-apply-chat-lists-stack>
                                     <button type="button" class="sffc-crm-apply-chat__list-card is-highlighted" data-sffc-apply-chat-list-card="matching_cv">
@@ -42144,8 +42167,8 @@ CRITICAL INSTRUCTIONS:
                                     <div class="sffc-crm-apply-chat__lists-results-head">
                                         <button type="button" class="sffc-crm-apply-chat__lists-results-back" data-sffc-apply-chat-lists-back><?php esc_html_e('Back', 'senna-finance'); ?></button>
                                         <div class="sffc-crm-apply-chat__lists-results-copy">
-                                            <strong data-sffc-apply-chat-lists-title><?php esc_html_e('Results', 'senna-finance'); ?></strong>
-                                            <p data-sffc-apply-chat-lists-description><?php esc_html_e('Matching roles will appear here.', 'senna-finance'); ?></p>
+                                            <strong data-sffc-apply-chat-lists-title><?php esc_html_e('Tracked Jobs', 'senna-finance'); ?></strong>
+                                            <p data-sffc-apply-chat-lists-description><?php esc_html_e('Submitted and saved roles will appear here.', 'senna-finance'); ?></p>
                                         </div>
                                     </div>
                                     <div class="sffc-crm-apply-chat__lists-results-body" data-sffc-apply-chat-lists-body></div>
@@ -42164,13 +42187,6 @@ CRITICAL INSTRUCTIONS:
                                         </div>
                                     </div>
                                     <div class="sffc-crm-apply-chat__desk-head-actions">
-                                        <?php if (!$has_paid_editorial_access) : ?>
-                                            <button type="button" class="sffc-crm-apply-chat__desk-upgrade" data-sffc-apply-chat-open-membership="mentorship" aria-label="<?php esc_attr_e('Free plan · Join MENA Careers', 'senna-finance'); ?>">
-                                                <span class="sffc-crm-apply-chat__desk-upgrade-plan"><?php esc_html_e('Free plan', 'senna-finance'); ?></span>
-                                                <span class="sffc-crm-apply-chat__desk-upgrade-separator" aria-hidden="true">·</span>
-                                                <span class="sffc-crm-apply-chat__desk-upgrade-action"><?php esc_html_e('Join MENA Careers', 'senna-finance'); ?></span>
-                                            </button>
-                                        <?php endif; ?>
                                         <div class="sffc-crm-apply-chat__desk-search" data-sffc-apply-chat-desk-search hidden>
                                             <input type="search" class="sffc-crm-apply-chat__desk-search-input" data-sffc-apply-chat-desk-search-input placeholder="<?php esc_attr_e('Search this chat', 'senna-finance'); ?>" autocomplete="off">
                                             <span class="sffc-crm-apply-chat__desk-search-count" data-sffc-apply-chat-desk-search-count><?php esc_html_e('0 results', 'senna-finance'); ?></span>
@@ -42267,7 +42283,7 @@ CRITICAL INSTRUCTIONS:
                                 <div class="sffc-crm-apply-chat__workspace-tabs" role="tablist" aria-label="<?php esc_attr_e('Workspace tabs', 'senna-finance'); ?>">
                                     <button type="button" class="sffc-crm-apply-chat__workspace-back" data-sffc-apply-chat-workspace-back><?php esc_html_e('Back to chat', 'senna-finance'); ?></button>
                                     <button type="button" class="sffc-crm-apply-chat__workspace-tab is-active" data-sffc-apply-chat-workspace-tab="original" aria-selected="true"><?php esc_html_e('Uploaded Profile', 'senna-finance'); ?></button>
-                                    <button type="button" class="sffc-crm-apply-chat__workspace-tab" data-sffc-apply-chat-workspace-tab="roles" aria-selected="false" hidden><?php esc_html_e('Role Fit', 'senna-finance'); ?></button>
+                                    <button type="button" class="sffc-crm-apply-chat__workspace-tab" data-sffc-apply-chat-workspace-tab="roles" aria-selected="false"><?php esc_html_e('Jobs', 'senna-finance'); ?></button>
                                     <button type="button" class="sffc-crm-apply-chat__workspace-tab" data-sffc-apply-chat-workspace-tab="draft" aria-selected="false" hidden><?php esc_html_e('Career Assessment', 'senna-finance'); ?></button>
                                     <button type="button" class="sffc-crm-apply-chat__workspace-tab" data-sffc-apply-chat-workspace-tab="cover" aria-selected="false" hidden><?php esc_html_e('Cover Letter', 'senna-finance'); ?></button>
                                     <button type="button" class="sffc-crm-apply-chat__workspace-tab" data-sffc-apply-chat-workspace-tab="support" aria-selected="false" hidden><?php esc_html_e('Expert Notes', 'senna-finance'); ?></button>
@@ -42285,8 +42301,8 @@ CRITICAL INSTRUCTIONS:
                                 <div class="sffc-crm-apply-chat__workspace-panel" data-sffc-apply-chat-workspace-panel="roles" hidden>
                                     <div class="sffc-crm-apply-chat__workspace-matches" data-sffc-apply-chat-workspace-roles>
                                         <div class="sffc-crm-apply-chat__workspace-empty">
-                                            <strong><?php esc_html_e('Role-fit notes will appear here', 'senna-finance'); ?></strong>
-                                            <p><?php esc_html_e('Once your CV has been read, MENA Careers will show where your profile fits the role and which evidence matters most.', 'senna-finance'); ?></p>
+                                            <strong><?php esc_html_e('Jobs will appear here', 'senna-finance'); ?></strong>
+                                            <p><?php esc_html_e('Search loaded roles, add the best ones to the application queue, and remove anything that should not be processed.', 'senna-finance'); ?></p>
                                         </div>
                                     </div>
                                 </div>
@@ -45227,7 +45243,7 @@ CRITICAL INSTRUCTIONS:
         private function build_crm_apply_chat_cv_analysis($cv_text, $jd_text, array $post = [])
         {
             $cv_text = trim((string) $cv_text);
-            $jd_text = trim((string) $jd_text);
+            $jd_text = $this->clean_crm_apply_chat_jd_text_for_analysis($jd_text);
             $normalized_cv = $this->normalize_crm_reddit_dashboard_cv_text($cv_text);
             $role_title = trim((string) ($post['role_title'] ?? __('this role', 'senna-finance')));
             $company = trim((string) ($post['company'] ?? ''));
@@ -45339,6 +45355,7 @@ CRITICAL INSTRUCTIONS:
         private function build_crm_apply_chat_cv_signal_profile($cv_text, $jd_text = '', array $post = [], array $analysis = [])
         {
             $cv_norm = $this->normalize_crm_reddit_dashboard_cv_text((string) $cv_text);
+            $jd_text = $this->clean_crm_apply_chat_jd_text_for_analysis($jd_text);
             $jd_norm = $this->normalize_crm_reddit_dashboard_cv_text(implode(' ', array_filter([
                 (string) $jd_text,
                 (string) ($post['role_title'] ?? ''),
@@ -45665,7 +45682,7 @@ CRITICAL INSTRUCTIONS:
                 return ((int) ($right['priority'] ?? 0)) <=> ((int) ($left['priority'] ?? 0));
             });
 
-            return array_slice($insights, 0, 2);
+            return array_slice($insights, 0, 5);
         }
 
         private function build_crm_apply_chat_profile_review_ontology($cv_text, $jd_text, array $post = [], array $analysis = [])
@@ -46431,9 +46448,43 @@ CRITICAL INSTRUCTIONS:
             return $archetype;
         }
 
+        private function clean_crm_apply_chat_jd_text_for_analysis($jd_text)
+        {
+            $text = trim(wp_strip_all_tags((string) $jd_text));
+            if ($text === '') {
+                return '';
+            }
+
+            $patterns = [
+                '/\bAbout\s+MENA\s+Careers\b.*$/is',
+                '/\bMENA\s+Careers\s+is\s+a\s+finance\s+community\b.*$/is',
+                '/\bFor\s+more\s+information,\s+visit\s+joinsenna\.com\b.*$/is',
+                '/\bAbout\s+Senna\b.*$/is',
+            ];
+
+            foreach ($patterns as $pattern) {
+                $text = preg_replace($pattern, '', $text);
+            }
+
+            $text = preg_replace('/[ \t]+/', ' ', (string) $text);
+            $text = preg_replace('/\R{3,}/', "\n\n", (string) $text);
+
+            return trim((string) $text);
+        }
+
         private function get_crm_apply_chat_signal_dictionary()
         {
             return [
+                [
+                    'label' => 'asset performance management',
+                    'category' => 'hard_skill',
+                    'importance' => 'high',
+                    'required' => true,
+                    'synonyms' => ['asset performance', 'asset performance management', 'asset value', 'asset utilization', 'asset utilisation', 'financial returns', 'financial sustainability', 'utilization and financial sustainability'],
+                    'adjacent' => ['performance monitoring', 'asset management', 'kpi dashboards', 'financial reporting'],
+                    'safe_to_state_if_matched' => true,
+                    'needs_confirmation_if_unmatched' => false,
+                ],
                 [
                     'label' => 'financial modelling',
                     'category' => 'hard_skill',
@@ -46845,12 +46896,22 @@ CRITICAL INSTRUCTIONS:
                     'needs_confirmation_if_unmatched' => false,
                 ],
                 [
-                    'label' => 'budgeting',
+                    'label' => 'budgeting and forecasting',
                     'category' => 'hard_skill',
                     'importance' => 'low',
                     'required' => false,
-                    'synonyms' => ['budgeting', 'budgets', 'forecasting'],
+                    'synonyms' => ['budgeting', 'budgets', 'forecasting', 'financial planning', 'financial planning budgeting forecasting', 'planning budgeting and forecasting'],
                     'adjacent' => ['financial reporting', 'fp&a', 'governance'],
+                    'safe_to_state_if_matched' => true,
+                    'needs_confirmation_if_unmatched' => false,
+                ],
+                [
+                    'label' => 'team leadership',
+                    'category' => 'hard_skill',
+                    'importance' => 'medium',
+                    'required' => false,
+                    'synonyms' => ['lead and mentor', 'lead a team', 'led a team', 'manage a team', 'managed a team', 'team management', 'mentor a team', 'people management'],
+                    'adjacent' => ['leadership', 'senior stakeholders', 'managed workstreams', 'coordinated teams'],
                     'safe_to_state_if_matched' => true,
                     'needs_confirmation_if_unmatched' => false,
                 ],
@@ -47355,6 +47416,16 @@ CRITICAL INSTRUCTIONS:
                     'needs_confirmation_if_unmatched' => false,
                 ],
                 [
+                    'label' => 'film, media or entertainment',
+                    'category' => 'sector_exposure',
+                    'importance' => 'medium',
+                    'required' => false,
+                    'synonyms' => ['film studio', 'film studios', 'film', 'media', 'entertainment', 'production facilities', 'studio facilities'],
+                    'adjacent' => ['hospitality', 'consumer', 'facilities', 'asset management'],
+                    'safe_to_state_if_matched' => true,
+                    'needs_confirmation_if_unmatched' => false,
+                ],
+                [
                     'label' => 'emerging markets',
                     'category' => 'sector_exposure',
                     'importance' => 'low',
@@ -47639,10 +47710,11 @@ CRITICAL INSTRUCTIONS:
 
         private function extract_crm_apply_chat_jd_signals($jd_text, array $post)
         {
+            $jd_text = $this->clean_crm_apply_chat_jd_text_for_analysis($jd_text);
             $haystack = implode("\n", array_filter([
                 (string) $jd_text,
-                (string) ($post['content'] ?? ''),
-                (string) ($post['content_snippet'] ?? ''),
+                $this->clean_crm_apply_chat_jd_text_for_analysis((string) ($post['content'] ?? '')),
+                $this->clean_crm_apply_chat_jd_text_for_analysis((string) ($post['content_snippet'] ?? '')),
                 is_array($post['requirements'] ?? null) ? implode("\n", array_map('strval', (array) $post['requirements'])) : (string) ($post['requirements'] ?? ''),
                 is_array($post['skills_mentioned'] ?? null) ? implode("\n", array_map('strval', (array) $post['skills_mentioned'])) : (string) ($post['skills_mentioned'] ?? ''),
                 (string) ($post['role_title'] ?? ''),
@@ -48040,6 +48112,7 @@ CRITICAL INSTRUCTIONS:
         private function extract_crm_apply_chat_requirement_gaps($cv_text, $jd_text, array $post, $visible_experience_years, $required_years, array $jd_signals = [], array $unconfirmed_signals = [])
         {
             $gaps = [];
+            $jd_text = $this->clean_crm_apply_chat_jd_text_for_analysis($jd_text);
             $cv_norm = $this->normalize_crm_reddit_dashboard_cv_text($cv_text);
             $required_range = $this->parse_crm_apply_chat_required_years_range($required_years);
 
@@ -48140,6 +48213,7 @@ CRITICAL INSTRUCTIONS:
 
         private function extract_crm_apply_chat_required_languages($jd_text, array $post)
         {
+            $jd_text = $this->clean_crm_apply_chat_jd_text_for_analysis($jd_text);
             $haystack = implode(' ', array_filter([
                 (string) $jd_text,
                 implode(' ', array_map('strval', (array) ($post['languages'] ?? []))),
@@ -48179,6 +48253,7 @@ CRITICAL INSTRUCTIONS:
 
         private function extract_crm_apply_chat_required_qualifications($jd_text, array $post)
         {
+            $jd_text = $this->clean_crm_apply_chat_jd_text_for_analysis($jd_text);
             $haystack = implode(' ', array_filter([
                 (string) $jd_text,
                 implode(' ', array_map('strval', (array) ($post['qualifications'] ?? []))),
@@ -48200,6 +48275,32 @@ CRITICAL INSTRUCTIONS:
                     'Bachelor\'s degree' => ['bachelor', 'bsc', 'ba degree'],
                 ];
             }
+            $actual_qualification_labels = [
+                'ACCA',
+                'ACA',
+                'CIMA',
+                'CFA',
+                'CPA',
+                'CAIA',
+                'FRM',
+                'CMA',
+                'MBA',
+                'IFRS',
+                'Bachelor\'s degree',
+                'Master\'s degree',
+            ];
+            $qualification_dictionary = array_intersect_key(
+                $qualification_dictionary,
+                array_fill_keys($actual_qualification_labels, true)
+            );
+            $qualification_dictionary['Master\'s degree'] = array_values(array_unique(array_merge(
+                (array) ($qualification_dictionary['Master\'s degree'] ?? []),
+                ['masters degree', 'master degree', 'master\'s degree', 'msc', 'm sc', 'advanced degree']
+            )));
+            $qualification_dictionary['Bachelor\'s degree'] = array_values(array_unique(array_merge(
+                (array) ($qualification_dictionary['Bachelor\'s degree'] ?? []),
+                ['bachelor', 'bachelors degree', 'bachelor\'s degree', 'ba', 'bsc', 'undergraduate degree']
+            )));
 
             $required = [];
             foreach ($qualification_dictionary as $label => $needles) {
@@ -74339,6 +74440,459 @@ HTML;
             return ob_get_clean();
         }
 
+        public function redirect_custom_login_failed($username)
+        {
+            if (empty($_POST['sffc_custom_login_form'])) {
+                return;
+            }
+
+            $login_url = isset($_POST['sffc_custom_login_url'])
+                ? esc_url_raw(wp_unslash((string) $_POST['sffc_custom_login_url']))
+                : '';
+            $referer = wp_get_referer();
+            $fallback = $referer ? remove_query_arg(['login', 'loggedout'], $referer) : home_url('/login/');
+
+            wp_safe_redirect(add_query_arg('login', 'failed', $login_url ?: $fallback));
+            exit;
+        }
+
+        public function redirect_custom_login_empty_fields($user, $username, $password)
+        {
+            if (empty($_POST['sffc_custom_login_form'])) {
+                return $user;
+            }
+
+            if ((string) $username !== '' && (string) $password !== '') {
+                return $user;
+            }
+
+            $login_url = isset($_POST['sffc_custom_login_url'])
+                ? esc_url_raw(wp_unslash((string) $_POST['sffc_custom_login_url']))
+                : '';
+            $referer = wp_get_referer();
+            $fallback = $referer ? remove_query_arg(['login', 'loggedout'], $referer) : home_url('/login/');
+
+            wp_safe_redirect(add_query_arg('login', 'empty', $login_url ?: $fallback));
+            exit;
+        }
+
+        public function handle_custom_login_password_reset()
+        {
+            $return_url = isset($_POST['sffc_custom_login_url'])
+                ? esc_url_raw(wp_unslash((string) $_POST['sffc_custom_login_url']))
+                : '';
+            if ($return_url === '') {
+                $return_url = wp_get_referer() ?: home_url('/login/');
+            }
+            $return_url = remove_query_arg(['login', 'loggedout', 'sffc_reset', 'sffc_brief'], $return_url);
+
+            if (
+                empty($_POST['sffc_custom_login_reset_nonce'])
+                || !wp_verify_nonce(sanitize_text_field(wp_unslash((string) $_POST['sffc_custom_login_reset_nonce'])), 'sffc_custom_login_password_reset')
+            ) {
+                wp_safe_redirect(add_query_arg('sffc_reset', 'invalid', $return_url));
+                exit;
+            }
+
+            $user_login = isset($_POST['user_login']) ? sanitize_text_field(wp_unslash((string) $_POST['user_login'])) : '';
+            if ($user_login !== '' && function_exists('retrieve_password')) {
+                retrieve_password($user_login);
+            }
+
+            wp_safe_redirect(add_query_arg('sffc_reset', 'sent', $return_url));
+            exit;
+        }
+
+        public function handle_custom_login_service_enquiry()
+        {
+            $return_url = isset($_POST['sffc_custom_login_url'])
+                ? esc_url_raw(wp_unslash((string) $_POST['sffc_custom_login_url']))
+                : '';
+            if ($return_url === '') {
+                $return_url = wp_get_referer() ?: home_url('/login/');
+            }
+            $return_url = remove_query_arg(['login', 'loggedout', 'sffc_reset', 'sffc_brief'], $return_url);
+
+            if (
+                empty($_POST['sffc_custom_login_brief_nonce'])
+                || !wp_verify_nonce(sanitize_text_field(wp_unslash((string) $_POST['sffc_custom_login_brief_nonce'])), 'sffc_custom_login_service_enquiry')
+            ) {
+                wp_safe_redirect(add_query_arg('sffc_brief', 'invalid', $return_url));
+                exit;
+            }
+
+            $fields = [
+                'full_name' => __('Name', 'senna-finance'),
+                'email' => __('Email', 'senna-finance'),
+                'company' => __('Current company', 'senna-finance'),
+                'website' => __('LinkedIn or portfolio URL', 'senna-finance'),
+                'workflow_area' => __('Career support needed', 'senna-finance'),
+                'tools' => __('Target roles or sectors', 'senna-finance'),
+                'bottleneck' => __('What should Senna help with?', 'senna-finance'),
+                'volume' => __('Target locations', 'senna-finance'),
+                'timeline' => __('When are you looking to move?', 'senna-finance'),
+                'budget' => __('Current stage', 'senna-finance'),
+            ];
+
+            $clean = [];
+            foreach ($fields as $key => $label) {
+                $value = isset($_POST[$key]) ? wp_unslash((string) $_POST[$key]) : '';
+                $clean[$key] = $key === 'email'
+                    ? sanitize_email($value)
+                    : sanitize_textarea_field($value);
+            }
+
+            if ($clean['full_name'] === '' || $clean['email'] === '' || !is_email($clean['email']) || $clean['bottleneck'] === '') {
+                wp_safe_redirect(add_query_arg('sffc_brief', 'missing', $return_url));
+                exit;
+            }
+
+            $admin_email = sanitize_email((string) get_option('admin_email'));
+            if ($admin_email === '' || !is_email($admin_email)) {
+                $admin_email = 'support.team@joinsenna.com';
+            }
+
+            $rows = '';
+            foreach ($fields as $key => $label) {
+                $rows .= '<tr>'
+                    . '<td style="padding:10px 12px;border-bottom:1px solid #e5e7eb;font:700 12px/1.4 Arial,sans-serif;color:#475467;text-transform:uppercase;">' . esc_html((string) $label) . '</td>'
+                    . '<td style="padding:10px 12px;border-bottom:1px solid #e5e7eb;font:400 14px/1.6 Arial,sans-serif;color:#111827;">' . nl2br(esc_html((string) $clean[$key])) . '</td>'
+                    . '</tr>';
+            }
+
+            $subject = sprintf(__('New Middle East Careers enquiry: %s', 'senna-finance'), $clean['full_name']);
+            $html = '<div style="margin:0;padding:24px;background:#f4f4f5;font-family:Arial,sans-serif;color:#111827;">'
+                . '<div style="max-width:720px;margin:0 auto;background:#ffffff;border:1px solid #e5e7eb;border-radius:14px;overflow:hidden;">'
+                . '<div style="padding:26px 30px;background:#172126;color:#ffffff;">'
+                . '<p style="margin:0 0 8px;font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#d7b799;">Senna Middle East Careers</p>'
+                . '<h1 style="margin:0;font-size:26px;line-height:1.2;">New Middle East Careers enquiry</h1>'
+                . '</div>'
+                . '<div style="padding:24px 30px;">'
+                . '<p style="margin:0 0 18px;font-size:15px;line-height:1.65;color:#374151;">A visitor asked for help with Middle East career search, applications, or interview preparation.</p>'
+                . '<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border:1px solid #e5e7eb;border-radius:10px;overflow:hidden;">' . $rows . '</table>'
+                . '</div></div></div>';
+
+            $headers = [
+                'Content-Type: text/html; charset=UTF-8',
+                'Reply-To: ' . $clean['full_name'] . ' <' . $clean['email'] . '>',
+            ];
+            wp_mail($admin_email, $subject, $html, $headers);
+
+            wp_safe_redirect(add_query_arg('sffc_brief', 'sent', $return_url));
+            exit;
+        }
+
+        /**
+         * Render branded custom login form.
+         * Usage: [sffc_custom_login_form]
+         */
+        public function render_custom_login_form($atts = [])
+        {
+            $defaults = [
+                'title' => __('Start interviewing faster.', 'senna-finance'),
+                'subtitle' => __('Senna finds stronger Middle East roles, sharpens your application, and helps you move faster from search to interview.', 'senna-finance'),
+                'brand' => __('Senna', 'senna-finance'),
+                'brand_label' => __('Middle East Careers', 'senna-finance'),
+                'button_text' => __('Sign in', 'senna-finance'),
+                'redirect_url' => home_url('/terminal/'),
+                'image_url' => 'https://media.joinsenna.com/2026/08/vecteezy_low-angle-view-of-a-modern-white-and-orange-building-under_28139720_755-scaled.jpg',
+                'show_signup' => '1',
+            ];
+
+            $atts = shortcode_atts($defaults, $atts, 'sffc_custom_login_form');
+            $redirect_url = esc_url_raw((string) $atts['redirect_url']);
+            if ($redirect_url === '') {
+                $redirect_url = home_url('/terminal/');
+            }
+
+            $css_version = file_exists(SFFC_PLUGIN_DIR . 'assets/css/crm/custom-login-form.css')
+                ? (string) filemtime(SFFC_PLUGIN_DIR . 'assets/css/crm/custom-login-form.css')
+                : (defined('SFFC_VERSION') ? SFFC_VERSION : '1.0.0');
+
+            wp_enqueue_style(
+                'sffc-custom-login-form',
+                SFFC_PLUGIN_URL . 'assets/css/crm/custom-login-form.css',
+                [],
+                $css_version
+            );
+
+            $js_version = file_exists(SFFC_PLUGIN_DIR . 'assets/js/crm/custom-login-form.js')
+                ? (string) filemtime(SFFC_PLUGIN_DIR . 'assets/js/crm/custom-login-form.js')
+                : (defined('SFFC_VERSION') ? SFFC_VERSION : '1.0.0');
+
+            wp_enqueue_script(
+                'sffc-custom-login-form',
+                SFFC_PLUGIN_URL . 'assets/js/crm/custom-login-form.js',
+                [],
+                $js_version,
+                true
+            );
+
+            if (is_user_logged_in()) {
+                $current_user = wp_get_current_user();
+                $display_name = $current_user instanceof WP_User
+                    ? trim((string) ($current_user->display_name ?: $current_user->user_login))
+                    : __('there', 'senna-finance');
+
+                ob_start();
+                ?>
+                <section class="sffc-custom-login sffc-custom-login--signed-in">
+                    <div class="sffc-custom-login__signed-card">
+                        <span class="sffc-custom-login__brand-mark" aria-hidden="true">S</span>
+                        <h1><?php echo esc_html(sprintf(__('Welcome back, %s', 'senna-finance'), $display_name)); ?></h1>
+                        <p><?php esc_html_e('You are already signed in.', 'senna-finance'); ?></p>
+                        <a class="sffc-custom-login__submit" href="<?php echo esc_url($redirect_url); ?>"><?php esc_html_e('Open workspace', 'senna-finance'); ?></a>
+                    </div>
+                </section>
+                <?php
+                return (string) ob_get_clean();
+            }
+
+            $login_error = isset($_GET['login']) && in_array(sanitize_key(wp_unslash((string) $_GET['login'])), ['failed', 'empty'], true);
+            $reset_status = isset($_GET['sffc_reset']) ? sanitize_key(wp_unslash((string) $_GET['sffc_reset'])) : '';
+            $brief_status = isset($_GET['sffc_brief']) ? sanitize_key(wp_unslash((string) $_GET['sffc_brief'])) : '';
+            $current_url = remove_query_arg(['login', 'loggedout']);
+            $current_url = remove_query_arg(['sffc_reset', 'sffc_brief'], $current_url);
+            $show_reset_panel = in_array($reset_status, ['sent', 'invalid'], true);
+            $show_brief_panel = in_array($brief_status, ['sent', 'invalid', 'missing'], true);
+
+            ob_start();
+            ?>
+            <section class="sffc-custom-login" aria-label="<?php esc_attr_e('Sign in', 'senna-finance'); ?>" data-active-panel="<?php echo esc_attr($show_reset_panel ? 'reset' : ($show_brief_panel ? 'brief' : 'login')); ?>">
+                <div class="sffc-custom-login__panel">
+                    <div class="sffc-custom-login__form-side">
+                        <div class="sffc-custom-login__form-inner">
+                            <a class="sffc-custom-login__brand" href="<?php echo esc_url(home_url('/')); ?>">
+                                <span class="sffc-custom-login__brand-name"><?php echo esc_html((string) $atts['brand']); ?></span>
+                                <span class="sffc-custom-login__brand-label"><?php echo esc_html((string) $atts['brand_label']); ?></span>
+                            </a>
+
+                            <div class="sffc-custom-login__heading">
+                                <h1><?php echo esc_html((string) $atts['title']); ?></h1>
+                                <p><?php echo esc_html((string) $atts['subtitle']); ?></p>
+                            </div>
+
+                            <div class="sffc-custom-login__value-strip" aria-label="<?php esc_attr_e('Senna career support', 'senna-finance'); ?>">
+                                <span><?php esc_html_e('Better role matches', 'senna-finance'); ?></span>
+                                <span><?php esc_html_e('Sharper applications', 'senna-finance'); ?></span>
+                                <span><?php esc_html_e('Interview support', 'senna-finance'); ?></span>
+                            </div>
+
+                            <?php if ($login_error) : ?>
+                                <p class="sffc-custom-login__error"><?php esc_html_e('The username or password was not recognised. Please check the details and try again.', 'senna-finance'); ?></p>
+                            <?php endif; ?>
+                            <?php if ($reset_status === 'sent') : ?>
+                                <p class="sffc-custom-login__notice is-success"><?php esc_html_e('If an account exists for those details, a reset link has been sent.', 'senna-finance'); ?></p>
+                            <?php elseif ($reset_status === 'invalid') : ?>
+                                <p class="sffc-custom-login__notice is-error"><?php esc_html_e('That reset request expired. Please try again.', 'senna-finance'); ?></p>
+                            <?php endif; ?>
+                            <?php if ($brief_status === 'sent') : ?>
+                                <p class="sffc-custom-login__notice is-success"><?php esc_html_e('Thanks. Your career brief has been sent to the team.', 'senna-finance'); ?></p>
+                            <?php elseif ($brief_status === 'missing') : ?>
+                                <p class="sffc-custom-login__notice is-error"><?php esc_html_e('Please add your name, email and what you want Senna to help with.', 'senna-finance'); ?></p>
+                            <?php elseif ($brief_status === 'invalid') : ?>
+                                <p class="sffc-custom-login__notice is-error"><?php esc_html_e('That form expired. Please refresh and try again.', 'senna-finance'); ?></p>
+                            <?php endif; ?>
+
+                            <form class="sffc-custom-login__form<?php echo $show_reset_panel || $show_brief_panel ? '' : ' is-active'; ?>" method="post" action="<?php echo esc_url(wp_login_url($redirect_url)); ?>" data-sffc-custom-login-panel="login" <?php echo $show_reset_panel || $show_brief_panel ? 'hidden' : ''; ?>>
+                                <label class="sffc-custom-login__field">
+                                    <span><?php esc_html_e('Username or email', 'senna-finance'); ?></span>
+                                    <input type="text" name="log" autocomplete="username" required>
+                                </label>
+
+                                <label class="sffc-custom-login__field">
+                                    <span><?php esc_html_e('Password', 'senna-finance'); ?></span>
+                                    <span class="sffc-custom-login__password-shell">
+                                        <input type="password" name="pwd" autocomplete="current-password" required>
+                                        <button type="button" data-sffc-custom-login-password-toggle><?php esc_html_e('Show', 'senna-finance'); ?></button>
+                                    </span>
+                                </label>
+
+                                <div class="sffc-custom-login__options">
+                                    <label class="sffc-custom-login__remember">
+                                        <input type="checkbox" name="rememberme" value="forever">
+                                        <span><?php esc_html_e('Remember me', 'senna-finance'); ?></span>
+                                    </label>
+                                    <button type="button" data-sffc-custom-login-show-panel="reset"><?php esc_html_e('Forgot password?', 'senna-finance'); ?></button>
+                                </div>
+
+                                <input type="hidden" name="sffc_custom_login_form" value="1">
+                                <input type="hidden" name="sffc_custom_login_url" value="<?php echo esc_attr($current_url); ?>">
+                                <input type="hidden" name="redirect_to" value="<?php echo esc_attr($redirect_url); ?>">
+                                <button class="sffc-custom-login__submit" type="submit"><?php echo esc_html((string) $atts['button_text']); ?></button>
+                            </form>
+
+                            <form class="sffc-custom-login__form sffc-custom-login__reset-form<?php echo $show_reset_panel ? ' is-active' : ''; ?>" method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" data-sffc-custom-login-panel="reset" <?php echo $show_reset_panel ? '' : 'hidden'; ?>>
+                                <div class="sffc-custom-login__panel-heading">
+                                    <h2><?php esc_html_e('Reset your password', 'senna-finance'); ?></h2>
+                                    <p><?php esc_html_e('Enter your username or email and we will send a reset link if an account exists.', 'senna-finance'); ?></p>
+                                </div>
+                                <label class="sffc-custom-login__field">
+                                    <span><?php esc_html_e('Username or email', 'senna-finance'); ?></span>
+                                    <input type="text" name="user_login" autocomplete="username" required>
+                                </label>
+                                <input type="hidden" name="action" value="sffc_custom_login_password_reset">
+                                <input type="hidden" name="sffc_custom_login_reset_nonce" value="<?php echo esc_attr(wp_create_nonce('sffc_custom_login_password_reset')); ?>">
+                                <input type="hidden" name="sffc_custom_login_url" value="<?php echo esc_attr($current_url); ?>">
+                                <div class="sffc-custom-login__panel-actions">
+                                    <button class="sffc-custom-login__submit" type="submit"><?php esc_html_e('Send reset link', 'senna-finance'); ?></button>
+                                    <button type="button" class="sffc-custom-login__text-button" data-sffc-custom-login-show-panel="login"><?php esc_html_e('Back to sign in', 'senna-finance'); ?></button>
+                                </div>
+                            </form>
+
+                            <form class="sffc-custom-login__form sffc-custom-login__brief-form<?php echo $show_brief_panel ? ' is-active' : ''; ?>" method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" data-sffc-custom-login-panel="brief" <?php echo $show_brief_panel ? '' : 'hidden'; ?>>
+                                <div class="sffc-custom-login__panel-heading">
+                                    <h2><?php esc_html_e('Start with Senna.', 'senna-finance'); ?></h2>
+                                    <p><?php esc_html_e('Tell us your target roles and markets. We will help with matching, applications, and interview preparation.', 'senna-finance'); ?></p>
+                                </div>
+                                <div class="sffc-custom-login__field-grid">
+                                    <label class="sffc-custom-login__field">
+                                        <span><?php esc_html_e('Name', 'senna-finance'); ?></span>
+                                        <input type="text" name="full_name" autocomplete="name" required>
+                                    </label>
+                                    <label class="sffc-custom-login__field">
+                                        <span><?php esc_html_e('Work email', 'senna-finance'); ?></span>
+                                        <input type="email" name="email" autocomplete="email" required>
+                                    </label>
+                                </div>
+                                <div class="sffc-custom-login__field-grid">
+                                    <label class="sffc-custom-login__field">
+                                        <span><?php esc_html_e('Current company', 'senna-finance'); ?></span>
+                                        <input type="text" name="company" autocomplete="organization">
+                                    </label>
+                                    <label class="sffc-custom-login__field">
+                                        <span><?php esc_html_e('LinkedIn or portfolio URL', 'senna-finance'); ?></span>
+                                        <input type="text" name="website" inputmode="url" autocomplete="url">
+                                    </label>
+                                </div>
+                                <label class="sffc-custom-login__field">
+                                    <span><?php esc_html_e('What do you want help with?', 'senna-finance'); ?></span>
+                                    <select name="workflow_area">
+                                        <option value=""><?php esc_html_e('Select an area', 'senna-finance'); ?></option>
+                                        <option value="Apply for me"><?php esc_html_e('Apply for me', 'senna-finance'); ?></option>
+                                        <option value="Find suitable Middle East roles"><?php esc_html_e('Find suitable Middle East roles', 'senna-finance'); ?></option>
+                                        <option value="CV and cover letter review"><?php esc_html_e('CV and cover letter review', 'senna-finance'); ?></option>
+                                        <option value="Interview coaching"><?php esc_html_e('Interview coaching', 'senna-finance'); ?></option>
+                                        <option value="Career strategy"><?php esc_html_e('Career strategy', 'senna-finance'); ?></option>
+                                        <option value="Recruiter outreach"><?php esc_html_e('Recruiter outreach', 'senna-finance'); ?></option>
+                                    </select>
+                                </label>
+                                <label class="sffc-custom-login__field">
+                                    <span><?php esc_html_e('Target roles or sectors', 'senna-finance'); ?></span>
+                                    <input type="text" name="tools" placeholder="<?php esc_attr_e('Example: Private Equity Associate, investment banking, asset management', 'senna-finance'); ?>">
+                                </label>
+                                <label class="sffc-custom-login__field">
+                                    <span><?php esc_html_e('What should Senna help with?', 'senna-finance'); ?></span>
+                                    <textarea name="bottleneck" rows="4" required placeholder="<?php esc_attr_e('Example: I want roles in Dubai or Riyadh, need help tailoring my CV, and want Senna to apply where the fit is strong.', 'senna-finance'); ?>"></textarea>
+                                </label>
+                                <div class="sffc-custom-login__field-grid">
+                                    <label class="sffc-custom-login__field">
+                                        <span><?php esc_html_e('Target locations', 'senna-finance'); ?></span>
+                                        <input type="text" name="volume" placeholder="<?php esc_attr_e('Example: Dubai, Abu Dhabi, Riyadh, Doha', 'senna-finance'); ?>">
+                                    </label>
+                                    <label class="sffc-custom-login__field">
+                                        <span><?php esc_html_e('When are you looking to move?', 'senna-finance'); ?></span>
+                                        <select name="timeline">
+                                            <option value=""><?php esc_html_e('Select timing', 'senna-finance'); ?></option>
+                                            <option value="ASAP"><?php esc_html_e('ASAP', 'senna-finance'); ?></option>
+                                            <option value="This month"><?php esc_html_e('This month', 'senna-finance'); ?></option>
+                                            <option value="1-3 months"><?php esc_html_e('1-3 months', 'senna-finance'); ?></option>
+                                            <option value="Exploring"><?php esc_html_e('Just exploring', 'senna-finance'); ?></option>
+                                        </select>
+                                    </label>
+                                </div>
+                                <label class="sffc-custom-login__field">
+                                    <span><?php esc_html_e('Current stage', 'senna-finance'); ?></span>
+                                    <select name="budget">
+                                        <option value=""><?php esc_html_e('Select stage', 'senna-finance'); ?></option>
+                                        <option value="Ready to apply"><?php esc_html_e('Ready to apply', 'senna-finance'); ?></option>
+                                        <option value="Applying but not interviewing"><?php esc_html_e('Applying but not interviewing', 'senna-finance'); ?></option>
+                                        <option value="Interviewing now"><?php esc_html_e('Interviewing now', 'senna-finance'); ?></option>
+                                        <option value="Planning a move"><?php esc_html_e('Planning a move', 'senna-finance'); ?></option>
+                                        <option value="Not sure"><?php esc_html_e('Not sure yet', 'senna-finance'); ?></option>
+                                    </select>
+                                </label>
+                                <input type="hidden" name="action" value="sffc_custom_login_service_enquiry">
+                                <input type="hidden" name="sffc_custom_login_brief_nonce" value="<?php echo esc_attr(wp_create_nonce('sffc_custom_login_service_enquiry')); ?>">
+                                <input type="hidden" name="sffc_custom_login_url" value="<?php echo esc_attr($current_url); ?>">
+                                <div class="sffc-custom-login__panel-actions">
+                                    <button class="sffc-custom-login__submit" type="submit"><?php esc_html_e('Send career brief', 'senna-finance'); ?></button>
+                                    <button type="button" class="sffc-custom-login__text-button" data-sffc-custom-login-show-panel="login"><?php esc_html_e('Back to sign in', 'senna-finance'); ?></button>
+                                </div>
+                            </form>
+
+                            <aside class="sffc-custom-login__secure-card">
+                                <span class="sffc-custom-login__secure-icon" aria-hidden="true">S</span>
+                                <span class="sffc-custom-login__secure-copy">
+                                    <strong><?php esc_html_e('Sign in to continue faster', 'senna-finance'); ?></strong>
+                                    <span><?php esc_html_e('Open your Middle East careers workspace, saved roles and application activity.', 'senna-finance'); ?></span>
+                                </span>
+                            </aside>
+
+                            <?php if ((string) $atts['show_signup'] === '1') : ?>
+                                <p class="sffc-custom-login__signup">
+                                    <?php esc_html_e('No account yet?', 'senna-finance'); ?>
+                                    <button type="button" data-sffc-custom-login-show-panel="brief"><?php esc_html_e('Start your career brief', 'senna-finance'); ?></button>
+                                </p>
+                            <?php endif; ?>
+                        </div>
+
+                        <footer class="sffc-custom-login__footer">
+                            <a href="<?php echo esc_url(home_url('/')); ?>"><?php esc_html_e('Language', 'senna-finance'); ?></a>
+                            <button type="button" data-sffc-custom-login-dialog-open="cookies"><?php esc_html_e('Cookies Policy', 'senna-finance'); ?></button>
+                            <button type="button" data-sffc-custom-login-dialog-open="privacy"><?php esc_html_e('Privacy Policy', 'senna-finance'); ?></button>
+                            <a href="<?php echo esc_url(home_url('/')); ?>"><?php esc_html_e('Senna Middle East Careers', 'senna-finance'); ?></a>
+                            <span><?php esc_html_e('System Requirements & Security Precautions', 'senna-finance'); ?></span>
+                            <small><?php echo esc_html(sprintf(__('© %s Senna. Middle East careers workspace.', 'senna-finance'), date_i18n('Y'))); ?></small>
+                        </footer>
+                    </div>
+
+                    <div class="sffc-custom-login__image-side" aria-hidden="true">
+                        <img src="<?php echo esc_url((string) $atts['image_url']); ?>" alt="">
+                    </div>
+                </div>
+
+                <div class="sffc-custom-login__dialog" data-sffc-custom-login-dialog="cookies" role="dialog" aria-modal="true" aria-labelledby="sffc-custom-login-cookies-title" hidden>
+                    <div class="sffc-custom-login__dialog-panel">
+                        <div class="sffc-custom-login__dialog-head">
+                            <h2 id="sffc-custom-login-cookies-title"><?php esc_html_e('Cookies Policy', 'senna-finance'); ?></h2>
+                            <button type="button" class="sffc-custom-login__dialog-close" data-sffc-custom-login-dialog-close aria-label="<?php esc_attr_e('Close', 'senna-finance'); ?>">&times;</button>
+                        </div>
+                        <div class="sffc-custom-login__dialog-body">
+                            <p><?php esc_html_e('Senna uses cookies and similar technologies to keep the site secure, remember basic preferences, understand page performance, and support login sessions.', 'senna-finance'); ?></p>
+                            <h3><?php esc_html_e('Essential cookies', 'senna-finance'); ?></h3>
+                            <p><?php esc_html_e('These are needed for authentication, form protection, security checks, and normal website operation.', 'senna-finance'); ?></p>
+                            <h3><?php esc_html_e('Analytics and improvement', 'senna-finance'); ?></h3>
+                            <p><?php esc_html_e('Where enabled, we use aggregated usage information to understand which pages and forms are working and where users experience friction.', 'senna-finance'); ?></p>
+                            <h3><?php esc_html_e('Your controls', 'senna-finance'); ?></h3>
+                            <p><?php esc_html_e('You can manage or block cookies in your browser settings. Some login, security, and form features may not work correctly without essential cookies.', 'senna-finance'); ?></p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="sffc-custom-login__dialog" data-sffc-custom-login-dialog="privacy" role="dialog" aria-modal="true" aria-labelledby="sffc-custom-login-privacy-title" hidden>
+                    <div class="sffc-custom-login__dialog-panel">
+                        <div class="sffc-custom-login__dialog-head">
+                            <h2 id="sffc-custom-login-privacy-title"><?php esc_html_e('Privacy Policy', 'senna-finance'); ?></h2>
+                            <button type="button" class="sffc-custom-login__dialog-close" data-sffc-custom-login-dialog-close aria-label="<?php esc_attr_e('Close', 'senna-finance'); ?>">&times;</button>
+                        </div>
+                        <div class="sffc-custom-login__dialog-body">
+                            <p><?php esc_html_e('Senna collects the information needed to provide career services, manage accounts, respond to enquiries, assess career briefs, support applications, and operate the website securely.', 'senna-finance'); ?></p>
+                            <h3><?php esc_html_e('Information we collect', 'senna-finance'); ?></h3>
+                            <p><?php esc_html_e('This may include your name, email, current company, LinkedIn URL, submitted career brief details, account activity, technical logs, CV information you provide, and messages you choose to send us.', 'senna-finance'); ?></p>
+                            <h3><?php esc_html_e('How we use it', 'senna-finance'); ?></h3>
+                            <p><?php esc_html_e('We use this information to assess your career needs, provide support, improve applications and recommendations, protect the platform, and communicate about relevant Senna services.', 'senna-finance'); ?></p>
+                            <h3><?php esc_html_e('Your rights', 'senna-finance'); ?></h3>
+                            <p><?php esc_html_e('You can ask us to access, correct, update, or delete personal information where applicable. Contact the Senna team using the email shown on the website.', 'senna-finance'); ?></p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            <?php
+
+            return (string) ob_get_clean();
+        }
+
         public function render_matching_engine_landing($atts = [])
         {
             $atts = shortcode_atts([
@@ -83731,7 +84285,7 @@ HTML;
 
                 $items[] = [
                     'title' => $title,
-                    'description' => $description !== '' ? wp_trim_words($description, 32, '...') : __('Private equity template from the MENA Careers resource library.', 'senna-finance'),
+                    'description' => $description !== '' ? wp_trim_words($description, 32, '...') : __('Career resource from the Senna library.', 'senna-finance'),
                     'thumbnail_url' => trim((string) ($resource['thumbnail_url'] ?? '')),
                     'href' => $href,
                     'external' => !$is_locked && $href !== '#' && strpos($href, home_url('/')) !== 0,

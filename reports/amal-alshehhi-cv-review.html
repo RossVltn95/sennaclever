@@ -1,0 +1,561 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Amal AlShehhi CV Review Report</title>
+  <style>
+    :root {
+      --ink: #1f2328;
+      --muted: #666f7a;
+      --line: #d8dee4;
+      --surface: #f3f6f8;
+      --card: #ffffff;
+      --blue: #0a66c2;
+      --navy: #004182;
+      --green: #057642;
+      --amber: #915907;
+      --red: #b42318;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--surface);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, Helvetica, sans-serif;
+      font-size: 15px;
+      line-height: 1.45;
+    }
+
+    main {
+      max-width: 1060px;
+      margin: 0 auto;
+      padding: 22px 18px 42px;
+    }
+
+    .topbar {
+      height: 58px;
+      background: #ffffff;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 22px;
+      margin: -22px -18px 18px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 750;
+      color: var(--navy);
+    }
+
+    .mark {
+      width: 32px;
+      height: 32px;
+      border-radius: 4px;
+      display: grid;
+      place-items: center;
+      background: var(--navy);
+      color: #fff;
+      font-weight: 800;
+    }
+
+    .status {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      min-height: 30px;
+      padding: 4px 12px;
+      border: 1px solid #a7d7bd;
+      border-radius: 999px;
+      background: #eefbf4;
+      color: var(--green);
+      font-size: 13px;
+      font-weight: 750;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--green);
+    }
+
+    .profile-head {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 1px 2px rgba(16, 24, 40, 0.06);
+    }
+
+    .profile-band {
+      height: 72px;
+      background: linear-gradient(90deg, #004182 0%, #0a66c2 58%, #e8f3ff 100%);
+    }
+
+    .profile-body {
+      padding: 0 24px 22px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 270px;
+      gap: 22px;
+      align-items: start;
+    }
+
+    .avatar {
+      width: 76px;
+      height: 76px;
+      border-radius: 50%;
+      border: 4px solid #fff;
+      margin-top: -38px;
+      display: grid;
+      place-items: center;
+      background: #e7f1fb;
+      color: var(--blue);
+      font-size: 28px;
+      font-weight: 800;
+    }
+
+    h1, h2, h3, p {
+      margin-top: 0;
+    }
+
+    h1 {
+      font-size: 28px;
+      line-height: 1.15;
+      margin: 10px 0 5px;
+      letter-spacing: 0;
+    }
+
+    h2 {
+      font-size: 18px;
+      margin-bottom: 10px;
+      letter-spacing: 0;
+    }
+
+    h3 {
+      font-size: 15px;
+      margin-bottom: 4px;
+      letter-spacing: 0;
+    }
+
+    .headline {
+      color: #38434f;
+      font-size: 16px;
+      margin-bottom: 10px;
+      max-width: 720px;
+    }
+
+    .subline {
+      color: var(--muted);
+      font-size: 14px;
+      margin-bottom: 0;
+    }
+
+    .summary-box {
+      margin-top: 18px;
+      padding: 14px;
+      border-radius: 8px;
+      background: #f8fafc;
+      border: 1px solid var(--line);
+    }
+
+    .summary-box strong {
+      display: block;
+      font-size: 13px;
+      color: #38434f;
+      margin-bottom: 6px;
+    }
+
+    .meta {
+      color: var(--muted);
+      font-size: 14px;
+      margin: 0;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 14px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 18px;
+      box-shadow: 0 1px 2px rgba(16, 24, 40, 0.05);
+    }
+
+    .wide {
+      grid-column: 1 / -1;
+    }
+
+    .pill-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 12px;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      min-height: 27px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: #edf3f8;
+      color: var(--blue);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    ul {
+      padding-left: 20px;
+      margin: 0;
+    }
+
+    li + li {
+      margin-top: 7px;
+    }
+
+    .note {
+      border-left: 3px solid var(--blue);
+      background: #ffffff;
+    }
+
+    .strength {
+      border-top: 3px solid var(--green);
+    }
+
+    .risk {
+      border-top: 3px solid var(--amber);
+    }
+
+    .priority {
+      display: grid;
+      grid-template-columns: 28px minmax(0, 1fr);
+      gap: 12px;
+      align-items: start;
+      padding: 12px 0;
+      border-top: 1px solid var(--line);
+    }
+
+    .priority:first-of-type {
+      border-top: 0;
+      padding-top: 0;
+    }
+
+    .badge {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: var(--blue);
+      color: #fff;
+      font-weight: 800;
+      font-size: 13px;
+    }
+
+    .muted {
+      color: var(--muted);
+    }
+
+    .quote {
+      background: #fff8e5;
+      border: 1px solid #e7c46b;
+      border-radius: 8px;
+      padding: 12px 14px;
+      color: #7a4a05;
+      font-weight: 700;
+    }
+
+    .rewrite {
+      background: #f8fafc;
+      border: 1px dashed #aab7c4;
+      border-radius: 8px;
+      padding: 12px;
+      margin-top: 9px;
+      font-size: 14px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      overflow: hidden;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+    }
+
+    th, td {
+      padding: 10px;
+      text-align: left;
+      border-bottom: 1px solid var(--line);
+      vertical-align: top;
+    }
+
+    th {
+      background: #edf3f8;
+      color: #344054;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    tr:last-child td {
+      border-bottom: 0;
+    }
+
+    footer {
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: 16px;
+    }
+
+    @media (max-width: 820px) {
+      main {
+        padding: 16px 12px 34px;
+      }
+
+      .topbar {
+        margin: -16px -12px 14px;
+      }
+
+      .profile-body,
+      .grid {
+        grid-template-columns: 1fr;
+      }
+
+      h1 {
+        font-size: 24px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <nav class="topbar" aria-label="Report header">
+      <div class="brand">
+        <span class="mark">S</span>
+        <span>MENA Careers</span>
+      </div>
+      <div class="status"><span class="status-dot"></span>Strong foundation</div>
+    </nav>
+
+    <section class="profile-head">
+      <div class="profile-band"></div>
+      <div class="profile-body">
+        <div>
+          <div class="avatar">AA</div>
+          <h1>Amal AlShehhi</h1>
+          <p class="headline">Strategic operations, business analysis, and analyst-role positioning review</p>
+          <p class="subline">Abu Dhabi, UAE | UAE National | Strategic operations, risk coordination, research, analytics upskilling | Reviewed CV: 2026</p>
+        </div>
+        <aside class="summary-box">
+          <strong>Assessment</strong>
+          <p class="meta">Strong local profile with credible operations, stakeholder, research, and analytics signals. The main opportunity is to make the target analyst transition explicit and turn coordinator duties into evidence of outcomes.</p>
+        </aside>
+      </div>
+    </section>
+
+    <section class="grid">
+      <article class="card strength">
+        <h2>What Works</h2>
+        <ul>
+          <li>Clear Abu Dhabi profile with 6+ years across ADQ, Khalifa University, and Miral.</li>
+          <li>Strong UAE National signal for local employers and government-linked organizations.</li>
+          <li>Relevant blend of strategy support, risk management, resilience, research, benchmarking, and operations.</li>
+          <li>Quantified evidence already exists: 20+ weekly meetings, 300+ interviews per semester, 80% budget utilization, 50% efficiency gains, and 80% attendee satisfaction.</li>
+          <li>Arabic native and fluent English are strong advantages for UAE analyst, government, consulting, and strategic operations roles.</li>
+        </ul>
+        <div class="pill-row">
+          <span class="pill">UAE National</span>
+          <span class="pill">Strategic Operations</span>
+          <span class="pill">Business Analysis</span>
+          <span class="pill">Risk Coordination</span>
+          <span class="pill">Arabic</span>
+        </div>
+      </article>
+
+      <article class="card risk">
+        <h2>Main Risks</h2>
+        <ul>
+          <li>The CV says she is transitioning into analyst roles, but the exact target role is not sharp enough in the summary.</li>
+          <li>The skills section appears too early and interrupts the career story before the strongest projects and certifications are visible.</li>
+          <li>The career break section needs stronger proof of active projects, deliverables, and practical outputs.</li>
+          <li>Some ADQ bullets still read like coordination support rather than business impact or decision support.</li>
+          <li>Analytics tools are described as foundational to intermediate, so the CV needs project examples to make those skills credible.</li>
+        </ul>
+      </article>
+
+      <article class="card wide note">
+        <h2>Comments Found In The Reviewed CV</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Area</th>
+              <th>Reviewer Comment</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Summary</td>
+              <td>Great summary. Include a sentence on the role you are looking to transition to.</td>
+              <td>Add a direct target line for Business Analyst, Strategy Analyst, Operations Analyst, or Research Analyst roles.</td>
+            </tr>
+            <tr>
+              <td>Skills</td>
+              <td>Move skills below projects and certifications. Include AI skills to make the section stand out more.</td>
+              <td>Move skills after projects/certifications and add AI tools only where she can explain practical usage.</td>
+            </tr>
+            <tr>
+              <td>Career break</td>
+              <td>List the projects you have been doing during the break.</td>
+              <td>Add 2-3 project bullets showing analytics, research, consulting, or investment analysis outputs.</td>
+            </tr>
+            <tr>
+              <td>ADQ</td>
+              <td>Focus on outcomes and your key role.</td>
+              <td>Rewrite bullets around what improved, what was delivered, and who used the work.</td>
+            </tr>
+            <tr>
+              <td>Khalifa University</td>
+              <td>Include project and case examples.</td>
+              <td>Use the admissions and exit-interview process improvements as evidence of workflow improvement.</td>
+            </tr>
+            <tr>
+              <td>Education</td>
+              <td>Include modules/courses.</td>
+              <td>Add MBA modules relevant to strategy, finance, analytics, operations, leadership, or consulting.</td>
+            </tr>
+          </tbody>
+        </table>
+      </article>
+
+      <article class="card wide">
+        <h2>Priority Fixes</h2>
+        <div class="priority">
+          <div class="badge">1</div>
+          <div>
+            <h3>Make the target transition explicit</h3>
+            <p class="muted">The CV has a credible base, but recruiters should not need to infer the role Amal wants next.</p>
+            <div class="rewrite">Analytical UAE National with 6+ years across strategic operations, risk coordination, research, and stakeholder management, now targeting Business Analyst, Strategy Analyst, Operations Analyst, or Market Research Analyst roles in Abu Dhabi and the wider UAE.</div>
+          </div>
+        </div>
+        <div class="priority">
+          <div class="badge">2</div>
+          <div>
+            <h3>Strengthen the career break with real project evidence</h3>
+            <p class="muted">The current section explains upskilling, but it should show applied work: dashboards, market maps, analysis, case studies, or consulting outputs.</p>
+            <div class="rewrite">Example direction: "Built a Power BI dashboard and Excel analysis model using sample business data to track operational KPIs, identify process bottlenecks, and present improvement recommendations."</div>
+          </div>
+        </div>
+        <div class="priority">
+          <div class="badge">3</div>
+          <div>
+            <h3>Move skills below certifications and projects</h3>
+            <p class="muted">For a transition CV, projects and certifications prove the new direction more strongly than a skills list. Let the evidence come before the toolkit.</p>
+          </div>
+        </div>
+        <div class="priority">
+          <div class="badge">4</div>
+          <div>
+            <h3>Reframe ADQ around outcomes</h3>
+            <p class="muted">ADQ is the strongest employer signal. Its bullets should read less administrative and more like risk, process, budget, stakeholder, and analysis support.</p>
+            <div class="rewrite">Example direction: "Coordinated procurement tracking across divisions and projects, supporting timely allocation of resources and approximately 80% utilization of the annual departmental budget."</div>
+          </div>
+        </div>
+      </article>
+
+      <article class="card">
+        <h2>Key Selling Points To Emphasize</h2>
+        <ul>
+          <li>UAE National with local Abu Dhabi experience across major institutions.</li>
+          <li>ADQ experience in risk management, resilience, policy, procurement, and stakeholder coordination.</li>
+          <li>Arabic and English language fluency for roles requiring local stakeholder communication.</li>
+          <li>MBA plus applied business-analysis training in Excel, SQL, Power BI, and Tableau.</li>
+          <li>Evidence of process improvement through admissions coordination, front-desk workflow improvement, and documentation control.</li>
+          <li>Research and benchmarking exposure that can support strategy, consulting, market research, and investment-analysis pathways.</li>
+        </ul>
+      </article>
+
+      <article class="card">
+        <h2>Additional Observations</h2>
+        <ul>
+          <li>The profile is best positioned for Business Analyst, Strategy Analyst, Operations Analyst, Research Analyst, Risk Analyst, or Consulting Analyst roles.</li>
+          <li>For investment analyst roles, the CV needs more evidence of valuation, financial modelling, sector research, investment memos, or market sizing.</li>
+          <li>For consulting roles, add examples from the Bain and Mars Galaxy programmes: problem statement, analysis completed, recommendation, and presentation output.</li>
+          <li>For AI skills, list Claude, OpenAI, prompt design, research automation, or workflow automation only if she can confidently discuss how she used them.</li>
+          <li>The phone, email, location, and LinkedIn are present, which is good. The LinkedIn URL could be shortened to a cleaner custom format if available.</li>
+          <li>Use consistent punctuation and date formatting across all sections.</li>
+        </ul>
+      </article>
+
+      <article class="card wide">
+        <h2>Suggested Role Positioning</h2>
+        <p class="quote">Position Amal as a UAE National business analyst / strategy operations candidate with ADQ experience, strong stakeholder exposure, Arabic-English fluency, and active analytics upskilling.</p>
+        <p class="muted">The CV should not try to sound like a pure finance or investment profile unless more investment evidence is added. The strongest near-term story is business analysis, strategic operations, research, risk coordination, and process improvement, with analytics as the growth direction.</p>
+      </article>
+
+      <article class="card wide">
+        <h2>Recommended CV Structure</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Order</th>
+              <th>Section</th>
+              <th>Reason</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>1</td>
+              <td>Header and target headline</td>
+              <td>Make the target role clear immediately.</td>
+            </tr>
+            <tr>
+              <td>2</td>
+              <td>Summary</td>
+              <td>Connect Abu Dhabi experience, UAE National status, and analyst transition.</td>
+            </tr>
+            <tr>
+              <td>3</td>
+              <td>Experience</td>
+              <td>Lead with ADQ and quantified business outcomes.</td>
+            </tr>
+            <tr>
+              <td>4</td>
+              <td>Projects and certifications</td>
+              <td>Show current analytics, consulting, and investment-analysis development before listing tools.</td>
+            </tr>
+            <tr>
+              <td>5</td>
+              <td>Skills</td>
+              <td>Keep the toolkit compact and credible after the evidence.</td>
+            </tr>
+            <tr>
+              <td>6</td>
+              <td>Education</td>
+              <td>Include MBA modules only if they strengthen the target role narrative.</td>
+            </tr>
+          </tbody>
+        </table>
+      </article>
+    </section>
+
+    <footer>
+      Source reviewed: /Users/ropafadzoyasheushe/Downloads/2026_Amal AlShehhi_Resume_update.pdf
+    </footer>
+  </main>
+</body>
+</html>

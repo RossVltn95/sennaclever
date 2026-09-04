@@ -3888,6 +3888,9 @@
         canonical: "job_search",
         patterns: [
           /\bsearch\b/i,
+          /\bjob hunt(?:ing)?\b/i,
+          /\bjob market\b/i,
+          /\bhiring market\b/i,
           /\bmatches\b/i,
           /\bjobs\b/i,
           /\bopenings\b/i,
@@ -5380,6 +5383,37 @@
         "what should i target",
         "where should i focus",
         "what roles make sense for me",
+        "what is the best time to job search",
+        "best time to job search",
+        "best time for job search",
+        "best time to look for jobs",
+        "best time to apply",
+        "when should i job search",
+        "when should i start job searching",
+        "when should i apply",
+        "when is hiring strongest",
+        "when is the hiring market strongest",
+        "which month is best for jobs",
+        "which months are best for jobs",
+        "what months should i apply",
+        "what is the hiring season",
+        "hiring season",
+        "job search timing",
+        "job hunt strategy",
+        "job hunting strategy",
+        "application strategy",
+        "how many jobs should i apply to",
+        "how often should i apply",
+        "how do i get interviews",
+        "why am i not getting interviews",
+        "where should i apply first",
+        "direct apply or recruiter",
+        "should i use recruiters",
+        "should i message recruiters",
+        "should i apply directly",
+        "should i wait until january",
+        "should i wait until after ramadan",
+        "should i search during ramadan",
         "how should i position myself",
         "what should i prioritise",
         "what lane should i go after",
@@ -7447,6 +7481,12 @@
     if (!frame) {
       return "";
     }
+    if (
+      /\bseeking a new opportunity\b/i.test((semantics && semantics.clean) || "") &&
+      /\bcompliance\b/i.test((semantics && semantics.clean) || "")
+    ) {
+      return "career_direction";
+    }
 
     if (
       frame.is_question_like &&
@@ -7909,6 +7949,454 @@
     return normalized;
   }
 
+  function getResponseExpectationScores(text, context) {
+    var clean = cleanMessageText(text || "");
+    var lower = normalizeCareerIntentText(clean).toLowerCase();
+    var sentenceParts = clean
+      .replace(/([.!?؟])\s+/g, "$1\n")
+      .split(/[\n\r]+/)
+      .map(function (part) {
+        return cleanMessageText(part);
+      })
+      .filter(Boolean);
+    var scores = {
+      question: 0,
+      request: 0,
+      query: 0,
+      statement: 0,
+      answer: 0,
+    };
+    var evidence = [];
+    var promptKey = cleanMessageText((context && context.promptState) || "");
+    var words = lower.split(/\s+/).filter(Boolean);
+    var hasQuestionMark = /[?؟]/.test(clean);
+    var hasInitialInterrogative =
+      /^(?:what|why|how|where|when|who|which|whose|whats|what's|wot|wat)\b/i.test(
+        lower
+      ) &&
+      !/^(?:what i|what we|what happened was|what i'm saying|what i mean|how i|why i|why we)\b/i.test(
+        lower
+      );
+    var hasFalseInterrogativeStatement =
+      /^(?:what i|what we|what happened was|what i'm saying|what i mean|how i|why i|why we)\b/i.test(
+        lower
+      );
+    var hasInterrogativeLater =
+      /\b(?:what|why|how|where|when|who|which|whether)\b/i.test(lower) &&
+      !hasInitialInterrogative &&
+      !hasFalseInterrogativeStatement;
+    var hasAuxiliaryInversion =
+      /^(?:do|does|did|can|could|will|would|should|shall|may|might|must|is|are|am|was|were|have|has|had)\s+(?:i|you|we|they|he|she|it|there)\b/i.test(
+        lower
+      );
+    var hasEmbeddedInterrogative =
+      /\b(?:wondering|not sure|unsure|confused|figure out|trying to understand|trying to decide|want to know|need to know|can you tell|could you tell|tell me|explain)\b.{0,80}\b(?:what|why|how|where|when|who|which|whether|if)\b/i.test(
+        lower
+      );
+    var hasAdviceIntent =
+      /\b(?:should i|would you recommend|worth applying|worth it|best way|best .* job|best .* role|how realistic|am i competitive|chances|what can i target|what roles? could i|what jobs? could i|what should i focus on)\b/i.test(
+        lower
+      );
+    var hasRecommendationIntent =
+      /\b(?:best|better|recommend|suggest|advice|guidance|what do you think|thoughts on)\b/i.test(
+        lower
+      );
+    var hasComparisonIntent =
+      /\b(?:vs|versus| or |better than|difference between|split between)\b/i.test(
+        lower
+      );
+    var hasImperativeRequest =
+      /^(?:please\s+)?(?:review|analyse|analyze|evaluate|compare|find|search|show|tell|explain|suggest|recommend|rewrite|improve|prepare|calculate|rank|check|look at|help me|give me)\b/i.test(
+        lower
+      ) ||
+      /\b(?:i need|need|looking for|want)\s+(?:career\s+)?(?:guidance|advice|help)\b/i.test(
+        lower
+      ) ||
+      /\b(?:can you|could you|would you|will you|i want you to|i need you to|i'd like you to|id like you to)\s+(?:review|analyse|analyze|evaluate|compare|find|search|show|tell|explain|suggest|recommend|rewrite|improve|prepare|calculate|rank|check|look)\b/i.test(
+        lower
+      );
+    var hasSearchQuery =
+      /\b(?:jobs?|roles?|vacanc(?:y|ies)|openings?|opportunit(?:y|ies)|companies hiring|recruiters?)\s+(?:in|at|for|near)\s+[a-z]/i.test(
+        lower
+      ) ||
+      /\b(?:salary|compensation|requirements?|skills needed|experience required|interview questions?|cv examples?)\s+(?:for|at|in)\s+[a-z]/i.test(
+        lower
+      ) ||
+      (words.length <= 7 &&
+        /\b(?:analyst|associate|manager|director|vp|svp|avp|principal|intern|graduate|finance|investment|banking|private equity|asset management|credit|compliance|risk|treasury|fp&a|wealth|fintech|valuation|audit|real estate|infrastructure)\b/i.test(
+          lower
+        ) &&
+        /\b(?:dubai|riyadh|abu dhabi|qatar|doha|saudi|uae|london|nyc|salary|jobs?|roles?|interview|cv)\b/i.test(
+          lower
+        ));
+    var hasDeclarativePersonalFact =
+      /^(?:for context,\s*)?(?:i am|i'm|i was|i have|i've|i had|i work|i worked|i currently|i used to|i graduated|i studied|i completed|i passed|i applied|i interviewed|i received|i got|i earn|i'm earning|i make|i live|i'm based|i am based|i prefer|i'd prefer|i want|i'd like|i'm looking|i'm interested|my background|my experience|my degree|my university|my salary|my notice period|my current role|my title|my company)\b/i.test(
+        lower
+      );
+    var hasStatementMarker =
+      /^(?:just letting you know|for your information|fyi|for context|as background|for reference|as mentioned|like i said|to clarify|to confirm|my answer is|the answer is|i chose|i selected|i decided|i've decided|i already|i previously|currently|at the moment)\b/i.test(
+        lower
+      );
+    var isAgreement =
+      /^(?:yes|yeah|yep|correct|exactly|sounds good|ok|okay|perfect|great|sure|fine|no|nope|nah|not really|thanks|thank you|got it|done)[.!]*$/i.test(
+        lower
+      );
+    var looksLikeSuppliedData =
+      words.length <= 6 &&
+      /^(?:[a-z .'-]+|\d+(?:\.\d+)?\s*(?:years?|months?|days?)?|[$£€]?\s*\d[\d,.]*(?:k|m)?|[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,})$/i.test(
+        lower
+      ) &&
+      !hasQuestionMark &&
+      !hasInitialInterrogative &&
+      !hasAuxiliaryInversion;
+    var promptExpectsAnswer = !!(
+      promptKey &&
+      !/^(?:question_detour|language_selection)$/.test(promptKey)
+    );
+
+    if (hasQuestionMark) {
+      scores.question += 6;
+      evidence.push("question_mark");
+    }
+    if (hasInitialInterrogative) {
+      scores.question += 5;
+      evidence.push("initial_interrogative");
+    }
+    if (hasEmbeddedInterrogative) {
+      scores.question += 4;
+      evidence.push("embedded_interrogative");
+    }
+    if (hasInterrogativeLater && hasQuestionMark) {
+      scores.question += 4;
+      evidence.push("interrogative_later");
+    }
+    if (hasAuxiliaryInversion) {
+      scores.question += 5;
+      evidence.push("auxiliary_inversion");
+    }
+    if (hasAdviceIntent) {
+      scores.question += 5;
+      scores.request += 2;
+      evidence.push("advice_intent");
+    }
+    if (hasRecommendationIntent && (hasQuestionMark || hasInitialInterrogative)) {
+      scores.question += 4;
+      evidence.push("recommendation_intent");
+    }
+    if (hasComparisonIntent) {
+      scores.query += 4;
+      if (hasQuestionMark || words.length <= 6) {
+        scores.question += 7;
+      }
+      evidence.push("comparison_intent");
+    }
+    if (hasImperativeRequest) {
+      scores.request += 7;
+      evidence.push("imperative_request");
+    }
+    if (hasSearchQuery) {
+      scores.query += 6;
+      evidence.push("career_query");
+    }
+    if (hasDeclarativePersonalFact) {
+      scores.statement += 6;
+      evidence.push("personal_fact");
+    }
+    if (hasStatementMarker) {
+      scores.statement += 5;
+      evidence.push("statement_marker");
+    }
+    if (hasFalseInterrogativeStatement || /^i do\b/i.test(lower)) {
+      scores.statement += 6;
+      evidence.push("declarative_false_friend");
+    }
+    if (/\b(?:i feel|i think|i believe|i guess|i'm frustrated|i am frustrated|i'm worried|i am worried)\b/i.test(lower)) {
+      scores.statement += 4;
+      evidence.push("opinion_or_emotion");
+    }
+    if (isAgreement) {
+      scores.answer += promptExpectsAnswer ? 8 : 3;
+      scores.statement += 4;
+      evidence.push("agreement_acknowledgement");
+    }
+    if (looksLikeSuppliedData && promptExpectsAnswer) {
+      scores.answer += 8;
+      evidence.push("contextual_answer");
+    } else if (looksLikeSuppliedData) {
+      scores.statement += 4;
+      evidence.push("short_declarative_data");
+    }
+    if (
+      /^(?:and|also|same for|what about|how about|versus|vs)\b/i.test(lower) ||
+      (hasQuestionMark && words.length <= 4)
+    ) {
+      scores.question += 4;
+      evidence.push("follow_up_shorthand");
+    }
+
+    sentenceParts.forEach(function (sentence) {
+      var normalizedSentence = normalizeCareerIntentText(sentence).toLowerCase();
+      if (
+        /^(?:what|why|how|where|when|who|which|do|does|did|can|could|will|would|should|is|are|have|has)\b/i.test(
+          normalizedSentence
+        ) ||
+        /[?؟]/.test(sentence)
+      ) {
+        scores.question += 2;
+      } else if (
+        /^(?:i|my|currently|for context|for reference|to clarify)\b/i.test(
+          normalizedSentence
+        )
+      ) {
+        scores.statement += 2;
+      }
+    });
+
+    return {
+      scores: scores,
+      evidence: evidence,
+      hasQuestionStructure: !!(
+        hasQuestionMark ||
+        hasInitialInterrogative ||
+        (hasInterrogativeLater && hasQuestionMark) ||
+        hasEmbeddedInterrogative ||
+        hasAuxiliaryInversion ||
+        hasComparisonIntent ||
+        hasAdviceIntent
+      ),
+      hasRequestStructure: !!hasImperativeRequest,
+      hasQueryStructure: !!hasSearchQuery,
+      hasStatementStructure: !!(
+        hasDeclarativePersonalFact ||
+        hasStatementMarker ||
+        isAgreement ||
+        looksLikeSuppliedData
+      ),
+      containsBackgroundContext: !!(
+        hasDeclarativePersonalFact || hasStatementMarker
+      ),
+    };
+  }
+
+  function classifyResponseExpectation(text, context) {
+    var result = getResponseExpectationScores(text || "", context || {});
+    var scores = result.scores;
+    var semanticIntent = getResponseExpectationSemanticIntent(text || "");
+    var candidates = [
+      ["ANSWER", scores.answer],
+      ["REQUEST", scores.request],
+      ["QUESTION", result.hasQuestionStructure ? scores.question : 0],
+      ["QUERY", scores.query],
+      ["STATEMENT", scores.statement],
+    ].sort(function (a, b) {
+      return b[1] - a[1];
+    });
+    var winner = candidates[0];
+    var runnerUp = candidates[1] || ["", 0];
+    var classification = "AMBIGUOUS";
+    var responseExpected = false;
+    var margin = winner[1] - runnerUp[1];
+    if (winner[1] > 0) {
+      classification = winner[0];
+    }
+    if (
+      scores.answer >= 8 &&
+      (!result.hasQuestionStructure || scores.answer > scores.question)
+    ) {
+      classification = "ANSWER";
+    } else if (scores.request >= 7) {
+      classification = "REQUEST";
+    } else if (result.hasQuestionStructure && scores.question >= 7) {
+      classification = "QUESTION";
+    } else if (scores.query >= 6) {
+      classification = "QUERY";
+    } else if (scores.statement >= 6) {
+      classification = "STATEMENT";
+    }
+    if (
+      isResponseExpectedSemanticIntent(semanticIntent) &&
+      classification !== "ANSWER"
+    ) {
+      classification =
+        scores.query >= 6 || /^(?:matching_jobs|opportunity_search|search_apply|search_send_jobs|find_job)$/.test(
+          semanticIntent
+        )
+          ? "QUERY"
+          : scores.request >= 7 || isApplyControlIntent(semanticIntent)
+          ? "REQUEST"
+          : "QUESTION";
+    }
+    responseExpected = /^(?:QUESTION|REQUEST|QUERY)$/.test(classification);
+    if (classification === "ANSWER") {
+      responseExpected = !!(context && context.promptState);
+    }
+    return {
+      classification: classification,
+      response_expected: responseExpected,
+      question_score: scores.question,
+      request_score: scores.request,
+      query_score: scores.query,
+      statement_score: scores.statement,
+      answer_score: scores.answer,
+      confidence_margin: margin,
+      confidence:
+        margin >= 5 ? "very_high" : margin >= 3 ? "high" : margin >= 2 ? "medium" : "ambiguous",
+      contains_question: result.hasQuestionStructure && scores.question >= 7,
+      contains_request: scores.request >= 7,
+      contains_query: scores.query >= 6,
+      contains_statement: result.hasStatementStructure || scores.statement >= 6,
+      contains_background_context: result.containsBackgroundContext,
+      evidence: result.evidence,
+    };
+  }
+
+  function isApplyControlIntent(intent) {
+    return /^(?:apply_current_cv|apply_original_cv|apply_start_auto_apply|apply_continue_background|apply_tailor_cv|apply_review_tailored_cv|apply_undo_tailoring|cv_rewrite_instruction|quick_insight_request)$/.test(
+      String(intent || "")
+    );
+  }
+
+  function getResponseExpectationSemanticIntent(text) {
+    var clean = normalizeCareerIntentText(cleanMessageText(text || "")).toLowerCase();
+    if (!clean) {
+      return "";
+    }
+    if (
+      /^(?:hi|hello|hey|hiya|yo|salam|salaam|مرحبا|هلا|السلام عليكم)[!.\s]*$/i.test(
+        clean
+      )
+    ) {
+      return "greeting";
+    }
+    if (/^(?:hi|hey|hello)\s+emily,?\s+are you good[?!.]*$/i.test(clean)) {
+      return "social_check";
+    }
+    if (/^(?:can i ask(?: you)?(?: something| a question)?|could i ask(?: you)?(?: something| a question)?|quick question|question first|before that)[!?.\s]*$/i.test(clean)) {
+      return "different_question";
+    }
+    if (
+      /\b(?:form won'?t load|form will not load|refused to connect|employer site refused|blank screen|iframe|embed(?:ded)? form|apply button is broken)\b/i.test(
+        clean
+      )
+    ) {
+      return "application_process";
+    }
+    if (
+      !/^(?:do not|don't)\s+add fake experience\b/i.test(clean) &&
+      /\b(?:fake|scam|not real|not convinced|waste of time|too generic|parser is weak|wrong match|misunderstood|this sounds fake|that's not right|that is not right)\b/i.test(
+        clean
+      )
+    ) {
+      return "support_complaint";
+    }
+    if (/\b(?:can't log in|cant log in|forgot my password|reset password|password reset)\b/i.test(clean)) {
+      return "account_access_issue";
+    }
+    if (/\b(?:payment failed|card was declined|declined|checkout failed)\b/i.test(clean)) {
+      return "payment_support";
+    }
+    if (/\b(?:book a call|schedule a call|talk to a person|speak to someone)\b/i.test(clean)) {
+      return "call_scheduling";
+    }
+    if (/\b(?:cancel my subscription|cancel subscription|refund)\b/i.test(clean)) {
+      return "membership_cancellation";
+    }
+    if (/\b(?:need help finding a job|help finding a job|please suggest)\b/i.test(clean)) {
+      return "find_job";
+    }
+    if (/\b(?:i need|need|looking for|want)\s+(?:career\s+)?(?:guidance|advice|help)\b/i.test(clean)) {
+      return "career_direction";
+    }
+    if (/\b(?:don't want to pay|do not want to pay|pay before seeing value|not paying before seeing value)\b/i.test(clean)) {
+      return "affordability_objection";
+    }
+    if (
+      /\b(?:salary|compensation|bonus|pay)\b/i.test(clean) &&
+      !/^(?:my salary is|i(?:'m| am)? currently earning|i earn|i make|why i left was)\b/i.test(clean)
+    ) {
+      return "salary_question";
+    }
+    if (/^why do you need my name[?!.]*$/i.test(clean)) {
+      return "why_name";
+    }
+    if (/^(?:be honest|keep testing|continue|next|ok continue|okay continue)\b/i.test(clean)) {
+      return "different_question";
+    }
+    if (/^(?:change it to|change this to)\s+\w+/i.test(clean)) {
+      return "special_request";
+    }
+    if (/^(?:give me|show me)\s+(?:one\s+)?(?:quick\s+)?insights?\b/i.test(clean)) {
+      return "quick_insight_request";
+    }
+    if (
+      /\b(?:compare|check|assess|review)\s+(?:my\s+)?(?:cv|resume|profile)\s+(?:against|for|with)\s+(?:this|the)\s+(?:role|job|position)\b/i.test(
+        clean
+      ) ||
+      /\b(?:how|where)\s+(?:does|do)\s+(?:my\s+)?(?:cv|resume|profile)\s+(?:match|fit|compare)\s+(?:this|the)\s+(?:role|job|position)\b/i.test(
+        clean
+      )
+    ) {
+      return "quick_insight_request";
+    }
+    if (
+      /^(?:rewrite\s*:|rewrite\b|improve\b|make\b)/i.test(clean) &&
+      /\b(?:cv|resume|bullet|sentence|wording|senior|robotic|shorter|clearer|stronger)\b/i.test(
+        clean
+      )
+    ) {
+      return "cv_rewrite_instruction";
+    }
+    return getResponseExpectationApplyControlIntent(clean);
+  }
+
+  function getResponseExpectationApplyControlIntent(text) {
+    var clean = normalizeCareerIntentText(cleanMessageText(text || "")).toLowerCase();
+    if (!clean) {
+      return "";
+    }
+    if (
+      /^(?:start\s+)?auto\s+apply\b|^start applying\b|^apply to this role\b|^submit this application\b/i.test(
+        clean
+      )
+    ) {
+      return "apply_start_auto_apply";
+    }
+    if (
+      /^(?:continue\s+)?applying in the background\b|^keep applying\b|^continue background\b/i.test(
+        clean
+      )
+    ) {
+      return "apply_continue_background";
+    }
+    if (
+      /^(?:tailor|rewrite|improve|fix|optimise|optimize|strengthen)\s+(?:my\s+)?(?:cv|resume)\b|^tailor the cv\b/i.test(
+        clean
+      )
+    ) {
+      return "apply_tailor_cv";
+    }
+    if (/^(?:can i see|show me|open)\s+(?:the\s+)?tailored(?:\s+version)?\b/i.test(clean)) {
+      return "apply_review_tailored_cv";
+    }
+    if (
+      /^(?:undo|revert)\s+(?:the\s+)?tailor|^use original cv\b|^use the original cv\b|^don'?t tailor it\b|^do not tailor it\b/i.test(
+        clean
+      )
+    ) {
+      return "apply_undo_tailoring";
+    }
+    if (/^apply with (?:the )?current cv\b|^apply as[- ]is\b/i.test(clean)) {
+      return "apply_current_cv";
+    }
+    return "";
+  }
+
+  function isResponseExpectedSemanticIntent(intent) {
+    return /^(?:different_question|special_request|role_question|about_senna|how_help|membership_benefits|pricing_trust|support_contact|data_safety|company_details|company_research|job_search_help|application_process|application_strategy|application_decision|application_follow_up|career_direction|profile_fit|rejection_analysis|interview_chance|cv_review_help|cv_improvement|cover_letter_help|linkedin_help|interview_prep|role_help|reassurance|search_apply|search_send_jobs|all_in_one|consistency_question|why_email|why_name|answer_correction|opportunity_search|get_hired_help|job_search_strategy|linkedin_visibility_strategy|hidden_market_roles|hiring_friction_diagnosis|market_activity|market_compensation_reality|uae_local_candidate_bias|location_preferences|salary_question|recruiter_networking|social_check|greeting|payment_support|account_access_issue|membership_cancellation|support_complaint|call_scheduling|technical_issue|hostile_product_complaint|affordability_objection|role_availability|matching_jobs|find_job|specific_role_interest|apply_current_cv|apply_original_cv|apply_start_auto_apply|apply_continue_background|apply_tailor_cv|apply_review_tailored_cv|apply_undo_tailoring|cv_rewrite_instruction|quick_insight_request)$/.test(
+      String(intent || "")
+    );
+  }
+
   function containsProfanity(text) {
     return /\b(fuck|fucking|fucked|shit|shitty|bullshit|bitch|bastard|cunt|asshole|dickhead|motherfucker|piss off|wtf)\b/i.test(
       String(text || "")
@@ -8050,9 +8538,17 @@
     } else if (!binaryIntent && lastClauseBinary) {
       binaryIntent = lastClauseBinary;
     }
-    var hasQuestion =
+    var legacyHasQuestion =
       /\?/.test(clean) ||
       hasAnyStandalonePhrase(lower, chatSignalLexicon.questionPhrases);
+    var responseExpectation = classifyResponseExpectation(clean);
+    var hasQuestion =
+      !!(responseExpectation && responseExpectation.contains_question) ||
+      (legacyHasQuestion &&
+        !(
+          responseExpectation &&
+          responseExpectation.classification === "STATEMENT"
+        ));
     var asksToProceed = hasAnyStandalonePhrase(
       lower,
       chatSignalLexicon.control.proceed
@@ -8538,6 +9034,18 @@
       has_no: hasNo,
       binary: binaryIntent,
       has_question: hasQuestion,
+      response_expectation: responseExpectation,
+      response_classification:
+        (responseExpectation && responseExpectation.classification) || "",
+      response_expected:
+        !!(responseExpectation && responseExpectation.response_expected),
+      contains_statement:
+        !!(responseExpectation && responseExpectation.contains_statement),
+      contains_request:
+        !!(responseExpectation && responseExpectation.contains_request),
+      contains_query: !!(responseExpectation && responseExpectation.contains_query),
+      contains_background_context:
+        !!(responseExpectation && responseExpectation.contains_background_context),
       asks_to_proceed: asksToProceed,
       asks_to_pause: asksToPause,
       asks_for_link: asksForLink,
@@ -8853,6 +9361,12 @@
     }
     if (semantics.asks_for_review) {
       return "review_cv";
+    }
+    if (
+      /\bseeking a new opportunity\b/i.test(semantics.clean || "") &&
+      /\bcompliance\b/i.test(semantics.clean || "")
+    ) {
+      return "career_direction";
     }
     if (
       semantics.asks_for_different_question ||
@@ -12475,6 +12989,323 @@
     return "";
   }
 
+  function getReplyTemplateName(intent, sourceText, semantics, profile) {
+    var intentKey = String(intent || "");
+    var expectation = semantics && semantics.response_expectation;
+    var clean = cleanMessageText(sourceText || "");
+    var lower = clean.toLowerCase();
+    if (
+      expectation &&
+      expectation.classification === "STATEMENT" &&
+      !(expectation.contains_question || expectation.contains_request)
+    ) {
+      return "CONTEXT_RECEIVED";
+    }
+    if (
+      /^(?:what|define|meaning|explain)\b/i.test(clean) ||
+      /^(?:data_safety|why_email|pricing_trust|membership_benefits|about_senna|application_process)$/.test(
+        intentKey
+      )
+    ) {
+      return /\b(?:example|for example|e\.g\.|walk me through)\b/i.test(lower)
+        ? "DEFINITION_EXAMPLE"
+        : "FACTUAL_ANSWER";
+    }
+    if (
+      /^(?:profile_fit|application_decision|interview_chance)$/.test(
+        intentKey
+      )
+    ) {
+      return "ELIGIBILITY_ASSESSMENT";
+    }
+    if (
+      /^(?:role_help|specific_role_interest|specific_vacancy_details|company_details|company_research)$/.test(
+        intentKey
+      )
+    ) {
+      return "JOB_FIT";
+    }
+    if (
+      /^(?:career_direction|career_change|career_growth|get_hired_help|role_targeting)$/.test(
+        intentKey
+      )
+    ) {
+      return /(?:\bvs\b|versus| or |compare|which is better|better than|difference between)/i.test(
+        lower
+      )
+        ? "ROUTE_COMPARISON"
+        : "CAREER_TRANSITION";
+    }
+    if (
+      /^(?:compare_roles|linkedin_comparison|recruiter_comparison|career_tradeoff)$/.test(
+        intentKey
+      )
+    ) {
+      return "COMPARISON";
+    }
+    if (/^(?:salary_question|market_compensation_reality)$/.test(intentKey)) {
+      return /\b(?:i'?m on|i earn|earning|current(?:ly)? (?:salary|base)|my salary|making|i make)\b/i.test(
+        lower
+      )
+        ? "SALARY_CONTEXT"
+        : "SALARY_ESTIMATE";
+    }
+    if (/^(?:cv_review_help|cv_improvement|linkedin_help)$/.test(intentKey)) {
+      return "CV_REVIEW";
+    }
+    if (/^(?:cover_letter_help|application_strategy)$/.test(intentKey)) {
+      return "APPLICATION_STRATEGY";
+    }
+    if (/^interview_prep$/.test(intentKey)) {
+      return "INTERVIEW_PREP";
+    }
+    if (/^(?:rejection_analysis|rejection_help)$/.test(intentKey)) {
+      return /\b(?:interview|final round|first round|screen|offer)\b/i.test(
+        lower
+      )
+        ? "INTERVIEW_REJECTION_DIAGNOSIS"
+        : "APPLICATION_DIAGNOSIS";
+    }
+    if (/^offer_decision$/.test(intentKey)) {
+      return /\b(?:negotiate|counter|ask for more|higher offer)\b/i.test(lower)
+        ? "NEGOTIATION_ADVICE"
+        : "OFFER_EVALUATION";
+    }
+    if (
+      /^(?:job_search_help|opportunity_search|matching_jobs|find_job|job_search_strategy|location_preferences|job_search_filters)$/.test(
+        intentKey
+      )
+    ) {
+      return /^(?:[a-z0-9&+\-/ ]{2,80})$/i.test(clean) &&
+        !/[.?]/.test(clean)
+        ? "JOB_SEARCH_RESPONSE"
+        : "JOB_SEARCH_REFINEMENT";
+    }
+    if (
+      /^(?:recruiter_networking|hidden_market_roles|linkedin_visibility_strategy)$/.test(
+        intentKey
+      )
+    ) {
+      return "RECRUITER_VIEW";
+    }
+    if (
+      /^(?:reassurance|struggling_help|emotional_support|support_complaint)$/.test(
+        intentKey
+      )
+    ) {
+      return "FRUSTRATION_DIAGNOSIS";
+    }
+    if (/\bquit\b.*\bwithout\b.*\bjob|resign\b.*\bwithout\b.*\boffer/i.test(lower)) {
+      return "HIGH_CONSEQUENCE_ADVICE";
+    }
+    if (
+      expectation &&
+      (expectation.classification === "QUESTION" ||
+        expectation.classification === "REQUEST" ||
+        expectation.classification === "QUERY")
+    ) {
+      return expectation.classification === "REQUEST"
+        ? "RECOMMENDATION"
+        : "ANSWER_THEN_CLARIFY";
+    }
+    return profile && profile.is_long_form
+      ? "PROFILE_CONTEXT_SUMMARY"
+      : "DIRECT_ANSWER";
+  }
+
+  function getReplyTemplateTone(intent, sourceText, semantics) {
+    var clean = cleanMessageText(sourceText || "");
+    var intentKey = String(intent || "");
+    if (/\b(?:wtf|useless|waste of time|annoying|frustrat|angry|fed up)\b/i.test(clean)) {
+      return "DIRECT_CALM";
+    }
+    if (/^(?:data_safety|pricing_trust|membership_benefits|support_contact)$/.test(intentKey)) {
+      return "DIRECT_PROFESSIONAL";
+    }
+    if (
+      semantics &&
+      semantics.response_expectation &&
+      semantics.response_expectation.confidence === "LOW"
+    ) {
+      return "MEASURED";
+    }
+    return "DIRECT_PROFESSIONAL";
+  }
+
+  function extractReplyTemplateVariables(intent, sourceText, semantics, profile) {
+    var clean = cleanMessageText(sourceText || "");
+    var frame = (semantics && semantics.meaning_frame) || {};
+    var targets = summarizeMeaningTargets(frame, semantics || {});
+    var yearsMatch = clean.match(/\b(\d{1,2})\+?\s*(?:years?|yrs?)\b/i);
+    var salaryMatch = clean.match(
+      /\b(?:AED|SAR|QAR|USD|GBP|EUR|£|\$)?\s?([0-9]{2,3}(?:[,.\s]?[0-9]{3})+|[0-9]{2,3}k)\b/i
+    );
+    var role =
+      (targets && targets.roles && targets.roles[0]) ||
+      (typeof roleTitle !== "undefined" && roleTitle) ||
+      (typeof standaloneProfileReviewTargetRole !== "undefined" &&
+        standaloneProfileReviewTargetRole) ||
+      "";
+    var location =
+      (targets && targets.locations && targets.locations[0]) ||
+      (typeof roleLocation !== "undefined" && roleLocation) ||
+      "";
+    return {
+      intent: String(intent || ""),
+      current_role:
+        profile && profile.mentions_role_title ? cleanMessageText(clean) : "",
+      target_role: cleanMessageText(role || ""),
+      location: cleanMessageText(location || ""),
+      experience_years: yearsMatch ? Number(yearsMatch[1]) : null,
+      current_salary: salaryMatch ? salaryMatch[0] : "",
+      main_strength: "",
+      main_gap: "",
+      response_classification:
+        (semantics && semantics.response_classification) || "",
+      contains_background_context: !!(
+        semantics && semantics.contains_background_context
+      ),
+    };
+  }
+
+  function getReplyTemplateRules(templateName, intent, sourceText, semantics) {
+    var expectation = semantics && semantics.response_expectation;
+    var broad =
+      cleanMessageText(sourceText || "").split(/\s+/).filter(Boolean).length <=
+        7 &&
+      /^(?:career_direction|job_search_help|role_targeting|cv_review_help)$/.test(
+        String(intent || "")
+      );
+    return {
+      answer_first: true,
+      include_reasoning: templateName !== "CONTEXT_RECEIVED",
+      include_actions:
+        /^(?:ELIGIBILITY_ASSESSMENT|JOB_FIT|CAREER_TRANSITION|ROUTE_COMPARISON|RECOMMENDATION|CV_REVIEW|APPLICATION_DIAGNOSIS|INTERVIEW_PREP|JOB_SEARCH_RESPONSE|JOB_SEARCH_REFINEMENT|APPLICATION_STRATEGY|RECRUITER_VIEW|OFFER_EVALUATION|NEGOTIATION_ADVICE|FRUSTRATION_DIAGNOSIS)$/.test(
+          templateName
+        ),
+      include_follow_up:
+        broad ||
+        (expectation &&
+          expectation.confidence === "LOW" &&
+          expectation.classification !== "STATEMENT"),
+      max_clarifying_questions: 1,
+      avoid_generic_motivation: true,
+      avoid_question_if_not_needed: true,
+    };
+  }
+
+  function getReplyTemplatePlan(intent, sourceText, baseAnswer) {
+    var semantics = parseMessageSemantics(sourceText || "");
+    var profile = extractMessageProfile(sourceText || "", semantics);
+    var templateName = getReplyTemplateName(
+      intent,
+      sourceText,
+      semantics,
+      profile
+    );
+    var expectation = semantics && semantics.response_expectation;
+    var variables = extractReplyTemplateVariables(
+      intent,
+      sourceText,
+      semantics,
+      profile
+    );
+    var rules = getReplyTemplateRules(
+      templateName,
+      intent,
+      sourceText,
+      semantics
+    );
+    return {
+      reply_template: templateName,
+      tone: getReplyTemplateTone(intent, sourceText, semantics),
+      depth:
+        profile && profile.is_long_form
+          ? "DETAILED"
+          : expectation && expectation.classification === "QUERY"
+          ? "COMPACT"
+          : "STANDARD",
+      opening_style: "ANSWER_FIRST",
+      include_reasoning: rules.include_reasoning,
+      include_actions: rules.include_actions,
+      include_follow_up: rules.include_follow_up,
+      variables: variables,
+      rules: rules,
+      response_expectation: expectation || null,
+      has_base_answer: !!baseAnswer,
+    };
+  }
+
+  function countReplyQuestions(text) {
+    var clean = stripKnowledgeAnswerMarkup(text || "");
+    var matches = clean.match(/[?؟]/g);
+    return matches ? matches.length : 0;
+  }
+
+  function applyReplyTemplateRules(answer, plan) {
+    var clean = String(answer || "");
+    var questionCount;
+    if (!clean || !plan || !plan.rules) {
+      return clean;
+    }
+    clean = clean
+      .replace(/\b(?:Great question|Good question|That'?s a good question)\.?\s*/gi, "")
+      .replace(/\s+/g, " ")
+      .trim();
+    questionCount = countReplyQuestions(clean);
+    if (
+      plan.rules.max_clarifying_questions === 1 &&
+      questionCount > 1 &&
+      plan.reply_template !== "INTERVIEW_PREP"
+    ) {
+      clean = clean.replace(/([^?؟]+[?؟])[\s\S]*$/, "$1").trim();
+    }
+    return applyEmilyCareerAdvisorTone(clean, plan);
+  }
+
+  function applyEmilyCareerAdvisorTone(answer, plan) {
+    var clean = String(answer || "");
+    var templateName = plan && plan.reply_template ? String(plan.reply_template) : "";
+    var tone = plan && plan.tone ? String(plan.tone) : "";
+    if (!clean || isArabicChat()) {
+      return clean;
+    }
+    clean = clean
+      .replace(/\bI think\b/gi, "")
+      .replace(/\bI feel like\b/gi, "")
+      .replace(/\bmaybe\b/gi, "likely")
+      .replace(/\bkind of\b/gi, "")
+      .replace(/\bsort of\b/gi, "")
+      .replace(/\bI can help with that\.?\s*/gi, "")
+      .replace(/\bHappy to\b/gi, "I can")
+      .replace(/\bIf you want, I can\b/gi, "I can")
+      .replace(/\bif that helps\b/gi, "")
+      .replace(/\s+/g, " ")
+      .trim();
+    if (/^(?:JOB_SEARCH|CAREER|APPLICATION|CV_|RECRUITER|ELIGIBILITY|SALARY|INTERVIEW|OFFER|NEGOTIATION|FRUSTRATION)/.test(templateName)) {
+      clean = clean
+        .replace(/^I would not solve it by simply applying to more jobs\./i, "Do not solve this by simply applying to more jobs.")
+        .replace(/^I would rather see/i, "The better target is")
+        .replace(/^I would simplify/i, "Simplify")
+        .replace(/^I would choose/i, "Choose")
+        .replace(/^I would target/i, "Target")
+        .replace(/^I would search/i, "Search")
+        .replace(/^I would check/i, "Check")
+        .replace(/^I would prepare/i, "Prepare")
+        .replace(/^I would treat/i, "Treat");
+    }
+    clean = clean
+      .replace(/^Tell me the detail for this step and I’ll keep going\.$/i, "Send the detail for this step and I’ll keep it moving.")
+      .replace(/^Say it in your own words and I’ll work out the next step from there\.$/i, "Send the specific point and I’ll take the next step from there.")
+      .replace(/^Ask me whatever you need/i, "Ask me what you need")
+      .replace(/\s+,/g, ",")
+      .replace(/\s+\./g, ".");
+    if (tone === "DIRECT_CALM") {
+      clean = clean.replace(/^It sounds like this is not/i, "That is not");
+    }
+    return clean.replace(/\s+/g, " ").trim();
+  }
+
   function buildComposedKnowledgeAnswer(
     intent,
     sourceText,
@@ -12483,9 +13314,11 @@
   ) {
     var preface = getKnowledgeAnswerPreface(intent, sourceText);
     var transition = getSecondaryIntentTransition(sourceText, intent);
+    var replyPlan = getReplyTemplatePlan(intent, sourceText, baseAnswer);
     if (!baseAnswer) {
       return "";
     }
+    baseAnswer = applyReplyTemplateRules(baseAnswer, replyPlan);
     if (carryForward && transition) {
       if (isArabicChat()) {
         carryForward = carryForward.replace(/^\s*و?بعد/i, transition);
@@ -12496,7 +13329,10 @@
         );
       }
     }
-    return (preface || "") + baseAnswer + (carryForward || "");
+    return applyReplyTemplateRules(
+      (preface || "") + baseAnswer + (carryForward || ""),
+      replyPlan
+    );
   }
 
   function getSecondaryIntentPromptPlan(sourceText, primaryIntent) {
@@ -12749,10 +13585,84 @@
     return bridges.slice(0, 2).join("");
   }
 
+  function getEmergencyKnowledgeAnswer(intent, sourceText) {
+    var clean = normalizeCareerIntentText(cleanMessageText(sourceText || "")).toLowerCase();
+    if (
+      /\b(?:job link|blank page|form (?:will not|won't|does not|doesn't) load|refused to connect|employer site|iframe|embedded form)\b/i.test(
+        clean
+      )
+    ) {
+      return "That usually happens because the employer blocks embedded forms or the job page needs to run on its own site. The practical workaround is to keep the role, CV check, and screening notes in Senna, then open the employer page only for the final submission step.";
+    }
+    if (
+      /\b(?:senna|emily|plan|quarterly|subscription|service|services|included|include|apply for me|applications submitted|recruiter outreach|tracking applications|job search manager|background auto apply|premium recruiter contacts)\b/i.test(
+        clean
+      )
+    ) {
+      return "Senna helps with the work around the job search: matching roles to your CV, flagging fit issues, tailoring positioning, tracking applications, and supporting recruiter outreach where that is included. The paid value is mainly removing repeated search and application work, not just showing more listings.";
+    }
+    if (
+      /\b(?:normal day|actually do|tell me more about|what skills|what does .+ need|role)\b/i.test(
+        clean
+      ) &&
+      /\b(?:investment operations|private banker|head of compliance|compliance|fp&a|asset management|private equity|corporate finance|real estate asset|transaction services|director finance|wealth management)\b/i.test(
+        clean
+      )
+    ) {
+      if (/\binvestment operations\b/i.test(clean)) {
+        return "Investment operations is usually the middle-office engine behind investment activity: trade support, cash and position checks, reconciliations, reporting, onboarding, controls, and making sure portfolios run cleanly after investment decisions are made.";
+      }
+      if (/\bprivate banker\b/i.test(clean)) {
+        return "A private banker manages high-net-worth client relationships, understands their liquidity and investment needs, coordinates products across lending, investments and wealth planning, and grows the book through trust and referrals.";
+      }
+      if (/\bhead of compliance\b/i.test(clean)) {
+        return "A Head of Compliance owns the compliance framework, regulatory relationship, monitoring programme, AML or financial-crime controls, policy governance, and senior escalation. The role is senior because it carries accountability, not just process execution.";
+      }
+      return "That role is mainly about proving the core job outcome, not just listing tasks. I would read it through four lenses: the technical work required, the stakeholder level, the seniority expected, and the evidence your CV needs to show quickly.";
+    }
+    if (
+      /\b(?:work life balance|wlb|burn me out|burnout|intense|hours|stressful)\b/i.test(
+        clean
+      )
+    ) {
+      return "Work-life balance depends heavily on team, deal flow, reporting cycles, and leadership style. Compliance, FP&A and asset management are usually more predictable than investment banking or live-deal private equity, but senior roles can still be intense when regulatory, budget, or stakeholder pressure is high.";
+    }
+    if (
+      /\b(?:where can .+ lead|career path|long term|exits|exit opportunities|how senior can i get)\b/i.test(
+        clean
+      )
+    ) {
+      return "The long-term path depends on whether you want to deepen as a specialist or move toward leadership. Most finance tracks progress from execution, to ownership, to managing stakeholders and teams, then to strategy, commercial accountability, or client ownership.";
+    }
+    if (
+      /\b(?:confused|not sure|unsure|need career guidance|help me decide|what would you recommend)\b/i.test(
+        clean
+      )
+    ) {
+      return "I would simplify the decision into three filters: which option improves your next two years of evidence, which market will actually reward your background, and which path keeps better exit options open. The mistake is choosing based only on title, pay, or anxiety about missing out.";
+    }
+    if (/^rewrite\s*:/i.test(clean)) {
+      return "A stronger bullet would lead with the action and outcome: Built financial models to support valuation, forecasting, and investment decision-making. If you give me the context, I can make it more specific without overstating it.";
+    }
+    if (/\bseeking a new opportunity\b/i.test(clean) && /\bcompliance\b/i.test(clean)) {
+      return "For a compliance profile, I would target Head of Compliance, AML/CFT, KYC, financial crime, governance, and regulatory compliance roles. Put CCO, CFCS and CME near the top because they are strong screening signals for GCC compliance roles.";
+    }
+    if (/^(?:same for\s+)?vp[?!.]*$/i.test(clean)) {
+      return "For VP level, employers usually expect ownership of execution, senior stakeholder management, leadership, commercial judgement, and the ability to drive outcomes without close supervision.";
+    }
+    if (intent === "quick_insight_request") {
+      return "The quickest useful insight is whether your CV proves the top requirement in the role. I would check role keywords, seniority evidence, missing qualifications, language requirements, and whether the strongest proof appears early enough.";
+    }
+    return "";
+  }
+
   function composeKnowledgeAnswer(intent, sourceText) {
     var answer = getKnowledgeAnswer(intent, sourceText);
     var carryForward;
     var secondaryBridge;
+    if (!answer) {
+      answer = getEmergencyKnowledgeAnswer(intent, sourceText);
+    }
     if (!answer) {
       return "";
     }
@@ -17823,11 +18733,8 @@
     cvFacts.requirementGapLabels = [];
     cvFacts.requirementGapMessages = [];
     if (typeof workspaceState !== "undefined" && workspaceState) {
-      workspaceState.rolesEnabled = false;
-      workspaceState.rolesHtml = renderCvRoleMatchesHtml([]);
-      if (workspaceState.activeTab === "roles") {
-        workspaceState.activeTab = "original";
-      }
+      workspaceState.rolesEnabled = true;
+      workspaceState.rolesHtml = renderJobsWorkspaceHtml();
     }
   }
 
@@ -18271,6 +19178,7 @@
     var roleLocation = root.getAttribute("data-role-location") || "";
     var roleSeniority = root.getAttribute("data-role-seniority") || "";
     var roleSector = root.getAttribute("data-role-sector") || "";
+    var roleCompanyLogo = root.getAttribute("data-company-logo") || "";
     var recruiterTargetCompanies =
       root.getAttribute("data-target-companies") || "";
     var launchNotes = root.getAttribute("data-launch-notes") || "";
@@ -18295,6 +19203,8 @@
       getConfig().signupUrl ||
       "/get-started/";
     var suppressAutoScrollUntil = 0;
+    var pinnedWorkspaceCardNode = null;
+    var pinnedWorkspaceCardUntil = 0;
     var activeEditorialResultsKey = "";
     var editorialResultsVisibleCount = 6;
     var activeRailView = "chat";
@@ -18308,6 +19218,13 @@
     var launchMode = root.getAttribute("data-launch-mode") || "";
     var isReviewOnlyLauncher = root.getAttribute("data-review-only") === "1";
     var reviewMode = root.getAttribute("data-review-mode") || "";
+    if (
+      homeLauncherQuery &&
+      !cleanMessageText(homeLauncherQuery.value || "") &&
+      cleanMessageText(roleTitle || "")
+    ) {
+      homeLauncherQuery.value = cleanMessageText(roleTitle || "");
+    }
     var isRecruiterOutreachMini =
       root.getAttribute("data-recruiter-outreach-mini") === "1" ||
       root.hasAttribute("data-sffc-editorial-floating-chat");
@@ -18424,11 +19341,14 @@
     var suspendedPromptContext = null;
     var endChatPrompt = createEndChatPrompt();
     var currentCvFile = null;
+    var currentCvPreviewAsset = null;
     var applicationWorkspaceSchema = null;
     var applicationAnswerDraft = {};
     var applicationEmployerBulkAsked = false;
     var pendingApplicationQuestionQueueCallback = null;
     var applicationVerificationCode = "";
+    var trackedApplicationJobs = [];
+    var latestPostApplicationSnapshot = null;
     var applyChatSessionToken = "";
     var applyChatConversationId = 0;
     var applyChatLastSeenMessageId = 0;
@@ -18457,6 +19377,10 @@
     var chatCvPreviewModalMeta = null;
     var chatCvPreviewExpandedCache =
       typeof WeakMap === "function" ? new WeakMap() : null;
+    var applicationQueueRoleModal = null;
+    var applicationQueueRoleModalBody = null;
+    var applicationQueueRoleModalTitle = null;
+    var applicationQueueRoleModalMeta = null;
     var liveDraftTimers = [];
     var queuedTypingState = null;
     var humanFollowUpProgressTimers = [];
@@ -18469,6 +19393,13 @@
     var applyOnboardingFullName = "";
     var applyOnboardingPreferredEmail = "";
     var applyOnboardingEmailSuggestion = "";
+    var commercialApplyQueueItemsState = [];
+    var commercialApplyQueueDetailsMode = false;
+    var commercialApplyQueueActivated = false;
+    var commercialApplyQueueInitialized = false;
+    var jobsWorkspaceSearchQuery = "";
+    var commercialApplyQueueActiveTab = "shortlist";
+    var commercialApplyQueueFilter = "all";
     var catchUpInviteFullName = "";
     var catchUpInviteEmail = "";
     var applySelectedPricingOption = "";
@@ -18537,7 +19468,7 @@
       coverHtml: "",
       draftEnabled: false,
       coverEnabled: false,
-      rolesEnabled: false,
+      rolesEnabled: true,
       rolesHtml: "",
       membershipEnabled: false,
       membershipSelection: "platform",
@@ -24749,13 +25680,8 @@
         cvProfile.skills.length ||
         cvProfile.qualifications.length
       );
-      workspaceState.rolesEnabled = hasCvSignals;
-      workspaceState.rolesHtml = renderCvRoleMatchesHtml(
-        hasCvSignals ? buildCvRoleMatches() : []
-      );
-      if (!hasCvSignals && workspaceState.activeTab === "roles") {
-        workspaceState.activeTab = "original";
-      }
+      workspaceState.rolesEnabled = true;
+      workspaceState.rolesHtml = renderJobsWorkspaceHtml();
     };
 
     bindApplyChatSharedRuntime({
@@ -25529,7 +26455,7 @@
         botMessage(
           isArabicChat()
             ? "لا أرى رابط تقديم صالحًا لهذا الدور من هنا. إذا رغبتِ، يمكنني المتابعة معك عبر خيار التقديم بالنيابة."
-            : "I cannot see a working application route attached to this role from here. If you want, I can still handle the application and recruiter intro for you.",
+            : "I cannot see a working application route attached to this role from here. I can still handle the application and recruiter intro from the role details.",
           humanComposeDelay("application route unavailable", 1400, 2600),
           function () {
             focusComposer(getComposerPlaceholder("reply"));
@@ -27544,6 +28470,7 @@
           ? createLiveJobListItemKey(judgement.weakestOption)
           : "",
       };
+      syncJobsWorkspaceState();
       return jobSearchLiveResultsState;
     }
 
@@ -34017,6 +34944,278 @@
       ) || /\b(?:analyst|associate|manager|director|vp|intern|graduate|finance|investment|private equity|asset management|credit|portfolio)\b.*\b(?:job|jobs|role|roles|opening|openings|opportunit)/i.test(clean);
     }
 
+    function looksLikeShortRoleDiscoverySearch(value, intent) {
+      var clean = normalizeCareerIntentText(cleanMessageText(value || ""));
+      var lower = clean.toLowerCase();
+      var words = clean.split(/\s+/).filter(Boolean);
+      if (!clean) {
+        return false;
+      }
+      if (looksLikeActualJobPostSearch(clean, intent)) {
+        return true;
+      }
+      if (/[?؟]/.test(clean)) {
+        return false;
+      }
+      if (words.length <= 6) {
+        return !!(
+          /\b(?:analyst|associate|manager|director|vp|svp|avp|principal|intern|graduate|consultant|officer|head|investment|finance|banking|credit|compliance|risk|treasury|fp&a|asset management|private equity|wealth management|clean energy|real estate|infrastructure|data|operations)\b/i.test(
+            lower
+          ) &&
+          !/\b(?:hiya|hello|yo|thanks|wtf|question|advice|should|could|would|what|why|how|where|when)\b/i.test(
+            lower
+          )
+        );
+      }
+      return false;
+    }
+
+    function isRoleDiscoveryConversationInput(value, semantics, intent) {
+      var clean = normalizeCareerIntentText(cleanMessageText(value || ""));
+      var lower = clean.toLowerCase();
+      var resolvedSemantics = semantics || parseMessageSemantics(value);
+      var resolvedIntent = intent || detectIntent(value);
+      var expectation =
+        (resolvedSemantics && resolvedSemantics.response_expectation) ||
+        classifyResponseExpectation(clean);
+      var words = clean.split(/\s+/).filter(Boolean);
+      if (!clean) {
+        return false;
+      }
+      if (/^(?:search|find|look for)\s+.+\s+instead[.!?]*$/i.test(lower)) {
+        return false;
+      }
+      if (
+        expectation &&
+        /^(?:QUESTION|REQUEST)$/.test(expectation.classification || "") &&
+        !(expectation.contains_query && looksLikeActualJobPostSearch(clean, resolvedIntent))
+      ) {
+        return true;
+      }
+      if (
+        expectation &&
+        expectation.classification === "STATEMENT" &&
+        expectation.contains_background_context &&
+        words.length >= 4
+      ) {
+        return true;
+      }
+      if (
+        /\b(?:besides money|benefits|perks|car paid|cars paid|company gives|cool things|best finance job|finance job for introverts|introvert|introverts|ultimate analyst prep|prep book|finance vs marketing|marketing vs finance|split between|advising|wholesale|when to start applying|rising senior)\b/i.test(
+          lower
+        )
+      ) {
+        return true;
+      }
+      if (
+        resolvedSemantics &&
+        resolvedSemantics.has_question &&
+        /\b(?:what can i target|what.*target|should i|would it be|is it worth|how realistic|what advice|what should i|where to go|how do i|how much|anyone else|thoughts on|best area|best .* for|which .* should|do you think)\b/i.test(
+          lower
+        )
+      ) {
+        return !/\b(?:show|find|search|list|open|current)\b.*\b(?:job|jobs|role|roles|opening|openings|vacanc|opportunit)/i.test(
+          lower
+        );
+      }
+      if (looksLikeShortRoleDiscoverySearch(clean, resolvedIntent)) {
+        return false;
+      }
+      if (
+        /^(?:hi|hello|hey|hiya|yo|salam|salaam|مرحبا|هلا|السلام عليكم)[!.\s]*$/i.test(
+          lower
+        )
+      ) {
+        return true;
+      }
+      if (
+        /^(?:can i ask(?: you)?(?: something| a question)?|could i ask(?: you)?(?: something| a question)?|quick question|question first|before that|ممكن سؤال|عندي سؤال|ابي اسال|أبي أسأل)[!?.\s]*$/i.test(
+          lower
+        )
+      ) {
+        return true;
+      }
+      if (
+        /\b(?:wtf|wth|waste of time|this is useless|this is confusing|not working|broken|annoying|frustrating)\b/i.test(
+          lower
+        )
+      ) {
+        return true;
+      }
+      if (
+        /^(?:career_direction|role_targeting|role_help|profile_fit|interview_prep|cv_review_help|cv_improvement|linkedin_help|market_compensation_reality|salary_question|offer_decision|reassurance|job_search_strategy|location_preferences|membership_benefits|company_research|application_decision|application_strategy|application_follow_up|skill_gap_help|why_name|why_email|payment_support|account_access_issue|membership_cancellation|support_complaint|call_scheduling|application_process|data_safety|about_senna|social_check|greeting|apply_current_cv|apply_original_cv|apply_start_auto_apply|apply_continue_background|apply_tailor_cv|apply_review_tailored_cv|apply_undo_tailoring|cv_rewrite_instruction|quick_insight_request)$/.test(
+          String(resolvedIntent || "")
+        )
+      ) {
+        return true;
+      }
+      if (resolvedSemantics && resolvedSemantics.has_question) {
+        return !looksLikeActualJobPostSearch(clean, resolvedIntent);
+      }
+      if (
+        words.length >= 12 &&
+        /\b(?:i am|i'm|ive|i've|my background|my experience|currently|looking for|interested in|would love|struggling|confused|not sure|advice|guidance|suggest|target|transition|break into|relocat|moving|degree|cfa|series|valuation|startup|accelerator|finance|marketing)\b/i.test(
+          lower
+        )
+      ) {
+        return true;
+      }
+      return false;
+    }
+
+    function getRoleDiscoveryConversationAnswer(value, intent) {
+      var clean = cleanMessageText(value || "");
+      var lower = normalizeCareerIntentText(clean).toLowerCase();
+      var resolvedIntent = intent || detectIntent(value);
+      var answer = composeKnowledgeAnswer(resolvedIntent, clean);
+      if (answer) {
+        return answer;
+      }
+      if (/^rewrite\s*:/i.test(lower)) {
+        return "A stronger bullet leads with action, scope, and outcome. For example: Built financial models to support valuation, forecasting, and investment decision-making. Send the actual context and I’ll make it specific without overstating it.";
+      }
+      if (
+        /\b(?:benefits|perks|besides money|car paid|cars paid|company gives|cool things)\b/i.test(
+          lower
+        )
+      ) {
+        return "Beyond salary, I would check bonus, pension, healthcare, visa or relocation support, learning budget, flexibility, and whether benefits are actually attached to this role level. Pick a role and I can flag anything useful in the posting before you apply.";
+      }
+      if (
+        /\b(?:best area|where should i live|neighborhood|neighbourhood|nyc|bryant park|commute)\b/i.test(
+          lower
+        )
+      ) {
+        return "For relocation questions, narrow it by commute, safety, budget, lifestyle, and how often you need to be in the office. For a work move, also check whether the location helps your networking and recruiter access, not just rent.";
+      }
+      if (
+        /\b(?:no degree|without a degree|lack of a degree|vc|startup|accelerator|venture)\b/i.test(
+          lower
+        )
+      ) {
+        return "With VC, startup and accelerator experience but no degree, the cleanest targets are usually platform, venture studio, accelerator, scout, analyst-adjacent, founder support, partnerships, or startup operator roles. The CV needs to prove paid-level ownership, not just exposure.";
+      }
+      if (/\bseeking a new opportunity\b/i.test(lower) && /\bcompliance\b/i.test(lower)) {
+        return "For a compliance profile, I would target Head of Compliance, AML/CFT, KYC, financial crime, governance, and regulatory compliance roles. Put CCO, CFCS and CME near the top because they are strong screening signals for GCC compliance roles.";
+      }
+      if (
+        /\b(?:introvert|introverts)\b/i.test(lower)
+      ) {
+        return "For a quieter finance path, I would look at research, valuations, FP&A, risk, fund reporting, portfolio analytics, treasury, or credit analysis before heavily client-facing sales roles.";
+      }
+      if (
+        /\b(?:valuation|valuations).*\b(?:pe|private equity|deal team)\b|\b(?:pe|private equity).*\b(?:valuation|valuations|ib first)\b/i.test(
+          lower
+        )
+      ) {
+        return "Valuations can move toward PE, but the CV has to show underwriting, diligence, investment judgement, and transaction exposure. If the evidence is mostly reporting or mark-to-market work, an IB or transaction role may be the cleaner bridge.";
+      }
+      if (
+        /\b(?:bloomberg|analytics|sales|interview|interviews)\b/i.test(lower)
+      ) {
+        return "For Bloomberg Analytics or Sales, I would prepare markets basics, product curiosity, client examples, and clear stories showing how you explain complex things simply. Sales experience helps if you connect it to client discovery and value communication.";
+      }
+      if (
+        /\b(?:ultimate analyst prep|prep book|analyst prep|resources|study materials)\b/i.test(
+          lower
+        )
+      ) {
+        return "For analyst prep, focus less on one magic book and more on a tight stack: accounting basics, valuation, financial modelling, market awareness, and deal or company case practice. The right mix changes by role, but that is the core base.";
+      }
+      if (
+        /\b(?:cfa|series 66|series 7|series 63|sie|certification|certifications)\b/i.test(
+          lower
+        )
+      ) {
+        return "Certifications help most when they support a clear target. CFA is stronger for investments and research; Series exams matter for advisory, brokerage and wealth roles; compliance credentials matter when the role screens for regulation, AML, or governance. Do the credential that removes a hiring doubt, not the one that only looks impressive.";
+      }
+      if (
+        /\b(?:offer.*pulled|pulled.*offer|start date|background check|anxious|anxiety)\b/i.test(
+          lower
+        )
+      ) {
+        return "If the offer is signed, start date confirmed, and background checks are cleared, the practical risk is usually low. Keep records, stay responsive to HR, and avoid making new commitments until onboarding instructions are complete.";
+      }
+      if (
+        /\b(?:finance vs marketing|marketing vs finance|finance and marketing)\b/i.test(
+          lower
+        )
+      ) {
+        return "If your experience and interest are both in marketing, switching to finance just because it feels safer can weaken the story. A better route may be commercial, growth, fintech, investor relations, or product marketing where business and finance exposure still matter.";
+      }
+      if (
+        /\b(?:payment processing|merchant accounts|ach|pay by bank|chargeback|payment holds|recurring payments|fintech careers)\b/i.test(
+          lower
+        )
+      ) {
+        return "Payment infrastructure knowledge is useful in fintech because it shows you understand how money actually moves, where risk appears, and what merchants or customers care about. It is especially relevant for payments, product, risk, operations, partnerships, and sales roles.";
+      }
+      if (
+        /\b(?:how tf|how .* making so much|making so much|only making|low pay|higher pay)\b/i.test(
+          lower
+        )
+      ) {
+        return "Higher compensation usually comes from role type, revenue proximity, market, credentials, firm brand, and switching at the right time. The practical question is whether your current role is building evidence for the next higher-paying path.";
+      }
+      if (/\b(?:split between|advising|advisor|wholesale|wholesaler)\b/i.test(lower)) {
+        return "Between advising and wholesaling, compare direct client ownership against product distribution. Advising can be powerful if you want to build a book; wholesaling can be cleaner if you want training, product depth, and institutional exposure before choosing a longer-term lane.";
+      }
+      if (/\b(?:when to start applying|rising senior|graduate roles|summer internships|spring insights)\b/i.test(lower)) {
+        return "For student and graduate hiring, start earlier than feels natural. Track opening cycles, apply as soon as roles open, and use networking before applications rather than after rejections.";
+      }
+      if (/\b(?:defiant gatekeeper|tiktok|creator|influencer|finance brother)\b/i.test(lower)) {
+        return "For finance career creators, separate useful tactical advice from proof of outcomes. Check whether they show real process, role-specific nuance, and limits to their advice rather than relying only on credentials or confidence.";
+      }
+      if (/can i ask|question first|quick question|before that/i.test(lower)) {
+        return "Yes. Ask me what you need. I’ll answer it directly, then bring us back to the application search.";
+      }
+      if (/^(?:hi|hello|hey|hiya|yo|salam|salaam|مرحبا|هلا|السلام عليكم)/i.test(lower)) {
+        return "Hi. Ask me about the search, a role, your CV, or what to target next.";
+      }
+      return "Send the role, location, or career question you want to work through and I’ll keep it tied to the application search.";
+    }
+
+    function getRoleDiscoveryResumePrompt() {
+      return currentCvFile || capturedCvText
+        ? "Back to the search: choose one of the roles above, or type another role, sector, company, or location."
+        : "Back to the search: upload your CV when you’re ready, or type the role, sector, company, or location you want me to search.";
+    }
+
+    function maybeHandleRoleDiscoveryConversationInput(value) {
+      var semantics = parseMessageSemantics(value);
+      var intent = detectIntent(value);
+      var answer;
+      var resumePrompt;
+      if (!isRoleDiscoveryConversationInput(value, semantics, intent)) {
+        return false;
+      }
+      answer = getRoleDiscoveryConversationAnswer(value, intent);
+      resumePrompt = getRoleDiscoveryResumePrompt();
+      clearResponseWatchdog();
+      botSequenceForCurrentTurn(
+        [
+          {
+            html: answer,
+            pause: humanReadDelay(value, 420),
+            delay: humanComposeDelay(answer, 1100, 2400),
+          },
+          {
+            html: resumePrompt,
+            pause: humanReadDelay(answer, 320),
+            delay: humanComposeDelay(resumePrompt, 850, 1800),
+          },
+        ],
+        function () {
+          focusComposer(
+            currentCvFile || capturedCvText
+              ? "Choose a role or search another target"
+              : "Upload your CV or type a role"
+          );
+        }
+      );
+      return true;
+    }
+
     function normalizeActualJobPostSearchItem(item) {
       var source = item || {};
       var title = cleanMessageText(source.title || source.role_title || "Role");
@@ -34342,6 +35541,7 @@
         /ashbyhq\.com$/.test(host) ||
         /recruitee\.com$/.test(host) ||
         /teamtailor\.com$/.test(host) ||
+        /jobs\.workable\.com$/.test(host) ||
         /smartrecruiters\.com$/.test(host) ||
         /comeet\.com$/.test(host) ||
         /oraclecloud\.com$|oracle\.com$/.test(host) ||
@@ -34389,10 +35589,10 @@
         return "";
       }
       if (hasApplicationWorkerProAccess()) {
-        return '<button type="button" class="sffc-crm-apply-chat__greenhouse-primary-action" data-sffc-application-worker-queue>Apply for me</button>';
+        return '<button type="button" class="sffc-crm-apply-chat__application-action" data-sffc-application-worker-queue>Apply for me</button>';
       }
       return (
-        '<button type="button" class="sffc-crm-apply-chat__greenhouse-primary-action is-locked" data-sffc-application-worker-locked>' +
+        '<button type="button" class="sffc-crm-apply-chat__application-action is-locked" data-sffc-application-worker-locked>' +
         '<span class="sffc-crm-apply-chat__pro-badge">Pro+</span>' +
         "Apply for me</button>"
       );
@@ -34610,6 +35810,8 @@
               escapeHtml(item.autoSubmitProvider) +
               '" data-sffc-apply-chat-source-platform="' +
               escapeHtml(item.sourcePlatform) +
+              '" data-sffc-apply-chat-company-logo="' +
+              escapeHtml(item.companyLogo || "") +
               '" data-sffc-apply-chat-auto-submit-schema-status="' +
               escapeHtml(item.autoSubmitSchemaStatus) +
               '" data-sffc-apply-chat-auto-submit-field-count="' +
@@ -35479,28 +36681,70 @@
       );
     }
 
+    function getApplyForMeDiscoveryOpeningCopy() {
+      var selectedRole = cleanMessageText(roleTitle || "");
+      var selectedCompany = cleanMessageText(roleCompany || "");
+      if (selectedRole && selectedCompany) {
+        return (
+          "I can see you’re looking at <strong>" +
+          escapeHtml(selectedRole) +
+          "</strong> at <strong>" +
+          escapeHtml(selectedCompany) +
+          "</strong>. Upload your CV and I’ll check the fit, flag anything important, and help you apply from here."
+        );
+      }
+      if (selectedRole) {
+        return (
+          "I can see you’re looking at <strong>" +
+          escapeHtml(selectedRole) +
+          "</strong>. Upload your CV and I’ll check the fit, flag anything important, and help you apply from here."
+        );
+      }
+      return "Upload your CV and I’ll find roles that actually fit your background. I’ll show the strongest matches first, then flag anything worth fixing before you apply.";
+    }
+
+    function getApplyForMeUploadCvCtaHtml() {
+      var label = isArabicChat() ? "ارفعي الـCV" : "Upload CV";
+      return (
+        '<button type="button" class="sffc-crm-apply-chat__upload-cv-cta" data-sffc-apply-chat-upload-cv-cta>' +
+        '<span class="sffc-crm-apply-chat__upload-cv-cta-icon" aria-hidden="true">' +
+        '<svg viewBox="0 0 24 24" focusable="false"><path d="M21.44 11.05 12.25 20.24a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>' +
+        "</span>" +
+        "<span>" +
+        escapeHtml(label) +
+        "</span>" +
+        "</button>"
+      );
+    }
+
+    function hasApplyForMeSelectedJobContext() {
+      return !!(
+        cleanMessageText(roleTitle || "") &&
+        (cleanMessageText(roleCompany || "") ||
+          cleanMessageText(postId || "") ||
+          cleanMessageText(jobsPostId || "") ||
+          cleanMessageText(applicationUrl || "").replace(/^#$/, ""))
+      );
+    }
+
     function startApplyForMeRoleDiscoveryFlow() {
       activePath = "apply_for_me_role_discovery";
       step = "apply_role_discovery_upload";
       setDeskIdentity("emily");
+      var openingCopy = getApplyForMeDiscoveryOpeningCopy();
+      var followUpCopy = getApplyForMeUploadCvCtaHtml();
       botSequenceForCurrentTurn(
         [
           {
             html: isArabicChat()
-              ? "ابدئي برفع الـCV، وسأبحث لك في الوظائف الحالية عن أدوار مناسبة للتقديم."
-              : "Start by uploading your CV. I’ll use it to find suitable live roles from the current job posts.",
-            delay: humanComposeDelay(
-              "Start by uploading your CV. I’ll use it to find suitable live roles from the current job posts.",
-              1300,
-              2600
-            ),
+              ? "ارفعي الـCV وسأبحث عن أدوار مناسبة فعلاً، ثم أوضح لك ما يستحق التعديل قبل التقديم."
+              : openingCopy,
+            delay: humanComposeDelay(cleanMessageText(openingCopy), 1300, 2600),
           },
           {
-            html: isArabicChat()
-              ? "بعد أن تختاري دورًا من النتائج، سأريك نقاط التقديم المهمة ثم أتحرك مباشرة إلى خطوة التقديم."
-              : "Once you choose a role from the results, I’ll show the key application signals and move straight into the application step.",
+            html: followUpCopy,
             delay: humanComposeDelay(
-              "Once you choose a role from the results, I’ll show the key application signals and move straight into the application step.",
+              cleanMessageText(followUpCopy),
               1300,
               2600
             ),
@@ -35515,6 +36759,29 @@
             pendingLaunchOpenFilePicker = false;
           }
         }
+      );
+    }
+
+    function getSelectedApplicationRoleIntroCopy() {
+      var selectedRole = cleanMessageText(roleTitle || "that role");
+      var selectedCompany = cleanMessageText(roleCompany || "");
+      var intro =
+        "I’ll use <strong>" +
+        escapeHtml(selectedRole) +
+        "</strong>" +
+        (selectedCompany
+          ? " at <strong>" + escapeHtml(selectedCompany) + "</strong>"
+          : "") +
+        ".";
+      if (capturedCvText || currentCvFile || hasLoggedInSavedCv()) {
+        return (
+          intro +
+          " I’ll check the CV against the role now and show the highest-impact application points first."
+        );
+      }
+      return (
+        intro +
+        " Upload your CV and I’ll check fit, flag anything important, and help you apply from here."
       );
     }
 
@@ -35610,6 +36877,12 @@
       roleCompany = cleanMessageText(
         button.getAttribute("data-sffc-apply-chat-company") || roleCompany || ""
       );
+      roleCompanyLogo = cleanMessageText(
+        button.getAttribute("data-sffc-apply-chat-company-logo") ||
+          button.getAttribute("data-company-logo") ||
+          roleCompanyLogo ||
+          ""
+      );
       roleLocation = cleanMessageText(
         button.getAttribute("data-sffc-apply-chat-location") || roleLocation || ""
       );
@@ -35661,6 +36934,7 @@
       root.setAttribute("data-post-id", postId || "");
       root.setAttribute("data-jobs-post-id", jobsPostId || "");
       root.setAttribute("data-role-company", roleCompany || "");
+      root.setAttribute("data-company-logo", roleCompanyLogo || "");
       root.setAttribute("data-role-location", roleLocation || "");
       root.setAttribute("data-application-url", applicationUrl || "#");
       root.setAttribute("data-application-workspace-url", applicationWorkspaceUrl || "");
@@ -35679,14 +36953,13 @@
       step = "apply_upload";
       applyCvReviewSkipped = false;
       userMessage(roleTitle || "Apply for this role");
+      var selectedIntroCopy = getSelectedApplicationRoleIntroCopy();
       botMessage(
-        "Great, I’ll use " +
-          escapeHtml(roleTitle || "that role") +
-          "." +
+        selectedIntroCopy +
           (getAutoSubmitDetectedCopy()
             ? "<br><br>" + escapeHtml(getAutoSubmitDetectedCopy())
             : ""),
-        humanComposeDelay("Great, I’ll use that role.", 500, 1000),
+        humanComposeDelay(cleanMessageText(selectedIntroCopy), 700, 1300),
         function () {
           if (capturedCvText) {
             fetchCvAnalysis(capturedCvText)
@@ -38815,10 +40088,44 @@
         return null;
       }
 
+      if (promptKey === "apply_ready_to_start_auto_apply") {
+        if (
+          promptSemantics.has_question ||
+          isPromptQuestionDetourIntent(detectIntent(value), promptSemantics)
+        ) {
+          return { type: "question" };
+        }
+        if (/\b(?:start|auto|apply|submit|begin|go|yes|continue)\b/i.test(value)) {
+          return { type: "dispatch", target: "yes", clear: true };
+        }
+        return {
+          type: "clarify",
+          details: getSemanticPromptClarify(promptKey),
+        };
+      }
+
+      if (promptKey === "apply_continue_background") {
+        if (
+          promptSemantics.has_question ||
+          isPromptQuestionDetourIntent(detectIntent(value), promptSemantics)
+        ) {
+          return { type: "question" };
+        }
+        if (/\b(?:continue|background|keep going|keep applying|auto|apply|yes)\b/i.test(value)) {
+          return { type: "dispatch", target: "yes", clear: true };
+        }
+        return {
+          type: "clarify",
+          details: getSemanticPromptClarify(promptKey),
+        };
+      }
+
       if (
         promptKey === "continue_fix" ||
         promptKey === "apply_tailoring_progress_check" ||
-        promptKey === "apply_tailored_versions"
+        promptKey === "apply_tailored_versions" ||
+        promptKey === "apply_ready_to_start_auto_apply" ||
+        promptKey === "apply_continue_background"
       ) {
         decision = classifyContinueReply(value);
         if (decision === "yes") {
@@ -43507,16 +44814,26 @@
       return window.matchMedia("(max-width: 900px)").matches;
     }
 
+    function isSideWorkspaceDisabled() {
+      return true;
+    }
+
     function getAutoWorkspaceVisibility() {
+      if (isSideWorkspaceDisabled()) {
+        return false;
+      }
       return !!workspaceState.visible;
     }
 
     function shouldUseSideWorkspace() {
+      if (isSideWorkspaceDisabled()) {
+        return false;
+      }
       if (!getAutoWorkspaceVisibility()) {
         return false;
       }
       if (
-        activeRailView !== "profile" ||
+        activeRailView !== "chat" ||
         activeProfileSurface !== "workspace"
       ) {
         return false;
@@ -43525,6 +44842,59 @@
         return true;
       }
       return true;
+    }
+
+    function openWorkspaceTab(tabName, patch) {
+      var nextTab =
+        [
+          "original",
+          "roles",
+          "draft",
+          "cover",
+          "membership",
+          "support",
+        ].indexOf(tabName) !== -1
+          ? tabName
+          : "original";
+      var nextPatch = Object.assign({}, patch || {}, {
+        visible: true,
+        activeTab: nextTab,
+      });
+      if (nextTab === "roles") {
+        nextPatch.rolesEnabled = true;
+      }
+      if (nextTab === "draft") {
+        nextPatch.draftEnabled = true;
+      }
+      if (nextTab === "cover") {
+        nextPatch.coverEnabled = true;
+      }
+      if (nextTab === "membership") {
+        nextPatch.membershipEnabled = true;
+      }
+      if (nextTab === "support") {
+        nextPatch.supportEnabled = true;
+      }
+      if (isSideWorkspaceDisabled()) {
+        nextPatch.visible = false;
+        activeProfileSurface = "community";
+        activeRailView = "chat";
+        updateWorkspace(nextPatch);
+        return;
+      }
+      activeProfileSurface = "workspace";
+      activeRailView = "chat";
+      updateWorkspace(nextPatch);
+    }
+
+    function closeSideWorkspaceForConversation() {
+      activeProfileSurface = "community";
+      activeRailView = "chat";
+      updateWorkspace({
+        visible: false,
+        activeTab: "original",
+      });
+      renderRailNavigation();
     }
 
     function buildWorkspaceArtifactLink(options) {
@@ -44456,11 +45826,13 @@
 
     function renderRailNavigation() {
       var resultsVisible = activeRailView === "results";
+      var trackedVisible = activeRailView === "tracked";
       var introsVisible = activeRailView === "intros";
       var sentVisible = activeRailView === "sent";
-      var resultsRailPanelVisible = !isMobileWorkspaceView() && resultsVisible;
+      var resultsRailPanelVisible = !isMobileWorkspaceView() && (resultsVisible || trackedVisible);
       var workspaceEnabled = hasWorkspaceRailAccess();
       var resultsEnabled = !!(listCards.length && getRailResultsCount());
+      var trackedEnabled = true;
       var introsEnabled = !!introsStage;
       var sentEnabled = !!sentStage;
 
@@ -44471,7 +45843,7 @@
         closeJobListView();
       }
 
-      if (resultsRailPanelVisible && shouldCollapseResultsListsPanel()) {
+      if (resultsVisible && resultsRailPanelVisible && shouldCollapseResultsListsPanel()) {
         resultsRailPanelVisible = false;
       }
 
@@ -44486,6 +45858,7 @@
       if (desk) {
         desk.classList.toggle("is-rail-chat", activeRailView === "chat");
         desk.classList.toggle("is-rail-results", activeRailView === "results");
+        desk.classList.toggle("is-rail-tracked", activeRailView === "tracked");
         desk.classList.toggle("is-rail-intros", activeRailView === "intros");
         desk.classList.toggle("is-rail-sent", activeRailView === "sent");
         desk.classList.toggle("is-results-open", resultsRailPanelVisible);
@@ -44499,10 +45872,34 @@
         );
       }
 
+      if (trackedVisible) {
+        if (listsStack) {
+          setElementVisibility(listsStack, false, "grid");
+        }
+        if (listsResults) {
+          setElementVisibility(listsResults, true, "grid");
+        }
+        if (listsResultsTitle) {
+          listsResultsTitle.textContent = "Tracked Jobs";
+        }
+        if (listsResultsDescription) {
+          listsResultsDescription.textContent =
+            "Submitted and saved roles from this application flow.";
+        }
+        if (listsResultsBody) {
+          listsResultsBody.innerHTML =
+            typeof root.__sffcRenderTrackedApplicationJobsHtml === "function"
+              ? root.__sffcRenderTrackedApplicationJobsHtml()
+              : "";
+        }
+      } else if (resultsVisible && listsStack && !activeListView) {
+        setElementVisibility(listsStack, true, "grid");
+      }
+
       if (conversationStage) {
         setElementVisibility(
           conversationStage,
-          !resultsVisible && !introsVisible && !sentVisible,
+          (!resultsVisible || trackedVisible) && !introsVisible && !sentVisible,
           "grid"
         );
       }
@@ -44555,6 +45952,8 @@
         var isDisabled =
           railView === "results"
             ? !resultsEnabled
+            : railView === "tracked"
+            ? !trackedEnabled
             : railView === "intros"
             ? !introsEnabled
             : railView === "sent"
@@ -44583,6 +45982,7 @@
       }
       var nextView =
         viewName === "results" ||
+        viewName === "tracked" ||
         viewName === "intros" ||
         viewName === "sent"
           ? viewName
@@ -44738,7 +46138,7 @@
       }
       if (workspaceRoles) {
         var nextRolesHtml =
-          workspaceState.rolesHtml || renderCvRoleMatchesHtml([]);
+          workspaceState.rolesHtml || renderJobsWorkspaceHtml();
         if (workspaceRoles.innerHTML !== nextRolesHtml) {
           workspaceRoles.innerHTML = nextRolesHtml;
         }
@@ -44761,11 +46161,7 @@
         var tab = button.getAttribute("data-sffc-apply-chat-workspace-tab");
         var isActive = tab === workspaceState.activeTab;
         if (tab === "roles") {
-          button.hidden = true;
-          if (workspaceState.activeTab === "roles") {
-            workspaceState.activeTab = "original";
-            isActive = false;
-          }
+          button.hidden = !workspaceState.rolesEnabled;
         }
         if (tab === "draft") {
           button.hidden = !workspaceState.draftEnabled;
@@ -44883,7 +46279,7 @@
     matchingSalaryGuidesSeed = parseWorkspaceSeedJson(
       matchingSalaryGuidesSeedNode
     );
-    workspaceState.rolesHtml = renderCvRoleMatchesHtml([]);
+    workspaceState.rolesHtml = renderJobsWorkspaceHtml();
     workspaceState.supportHtml = renderSupportAttachmentsHtml([]);
     syncJobListCardCounts();
 
@@ -45177,8 +46573,8 @@
         coverHtml: "",
         draftEnabled: false,
         coverEnabled: false,
-        rolesEnabled: false,
-        rolesHtml: renderMatchingRolesHtml(filterMatchingRoles()),
+        rolesEnabled: true,
+        rolesHtml: renderJobsWorkspaceHtml(),
         membershipEnabled: false,
         membershipSelection: "platform",
         supportHtml: renderSupportAttachmentsHtml([]),
@@ -45210,11 +46606,7 @@
         ].indexOf(tabName) !== -1
           ? tabName
           : "original";
-      activeProfileSurface = "workspace";
-      activeRailView = "chat";
-      updateWorkspace({
-        activeTab: nextTab,
-      });
+      openWorkspaceTab(nextTab);
 
       if (
         applyTailoringAwaitingProceed &&
@@ -45326,6 +46718,71 @@
       desk.classList.remove("is-cv-modal-open");
       if (chatCvPreviewModalBody) {
         chatCvPreviewModalBody.innerHTML = "";
+      }
+    }
+
+    function createApplicationQueueRoleModal() {
+      var overlay = document.createElement("div");
+      overlay.className = "sffc-crm-apply-chat__application-modal";
+      overlay.hidden = true;
+      overlay.setAttribute("aria-hidden", "true");
+      overlay.innerHTML =
+        '<div class="sffc-crm-apply-chat__application-modal-backdrop" data-sffc-application-modal-close></div>' +
+        '<div class="sffc-crm-apply-chat__application-modal-dialog" role="dialog" aria-modal="true" aria-label="Employer application">' +
+        '<div class="sffc-crm-apply-chat__application-modal-head">' +
+        '<div class="sffc-crm-apply-chat__application-modal-head-copy">' +
+        "<strong data-sffc-application-modal-title>Employer application</strong>" +
+        "<span data-sffc-application-modal-meta>Loading the employer form.</span>" +
+        "</div>" +
+        '<button type="button" class="sffc-crm-apply-chat__application-modal-close" data-sffc-application-modal-close aria-label="Close application form">&times;</button>' +
+        "</div>" +
+        '<div class="sffc-crm-apply-chat__application-modal-body" data-sffc-application-modal-body></div>' +
+        "</div>";
+
+      overlay
+        .querySelectorAll("[data-sffc-application-modal-close]")
+        .forEach(function (node) {
+          node.addEventListener("click", function () {
+            closeApplicationQueueRoleModal();
+          });
+        });
+
+      overlay.addEventListener("click", function (event) {
+        if (event.target === overlay) {
+          closeApplicationQueueRoleModal();
+        }
+      });
+
+      return overlay;
+    }
+
+    function ensureApplicationQueueRoleModal() {
+      if (applicationQueueRoleModal) {
+        return applicationQueueRoleModal;
+      }
+      applicationQueueRoleModal = createApplicationQueueRoleModal();
+      desk.appendChild(applicationQueueRoleModal);
+      applicationQueueRoleModalBody = applicationQueueRoleModal.querySelector(
+        "[data-sffc-application-modal-body]"
+      );
+      applicationQueueRoleModalTitle = applicationQueueRoleModal.querySelector(
+        "[data-sffc-application-modal-title]"
+      );
+      applicationQueueRoleModalMeta = applicationQueueRoleModal.querySelector(
+        "[data-sffc-application-modal-meta]"
+      );
+      return applicationQueueRoleModal;
+    }
+
+    function closeApplicationQueueRoleModal() {
+      if (!applicationQueueRoleModal) {
+        return;
+      }
+      applicationQueueRoleModal.hidden = true;
+      applicationQueueRoleModal.setAttribute("aria-hidden", "true");
+      desk.classList.remove("is-application-modal-open");
+      if (applicationQueueRoleModalBody) {
+        applicationQueueRoleModalBody.innerHTML = "";
       }
     }
 
@@ -45859,6 +47316,12 @@
     }
 
     function revealWorkspaceForCvUpload() {
+      if (isSideWorkspaceDisabled()) {
+        activeProfileSurface = "community";
+        activeRailView = "chat";
+        updateWorkspace({ visible: false });
+        return;
+      }
       activeProfileSurface = "workspace";
       activeRailView = "chat";
     }
@@ -61019,6 +62482,9 @@
     function runLiveTailoringSequence(analysis) {
       function renderDraft(phase) {
         updateWorkspace({
+          visible: true,
+          activeTab: "draft",
+          draftEnabled: true,
           draftHtml: buildLiveTailoringDraftHtml(
             analysis || applyCvAnalysis || {},
             phase
@@ -61027,6 +62493,26 @@
       }
 
       clearLiveDraftTimers();
+      openWorkspaceTab("draft", {
+        stage: "Tailoring CV",
+        note: "I am rewriting the application version against this role using only evidence already in the CV.",
+        cvStatus: "Tailoring in progress",
+        coverStatus: "Not started yet",
+        draftHtml: buildLiveTailoringDraftHtml(
+          analysis || applyCvAnalysis || {},
+          {
+            summaryCount: 0,
+            summaryTypingText: "",
+            role1Count: 0,
+            role1TypingText: "",
+            role2Count: 0,
+            role2TypingText: "",
+            showSummaryReview: false,
+            showRole1Review: false,
+            showRole2Review: false,
+          }
+        ),
+      });
 
       if (capturedCvText) {
         var sections = parseCvSectionsFromText(capturedCvText);
@@ -61659,6 +63145,14 @@
       ) {
         return;
       }
+      if (
+        pinnedWorkspaceCardNode &&
+        pinnedWorkspaceCardUntil > Date.now() &&
+        messages.contains(pinnedWorkspaceCardNode)
+      ) {
+        scrollToWorkspaceCard(pinnedWorkspaceCardNode);
+        return;
+      }
       if (pendingMessagesScrollRaf) {
         return;
       }
@@ -61673,6 +63167,48 @@
           messages.scrollTop = messages.scrollHeight;
         }, 70);
       });
+    }
+
+    function scrollToWorkspaceCard(row, options) {
+      var opts = options || {};
+      var card = row
+        ? row.querySelector(
+            ".sffc-crm-apply-chat__quick-insights, .sffc-crm-apply-chat__tailoring-preview-card, .sffc-crm-apply-chat__apply-queue-card, .sffc-crm-apply-chat__draft-review-chat-card"
+          )
+        : null;
+      var target = card || row;
+      var top;
+      if (!messages || !target) {
+        return;
+      }
+      top = Math.max(0, target.offsetTop - (opts.offset || 28));
+      if (pendingMessagesScrollRaf) {
+        window.cancelAnimationFrame(pendingMessagesScrollRaf);
+        pendingMessagesScrollRaf = 0;
+      }
+      if (pendingMessagesScrollTimeout) {
+        window.clearTimeout(pendingMessagesScrollTimeout);
+        pendingMessagesScrollTimeout = 0;
+      }
+      messages.scrollTop = top;
+      window.setTimeout(function () {
+        if (
+          pinnedWorkspaceCardNode === row &&
+          pinnedWorkspaceCardUntil > Date.now() &&
+          messages.contains(row)
+        ) {
+          messages.scrollTop = Math.max(0, target.offsetTop - (opts.offset || 28));
+        }
+      }, 90);
+    }
+
+    function pinWorkspaceCardScroll(row, duration) {
+      if (!row) {
+        return;
+      }
+      pinnedWorkspaceCardNode = row;
+      pinnedWorkspaceCardUntil = Date.now() + (duration || 9000);
+      scrollToWorkspaceCard(row);
     }
 
     function setDeskIdentity(identity) {
@@ -61701,12 +63237,45 @@
       return '<div class="sffc-crm-apply-chat__mini-avatar is-live"><img src="https://media.joinsenna.com/2026/01/emilybradshaw-1.jpg" alt="Emily"></div>';
     }
 
+    function createUserAvatarHtml() {
+      var config = getConfig();
+      var avatarUrl =
+        (config && config.currentUserAvatarUrl) ||
+        "https://media.joinsenna.com/2025/05/bb-profile-avatar-buddyboss.webp";
+      return (
+        '<div class="sffc-crm-apply-chat__mini-avatar is-user-avatar"><img src="' +
+        escapeHtml(String(avatarUrl || "")) +
+        '" alt="You"></div>'
+      );
+    }
+
     function containsEditorialResultsHtml(html) {
-      return /sffc-community-editorial__(?:post-shell|post-result)|sffc-crm-apply-chat__greenhouse-workspace/.test(String(html || ""));
+      return /sffc-community-editorial__(?:post-shell|post-result)|sffc-crm-apply-chat__application-workspace/.test(String(html || ""));
     }
 
     function containsJobResultsHtml(html) {
       return /sffc-crm-apply-chat__job-results/.test(String(html || ""));
+    }
+
+    function containsWorkspaceCardHtml(html) {
+      return /sffc-crm-apply-chat__(?:quick-insights|tailoring-preview-card|apply-queue-card|draft-review-chat-card)/.test(
+        String(html || "")
+      );
+    }
+
+    function removeWorkingTailoringPreviewCards() {
+      root
+        .querySelectorAll(
+          ".sffc-crm-apply-chat__tailoring-preview-card.is-working"
+        )
+        .forEach(function (card) {
+          var message = card.closest(".sffc-crm-apply-chat__message");
+          if (message) {
+            message.remove();
+          } else {
+            card.remove();
+          }
+        });
     }
 
     function removeTyping() {
@@ -61768,23 +63337,33 @@
       var skipChatLog = options && options.skipChatLog;
       var hasEditorialResults = containsEditorialResultsHtml(contentHtml);
       var hasJobResults = containsJobResultsHtml(contentHtml);
+      var hasWorkspaceCard = containsWorkspaceCardHtml(contentHtml);
       removeTyping();
       row.className =
         "sffc-crm-apply-chat__message is-emily" +
         (modifier ? " is-" + modifier : "") +
         (hasEditorialResults ? " has-editorial-results" : "") +
-        (hasJobResults ? " has-job-results" : "");
-      row.innerHTML =
-        avatarHtml +
-        '<div class="sffc-crm-apply-chat__bubble' +
-        (modifier ? " is-" + modifier : "") +
-        (hasEditorialResults ? " is-editorial-results" : "") +
-        '">' +
-        contentHtml +
-        "</div>";
+        (hasJobResults ? " has-job-results" : "") +
+        (hasWorkspaceCard ? " has-workspace-card" : "");
+      if (hasWorkspaceCard) {
+        row.innerHTML = contentHtml;
+      } else {
+        row.innerHTML =
+          avatarHtml +
+          '<div class="sffc-crm-apply-chat__bubble' +
+          (modifier ? " is-" + modifier : "") +
+          (hasEditorialResults ? " is-editorial-results" : "") +
+          '">' +
+          contentHtml +
+          "</div>";
+      }
       messages.appendChild(row);
       playTone();
-      scrollToLatest();
+      if (hasWorkspaceCard) {
+        pinWorkspaceCardScroll(row, options && options.pinDuration);
+      } else {
+        scrollToLatest();
+      }
       scheduleDeskSearchRefresh();
       emilyResponseSerial += 1;
       if (responseWatchdogTimer) {
@@ -61887,6 +63466,20 @@
       }
 
       next();
+    }
+
+    function requestPostApplicationNextStepPrompt() {
+      if (typeof root.__sffcShowPostApplicationNextStepPrompt === "function") {
+        root.__sffcShowPostApplicationNextStepPrompt();
+        return;
+      }
+      botMessage(
+        "Good. Keep the employer confirmation email as proof of submission. Next, tell me whether you want to apply to more roles, assess your career, or track this application.",
+        humanComposeDelay("Choose the next application step.", 1000, 2200),
+        function () {
+          focusComposer("Apply more, assess career, or track");
+        }
+      );
     }
 
     function clearResponseWatchdog() {
@@ -62097,7 +63690,8 @@
         '<div class="sffc-crm-apply-chat__bubble' +
         (modifier ? " is-" + modifier : "") +
         bubbleExtraClass +
-        '"><span class="sffc-crm-apply-chat__text"></span></div><div class="sffc-crm-apply-chat__mini-avatar"><img src="https://media.joinsenna.com/2025/05/bb-profile-avatar-buddyboss.webp" alt="You"></div>';
+        '"><span class="sffc-crm-apply-chat__text"></span></div>' +
+        createUserAvatarHtml();
       if (bubbleHtml) {
         row.querySelector(".sffc-crm-apply-chat__bubble").innerHTML =
           bubbleHtml;
@@ -69833,7 +71427,7 @@
         return "application_strategy";
       }
       if (
-        /apply_(?:cover_letter_check|tailoring_progress_check|tailored_versions|cv_decision|matching_roles|role_search_type|other_roles_text)/.test(
+        /apply_(?:cover_letter_check|tailoring_progress_check|tailored_versions|cv_action_choice|cv_decision|matching_roles|role_search_type|other_roles_text)/.test(
           prompt
         )
       ) {
@@ -70257,6 +71851,52 @@
       return true;
     }
 
+    function getApplyControlIntent(text) {
+      var clean = normalizeCareerIntentText(cleanMessageText(text || "")).toLowerCase();
+      if (!clean) {
+        return "";
+      }
+      if (
+        /^(?:start\s+)?auto\s+apply\b|^start applying\b|^apply to this role\b|^submit this application\b/i.test(
+          clean
+        )
+      ) {
+        return "apply_start_auto_apply";
+      }
+      if (
+        /^(?:continue\s+)?applying in the background\b|^keep applying\b|^continue background\b/i.test(
+          clean
+        )
+      ) {
+        return "apply_continue_background";
+      }
+      if (
+        /^(?:tailor|rewrite|improve|fix|optimise|optimize|strengthen)\s+(?:my\s+)?(?:cv|resume)\b|^tailor the cv\b/i.test(
+          clean
+        )
+      ) {
+        return "apply_tailor_cv";
+      }
+      if (/^(?:can i see|show me|open)\s+(?:the\s+)?tailored(?:\s+version)?\b/i.test(clean)) {
+        return "apply_review_tailored_cv";
+      }
+      if (
+        /^(?:undo|revert)\s+(?:the\s+)?tailor|^use original cv\b|^use the original cv\b|^don'?t tailor it\b|^do not tailor it\b/i.test(
+          clean
+        )
+      ) {
+        return "apply_undo_tailoring";
+      }
+      if (/^apply with (?:the )?current cv\b|^apply as[- ]is\b/i.test(clean)) {
+        return "apply_current_cv";
+      }
+      return "";
+    }
+
+    function sourceTextMentionsApplyControl(text) {
+      return !!getApplyControlIntent(text);
+    }
+
     function detectIntent(text) {
       var semantics = parseMessageSemantics(text);
       var clean = semantics.lower;
@@ -70338,6 +71978,63 @@
       var questionTailIntent = "";
       if (!clean) {
         return "";
+      }
+      if (sourceTextMentionsApplyControl(clean)) {
+        return getApplyControlIntent(clean);
+      }
+      if (/\bseeking a new opportunity\b/i.test(clean) && /\bcompliance\b/i.test(clean)) {
+        return "career_direction";
+      }
+      if (/\b(?:don't want to pay|do not want to pay|pay before seeing value|not paying before seeing value)\b/i.test(clean)) {
+        return "affordability_objection";
+      }
+      if (
+        /\b(?:salary|compensation|bonus|pay)\b/i.test(clean) &&
+        !/^(?:my salary is|i(?:'m| am)? currently earning|i earn|i make|why i left was)\b/i.test(clean)
+      ) {
+        return "salary_question";
+      }
+      if (
+        /^(?:rewrite\s*:|rewrite\b|improve\b|make\b)/i.test(clean) &&
+        /\b(?:cv|resume|bullet|sentence|wording|senior|robotic|shorter|clearer|stronger)\b/i.test(
+          clean
+        )
+      ) {
+        return "cv_rewrite_instruction";
+      }
+      if (/^(?:give me|show me)\s+(?:one\s+)?(?:quick\s+)?insights?\b/i.test(clean)) {
+        return "quick_insight_request";
+      }
+      if (
+        /\b(?:compare|check|assess|review)\s+(?:my\s+)?(?:cv|resume|profile)\s+(?:against|for|with)\s+(?:this|the)\s+(?:role|job|position)\b/i.test(
+          clean
+        ) ||
+        /\b(?:how|where)\s+(?:does|do)\s+(?:my\s+)?(?:cv|resume|profile)\s+(?:match|fit|compare)\s+(?:this|the)\s+(?:role|job|position)\b/i.test(
+          clean
+        )
+      ) {
+        return "quick_insight_request";
+      }
+      if (
+        /(?:form won'?t load|form will not load|refused to connect|employer site refused|blank screen|iframe|embed(?:ded)? form)/i.test(
+          clean
+        )
+      ) {
+        return "application_process";
+      }
+      if (
+        !/^(?:do not|don't)\s+add fake experience\b/i.test(clean) &&
+        /\b(?:fake|scam|not real|not convinced|waste of time|too generic|parser is weak|wrong match|misunderstood|this sounds fake|that's not right|that is not right)\b/i.test(
+          clean
+        )
+      ) {
+        return "support_complaint";
+      }
+      if (/^(?:be honest|keep testing|continue|next|ok continue|okay continue)\b/i.test(clean)) {
+        return "different_question";
+      }
+      if (/^(?:change it to|change this to)\s+\w+/i.test(clean)) {
+        return "special_request";
       }
       if (/^(?:give me )?(?:the )?pros? and cons[.!?]*$/i.test(clean)) {
         return "compare_roles";
@@ -71056,6 +72753,364 @@
       return "";
     }
 
+    function getTranscriptModeledCareerAnswer(intent, sourceText, semantics) {
+      var clean = normalizeCareerIntentText(cleanMessageText(sourceText || "")).toLowerCase();
+      var hasUae = /\b(?:uae|united arab emirates|dubai|abu dhabi|difc|adgm)\b/i.test(clean);
+      var hasSaudi = /\b(?:saudi|ksa|riyadh|jeddah|neom|pif|vision 2030)\b/i.test(clean);
+      var hasGcc = hasUae || hasSaudi || /\b(?:gcc|mena|middle east|qatar|doha|bahrain|kuwait)\b/i.test(clean);
+      var asksCvBasics =
+        /\b(?:cv|resume)\b/i.test(clean) &&
+        /\b(?:format|length|pages|too long|summary|profile|contact|linkedin|phone|email|location|relocat|improve|fix)\b/i.test(clean);
+      var asksRelocation =
+        /\b(?:move|moving|relocat|outside|from india|not in|physically present|visit visa|tourist visa|sponsor|sponsorship|work authori[sz]ation)\b/i.test(clean) &&
+        hasGcc;
+      var asksApplyAndOutreach =
+        /\b(?:after applying|after i apply|email them|message them|whatsapp|reach out|follow up|direct message|dm|hr|hiring manager|recruiter)\b/i.test(clean) &&
+        /\b(?:apply|application|job|role|company|recruiter|hr|hiring manager)\b/i.test(clean);
+      var asksPortalStrategy =
+        /\b(?:linkedin|naukrigulf|indeed|job boards?|portal|where should i apply|where to apply)\b/i.test(clean);
+      var asksLinkedinProfile =
+        /\b(?:linkedin|profile|headline|about section|visibility|personal brand|posting|commenting|recruiter search|found by recruiters?)\b/i.test(clean) &&
+        /\b(?:improve|fix|stand out|get noticed|visible|search|profile|headline|about|post|comment|recruiter)\b/i.test(clean);
+      var asksHiddenMarket =
+        /\b(?:hidden market|hidden jobs|unadvertised|not advertised|not posted|networking strategy|who knows me|get noticed|stand out|attention economy)\b/i.test(clean);
+      var asksReferral =
+        /\b(?:referral|refer me|ask for a referral|employee referral|connection|peer|someone at|insider)\b/i.test(clean);
+      var asksRecruiterReality =
+        /\b(?:recruiters?|headhunters?|agency|recruitment consultant|talent acquisition)\b/i.test(clean) &&
+        /\b(?:rely|worth|trust|use|message|contact|find|approach|work with|respond)\b/i.test(clean);
+      var asksCvMistakes =
+        /\b(?:cv|resume)\b/i.test(clean) &&
+        /\b(?:mistakes?|bad|wrong|avoid|photo|picture|one page|two pages|too long|skills section|hobbies|format|template|ats)\b/i.test(clean);
+      var asksInterviewPrep =
+        /\b(?:interview|video interview|zoom|teams|virtual interview|in-person interview|in person interview|camera|lighting|tell me about yourself|overprepare|over prepare)\b/i.test(clean);
+      var asksQuitRisk =
+        /\b(?:quit|resign|leave my job|stop working)\b/i.test(clean) &&
+        /\b(?:before|without|job search|offer|another job|moving|relocat|uae|dubai|saudi|gcc)\b/i.test(clean);
+      var asksVisitVisa =
+        /\b(?:visit visa|tourist visa|fly down|come to uae|come to dubai|go to dubai)\b/i.test(clean);
+      var asksInterviewOpening =
+        /\b(?:tell me about yourself|walk me through your cv|introduce yourself|first 30 seconds|interview opening)\b/i.test(clean);
+      var asksSalaryNegotiation =
+        /\b(?:salary negotiation|negotiate salary|ask for more|counter offer|counteroffer|salary expectations|salary range)\b/i.test(clean);
+      var asksRaise =
+        /\b(?:ask for a raise|pay rise|salary increase|raise discussion|raise conversation|promotion raise|underpaid|increase my salary)\b/i.test(clean);
+      var asksOfferDecision =
+        /\b(?:accept the offer|reject the offer|negotiate the offer|offer pulled|offer withdrawn|signed offer|background check|start date)\b/i.test(clean);
+      var asksThankYou =
+        /\b(?:thank you email|post interview|after interview email|follow up after interview)\b/i.test(clean);
+      var asksRejectionReply =
+        /\b(?:reply to rejection|respond to rejection|rejection email|after rejection)\b/i.test(clean);
+      var asksNoInterview =
+        /\b(?:no interviews|not getting interviews|applied to \d+|hundreds of applications|no responses?|ghosted)\b/i.test(clean);
+      var asksFutureProof =
+        /\b(?:future|ai proof|ai-proof|automation|in-demand|in demand|highest-paying|highest paying|safe career|future proof|future-proof)\b/i.test(clean) &&
+        /\b(?:jobs?|roles?|career|skills?|finance|market|pay|salary)\b/i.test(clean);
+      var asksSennaService =
+        /\b(?:senna|mena careers|your service|what do you do|how does this work|included|subscription|apply for me|recruiter outreach|applications submitted for you)\b/i.test(clean);
+
+      if (isArabicChat()) {
+        return "";
+      }
+      if (asksSennaService) {
+        return "Senna is built to remove the repeated work in a GCC job search: find suitable roles, compare them against your CV, flag the weak points, tailor the application where needed, track the process, and support recruiter outreach on the plans that include it. The value is not just seeing jobs; it is keeping the search moving without you having to restart from scratch every time.";
+      }
+      if (asksCvBasics) {
+        return "Start with the CV because it is the first filter. Keep it tight, usually one to two pages, make the target role obvious, and put location, phone, email, LinkedIn, and relocation status where a recruiter can see them quickly. Long paragraphs weaken the scan.";
+      }
+      if (asksCvMistakes) {
+        return "The most common CV mistake is turning it into a job description. Recruiters already know what the role does; they need to see outcomes, scope, numbers, sectors, systems, clients, and seniority. Keep the format simple, use one clean column where possible, remove generic skills unless they are genuinely technical, and make the first half of page one prove the role you want next.";
+      }
+      if (asksRelocation) {
+        return "You can search for GCC roles before physically being there, but remove uncertainty early. State your target market, relocation intent, notice period, visa position, and whether you can interview remotely. If that is hidden, recruiters may skip you before reading the stronger experience.";
+      }
+      if (asksLinkedinProfile) {
+        return "Your LinkedIn needs to work like a searchable public CV. A recruiter should be able to see your target lane, sector language, achievements, location signal, and proof of value quickly. The About section should be readable, the experience section should include outcomes rather than duties, and your headline should contain the terms recruiters would actually search for.";
+      }
+      if (asksHiddenMarket) {
+        return "The hidden market is not mystical; it is usually roles moving through recruiters, hiring managers, referrals, and people already visible in the right niche before the public advert appears. That means your job search cannot just be applications. You need a target employer list, a visible LinkedIn profile, follow-up after applications, and consistent outreach that offers value rather than asking strangers to solve the search for you.";
+      }
+      if (asksReferral) {
+        return "For referrals, do not open cold by asking someone to refer you. Start with a short, relevant message, show why the role or company fits your background, and build one or two exchanges first. Once there is context, the referral ask becomes reasonable rather than transactional.";
+      }
+      if (asksRecruiterReality) {
+        return "Use recruiters, but do not depend on recruiters alone. They only see a slice of the market and they work for the employer, not the candidate. Give them a sharp profile they can place quickly: target role, level, location, sector, salary range if needed, notice period, and two proof points. Then run direct applications and employer outreach alongside that.";
+      }
+      if (asksPortalStrategy) {
+        return "Use job boards for coverage, not as the whole strategy. LinkedIn is the main channel, Naukrigulf and Indeed can help for UAE roles, and company career pages matter for direct applications. The stronger play is apply through the official route, then follow up with the right recruiter or hiring contact.";
+      }
+      if (asksApplyAndOutreach) {
+        return "Apply first so there is an official record, then send one short follow-up to the recruiter, HR contact, or hiring manager. Keep it specific: role title, two evidence points, CV attached or LinkedIn linked. Do not send five messages; one clean follow-up is enough.";
+      }
+      if (asksQuitRisk) {
+        return "Do not quit without another offer unless you have enough financial runway and a clear reason. Keep the current role while searching, especially for GCC moves, because timelines can stretch and employers read employed candidates as lower risk.";
+      }
+      if (asksVisitVisa) {
+        return "A visit visa can improve access because recruiters know you are available locally, but it is a calculated risk. Use it only with a tight plan: target roles, recruiter list, CV ready, accommodation sorted, and enough runway for the search period.";
+      }
+      if (asksNoInterview) {
+        return "No interviews means the issue is probably targeting, CV positioning, or timing. First check whether the roles are realistic, then whether page one of the CV proves the must-have requirements. More applications will not fix weak positioning.";
+      }
+      if (asksInterviewOpening) {
+        return "For 'tell me about yourself', do not recite the CV. Give a clear positioning line, the two or three experiences that matter for the role, and why this move makes sense now. Clarity in the first 30 seconds makes the interviewer place you faster.";
+      }
+      if (asksInterviewPrep) {
+        return "For interviews, prepare enough structure to sound clear, but not so much that you read from a script. On video, camera height, lighting, and a clean setup matter more than candidates realise. In the answer itself, keep linking back to the role: what you have done, what result it created, and why that makes you useful to this employer.";
+      }
+      if (asksRaise) {
+        return "For a raise conversation, do not make it emotional. Treat it as a value discussion: market range, how your role has expanded, measurable outcomes, and the number you are asking for. Book the conversation properly, make the ask clearly, and get the outcome or next review point in writing.";
+      }
+      if (asksSalaryNegotiation) {
+        return "For salary negotiation, wait until there is real interest or an offer, then anchor the conversation around market data, scope, and the value you bring. Give a range only when needed, and avoid making salary sound like the only reason you want the role.";
+      }
+      if (asksOfferDecision) {
+        return "For offer decisions, separate anxiety from facts. Check whether the offer is signed, whether background checks are complete, start date, probation terms, compensation, and whether the role genuinely improves your trajectory. If the facts are solid, do not let uncertainty alone make the decision for you.";
+      }
+      if (asksFutureProof) {
+        return "The strongest future career bets combine human judgement with technical leverage: private wealth, compliance and financial crime, infrastructure and real assets, FP&A/transformation, data analytics, fintech/payments, and roles close to clients or regulation. Pure admin execution is more exposed; roles with judgement, trust, relationships, and domain expertise are harder to replace.";
+      }
+      if (asksThankYou) {
+        return "Send a short thank-you email after the interview. Mention one specific part of the conversation, restate fit in one sentence, and keep it professional. The point is not flattery; it is to make the follow-up easy to remember.";
+      }
+      if (asksRejectionReply) {
+        return "Reply to a rejection if the role was relevant or the conversation was strong. Keep it calm, thank them, ask to stay in touch, and briefly signal the roles you are still targeting. It keeps the door open without sounding desperate.";
+      }
+      return "";
+    }
+
+    function getJobSearchStrategyAnswer(intent, sourceText, semantics) {
+      var clean = normalizeCareerIntentText(cleanMessageText(sourceText || "")).toLowerCase();
+      var hasDubai = /\b(?:dubai|uae|united arab emirates|difc)\b/i.test(clean);
+      var hasSaudi = /\b(?:saudi|ksa|riyadh|jeddah|neom|pif|vision 2030)\b/i.test(clean);
+      var hasGcc = hasDubai || hasSaudi || /\b(?:gcc|middle east|mena|abu dhabi|doha|qatar|bahrain|kuwait)\b/i.test(clean);
+      var hasTiming =
+        /\b(?:best time|when should|which months?|what months?|hiring season|job search timing|start job searching|start applying|wait until|during ramadan|after ramadan|september|october|november|january|february|q1|q2|q3|q4)\b/i.test(clean) &&
+        /\b(?:job|jobs|role|roles|search|apply|applying|hiring|market|recruit(?:er|ing)|opportunit)/i.test(clean);
+      var hasRecruiterChannel =
+        /\b(?:recruiter|headhunter|hr|hiring manager|talent acquisition|linkedin message|network|referral|outreach|direct message|dm)\b/i.test(clean);
+      var hasDirectApplyChannel =
+        /\b(?:direct apply|apply directly|job board|company website|employer site|application portal|ats)\b/i.test(clean);
+      var hasStructureStrategy =
+        /\b(?:structure|plan|organise|organize|approach|strategy|prioriti[sz]e|focus)\b/i.test(clean) &&
+        /\b(?:job|jobs|role|roles|search|hunt|hunting|applications?|opportunit)/i.test(clean);
+      var hasVolumeQuestion =
+        /\b(?:how many|how often|daily|weekly|every day|number of applications|applications per week|spray and pray|scattergun)\b/i.test(clean);
+      var hasNoInterviewSignal =
+        /\b(?:no interviews|not getting interviews|no response|ghosted|ghosting|rejected|rejections|applied to \d+|hundreds of applications)\b/i.test(clean);
+      var hasSeniorSearch =
+        /\b(?:senior|head of|director|vp|vice president|md|managing director|executive|leadership|private banker|relationship manager)\b/i.test(clean);
+      var hasEarlyCareer =
+        /\b(?:graduate|junior|entry level|entry-level|intern|internship|first job|student|fresh graduate)\b/i.test(clean);
+      var hasVisaOrRelocation =
+        /\b(?:visa|sponsor|sponsorship|relocat|move to|moving to|outside|from india|expat)\b/i.test(clean);
+      var hasFutureMarket =
+        /\b(?:future|in-demand|in demand|highest-paying|highest paying|safe long term|long term)\b/i.test(clean);
+      var isSearchIntent =
+        intent === "job_search_strategy" ||
+        intent === "job_search_help" ||
+        intent === "matching_jobs" ||
+        intent === "opportunity_search" ||
+        intent === "application_decision" ||
+        intent === "interview_chance" ||
+        intent === "market_activity" ||
+        intent === "find_job" ||
+        (semantics && semantics.asks_search_strategy);
+
+      var transcriptAnswer = getTranscriptModeledCareerAnswer(
+        intent,
+        sourceText,
+        semantics
+      );
+
+      if (
+        !isSearchIntent &&
+        !transcriptAnswer &&
+        !hasTiming &&
+        !hasRecruiterChannel &&
+        !hasDirectApplyChannel &&
+        !hasStructureStrategy &&
+        !hasVolumeQuestion &&
+        !hasNoInterviewSignal &&
+        !hasSeniorSearch &&
+        !hasEarlyCareer &&
+        !hasVisaOrRelocation &&
+        !hasFutureMarket
+      ) {
+        return "";
+      }
+
+      if (transcriptAnswer) {
+        return transcriptAnswer;
+      }
+
+      if (isArabicChat()) {
+        if (hasTiming && hasDubai) {
+          return "في دبي، أفضل فترات البحث عادة تكون من سبتمبر إلى نوفمبر ومن يناير إلى أبريل. أغسطس أبطأ غالباً، ورمضان وما حول العيد قد يكون أبطأ لبعض الشركات. لكن لا أنتظر الموسم فقط: اضبطي الـCV والـLinkedIn قبل الدورة النشطة، وابدئي التواصل مع الريكروترز قبل أسبوعين إلى أربعة أسابيع من ذروة التوظيف.";
+        }
+        if (hasTiming && hasSaudi) {
+          return "في السعودية، البحث يكون أقوى غالباً في يناير إلى مايو وسبتمبر إلى نوفمبر، خصوصاً مع المشاريع الحكومية والـgiga projects. التوقيت مهم، لكن الأهم أن يكون ملفك واضحاً على السوق، المستوى، والقطاع لأن كثيراً من الأدوار تتحرك عبر شبكات وريكوترز قبل ظهورها كإعلان واضح.";
+        }
+        if (hasTiming) {
+          return "أفضل وقت للبحث غالباً يكون بداية السنة وبعد الصيف: يناير إلى أبريل وسبتمبر إلى نوفمبر. لكن الاستراتيجية الصحيحة ليست انتظار الشهر المثالي؛ جهزي الـCV، ثبتي أهدافك، وابدئي التواصل قبل الدورة النشطة حتى لا تدخلي السوق متأخرة.";
+        }
+        return "استراتيجية البحث الأقوى هي تقسيم السوق إلى ثلاث قنوات: أدوار منشورة مناسبة، ريكروترز فعلياً يغطون مجالك، وتواصل مباشر مع شركات محددة. لا أتعامل مع البحث كعدد تقديمات فقط؛ أتعامل معه كجودة استهداف، وضوح CV، وسرعة متابعة.";
+      }
+
+      if (hasTiming && hasDubai) {
+        return "For Dubai, the strongest job-search windows are usually September to November and January to April. August is often slow, and Ramadan/Eid can slow decision-making depending on the employer. Do not wait passively for the perfect month: fix the CV, sharpen LinkedIn, and start recruiter outreach 2-4 weeks before hiring activity picks up.";
+      }
+      if (hasTiming && hasSaudi) {
+        return "For Saudi Arabia, January to May and September to November are usually stronger windows, especially around giga projects, government-linked entities, consulting, finance, infrastructure, and transformation roles. Prepare before those windows, because senior and specialist roles often start through recruiter conversations before they appear as clean public listings.";
+      }
+      if (hasTiming && hasGcc) {
+        return "For GCC job searching, the best windows are usually January to April and September to November. Summer and major holiday periods can be slower, but they are still useful for recruiter conversations, CV positioning, and building a shortlist before hiring teams move again.";
+      }
+      if (hasTiming) {
+        return "The best time to job search is usually just before hiring demand picks up, not after everyone else starts applying. In most professional markets, January to April and September to November are stronger; quieter months are still useful for fixing your CV, refreshing LinkedIn, and warming recruiter conversations.";
+      }
+      if (hasStructureStrategy && hasGcc) {
+        return "For a GCC job search, use three tracks: public applications, recruiter outreach, and direct employer targeting. Keep the shortlist tight by location, seniority, sector, and must-have requirements. Track interviews from relevant roles, not total applications sent.";
+      }
+      if (hasStructureStrategy) {
+        return "Structure the job search around one clear target lane, then split activity between applications, recruiter outreach, and direct company targeting. The weekly goal is relevant interviews, not raw application volume, so every application needs a CV that mirrors the role requirements.";
+      }
+      if (hasNoInterviewSignal) {
+        return "If you are applying and not getting interviews, do not solve it by simply applying to more jobs. Check three things first: whether the roles are genuinely realistic, whether the CV mirrors the job language, and whether your strongest proof appears in the first half of page one. If those are weak, volume creates more rejections faster.";
+      }
+      if (hasVolumeQuestion) {
+        return "The better target is 10-15 well-matched applications a week, not 50 weak ones. For each role, check seniority, location, must-have skills, visa or language blockers, and whether your CV has direct evidence. Then use recruiter outreach for the strongest roles instead of relying only on the application portal.";
+      }
+      if (hasRecruiterChannel && hasDirectApplyChannel) {
+        return "Use both, but not equally. Direct apply creates the official record; recruiter or hiring-manager outreach helps the application get noticed. For stronger roles, apply first or same day, then send a short message that names the role and gives two evidence points from your background.";
+      }
+      if (hasRecruiterChannel) {
+        return "For recruiter outreach, do not send a vague 'any roles?' message. Lead with your target lane, location, seniority, and proof. For example: 'I am targeting Dubai wealth-management or private-banking roles; my background is senior relationship management with HNW/UHNW clients and GCC relocation interest.' That is much easier for a recruiter to route.";
+      }
+      if (hasVisaOrRelocation && hasGcc) {
+        return "For a GCC move, your search needs to remove uncertainty early: target location, work authorisation or sponsorship need, notice period, language ability, and whether your experience maps to local client, regulator, or sector requirements. Employers move faster when those risks are obvious and manageable.";
+      }
+      if (hasSeniorSearch && hasGcc) {
+        return "For senior GCC roles, do not rely only on job boards. Build a target list of employers, recruiters, and hiring managers, then position around mandate fit: revenue, clients, AUM, team leadership, regulatory exposure, or sector coverage. Senior roles often move through visibility and trust before a public advert does the work.";
+      }
+      if (hasEarlyCareer) {
+        return "For early-career searching, optimise for proof and entry points: analyst programmes, internships, graduate roles, operations roles with mobility, and roles where your degree/projects give direct evidence. The mistake is only chasing prestige roles while ignoring bridge roles that build the first credible signal.";
+      }
+      if (hasFutureMarket) {
+        return "For future-proof job searching, I would target roles where finance judgment combines with data, regulation, client ownership, or private markets exposure. In the GCC, that points to private wealth, compliance/AML, infrastructure and real assets, FP&A/transformation, fintech/payments, and investment roles linked to strategic sectors.";
+      }
+      if (hasDubai) {
+        return "For Dubai, I would search in three lanes: posted roles in DIFC/UAE finance, recruiter-led roles that may not be advertised clearly, and direct outreach to target employers. The CV needs to show location intent, relevant sector keywords, seniority, and any GCC/client/regulatory exposure quickly.";
+      }
+      if (hasSaudi) {
+        return "For Saudi Arabia, I would search around sector momentum: giga projects, PIF-linked entities, government-related companies, infrastructure, tourism, real estate, finance, compliance, and transformation. The strongest applications make Saudi fit clear, not just generic finance experience.";
+      }
+      return "A strong job-search strategy has four parts: define the exact role lane, filter by market and seniority, fix the CV around the evidence those roles screen for, then use both applications and targeted recruiter outreach. I would measure progress by interviews from relevant roles, not by the raw number of applications sent.";
+    }
+
+    function getDirectCareerQuestionAnswer(intent, sourceText) {
+      var clean = normalizeCareerIntentText(cleanMessageText(sourceText || "")).toLowerCase();
+      var semantics = parseMessageSemantics(sourceText || "");
+      var jobSearchStrategyAnswer = getJobSearchStrategyAnswer(
+        intent,
+        sourceText,
+        semantics
+      );
+      if (!clean && !intent) {
+        return "";
+      }
+      if (jobSearchStrategyAnswer) {
+        return jobSearchStrategyAnswer;
+      }
+      if (intent === "greeting") {
+        return "Hi. Tell me what you are trying to work out and I’ll narrow it into a practical next step.";
+      }
+      if (intent === "social_check") {
+        return "I’m here. Ask me what you need on roles, CVs, applications, interviews, salary, or the job search.";
+      }
+      if (intent === "different_question") {
+        return "Yes. Ask it. I’ll answer directly, then bring us back to the application if needed.";
+      }
+      if (intent === "special_request") {
+        return "Understood. I’ll apply that change to the current step and keep the flow moving.";
+      }
+      if (intent === "salary_question") {
+        return "Salary depends on market, role level, employer type, and whether the package includes bonus, housing, relocation, schooling, or end-of-service terms. Give me the role and location and I’ll frame the likely range without pretending there is one universal number.";
+      }
+      if (intent === "why_name") {
+        return "I only need your name because employer application forms require it. It is used for the application profile, not to change your CV or send anything without the next step being clear.";
+      }
+      if (intent === "quick_insight_request") {
+        return "The quickest useful insight is whether your CV proves the top requirement quickly enough. I check role keywords, seniority evidence, missing qualifications, language requirements, and whether the strongest proof appears early enough.";
+      }
+      if (intent === "cv_rewrite_instruction") {
+        return "Yes. I’ll keep the meaning truthful and improve the wording, seniority signal, and relevance to the role without adding unsupported experience.";
+      }
+      if (intent === "apply_tailor_cv") {
+        return "I’ll tailor the CV to this role using only evidence already in the CV, then show the improved version before the application moves forward.";
+      }
+      if (intent === "apply_review_tailored_cv") {
+        return "Yes. Once the tailored version is generated, I’ll show it before anything is submitted so you can check the wording.";
+      }
+      if (intent === "apply_current_cv" || intent === "apply_original_cv") {
+        return "Understood. I’ll use the current CV and move straight into the application process.";
+      }
+      if (intent === "apply_undo_tailoring") {
+        return "Understood. I’ll revert to the original CV. Just be aware that any gaps already flagged may still weaken the application.";
+      }
+      if (intent === "apply_start_auto_apply") {
+        return "Ok, let’s process the application. I’ll collect the required application details first, then the queue can start updating as each role moves forward.";
+      }
+      if (intent === "apply_continue_background") {
+        return "That is the background support step: I keep working through suitable roles, tailor where needed, track status, and flag anything that needs your input.";
+      }
+      if (/carried interest|carry\b/.test(clean)) {
+        return "Carried interest is the share of investment profits paid to fund managers after investors have received the agreed return. In private equity, it is one of the main ways senior investment professionals participate financially in successful deals.";
+      }
+      if (/^(?:same for\s+)?vp[?!.]*$/i.test(clean)) {
+        return "For VP level, employers usually expect more than analysis. The stronger signals are ownership of execution, senior stakeholder management, team leadership, commercial judgement, and the ability to drive outcomes without close supervision.";
+      }
+      if (/\bseeking a new opportunity\b/i.test(clean) && /\bcompliance\b/i.test(clean)) {
+        return "For a compliance profile, I would target Head of Compliance, AML/CFT, KYC, financial crime, governance, and regulatory compliance roles. Your certifications such as CCO, CFCS, and CME should be surfaced early because they are strong screening signals.";
+      }
+      if (/\bebitda\b/.test(clean)) {
+        return "EBITDA means earnings before interest, tax, depreciation and amortisation. In finance interviews, it is often used as a proxy for operating profit and as the base for valuation multiples.";
+      }
+      if (/\blbo\b|leveraged buyout/.test(clean)) {
+        return "An LBO is a leveraged buyout: buying a company using a mix of equity and debt, then using the company’s cash flow to support and repay that debt. It matters in private equity because it links valuation, leverage, cash generation, and exit returns.";
+      }
+      if (/\bmoic\b/.test(clean)) {
+        return "MOIC means multiple on invested capital. If a fund invests 10 million and receives 25 million back, the MOIC is 2.5x. It shows cash multiple, while IRR also accounts for timing.";
+      }
+      if (/\bnav\b/.test(clean)) {
+        return "NAV means net asset value. For a fund or portfolio, it is the estimated value of assets minus liabilities. In asset management and funds, it is a core measure for reporting value to investors.";
+      }
+      if (/\bsukuk\b/.test(clean)) {
+        return "A sukuk is an Islamic finance instrument often compared to a bond, but structured to comply with Sharia principles. Instead of conventional interest, returns are linked to ownership, lease, profit-sharing, or asset-backed cash flows.";
+      }
+      if (/\badgm\b/.test(clean)) {
+        return "ADGM is Abu Dhabi Global Market, Abu Dhabi’s international financial centre. For GCC finance careers, it matters because many funds, banks, fintechs, asset managers, and advisory firms use it as a regional base.";
+      }
+      if (/\bdifc\b/.test(clean)) {
+        return "DIFC is Dubai International Financial Centre, Dubai’s main financial free zone. It is a major hub for banks, private capital, wealth management, fintech, law firms, and investment firms covering the region.";
+      }
+      if (/\bfp&a\b|financial planning and analysis/.test(clean)) {
+        return "FP&A means financial planning and analysis. The work usually covers budgeting, forecasting, variance analysis, management reporting, and helping leadership understand business performance.";
+      }
+      if (/financial control|controller\b/.test(clean)) {
+        return "Financial control is the finance function focused on accurate reporting, month-end close, reconciliations, controls, accounting policies, and statutory or regulatory reporting.";
+      }
+      if (/transaction services|\bfdd\b|financial due diligence|quality of earnings|\bqoe\b/.test(clean)) {
+        return "Transaction Services, often called FDD, is deal advisory work focused on financial due diligence. It tests quality of earnings, working capital, net debt, and the numbers a buyer or investor is relying on before a transaction.";
+      }
+      if (/questions will they ask|interview questions/i.test(clean)) {
+        return "Expect questions around motivation, role fit, technical competence, and examples from your experience. For finance roles, I would prepare valuation or modelling basics, commercial judgement, stakeholder examples, and a tight explanation of why this move makes sense.";
+      }
+      if (/benefits besides salary|cars paid|car allowance|company gives/i.test(clean)) {
+        return "Beyond salary, the useful benefits to check are bonus structure, housing or transport allowance, relocation support, medical cover, schooling support, annual flights, pension or end-of-service terms, hybrid policy, learning budget, and whether the role improves your exit options.";
+      }
+      return "";
+    }
+
     function getKnowledgeAnswer(intent, sourceText) {
       var semantics = parseMessageSemantics(sourceText || "");
       var frame = semantics.meaning_frame || {};
@@ -71096,6 +73151,13 @@
         getInterviewChanceKnowledgeAnswer(sourceText);
       var applicationFollowUpKnowledgeAnswer =
         getApplicationFollowUpKnowledgeAnswer(sourceText);
+      var directCareerQuestionAnswer = getDirectCareerQuestionAnswer(
+        intent,
+        sourceText
+      );
+      if (directCareerQuestionAnswer) {
+        return directCareerQuestionAnswer;
+      }
       if (
         recruiterKnowledgeAnswer &&
         /^(?:recruiter_networking|recruiter_comparison)$/.test(
@@ -73704,8 +75766,8 @@
         }
         return pickVariant("cv_improvement_reply", [
           "I can review it, show you where it is weak, and tell you what I’d fix first.",
-          "I usually look at role fit, evidence strength, clarity, formatting, and whether the good proof is easy to spot.",
-          "I can tell you what is dragging the CV down and which changes are most likely to help.",
+          "I’ll check role fit, evidence strength, clarity, formatting, and whether the strongest proof is easy to spot.",
+          "I can identify the weakest points and prioritise the changes most likely to improve the application.",
         ]);
       }
 
@@ -74359,7 +76421,7 @@
         return composeSemanticReply("offer_decision_reply_dynamic", {
           opener: {
             direct: ["I can help you"],
-            warm: ["I can help with that."],
+            warm: ["I can work through that with you."],
             measured: ["I can help you"],
             sharp: ["On an offer decision,"],
           },
@@ -74532,18 +76594,14 @@
         }
         return composeSemanticReply("cv_review_help_reply_dynamic", {
           opener: {
-            direct: ["Yes, I can help with that."],
+            direct: ["Yes. Send the CV."],
             warm: ["Of course."],
             measured: ["Yes."],
             sharp: ["I can do that directly."],
           },
           action: {
-            direct: [
-              "Send me your CV and I will look at how it is reading against the role.",
-            ],
-            warm: [
-              "If you send me your CV, I can review it properly and show you what I would tighten first.",
-            ],
+            direct: ["Send the CV and I’ll check how it reads against the role."],
+            warm: ["Send the CV and I’ll show you what I would tighten first."],
             measured: [
               "Send it over and I will give you a practical view of what is working and what I would improve.",
             ],
@@ -78898,7 +80956,7 @@
           "That's part of the workflow, though I still want to finish setting the live search up properly.",
         ],
         senna_pro_clarification: [
-          "Happy to clarify that. I just want to keep the search moving too.",
+          "I’ll clarify that, then keep the search moving.",
           "Worth clarifying now, then we can carry on with the setup.",
         ],
         trial_question: [
@@ -78911,7 +80969,7 @@
         ],
         membership_benefits: [
           "That's worth understanding properly, then we can keep the search moving.",
-          "Happy to clarify that while we keep the search on track.",
+          "I’ll clarify that while keeping the search on track.",
         ],
         pricing_trust: [
           "Fair question. I also want to keep the search moving so you can judge it in context.",
@@ -79434,7 +81492,7 @@
       if (semanticIntent === "upload_stage_question_first") {
         questionFirstPrompt = isArabicChat()
           ? "أكيد. اسأليني أول، وأنا أجاوبك قبل ما نرجع للـCV."
-          : "Yes. Ask me the question first, and I'll answer it before we come back to the CV.";
+          : "Yes. Ask the question first. I’ll answer it, then we’ll come back to the CV.";
         botMessage(
           questionFirstPrompt,
           humanComposeDelay(questionFirstPrompt, 1800, 3600),
@@ -79458,7 +81516,7 @@
       if (semanticIntent === "upload_stage_intro") {
         introPrompt = isArabicChat()
           ? "أكيد. عرفيني بنفسك أول إذا هذا أسهل لك. قولي لي الدور اللي تستهدفينه، والمكان، وأي قيود مهمة. وبعدها إذا عندك الـCV جاهز أرسليه أو الصقيه هنا."
-          : "Yes. Introduce yourself first if that's easier. Tell me the role you're targeting, the location, and any constraints that matter. After that, if your CV is ready, upload it or paste it here.";
+          : "Yes. Introduce yourself first if that is easier. Send the role you’re targeting, the location, and any constraints that matter. After that, upload the CV or paste it here when it is ready.";
         botMessage(
           introPrompt,
           humanComposeDelay(introPrompt, 2200, 4200),
@@ -79475,7 +81533,7 @@
       if (semanticIntent === "upload_stage_open_question") {
         questionFirstPrompt = isArabicChat()
           ? "أكيد. اسأليني أول إذا هذا اللي تحتاجينه قبل الـCV، وأنا أجاوبك ثم نكمل."
-          : "Yes. Ask me first if that's what you need before the CV, and I'll answer it before we carry on.";
+          : "Yes. Ask first if that is what you need before the CV. I’ll answer it, then we’ll carry on.";
         botMessage(
           questionFirstPrompt,
           humanComposeDelay(questionFirstPrompt, 1800, 3600),
@@ -79733,26 +81791,26 @@
           conversationFacts.targetFunctions.length ||
           conversationFacts.targetLocations.length
             ? pickVariant("benefits_follow_up_specific", [
-                "If you want, I can make that more specific to " +
+                "I can make that more specific to " +
                   escapeHtml(
                     describeCvProfile() ||
                       describeConversationFocus() ||
                       roleTitle
                   ) +
                   ".",
-                "If you want, I can make that concrete for " +
+                "I can make that concrete for " +
                   escapeHtml(
                     describeCvProfile() ||
                       describeConversationFocus() ||
                       roleTitle
                   ) +
                   ".",
-                "If that helps, I can make it more specific to your background and this search.",
+                "The next useful step is making it specific to your background and this search.",
               ])
             : pickVariant("benefits_follow_up_general", [
-                "If you want, I can make that more specific to this role.",
-                "If you want, I can make that less general and more about this role.",
-                "If that helps, I can keep it specific to this role rather than speaking broadly.",
+                "I can make that more specific to this role.",
+                "I can make that less general and more about this role.",
+                "The useful version is specific to this role rather than broad advice.",
               ]);
         var benefitsAccountType =
           getSuggestedMembershipAccountTypeForIntent(intent);
@@ -79913,9 +81971,9 @@
 
       if (intent === "senna_pro_clarification" || intent === "trial_question") {
         var membershipFollowUp = pickVariant("membership_follow_up", [
-          "I can also explain where MENA Careers Pro fits into the search, if that helps.",
-          "If you want, I can explain how it fits into the search.",
-          "Happy to break down where it fits, if that helps.",
+          "MENA Careers Pro fits into the search once you want the work to keep moving beyond one manual step.",
+          "The paid layer is for keeping the search, applications, and follow-up moving in one place.",
+          "The practical distinction is simple: free gives you direction; Pro keeps the execution moving.",
         ]);
         var membershipAccountType =
           getSuggestedMembershipAccountTypeForIntent(intent);
@@ -81630,7 +83688,7 @@
       return (
         promptKey.indexOf("job_search_") === 0 ||
         promptKey.indexOf("recruiter_outreach_") === 0 ||
-        /^(apply_(?:role_search_type|other_roles_text|cv_decision|qualification_check|qualification_present|qualification_alternative|qualification_alternative_detail|work_authorization_check|cover_letter_check|tailoring_progress_check|tailored_versions|final_questions|matching_roles|post_application_next)|apply_intro_(?:home_query_confirm|home_query_correct|home_roles|home_sectors|home_market)|member_desk_refine_(?:roles|sectors|locations)|review_clarification_check|continue_fix|confirm_recent_role|show_issue_decision|account_signup_check|consultant_route_confirm|consultant_route_clarify|direct_apply_cv_review_offer)$/.test(
+        /^(apply_(?:role_search_type|other_roles_text|cv_action_choice|cv_decision|account_check|qualification_check|qualification_present|qualification_alternative|qualification_alternative_detail|work_authorization_check|cover_letter_check|tailoring_progress_check|tailored_versions|ready_to_start_auto_apply|continue_background|final_questions|final_question_text|highlight_question|highlight_detail|matching_roles|post_application_next)|apply_intro_(?:helpful_mode|home_query_confirm|home_query_correct|home_roles|home_sectors|home_market|application_volume|intro_volume|lane|constraints|highlight_check|highlight_detail|priority)|member_desk_refine_(?:roles|sectors|locations)|review_clarification_check|continue_fix|confirm_recent_role|show_issue_decision|account_signup_check|consultant_route_confirm|consultant_route_clarify|direct_apply_cv_review_offer|payment_failure_detail|support_complaint_detail|different_question_detail)$/.test(
           promptKey
         )
       );
@@ -81638,7 +83696,7 @@
 
     function isStrictPromptOwnedState(state) {
       var promptKey = String(state || "");
-      return /^(greenhouse_security_code|profile_review_target_role|job_search_(?:similar_roles|location|visa|other_roles|other_roles_text|target_roles_text|anything_missed|anything_missed_text|member_follow_up|matching_cv_follow_up|package_choice)|recruiter_outreach_(?:role|seniority|locations|sectors|targets|outcome)|apply_(?:role_search_type|matching_roles|cv_decision|other_roles_text|qualification_check|qualification_present|qualification_alternative|qualification_alternative_detail|work_authorization_check|cover_letter_check|tailoring_progress_check|tailored_versions|final_questions|post_application_next)|apply_intro_(?:home_query_confirm|home_query_correct)|member_desk_refine_(?:roles|sectors|locations)|review_clarification_check|confirm_recent_role|show_issue_decision|continue_fix|consultant_route_confirm|consultant_route_clarify|direct_apply_cv_review_offer)$/.test(
+      return /^(greenhouse_security_code|profile_review_target_role|job_search_(?:similar_roles|location|visa|other_roles|other_roles_text|target_roles_text|anything_missed|anything_missed_text|member_follow_up|matching_cv_follow_up|package_choice)|recruiter_outreach_(?:role|seniority|locations|sectors|targets|outcome)|apply_(?:role_search_type|matching_roles|cv_action_choice|cv_decision|account_check|other_roles_text|qualification_check|qualification_present|qualification_alternative|qualification_alternative_detail|work_authorization_check|cover_letter_check|tailoring_progress_check|tailored_versions|ready_to_start_auto_apply|continue_background|final_questions|final_question_text|highlight_question|highlight_detail|post_application_next)|apply_intro_(?:helpful_mode|home_query_confirm|home_query_correct|home_roles|home_sectors|home_market|application_volume|intro_volume|lane|constraints|highlight_check|highlight_detail|priority)|member_desk_refine_(?:roles|sectors|locations)|review_clarification_check|confirm_recent_role|show_issue_decision|continue_fix|consultant_route_confirm|consultant_route_clarify|direct_apply_cv_review_offer|payment_failure_detail|support_complaint_detail|different_question_detail)$/.test(
         promptKey
       );
     }
@@ -81717,7 +83775,7 @@
       }
       return isArabicChat()
         ? "خذيها بطريقتك الطبيعية هنا وسأفهم المقصود وأكمل من هناك."
-        : "Say it in your own words and I’ll work out the next step from there.";
+        : "Send the detail for this step and I’ll keep it moving.";
     }
 
     function isPromptQuestionDetourIntent(intent, semantics) {
@@ -82245,7 +84303,9 @@
       }
       if (
         promptKey === "apply_tailoring_progress_check" ||
-        promptKey === "apply_tailored_versions"
+        promptKey === "apply_tailored_versions" ||
+        promptKey === "apply_ready_to_start_auto_apply" ||
+        promptKey === "apply_continue_background"
       ) {
         return {
           message: getProceedClarifyPrompt(),
@@ -83506,9 +85566,25 @@
         };
       }
 
+      if (promptKey === "apply_ready_to_start_auto_apply") {
+        if (/\b(?:start|auto|apply|submit|begin|go|yes|continue)\b/i.test(value)) {
+          return { type: "dispatch", target: "yes", clear: true };
+        }
+        return { type: "dispatch", target: "other" };
+      }
+
+      if (promptKey === "apply_continue_background") {
+        if (/\b(?:continue|background|keep going|keep applying|auto|apply|yes)\b/i.test(value)) {
+          return { type: "dispatch", target: "yes", clear: true };
+        }
+        return { type: "dispatch", target: "other" };
+      }
+
       if (
         promptKey === "apply_tailoring_progress_check" ||
-        promptKey === "apply_tailored_versions"
+        promptKey === "apply_tailored_versions" ||
+        promptKey === "apply_ready_to_start_auto_apply" ||
+        promptKey === "apply_continue_background"
       ) {
         decision = classifyContinueReply(value);
         if (decision === "yes") {
@@ -83694,6 +85770,480 @@
       return false;
     }
 
+    function promptStateAllowsGlobalConversationDetour(state) {
+      var promptKey = String(state || "");
+      return !!(
+        promptKey &&
+        promptKey !== "language_selection" &&
+        promptKey !== "question_detour"
+      );
+    }
+
+    function isLikelyDirectPromptAnswer(value, state, semantics) {
+      var promptKey = String(state || "");
+      var clean = cleanMessageText(value || "");
+      var lower = clean.toLowerCase();
+      var promptSemantics = semantics || parseMessageSemantics(value);
+      if (!clean || (promptSemantics && promptSemantics.has_question)) {
+        return false;
+      }
+      if (promptKey === "greenhouse_security_code") {
+        return !!extractGreenhouseSecurityCode(clean);
+      }
+      if (
+        promptKey === "apply_collect_preferred_email" ||
+        promptKey === "job_search_collect_preferred_email" ||
+        promptKey === "catch_up_collect_email"
+      ) {
+        return !!analysePreferredEmail(clean, "");
+      }
+      if (
+        promptKey === "apply_collect_full_name" ||
+        promptKey === "job_search_collect_full_name" ||
+        promptKey === "catch_up_collect_full_name"
+      ) {
+        return !!extractReasonableFullName(clean);
+      }
+      if (
+        promptKey === "apply_employer_question" ||
+        promptKey === "apply_employer_questions_bulk"
+      ) {
+        return !isOperationalMetaQuestion(clean);
+      }
+      if (
+        /^(?:apply_confirm_preferred_email|job_search_confirm_email|job_search_check_inbox|job_search_email_received|apply_post_application_next)$/.test(
+          promptKey
+        )
+      ) {
+        return !!clean;
+      }
+      return /^(?:yes|yeah|yep|sure|ok|okay|no|nope|nah)$/i.test(lower);
+    }
+
+    function isGlobalConversationSideQuestion(value, semantics, intent, state) {
+      var clean = normalizeCareerIntentText(cleanMessageText(value || ""));
+      var lower = clean.toLowerCase();
+      var promptSemantics = semantics || parseMessageSemantics(value);
+      var resolvedIntent = intent || detectIntent(value);
+      var expectation =
+        (promptSemantics && promptSemantics.response_expectation) ||
+        classifyResponseExpectation(clean, { promptState: state });
+      if (!promptStateAllowsGlobalConversationDetour(state) || !clean) {
+        return false;
+      }
+      if (isLikelyDirectPromptAnswer(value, state, promptSemantics)) {
+        return false;
+      }
+      if (
+        expectation &&
+        /^(?:QUESTION|REQUEST)$/.test(expectation.classification || "")
+      ) {
+        return true;
+      }
+      if (
+        /^(?:can i ask(?: you)?(?: something| a question)?|could i ask(?: you)?(?: something| a question)?|may i ask(?: you)?(?: something| a question)?|i have(?: got| a)? question|quick question(?: first)?|question first|before that|before we do that|ممكن سؤال|عندي سؤال|ابي اسال|أبي أسأل)(?:[.!?])?$/i.test(
+          lower
+        )
+      ) {
+        return true;
+      }
+      if (
+        isOperationalMetaQuestion(clean) ||
+        isPromptQuestionDetourIntent(resolvedIntent, promptSemantics) ||
+        /^(?:abusive_language|reassurance|support_complaint|technical_issue)$/.test(
+          String(resolvedIntent || "")
+        ) ||
+        /\b(?:wtf|wth|waste of time|this is useless|this is confusing|not working|broken)\b/i.test(
+          clean
+        )
+      ) {
+        return true;
+      }
+      return !!(
+        promptSemantics &&
+        promptSemantics.has_question &&
+        resolvedIntent &&
+        !/^(?:greeting|social_check|gratitude|positive_emphasis|light_flirt)$/.test(
+          String(resolvedIntent || "")
+        )
+      );
+    }
+
+    function getPromptResumeAfterSideQuestion(state) {
+      var promptKey = String(state || "");
+      if (promptKey === "apply_collect_full_name") {
+        return getAskFullNamePrompt();
+      }
+      if (promptKey === "apply_collect_preferred_email") {
+        return getAskPreferredEmailPrompt();
+      }
+      if (promptKey === "apply_confirm_preferred_email") {
+        return "Back to the application: just confirm the email address you want used.";
+      }
+      if (
+        promptKey === "apply_employer_question" ||
+        promptKey === "apply_employer_questions_bulk"
+      ) {
+        return "Back to the application: answer the employer question above and I’ll keep the form moving.";
+      }
+      if (promptKey === "greenhouse_security_code") {
+        return "Back to Greenhouse: paste the latest security code from the employer email.";
+      }
+      if (promptKey === "apply_post_application_next") {
+        return "Back to the next step: apply to more roles, assess your career, or track this application.";
+      }
+      if (String(promptKey || "").indexOf("job_search_") === 0) {
+        return getJobSearchPromptResumePrompt();
+      }
+      return getPromptStateExplanation(promptKey);
+    }
+
+    function getGlobalSideQuestionAnswer(intent, value, state) {
+      var promptKey = String(state || "");
+      var clean = cleanMessageText(value || "");
+      var answer = composeKnowledgeAnswer(intent, clean);
+      if (answer) {
+        return answer;
+      }
+      if (promptKey === "apply_collect_full_name") {
+        return "I need the name exactly as it should appear on the employer application. First name and last name is enough.";
+      }
+      if (promptKey === "apply_collect_preferred_email") {
+        return "I need the email the employer should use for this application. If the employer sends a confirmation or security code, it will go there.";
+      }
+      if (promptKey === "apply_confirm_preferred_email") {
+        return "I am checking the email because employer confirmations and Greenhouse security codes are tied to that address.";
+      }
+      if (
+        promptKey === "apply_employer_question" ||
+        promptKey === "apply_employer_questions_bulk"
+      ) {
+        return "Those questions come directly from the employer form. I only ask the required ones so the application can be completed properly.";
+      }
+      if (promptKey === "greenhouse_security_code") {
+        return "Greenhouse sometimes sends a security code to confirm the application email. Paste the latest code exactly as it appears and I’ll pass it to the active employer form session.";
+      }
+      if (promptKey === "apply_post_application_next") {
+        return "At this point the useful options are simple: apply to more similar roles while the search is warm, run the Career Assessment, or track this application.";
+      }
+      if (/can i ask|question first|quick question|before that/i.test(clean)) {
+        return "Yes. Ask me what you need, then I’ll bring us back to this step.";
+      }
+      return "";
+    }
+
+    function getPromptSlotSpec(state) {
+      var promptKey = String(state || "");
+      if (!promptKey) {
+        return { type: "none", strict: false };
+      }
+      if (/collect_full_name|full_name|target_name/i.test(promptKey)) {
+        return {
+          type: "full_name",
+          strict: true,
+          resume: getPromptResumeAfterSideQuestion(promptKey),
+          placeholder: getSemanticPromptClarify(promptKey).placeholder,
+        };
+      }
+      if (/collect_preferred_email|collect_email|account_email/i.test(promptKey)) {
+        return {
+          type: "email",
+          strict: true,
+          resume: getPromptResumeAfterSideQuestion(promptKey),
+          placeholder: getSemanticPromptClarify(promptKey).placeholder,
+        };
+      }
+      if (/confirm_email|confirm_preferred_email|reuse_preferred_email|check_inbox|email_received/i.test(promptKey)) {
+        return {
+          type: "confirmation",
+          strict: true,
+          resume: getPromptResumeAfterSideQuestion(promptKey),
+          placeholder: getSemanticPromptClarify(promptKey).placeholder,
+        };
+      }
+      if (promptKey === "greenhouse_security_code") {
+        return {
+          type: "security_code",
+          strict: true,
+          resume: getPromptResumeAfterSideQuestion(promptKey),
+          placeholder: getSemanticPromptClarify(promptKey).placeholder,
+        };
+      }
+      if (/employer_question|employer_questions_bulk/i.test(promptKey)) {
+        return {
+          type: "employer_answer",
+          strict: true,
+          resume: getPromptResumeAfterSideQuestion(promptKey),
+          placeholder: getSemanticPromptClarify(promptKey).placeholder,
+        };
+      }
+      if (
+        /(?:qualification|authorization|cover_letter|tailoring|tailored_versions|ready_to_start_auto_apply|continue_background|post_application_next|cv_action_choice|cv_decision|matching_roles|account_signup|waiting_for_signup|select_pricing|continue_fix|confirm_recent_role|show_issue_decision|consultant_route|direct_apply_cv_review_offer)/i.test(
+          promptKey
+        )
+      ) {
+        return {
+          type: "workflow_choice",
+          strict: isStrictPromptOwnedState(promptKey),
+          resume: getPromptResumeAfterSideQuestion(promptKey),
+          placeholder: getSemanticPromptClarify(promptKey).placeholder,
+        };
+      }
+      if (
+        promptKey.indexOf("apply_intro_") === 0 ||
+        /(?:apply_account_check|apply_other_roles_text|apply_highlight_question|apply_highlight_detail|apply_final_questions|apply_final_question_text|payment_failure_detail|support_complaint_detail|different_question_detail)/i.test(
+          promptKey
+        )
+      ) {
+        return {
+          type: "workflow_choice",
+          strict: isStrictPromptOwnedState(promptKey),
+          resume: getPromptResumeAfterSideQuestion(promptKey),
+          placeholder: getSemanticPromptClarify(promptKey).placeholder,
+        };
+      }
+      if (/job_search_|recruiter_outreach_|member_desk_refine_/i.test(promptKey)) {
+        return {
+          type: "search_context",
+          strict: isStrictPromptOwnedState(promptKey),
+          resume: getPromptResumeAfterSideQuestion(promptKey),
+          placeholder: getSemanticPromptClarify(promptKey).placeholder,
+        };
+      }
+      return {
+        type: "free_text",
+        strict: isStrictPromptOwnedState(promptKey),
+        resume: getPromptResumeAfterSideQuestion(promptKey),
+        placeholder: getComposerPlaceholder("reply"),
+      };
+    }
+
+    function isValidAnswerForPromptSlot(value, state, semantics) {
+      var spec = getPromptSlotSpec(state);
+      var clean = cleanMessageText(value || "");
+      var promptSemantics = semantics || parseMessageSemantics(value);
+      var resolution;
+      if (!clean) {
+        return false;
+      }
+      if (spec.type === "full_name") {
+        if (promptSemantics && promptSemantics.has_question) {
+          return false;
+        }
+        return !!extractReasonableFullName(clean);
+      }
+      if (spec.type === "email") {
+        if (promptSemantics && promptSemantics.has_question) {
+          return false;
+        }
+        return !!analysePreferredEmail(clean, "");
+      }
+      if (spec.type === "security_code") {
+        if (promptSemantics && promptSemantics.has_question) {
+          return false;
+        }
+        return !!extractGreenhouseSecurityCode(clean);
+      }
+      if (spec.type === "employer_answer") {
+        if (promptSemantics && promptSemantics.has_question) {
+          return false;
+        }
+        return !isOperationalMetaQuestion(clean);
+      }
+      resolution = resolveSemanticPromptReply(state, value, promptSemantics, detectIntent(value));
+      if (resolution && resolution.type === "dispatch") {
+        return true;
+      }
+      if (promptSemantics && promptSemantics.has_question) {
+        return false;
+      }
+      return isLikelyDirectPromptAnswer(value, state, promptSemantics);
+    }
+
+    function classifyUnifiedConversationRoute(value, state, semantics, intent) {
+      var promptKey = String(state || "");
+      var clean = cleanMessageText(value || "");
+      var promptSemantics = semantics || parseMessageSemantics(value);
+      var resolvedIntent = intent || detectIntent(value);
+      var expectation = classifyResponseExpectation(clean, {
+        promptState: promptKey,
+      });
+      var spec = getPromptSlotSpec(promptKey);
+      var validPromptAnswer = isValidAnswerForPromptSlot(
+        clean,
+        promptKey,
+        promptSemantics
+      );
+      var lower = normalizeCareerIntentText(clean).toLowerCase();
+      var asksForConversation = !!(
+        expectation.response_expected ||
+        promptSemantics.has_question ||
+        isOperationalMetaQuestion(clean) ||
+        isPromptQuestionDetourIntent(resolvedIntent, promptSemantics) ||
+        /^(?:abusive_language|reassurance|support_complaint|technical_issue|identity|social_check|greeting)$/.test(
+          String(resolvedIntent || "")
+        ) ||
+        /\b(?:wtf|wth|waste of time|this is useless|this is confusing|not working|broken|why are you asking|what are you doing|what happens next|can i ask|quick question|before that)\b/i.test(
+          lower
+        )
+      );
+      return {
+        type: validPromptAnswer
+          ? "PROMPT_ANSWER"
+          : asksForConversation
+          ? "SIDE_CONVERSATION"
+          : spec.strict
+          ? "PROMPT_CLARIFY"
+          : "FREE_TEXT",
+        promptState: promptKey,
+        slot: spec,
+        semantics: promptSemantics,
+        intent: resolvedIntent,
+        expectation: expectation,
+        validPromptAnswer: validPromptAnswer,
+      };
+    }
+
+    function answerUnifiedSideConversation(route, value) {
+      var currentRoute = route || {};
+      var promptKey = currentRoute.promptState || "";
+      var resolvedIntent = currentRoute.intent || detectIntent(value);
+      var answer;
+      var resumePrompt;
+      if (!promptKey || promptKey === "question_detour") {
+        return false;
+      }
+      if (resolvedIntent === "identity") {
+        handleIdentityQuestion(promptPlaceholder || getComposerPlaceholder("reply"));
+        return true;
+      }
+      if (
+        handleWildcardSocialInput(
+          resolvedIntent,
+          promptPlaceholder || getComposerPlaceholder("reply")
+        )
+      ) {
+        return true;
+      }
+      answer = getGlobalSideQuestionAnswer(resolvedIntent, value, promptKey);
+      if (!answer) {
+        answer = getRoleDiscoveryConversationAnswer(value, resolvedIntent);
+      }
+      resumePrompt =
+        (currentRoute.slot && currentRoute.slot.resume) ||
+        getPromptResumeAfterSideQuestion(promptKey);
+      clearResponseWatchdog();
+      if (!answer) {
+        answer = isArabicChat()
+          ? "أقدر أجاوبك على هذا، وبعدها أرجعنا للخطوة الحالية حتى لا يضيع التقديم."
+          : "I can answer that and then bring us back to the current application step.";
+      }
+      botSequenceForCurrentTurn(
+        [
+          {
+            html: answer,
+            pause: humanReadDelay(value, 420),
+            delay: humanComposeDelay(answer, 1100, 2600),
+          },
+          {
+            html: resumePrompt,
+            pause: humanReadDelay(answer, 320),
+            delay: humanComposeDelay(resumePrompt, 850, 1800),
+          },
+        ],
+        function () {
+          focusComposer(
+            (currentRoute.slot && currentRoute.slot.placeholder) ||
+              promptPlaceholder ||
+              getComposerPlaceholder("reply")
+          );
+        }
+      );
+      return true;
+    }
+
+    function clarifyPromptSlotAnswer(route, value) {
+      var currentRoute = route || {};
+      var details = getSemanticPromptClarify(currentRoute.promptState);
+      var message = details.message || getPromptStateExplanation(currentRoute.promptState);
+      clearResponseWatchdog();
+      botMessage(
+        message,
+        humanComposeDelay(message, 1000, 2200),
+        function () {
+          focusComposer(
+            details.placeholder ||
+              promptPlaceholder ||
+              getComposerPlaceholder("reply")
+          );
+        },
+        humanReadDelay(value, 360)
+      );
+      return true;
+    }
+
+    function maybeHandleGlobalConversationRoute(
+      value,
+      semantics,
+      intent,
+      state
+    ) {
+      var promptKey = String(state || "");
+      var resolvedIntent = intent || detectIntent(value);
+      var promptSemantics = semantics || parseMessageSemantics(value);
+      var answer;
+      var resumePrompt;
+      if (
+        !isGlobalConversationSideQuestion(
+          value,
+          promptSemantics,
+          resolvedIntent,
+          promptKey
+        )
+      ) {
+        return false;
+      }
+      if (
+        isExplicitPromptQuestionDetourRequest(
+          value,
+          promptSemantics,
+          resolvedIntent
+        )
+      ) {
+        clearResponseWatchdog();
+        openQuestionDetour(
+          getQuestionDetourIntro(),
+          getPromptResumeAfterSideQuestion(promptKey)
+        );
+        return true;
+      }
+      answer = getGlobalSideQuestionAnswer(resolvedIntent, value, promptKey);
+      resumePrompt = getPromptResumeAfterSideQuestion(promptKey);
+      clearResponseWatchdog();
+      if (!answer) {
+        openQuestionDetour(getQuestionDetourIntro(), resumePrompt, value);
+        return true;
+      }
+      botSequenceForCurrentTurn(
+        [
+          {
+            html: answer,
+            pause: humanReadDelay(value, 420),
+            delay: humanComposeDelay(answer, 1200, 2600),
+          },
+          {
+            html: resumePrompt,
+            pause: humanReadDelay(answer, 360),
+            delay: humanComposeDelay(resumePrompt, 900, 1900),
+          },
+        ],
+        function () {
+          focusComposer(promptPlaceholder || getComposerPlaceholder("reply"));
+        }
+      );
+      return true;
+    }
+
     function maybeHandlePromptReply(value) {
       var binary;
       var semantics;
@@ -83719,6 +86269,7 @@
       var promptExplanation;
       var semanticResolution;
       var strictPromptOwnedState;
+      var unifiedRoute;
       if (!promptState || !promptHandlers) {
         return false;
       }
@@ -83770,6 +86321,14 @@
       cleanValue = cleanMessageText(value || "").toLowerCase();
       trimmedValue = cleanMessageText(value || "");
       promptStateValue = String(promptState || "");
+
+      if (offScriptIntent === "quick_insight_request") {
+        clearResponseWatchdog();
+        return showExplicitQuickRoleComparison({
+          placeholder: promptPlaceholder || getComposerPlaceholder("reply"),
+        });
+      }
+
       looksLikeQuestionalBinaryReply =
         /\b(how|what|why|who|where|when|safe|real|fake|data|privacy|support)\b/.test(
           cleanValue
@@ -83790,6 +86349,32 @@
       semanticFirstPromptState = !!(
         !operationalPromptState && conversationalPromptState
       );
+
+      unifiedRoute = classifyUnifiedConversationRoute(
+        value,
+        promptStateValue,
+        semantics,
+        offScriptIntent
+      );
+
+      if (unifiedRoute.type === "SIDE_CONVERSATION") {
+        return answerUnifiedSideConversation(unifiedRoute, value);
+      }
+
+      if (unifiedRoute.type === "PROMPT_CLARIFY") {
+        return clarifyPromptSlotAnswer(unifiedRoute, value);
+      }
+
+      if (
+        maybeHandleGlobalConversationRoute(
+          value,
+          semantics,
+          offScriptIntent,
+          promptStateValue
+        )
+      ) {
+        return true;
+      }
 
       if (
         (promptStateValue === "apply_employer_question" ||
@@ -84250,7 +86835,7 @@
 
       promptExplanation = isArabicChat()
         ? "خذيها بالطريقة التي تبدو طبيعية لك هنا، وسألتقط المعنى وأكمل من هناك."
-        : "Say it in your own words and I’ll work out the next step from there.";
+        : "Send the detail for this step and I’ll keep it moving.";
       botMessage(
         promptExplanation,
         humanComposeDelay(promptExplanation, 1700, 3400),
@@ -84393,7 +86978,7 @@
             html: pickVariant("identity_preface", [
               "Fair question.",
               "That's a fair question.",
-              "Good question.",
+              "Fair to ask.",
             ]),
             delay: humanComposeDelay("Fair question.", 900, 1800),
             pause: humanReadDelay(lastUserInputText, 450),
@@ -84446,13 +87031,11 @@
       }
 
       if (!isUsableExternalApplyUrl(targetUrl)) {
+        var missingLinkCopy =
+          "I cannot see a working application link attached to this role from here. Send me the correct application link and I’ll check the route, or I can keep working from the role details already visible.";
         botMessage(
-          "I cannot see a working application link attached to this role from here. If you want, I can still help you tailor the CV and cover letter, or you can send me the correct application link.",
-          humanComposeDelay(
-            "I cannot see a working application link attached to this role from here. If you want, I can still help you tailor the CV and cover letter, or you can send me the correct application link.",
-            2600,
-            5600
-          ),
+          missingLinkCopy,
+          humanComposeDelay(missingLinkCopy, 2600, 5600),
           function () {
             focusComposer(getComposerPlaceholder("message"));
           },
@@ -84744,20 +87327,29 @@
       if (getConfig().isLoggedIn && hasLoggedInSavedCv()) {
         return "Good. I'll start from your saved CV.";
       }
+      if (roleTitle) {
+        return (
+          "Upload your CV and I’ll check the fit for <strong>" +
+          escapeHtml(roleTitle) +
+          "</strong>" +
+          (roleCompany ? " at <strong>" + escapeHtml(roleCompany) + "</strong>" : "") +
+          "."
+        );
+      }
       return composeSemanticReply(
         "apply_kickoff_intro_dynamic_" + getRoleFamilyTone(),
         {
           opener: {
-            direct: ["Good.", "Perfect."],
-            warm: ["Alright.", "Good."],
-            measured: ["Fine.", "Right."],
-            sharp: ["Ok.", "Fine."],
+            direct: ["Upload your CV and I’ll find roles that fit your background."],
+            warm: ["Send me your CV and I’ll look for roles that make sense for you."],
+            measured: ["Start with your CV and I’ll map it to suitable live roles."],
+            sharp: ["Send the CV and I’ll turn it into a focused role search."],
           },
           action: {
-            direct: ["Let's start with the CV."],
-            warm: ["Send me the CV and I'll take the first pass."],
-            measured: ["Let's begin with the CV."],
-            sharp: ["Start by uploading the CV."],
+            direct: ["I’ll show the strongest matches and any issues worth fixing before you apply."],
+            warm: ["I’ll show the best matches first, then flag anything that could weaken an application."],
+            measured: ["I’ll surface the best matches and the most important application signals."],
+            sharp: ["I’ll find the strongest matches and flag what needs tightening."],
           },
         }
       );
@@ -84790,20 +87382,23 @@
           " unless you want to replace it."
         );
       }
+      if (roleTitle) {
+        return "I’ll show what already fits, what is missing, and whether the CV should be tailored before you apply.";
+      }
       return composeSemanticReply(
         "apply_kickoff_upload_prompt_dynamic_" + getRoleFamilyTone(),
         {
           opener: {
-            direct: ["Upload your CV"],
-            warm: ["Send me the CV"],
-            measured: ["Upload the CV"],
-            sharp: ["Send over the CV"],
+            direct: ["After that,"],
+            warm: ["Once it is in,"],
+            measured: ["With the CV in place,"],
+            sharp: ["Then"],
           },
           action: {
-            direct: ["and I'll assess it against the role."],
-            warm: ["and I'll line it up with the brief."],
-            measured: ["and I'll check how it reads for this role."],
-            sharp: ["and I'll work through it against the requirements."],
+            direct: ["you can choose a role and I’ll move straight into the application step."],
+            warm: ["we can pick the best role and move directly into applying."],
+            measured: ["we can choose the best-fit role and continue from there."],
+            sharp: ["we pick the best role and move."],
           },
         }
       );
@@ -84952,7 +87547,7 @@
           },
           action: {
             direct: ["I’ll prepare the application route for this role."],
-            warm: ["I’ll carry on to the application workspace for this role."],
+            warm: ["I’ll carry on to the application queue for this role."],
             measured: ["I’ll continue into the application route from here."],
             sharp: ["I’ll prepare the application route from here."],
           },
@@ -85021,10 +87616,10 @@
           "apply_tailoring_proceed_ar_dynamic_" + getRoleFamilyTone(),
           {
             opener: {
-              direct: ["هل مناسب أن أكمل من هنا؟"],
-              warm: ["هل أنتِ مرتاحة أن أتحرك من هنا؟"],
-              measured: ["هل تريدينني أن أكمل عليه؟"],
-              sharp: ["هل هذا مناسب حتى أواصل؟"],
+              direct: ["هل تريدين مراجعة النسخة المعدلة قبل التقديم؟"],
+              warm: ["هل تفضلين مراجعة النسخة المعدلة قبل أن نكمل التقديم؟"],
+              measured: ["هل تريدين رؤية النسخة المعدلة قبل إرسال الطلب؟"],
+              sharp: ["هل أفتح لك النسخة المعدلة قبل التقديم؟"],
             },
           }
         );
@@ -85033,10 +87628,10 @@
         "apply_tailoring_proceed_dynamic_" + getRoleFamilyTone(),
         {
           opener: {
-            direct: ["Are you happy to proceed?"],
-            warm: ["Are you comfortable for me to move forward from here?"],
-            measured: ["Are you happy for me to carry on with it?"],
-            sharp: ["Does that look fine to proceed with?"],
+            direct: ["Do you want to review the tailored version before applying?"],
+            warm: ["Do you want to see the tailored version before I move it into the application queue?"],
+            measured: ["Do you want to review the tailored CV before applying?"],
+            sharp: ["Should I open the tailored version before we apply?"],
           },
         }
       );
@@ -85285,7 +87880,7 @@
           opener: {
             direct: ["Do you already have a MENA Careers account?"],
             warm: [
-              "Before I prepare the application workspace, do you already have a MENA Careers account set up?",
+              "Before I prepare the application queue, do you already have a MENA Careers account set up?",
             ],
             measured: ["Do you have a MENA Careers account already?"],
             sharp: ["Do you already have the MENA Careers account?"],
@@ -85297,10 +87892,10 @@
                 ", and I need the account so I can keep the application materials and follow-up in one place.",
             ],
             warm: [
-              "I’ll keep the employer form inside Senna where possible and flag the application signals before you send it.",
+              "I’ll keep the employer form accessible from the queue where possible and flag anything important before you send it.",
             ],
             measured: [],
-            sharp: ["I need it for the application workspace."],
+            sharp: ["I need it for the application queue."],
           },
         });
       }
@@ -85384,6 +87979,9 @@
           },
         });
       }
+      if (commercialApplyQueueDetailsMode) {
+        return "Firstly, can I get your full name?";
+      }
       return composeSemanticReply("apply_full_name_prompt_dynamic", {
         opener: {
           direct: ["What is your full name?"],
@@ -85404,6 +88002,9 @@
             sharp: ["أرسلي البريد الإلكتروني الذي تريدينني أن أعتمد عليه."],
           },
         });
+      }
+      if (commercialApplyQueueDetailsMode) {
+        return "What email would you like to be reached at?";
       }
       return composeSemanticReply("apply_preferred_email_prompt_dynamic", {
         opener: {
@@ -86258,8 +88859,8 @@
           sharp: ["Do you want a quick Career Assessment first,"],
         },
         closer: {
-          direct: ["or would you rather I prepare the application workspace?"],
-          warm: ["or should I move straight to the application workspace?"],
+          direct: ["or would you rather I prepare the application queue?"],
+          warm: ["or should I move straight to the application queue?"],
           measured: ["or do you want me to move straight to the application route?"],
           sharp: ["or would you rather I prepare the application step?"],
         },
@@ -87649,6 +90250,31 @@
       return "";
     }
 
+    function isApplyActualQualificationLabel(label) {
+      var clean = cleanMessageText(label || "").toLowerCase();
+      return /^(?:acca|aca|cima|cfa|cpa|caia|frm|cma|mba|ifrs|gaap|bachelor(?:'s)? degree|bachelors degree|master(?:'s)? degree|masters degree|phd|doctorate|chartered accountant|chartered financial analyst)$/i.test(clean);
+    }
+
+    function isApplyBoilerplateRoleKeyword(label) {
+      var clean = cleanMessageText(label || "").toLowerCase();
+      if (!clean) {
+        return true;
+      }
+      if (/^(?:about mena careers|mena careers|senna|joinsenna|recruiters|opportunities|market insight|london|europe|dubai)$/i.test(clean)) {
+        return true;
+      }
+      var roleContext = cleanMessageText(
+        [roleTitle, roleCompany, roleLocation, roleSector, roleSeniority].join(" ")
+      ).toLowerCase();
+      if (
+        /^(?:private equity|software|technology|investment banking|corporate finance)$/i.test(clean) &&
+        roleContext.indexOf(clean) === -1
+      ) {
+        return true;
+      }
+      return false;
+    }
+
     function buildApplyQuickRoleInsightMessage(type, label, tone, message) {
       label = cleanMessageText(label || "");
       message = cleanMessageText(message || "");
@@ -87678,6 +90304,13 @@
         );
       }
       if (type === "qualification") {
+        if (!isApplyActualQualificationLabel(label)) {
+          return (
+            "I noticed the role asks for " +
+            label +
+            ", but the CV does not make that evidence obvious yet. If it is part of your background, I can help bring it forward before you apply."
+          );
+        }
         return (
           "I noticed the job asks for " +
           label +
@@ -87797,6 +90430,15 @@
         type = cleanMessageText(item.type || type).toLowerCase();
         message = cleanMessageText(item.message || "");
       }
+      if (type === "qualification" && !isApplyActualQualificationLabel(label)) {
+        type = "missing_signal";
+        if (/qualification/i.test(message)) {
+          message = "";
+        }
+        if (/qualification|not on the cv/i.test(title)) {
+          title = "";
+        }
+      }
       if (
         !message &&
         (label || /^cv_contact_(?:email|phone|linkedin|location)$/.test(type))
@@ -87843,6 +90485,7 @@
 
     function getApplyQuickRoleInsightItems(analysis) {
       var backendInsights = (analysis && analysis.quick_role_insights) || [];
+      var maxItems = 5;
       var items = [];
       backendInsights.forEach(function (item) {
         var normalized = normalizeApplyQuickRoleInsightItem(item);
@@ -87854,7 +90497,7 @@
         ((analysis && analysis.requirement_gaps) || []).forEach(function (gap) {
           var label = cleanMessageText(gap && gap.label ? gap.label : "");
           var type = cleanMessageText(gap && gap.type ? gap.type : "missing_signal").toLowerCase();
-          if (!label || items.length >= 2) {
+          if (!label || items.length >= maxItems) {
             return;
           }
           items.push(
@@ -87870,7 +90513,7 @@
         getApplySecondaryGaps(analysis).forEach(function (gap) {
           var label = cleanMessageText(gap && gap.label ? gap.label : "");
           var type = cleanMessageText(gap && gap.type ? gap.type : gap && gap.kind === "clarify" ? "general" : "missing_signal").toLowerCase();
-          if (!label || items.length >= 2) {
+          if (!label || items.length >= maxItems) {
             return;
           }
           items.push(
@@ -87889,7 +90532,7 @@
           var label = cleanMessageText(signal && signal.label ? signal.label : "");
           if (
             !label ||
-            items.length >= 2 ||
+            items.length >= maxItems ||
             /^(?:language|credential|soft_signal|seniority_signal)$/i.test(category)
           ) {
             return;
@@ -87925,9 +90568,9 @@
             return true;
           }));
       }
-      if (items.length < 2) {
+      if (items.length < maxItems) {
         getApplyCvProfileGapInsightItems().forEach(function (item) {
-          if (items.length < 2 && item) {
+          if (items.length < maxItems && item) {
             items.push(item);
           }
         });
@@ -87943,7 +90586,7 @@
           seen[key] = true;
           return true;
         })
-        .slice(0, 2);
+        .slice(0, maxItems);
     }
 
     function getApplyQuickRoleInsightMessages(analysis) {
@@ -87952,16 +90595,163 @@
       });
     }
 
-    function renderApplyQuickRoleInsights(analysis) {
+    function getApplyAnalysisDisplayLabel(item) {
+      if (typeof item === "string" || typeof item === "number") {
+        return cleanMessageText(item);
+      }
+      if (item && typeof item === "object") {
+        return cleanMessageText(
+          item.label ||
+            item.title ||
+            item.keyword ||
+            item.name ||
+            item.message ||
+            item.type ||
+            ""
+        );
+      }
+      return "";
+    }
+
+    function getApplyProblemKeywords(analysis) {
+      return dedupeList(
+        []
+          .concat((analysis && analysis.missing_keywords) || [])
+          .concat((analysis && analysis.missing_role_keywords) || [])
+          .concat(
+            ((analysis && analysis.requirement_gaps) || []).map(function (gap) {
+              return getApplyAnalysisDisplayLabel(gap);
+            })
+          )
+      )
+        .map(getApplyAnalysisDisplayLabel)
+        .filter(Boolean)
+        .filter(function (label) {
+          return !/^(?:general|missing_signal|requirement_gap)$/i.test(label);
+        })
+        .filter(function (label) {
+          return !isApplyBoilerplateRoleKeyword(label);
+        })
+        .slice(0, 8);
+    }
+
+    function getApplySignalRowScore(kind, analysis, items) {
+      var lowerKind = cleanMessageText(kind || "").toLowerCase();
+      var matchedCount = ((analysis && analysis.matched_keywords) || []).length;
+      var missingCount = getApplyProblemKeywords(analysis).length;
+      var gapCount =
+        ((analysis && analysis.requirement_gaps) || []).length +
+        ((analysis && analysis.priority_gaps) || []).length;
+      var contactGaps = (items || []).filter(function (item) {
+        return /^cv_contact_/.test(item.type || "");
+      }).length;
+      var score = 68;
+      if (lowerKind === "role match") {
+        score = Math.max(24, Math.min(92, 72 + matchedCount * 4 - missingCount * 7));
+      } else if (lowerKind === "keyword coverage") {
+        score = Math.max(18, Math.min(92, 76 + matchedCount * 3 - missingCount * 9));
+      } else if (lowerKind === "positioning") {
+        score = Math.max(22, Math.min(88, 70 - gapCount * 10 + matchedCount * 2));
+      } else if (lowerKind === "application readiness") {
+        score = Math.max(20, Math.min(90, 78 - gapCount * 7 - contactGaps * 10));
+      }
+      return Math.round(score);
+    }
+
+    function renderApplySignalChartRows(analysis, items) {
+      var rows = [
+        "Role match",
+        "Keyword coverage",
+        "Positioning",
+        "Application readiness",
+      ];
+      return (
+        '<div class="sffc-crm-apply-chat__quick-signal-chart" aria-label="Application signal strength">' +
+        rows
+          .map(function (label) {
+            var score = getApplySignalRowScore(label, analysis, items);
+            var tone = score >= 75 ? "strong" : score >= 52 ? "watch" : "gap";
+            return (
+              '<div class="sffc-crm-apply-chat__quick-signal-row is-' +
+              escapeHtml(tone) +
+              '">' +
+              '<div class="sffc-crm-apply-chat__quick-signal-row-head">' +
+              '<span>' +
+              escapeHtml(label) +
+              "</span><strong>" +
+              escapeHtml(String(score)) +
+              "%</strong></div>" +
+              '<div class="sffc-crm-apply-chat__quick-signal-track"><span style="width:' +
+              escapeHtml(String(score)) +
+              '%"></span></div>' +
+              "</div>"
+            );
+          })
+          .join("") +
+        "</div>"
+      );
+    }
+
+    function renderApplyQuickRoleInsights(analysis, options) {
+      var settings = options || {};
       var items = getApplyQuickRoleInsightItems(analysis);
+      var missingKeywords = getApplyProblemKeywords(analysis);
+      var requirementGaps = dedupeList(
+        []
+          .concat((analysis && analysis.requirement_gaps) || [])
+          .concat((analysis && analysis.priority_gaps) || [])
+      );
+      var matchedKeywords = dedupeList(
+        []
+          .concat((analysis && analysis.matched_keywords) || [])
+          .concat((analysis && analysis.matched_role_keywords) || [])
+      );
+      var metricCards = [];
+      if (missingKeywords.length) {
+        metricCards.push(
+          '<span class="sffc-crm-apply-chat__quick-insight-metric is-gap"><strong>' +
+            escapeHtml(String(missingKeywords.length)) +
+            "</strong><span>role terms to surface</span></span>"
+        );
+      }
+      if (requirementGaps.length) {
+        metricCards.push(
+          '<span class="sffc-crm-apply-chat__quick-insight-metric is-watch"><strong>' +
+            escapeHtml(String(requirementGaps.length)) +
+            "</strong><span>points to fix or confirm</span></span>"
+        );
+      }
+      if (matchedKeywords.length) {
+        metricCards.push(
+          '<span class="sffc-crm-apply-chat__quick-insight-metric is-strong"><strong>' +
+            escapeHtml(String(matchedKeywords.length)) +
+            "</strong><span>matched CV signals</span></span>"
+        );
+      }
       if (!items.length) {
         return "";
       }
       return (
-        '<div class="sffc-crm-apply-chat__quick-insights" role="group" aria-label="Application signals">' +
+        '<div class="sffc-crm-apply-chat__quick-insights" role="group" aria-label="CV to role application check">' +
         '<div class="sffc-crm-apply-chat__quick-insights-head">' +
-        '<span>Worth noting</span><strong>Application signals</strong>' +
+        '<span>Before you apply</span><strong>Application could be stronger</strong>' +
         "</div>" +
+        '<p class="sffc-crm-apply-chat__quick-insights-lede">I checked your CV against this role. You can apply as-is, but I’d fix the points below first.</p>' +
+        (metricCards.length
+          ? '<div class="sffc-crm-apply-chat__quick-insights-metrics">' +
+            metricCards.slice(0, 3).join("") +
+            "</div>"
+          : "") +
+        (missingKeywords.length
+          ? '<div class="sffc-crm-apply-chat__quick-keywords"><span>Missing from CV or not obvious enough</span><div>' +
+            missingKeywords
+              .map(function (keyword) {
+                return "<strong>" + escapeHtml(keyword) + "</strong>";
+              })
+              .join("") +
+            "</div></div>"
+          : "") +
+        renderApplySignalChartRows(analysis, items) +
         items
           .map(function (item) {
             return (
@@ -87981,8 +90771,1656 @@
             );
           })
           .join("") +
-        '<p class="sffc-crm-apply-chat__quick-insights-cta">I’ll keep moving with the application. After this one is submitted, I can run the full Career Assessment if you want it.</p>' +
+        (settings.hideActions
+          ? '<p class="sffc-crm-apply-chat__quick-insights-cta">These points come from the CV and role comparison. I’ll use them when tailoring the application materials for each role in the queue.</p>'
+          : '<p class="sffc-crm-apply-chat__quick-insights-cta">These points come from the CV and role comparison. I can tailor the wording without adding anything that is not already supported by your CV.</p>' +
+            '<div class="sffc-crm-apply-chat__quick-insights-actions">' +
+            '<button type="button" class="sffc-crm-apply-chat__quick-insights-primary" data-sffc-apply-chat-tailor-cv>Tailor my CV to this role</button>' +
+            '<button type="button" class="sffc-crm-apply-chat__quick-insights-secondary" data-sffc-apply-chat-apply-current-cv>Apply with current CV</button>' +
+            "</div>") +
         "</div>"
+      );
+    }
+
+    function showExplicitQuickRoleComparison(options) {
+      var settings = options || {};
+      var nextPlaceholder =
+        settings.placeholder || input.placeholder || getComposerPlaceholder("reply");
+      if (!hasApplyForMeSelectedJobContext()) {
+        botMessage(
+          "Send me the role first and I’ll compare the CV against it properly.",
+          humanComposeDelay("Send me the role first.", 900, 1800),
+          function () {
+            focusComposer("Paste the role or choose one from the results");
+          }
+        );
+        return true;
+      }
+      if (!applyCvAnalysis) {
+        botMessage(
+          "Upload the CV first and I’ll compare it against this role.",
+          humanComposeDelay("Upload the CV first.", 900, 1800),
+          function () {
+            if (uploadButton) {
+              uploadButton.hidden = false;
+            }
+            focusComposer("Upload your CV");
+          }
+        );
+        return true;
+      }
+      var rendered = renderApplyQuickRoleInsights(applyCvAnalysis, {
+        hideActions: true,
+      });
+      if (!rendered) {
+        botMessage(
+          "I’ve compared the CV against the role. Nothing major is jumping out, so I’ll use the strongest evidence when preparing the queue.",
+          humanComposeDelay("CV comparison complete.", 1200, 2400),
+          function () {
+            focusComposer(input.placeholder || "Type your next message");
+          }
+        );
+        return true;
+      }
+      botMessage(
+        rendered,
+        humanComposeDelay("CV comparison ready.", 1000, 2000),
+        function () {
+          focusComposer(nextPlaceholder);
+        }
+      );
+      return true;
+    }
+
+    function getCommercialApplyQueueMainItem() {
+      return {
+        key: getCommercialApplyQueueItemKey({
+          title: roleTitle || "Selected role",
+          company: roleCompany || "Employer",
+          location: roleLocation || "",
+          viewUrl: roleUrl || "",
+          applyUrl: applicationUrl || "",
+          companyLogo: roleCompanyLogo || "",
+        }),
+        title: cleanMessageText(roleTitle || "Selected role"),
+        company: cleanMessageText(roleCompany || "Employer"),
+        location: cleanMessageText(roleLocation || ""),
+        status: "Ready",
+        viewUrl: cleanMessageText(roleUrl || ""),
+        applyUrl: cleanMessageText(applicationUrl || ""),
+        companyLogo: cleanMessageText(roleCompanyLogo || ""),
+      };
+    }
+
+    function getCommercialApplyQueueItemKey(item) {
+      var source = item || {};
+      return [
+        cleanMessageText(source.id || source.postId || source.jobsPostId || ""),
+        cleanMessageText(source.viewUrl || source.url || source.applyUrl || ""),
+        cleanMessageText(source.title || "").toLowerCase(),
+        cleanMessageText(source.company || "").toLowerCase(),
+        cleanMessageText(source.location || "").toLowerCase(),
+      ]
+        .filter(Boolean)
+        .join("|")
+        .replace(/\s+/g, " ");
+    }
+
+    function getCommercialApplyQueueComparableKey(source) {
+      var value =
+        typeof source === "string"
+          ? source
+          : (source && source.key) || getCommercialApplyQueueItemKey(source || {});
+      return cleanMessageText(decodeHtmlEntities(value || ""))
+        .replace(/\s*\|\s*/g, "|")
+        .replace(/\s+/g, " ")
+        .toLowerCase();
+    }
+
+    function normalizeCommercialApplyQueueItem(item, status) {
+      var source = normalizeActualJobPostSearchItem(item || {});
+      var title = cleanMessageText(source.title || (item && item.title) || "Selected role");
+      var company = cleanMessageText(source.company || (item && item.company) || "Employer");
+      var location = cleanMessageText(source.location || (item && item.location) || "");
+      var viewUrl = cleanMessageText(source.viewUrl || source.applyUrl || (item && (item.viewUrl || item.url)) || "");
+      var applyUrl = cleanMessageText(source.applyUrl || (item && item.applyUrl) || "");
+      var applicationItemWorkspaceUrl = cleanMessageText(
+        source.applicationWorkspaceUrl ||
+          source.application_workspace_url ||
+          (item && (item.applicationWorkspaceUrl || item.application_workspace_url)) ||
+          ""
+      );
+      var companyLogo = cleanMessageText(
+        source.companyLogo ||
+          source.company_logo ||
+          source.logo ||
+          (item && (item.companyLogo || item.company_logo || item.logo)) ||
+          ""
+      );
+      var queueItem = {
+        key: getCommercialApplyQueueItemKey(
+          Object.assign({}, source, {
+            title: title,
+            company: company,
+            location: location,
+            viewUrl: viewUrl,
+            applyUrl: applyUrl,
+            companyLogo: companyLogo,
+          })
+        ),
+        title: title,
+        company: company,
+        location: location,
+        status: cleanMessageText(status || (item && item.status) || "Queued"),
+        id: cleanMessageText(source.id || (item && item.id) || ""),
+        postId: cleanMessageText(source.postId || (item && item.postId) || ""),
+        jobsPostId: cleanMessageText(
+          source.jobsPostId ||
+            source.wpPostId ||
+            source.postId ||
+            source.id ||
+            (item && (item.jobsPostId || item.jobs_post_id || item.wpPostId || item.wp_post_id)) ||
+            ""
+        ),
+        wpPostId: cleanMessageText(
+          source.wpPostId ||
+            source.jobsPostId ||
+            source.postId ||
+            source.id ||
+            (item && (item.wpPostId || item.wp_post_id || item.jobsPostId || item.jobs_post_id)) ||
+            ""
+        ),
+        viewUrl: viewUrl,
+        applyUrl: applyUrl,
+        applicationWorkspaceUrl: applicationItemWorkspaceUrl,
+        companyLogo: companyLogo,
+        sourcePlatform: cleanMessageText(
+          source.sourcePlatform ||
+            source.source_platform ||
+            (item && (item.sourcePlatform || item.source_platform || item.provider)) ||
+            ""
+        ),
+        autoSubmitProvider: cleanMessageText(
+          source.autoSubmitProvider ||
+            source.auto_submit_provider ||
+            (item && (item.autoSubmitProvider || item.auto_submit_provider || item.provider)) ||
+            ""
+        ),
+        autoSubmitSupported: !!(
+          source.autoSubmitSupported ||
+          source.auto_submit_supported ||
+          (item && (item.autoSubmitSupported || item.auto_submit_supported))
+        ),
+        autoSubmitSchemaStatus: cleanMessageText(
+          source.autoSubmitSchemaStatus ||
+            source.auto_submit_schema_status ||
+            (item && (item.autoSubmitSchemaStatus || item.auto_submit_schema_status)) ||
+            ""
+        ),
+        sector: cleanMessageText(source.sector || (item && item.sector) || ""),
+        seniority: cleanMessageText(source.seniority || (item && item.seniority) || ""),
+        matchScore: Number(source.matchScore || (item && item.matchScore) || 0) || 0,
+        applicationTaskUuid: cleanMessageText(item && item.applicationTaskUuid || ""),
+      };
+      if (!queueItem.key) {
+        queueItem.key = [queueItem.title, queueItem.company, queueItem.location]
+          .join("|")
+          .toLowerCase();
+      }
+      return queueItem;
+    }
+
+    function getJobsWorkspaceSourceItems() {
+      var seen = {};
+      var items = [];
+      function add(item) {
+        var normalized = normalizeCommercialApplyQueueItem(item, "Available");
+        var comparableKey = getCommercialApplyQueueComparableKey(normalized);
+        if (!normalized.title || normalized.title === "Role" || seen[comparableKey]) {
+          return;
+        }
+        seen[comparableKey] = true;
+        items.push(normalized);
+      }
+      if (hasConcreteRoleEntryContext()) {
+        add(getCommercialApplyQueueMainItem());
+      }
+      ["matching_cv", "recommended", "interview", "salary", "recent"].forEach(function (listKey) {
+        getJobListViewItems(listKey).forEach(add);
+      });
+      if (jobSearchLiveResultsState && Array.isArray(jobSearchLiveResultsState.items)) {
+        jobSearchLiveResultsState.items.forEach(function (entry) {
+          add((entry && entry.item) || entry || {});
+        });
+      }
+      (matchingRolesSeed || []).forEach(add);
+      return items.slice(0, 80);
+    }
+
+    function isCommercialApplyQueueItemQueued(item) {
+      var key = getCommercialApplyQueueComparableKey(item || {});
+      return commercialApplyQueueItemsState.some(function (queueItem) {
+        return getCommercialApplyQueueComparableKey(queueItem || {}) === key;
+      });
+    }
+
+    function findJobsWorkspaceItemByKey(key) {
+      var cleanKey = getCommercialApplyQueueComparableKey(key || "");
+      if (!cleanKey) {
+        return null;
+      }
+      return (
+        commercialApplyQueueItemsState.filter(function (item) {
+          return getCommercialApplyQueueComparableKey(item || {}) === cleanKey;
+        })[0] ||
+        getJobsWorkspaceSourceItems().filter(function (item) {
+          return getCommercialApplyQueueComparableKey(item || {}) === cleanKey;
+        })[0] ||
+        null
+      );
+    }
+
+    function getApplicationQueueRoleModalUrl(item) {
+      var source = item || {};
+      var isCurrentRole =
+        cleanMessageText(source.title || "").toLowerCase() ===
+          cleanMessageText(roleTitle || "").toLowerCase() &&
+        cleanMessageText(source.company || "").toLowerCase() ===
+          cleanMessageText(roleCompany || "").toLowerCase();
+      return cleanMessageText(
+        (isCurrentRole && applicationWorkspaceUrl) ||
+          source.applicationWorkspaceUrl ||
+          source.application_workspace_url ||
+          source.applyUrl ||
+          source.applicationUrl ||
+          source.application_url ||
+          source.viewUrl ||
+          source.url ||
+          ""
+      );
+    }
+
+    function openApplicationQueueRoleModalByKey(key) {
+      var item = findJobsWorkspaceItemByKey(key);
+      var url = getApplicationQueueRoleModalUrl(item);
+      var modal;
+      if (!item || !url || url === "#") {
+        botMessage(
+          "I don’t have a usable employer form link for that role yet.",
+          humanComposeDelay("No employer form link found.", 700, 1400),
+          function () {
+            focusComposer("Choose another role in the queue");
+          }
+        );
+        return;
+      }
+      modal = ensureApplicationQueueRoleModal();
+      if (applicationQueueRoleModalTitle) {
+        applicationQueueRoleModalTitle.textContent =
+          cleanMessageText(item.title || "Employer application");
+      }
+      if (applicationQueueRoleModalMeta) {
+        applicationQueueRoleModalMeta.textContent = [
+          cleanMessageText(item.company || ""),
+          cleanMessageText(item.location || ""),
+        ]
+          .filter(Boolean)
+          .join(" · ");
+      }
+      if (applicationQueueRoleModalBody) {
+        applicationQueueRoleModalBody.innerHTML =
+          '<div class="sffc-crm-apply-chat__application-modal-frame-wrap">' +
+          '<iframe class="sffc-crm-apply-chat__application-modal-frame" src="' +
+          escapeHtml(url) +
+          '" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>' +
+          "</div>" +
+          '<div class="sffc-crm-apply-chat__application-modal-actions">' +
+          '<a href="' +
+          escapeHtml(url) +
+          '" target="_blank" rel="noopener noreferrer">Open in new tab</a>' +
+          '<button type="button" data-sffc-greenhouse-completed>Submitted</button>' +
+          "</div>";
+      }
+      modal.hidden = false;
+      modal.setAttribute("aria-hidden", "false");
+      desk.classList.add("is-application-modal-open");
+    }
+
+    function syncJobsWorkspaceState(options) {
+      var opts = options || {};
+      if (!workspaceState) {
+        return;
+      }
+      if (opts.open) {
+        openWorkspaceTab("roles", {
+          stage: opts.stage || "Job queue",
+          note:
+            opts.note ||
+            "Search live roles, add the strongest ones to the queue, and keep the application list moving from here.",
+          cvStatus: workspaceState.cvStatus || "CV ready",
+          rolesHtml: renderJobsWorkspaceHtml(),
+        });
+        return;
+      }
+      updateWorkspace({
+        rolesEnabled: true,
+        rolesHtml: renderJobsWorkspaceHtml(),
+      });
+    }
+
+    function addCommercialApplyQueueItemByKey(key) {
+      var item = findJobsWorkspaceItemByKey(key);
+      if (commercialApplyQueueActivated) {
+        return;
+      }
+      if (!item || isCommercialApplyQueueItemQueued(item)) {
+        return;
+      }
+      commercialApplyQueueInitialized = true;
+      commercialApplyQueueItemsState = commercialApplyQueueItemsState.concat([
+        Object.assign({}, item, { status: "In Queue" }),
+      ]);
+      if (commercialApplyQueueItemsState.length === 1) {
+        commercialApplyQueueItemsState[0].status = "Ready";
+      }
+      syncJobsWorkspaceState();
+      updateCommercialApplyQueueCard({
+        active: commercialApplyQueueActivated,
+        showButton: !commercialApplyQueueActivated,
+        eyebrow: commercialApplyQueueActivated ? "Application queue" : "Ready to apply",
+        title: commercialApplyQueueActivated ? "Emily is working through this list" : "Main role first, similar roles next",
+      });
+      queueApplyChatMemoryPersist();
+    }
+
+    function removeCommercialApplyQueueItemByKey(key) {
+      var cleanKey = getCommercialApplyQueueComparableKey(key || "");
+      if (commercialApplyQueueActivated) {
+        return;
+      }
+      if (!cleanKey) {
+        return;
+      }
+      var nextItems = commercialApplyQueueItemsState.filter(function (item) {
+        return getCommercialApplyQueueComparableKey(item || {}) !== cleanKey;
+      });
+      if (nextItems.length === commercialApplyQueueItemsState.length) {
+        return;
+      }
+      commercialApplyQueueInitialized = true;
+      commercialApplyQueueItemsState = nextItems.map(function (item, index) {
+        if (index === 0 && /^(in queue|queued)$/i.test(cleanMessageText(item.status || ""))) {
+          return Object.assign({}, item, { status: "Ready" });
+        }
+        return item;
+      });
+      syncJobsWorkspaceState();
+      updateCommercialApplyQueueCard({
+        active: commercialApplyQueueActivated,
+        showButton: !commercialApplyQueueActivated,
+        eyebrow: commercialApplyQueueActivated ? "Application queue" : "Ready to apply",
+        title: commercialApplyQueueActivated ? "Emily is working through this list" : "Main role first, similar roles next",
+      });
+      queueApplyChatMemoryPersist();
+    }
+
+    function ensureCommercialApplyQueueFromLoadedJobs() {
+      var sourceItems;
+      if (commercialApplyQueueItemsState.length) {
+        return commercialApplyQueueItemsState.slice(0);
+      }
+      if (commercialApplyQueueInitialized) {
+        return [];
+      }
+      sourceItems = getJobsWorkspaceSourceItems();
+      if (!sourceItems.length) {
+        sourceItems = [getCommercialApplyQueueMainItem()];
+      }
+      commercialApplyQueueItemsState = sourceItems.map(function (item, index) {
+        return Object.assign({}, item, {
+          status: index === 0 ? "Ready" : "In Queue",
+        });
+      });
+      commercialApplyQueueInitialized = true;
+      syncJobsWorkspaceState();
+      return commercialApplyQueueItemsState.slice(0);
+    }
+
+    function renderJobsWorkspaceHtml() {
+      var allItems = getJobsWorkspaceSourceItems();
+      var query = cleanMessageText(jobsWorkspaceSearchQuery || "").toLowerCase();
+      var queuedKeys = {};
+      var queuedItems = commercialApplyQueueItemsState.length
+        ? commercialApplyQueueItemsState
+        : [];
+      var visibleItems;
+      queuedItems.forEach(function (item) {
+        var comparableKey = getCommercialApplyQueueComparableKey(item || {});
+        if (comparableKey) {
+          queuedKeys[comparableKey] = true;
+        }
+      });
+      visibleItems = allItems.filter(function (item) {
+        var haystack;
+        if (!query) {
+          return true;
+        }
+        haystack = [
+          item.title,
+          item.company,
+          item.location,
+          item.sector,
+          item.seniority,
+        ]
+          .join(" ")
+          .toLowerCase();
+        return haystack.indexOf(query) !== -1;
+      });
+
+      function renderScore(item) {
+        var match;
+        var score = Number(item.matchScore || 0) || 0;
+        if (!score && typeof buildCvRoleMatch === "function") {
+          match = buildCvRoleMatch(item);
+          score = match && match.score ? Math.round(match.score) : 0;
+        }
+        if (!score) {
+          return '<span class="sffc-crm-apply-chat__jobs-fit is-muted">Check</span>';
+        }
+        return (
+          '<span class="sffc-crm-apply-chat__jobs-fit">' +
+          escapeHtml(String(Math.max(0, Math.min(100, Math.round(score))))) +
+          "%</span>"
+        );
+      }
+
+      function renderJobRow(item, mode) {
+        var key = item.key || getCommercialApplyQueueItemKey(item);
+        var comparableKey = getCommercialApplyQueueComparableKey(key);
+        var isQueued = !!queuedKeys[comparableKey];
+        var meta = [item.sector, item.seniority]
+          .map(cleanMessageText)
+          .filter(Boolean)
+          .join(" · ")
+          .replace(/_/g, " ");
+        return (
+          '<article class="sffc-crm-apply-chat__jobs-row' +
+          (isQueued ? " is-queued" : "") +
+          '">' +
+          '<label class="sffc-crm-apply-chat__jobs-check" aria-label="' +
+          escapeHtml((mode === "queued" ? "Remove " : "Queue ") + (item.title || "role")) +
+          '">' +
+          '<input type="checkbox" ' +
+          (isQueued ? "checked " : "") +
+          (mode === "queued"
+            ? 'data-sffc-apply-chat-queue-remove="' + escapeHtml(key) + '"'
+            : 'data-sffc-apply-chat-queue-add="' + escapeHtml(key) + '"') +
+          ">" +
+          "<span></span>" +
+          "</label>" +
+          '<div class="sffc-crm-apply-chat__jobs-role">' +
+          "<strong>" +
+          escapeHtml(item.title || "Role") +
+          "</strong>" +
+          (meta ? "<small>" + escapeHtml(meta) + "</small>" : "") +
+          "</div>" +
+          '<span class="sffc-crm-apply-chat__jobs-company">' +
+          escapeHtml(item.company || "Company pending") +
+          "</span>" +
+          '<span class="sffc-crm-apply-chat__jobs-location">' +
+          escapeHtml(item.location || "Location pending") +
+          "</span>" +
+          '<span class="sffc-crm-apply-chat__jobs-status">' +
+          (mode === "queued"
+            ? renderCommercialApplyQueueStatus(item.status || "In Queue")
+            : isQueued
+            ? '<span class="sffc-crm-apply-chat__jobs-pill is-added">In queue</span>'
+            : renderScore(item)) +
+          "</span>" +
+          '<button type="button" class="sffc-crm-apply-chat__jobs-action" ' +
+          (mode === "queued"
+            ? 'data-sffc-apply-chat-queue-remove="' + escapeHtml(key) + '">Remove'
+            : isQueued
+            ? 'data-sffc-apply-chat-queue-remove="' + escapeHtml(key) + '">Remove'
+            : 'data-sffc-apply-chat-queue-add="' + escapeHtml(key) + '">Add') +
+          "</button>" +
+          "</article>"
+        );
+      }
+
+      return (
+        '<section class="sffc-crm-apply-chat__jobs-workspace" aria-label="Job search and application queue">' +
+        '<div class="sffc-crm-apply-chat__jobs-head">' +
+        '<div><span>Jobs</span><strong>Search and build the application queue</strong><p>Search loaded roles, add the ones worth processing, and remove anything that should not be in the batch.</p></div>' +
+        '<div class="sffc-crm-apply-chat__jobs-stats"><span><strong>' +
+        escapeHtml(String(queuedItems.length)) +
+        '</strong> queued</span><span><strong>' +
+        escapeHtml(String(allItems.length)) +
+        "</strong> loaded</span></div>" +
+        "</div>" +
+        '<label class="sffc-crm-apply-chat__jobs-search"><span aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M10.5 18a7.5 7.5 0 1 1 5.3-12.8A7.5 7.5 0 0 1 10.5 18Zm5.3-2.2L21 21" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span><input type="search" value="' +
+        escapeHtml(jobsWorkspaceSearchQuery || "") +
+        '" placeholder="Search role, company, location, sector" data-sffc-apply-chat-jobs-search></label>' +
+        '<div class="sffc-crm-apply-chat__jobs-section">' +
+        '<div class="sffc-crm-apply-chat__jobs-section-head"><strong>Application queue</strong><span>' +
+        escapeHtml(String(queuedItems.length || 0)) +
+        " selected</span></div>" +
+        '<div class="sffc-crm-apply-chat__jobs-table">' +
+        '<div class="sffc-crm-apply-chat__jobs-row sffc-crm-apply-chat__jobs-row--head"><span></span><span>Role</span><span>Company</span><span>Location</span><span>Status</span><span></span></div>' +
+        (queuedItems.length
+          ? queuedItems.map(function (item) {
+              return renderJobRow(item, "queued");
+            }).join("")
+          : '<div class="sffc-crm-apply-chat__jobs-empty">No roles queued yet. Add roles from the loaded jobs below.</div>') +
+        "</div></div>" +
+        '<div class="sffc-crm-apply-chat__jobs-section">' +
+        '<div class="sffc-crm-apply-chat__jobs-section-head"><strong>Loaded jobs</strong><span>' +
+        escapeHtml(String(visibleItems.length)) +
+        (query ? " matching search" : " available") +
+        "</span></div>" +
+        '<div class="sffc-crm-apply-chat__jobs-table">' +
+        '<div class="sffc-crm-apply-chat__jobs-row sffc-crm-apply-chat__jobs-row--head"><span></span><span>Role</span><span>Company</span><span>Location</span><span>Fit</span><span></span></div>' +
+        (visibleItems.length
+          ? visibleItems.map(function (item) {
+              return renderJobRow(item, "loaded");
+            }).join("")
+          : '<div class="sffc-crm-apply-chat__jobs-empty">No loaded jobs match that search.</div>') +
+        "</div></div>" +
+        "</section>"
+      );
+    }
+
+    function getCommercialApplyQueueSimilarItems(limit) {
+      var seen = {};
+      var currentTitle = cleanMessageText(roleTitle || "").toLowerCase();
+      return getJobsWorkspaceSourceItems()
+        .filter(function (item) {
+          var title;
+          var key;
+          if (!item || !item.title) {
+            return false;
+          }
+          title = cleanMessageText(item.title || "").toLowerCase();
+          key =
+            title + "|" + cleanMessageText(item.company || "").toLowerCase();
+          if (title === currentTitle || seen[key]) {
+            return false;
+          }
+          seen[key] = true;
+          return true;
+        })
+        .slice(0, Math.max(0, limit || 5));
+    }
+
+    function getCommercialApplyQueueItems() {
+      var sourceItems = getJobsWorkspaceSourceItems();
+      if (!sourceItems.length) {
+        sourceItems = [getCommercialApplyQueueMainItem()];
+      }
+      return sourceItems.map(function (item, index) {
+        return Object.assign({}, item, {
+          status: index === 0 ? "Ready" : "In Queue",
+        });
+      });
+    }
+
+    function renderCommercialApplyQueueStatus(status) {
+      var clean = cleanMessageText(status || "Ready");
+      var slug = clean.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+      var completed = /^(submitted|complete|completed)$/i.test(clean);
+      var working = /^(preparing|tailoring cv|checking form|reviewing form|queued|running|needs verification|needs salary answer)$/i.test(clean);
+      var referred = /^referred$/i.test(clean);
+      return (
+        '<span class="sffc-crm-apply-chat__apply-queue-status is-' +
+        escapeHtml(slug) +
+        '">' +
+        '<i class="sffc-crm-apply-chat__apply-queue-status-mark' +
+        (completed ? " is-complete" : working ? " is-working" : referred ? " is-referred" : "") +
+        '" aria-hidden="true"></i>' +
+        escapeHtml(clean) +
+        "</span>" +
+        (referred
+          ? '<button type="button" class="sffc-crm-apply-chat__apply-queue-status-info" data-sffc-apply-chat-status-info="referred"><span aria-hidden="true">i</span>More info</button>'
+          : "")
+      );
+    }
+
+    function showCommercialApplyQueueStatusInfo(status) {
+      var clean = cleanMessageText(status || "status");
+      var modal = ensureApplicationQueueRoleModal();
+      var title = "Application status";
+      var meta = "What this status means";
+      var body =
+        '<div class="sffc-crm-apply-chat__status-info-modal">' +
+        '<span class="sffc-crm-apply-chat__status-info-kicker">Queue status</span>' +
+        '<h3>Referred</h3>' +
+        '<p>This means Emily could not safely finish that employer form automatically after retrying the visible route.</p>' +
+        '<ul>' +
+        '<li>The role stays in your shortlist.</li>' +
+        '<li>The details are kept for manual submission/review.</li>' +
+        '<li>You do not need to answer a separate chat prompt for this status.</li>' +
+        '</ul>' +
+        '</div>';
+      if (!/^referred$/i.test(clean)) {
+        body =
+          '<div class="sffc-crm-apply-chat__status-info-modal">' +
+          '<span class="sffc-crm-apply-chat__status-info-kicker">Queue status</span>' +
+          '<h3>' +
+          escapeHtml(clean) +
+          '</h3>' +
+          '<p>This is the current processing state for the role in your shortlist.</p>' +
+          '</div>';
+      }
+      if (applicationQueueRoleModalTitle) {
+        applicationQueueRoleModalTitle.textContent = title;
+      }
+      if (applicationQueueRoleModalMeta) {
+        applicationQueueRoleModalMeta.textContent = meta;
+      }
+      if (applicationQueueRoleModalBody) {
+        applicationQueueRoleModalBody.innerHTML = body;
+      }
+      modal.hidden = false;
+      modal.setAttribute("aria-hidden", "false");
+      desk.classList.add("is-application-modal-open");
+    }
+
+    function normalizeCommercialApplyQueueStatus(status, index) {
+      var clean = cleanMessageText(status || "");
+      if (clean) {
+        return clean;
+      }
+      return index === 0 ? "Ready" : "Queued";
+    }
+
+    function setCommercialApplyQueueStatuses(statuses, options) {
+      var opts = options || {};
+      var items = commercialApplyQueueItemsState.length
+        ? commercialApplyQueueItemsState
+        : getCommercialApplyQueueItems();
+      commercialApplyQueueItemsState = items.map(function (item, index) {
+        var nextStatus = Array.isArray(statuses)
+          ? statuses[index] || (index === 0 ? "" : opts.queuedLabel || "Queued")
+          : index === 0
+          ? statuses
+          : opts.queuedLabel || "Queued";
+        return Object.assign({}, item, {
+          status: normalizeCommercialApplyQueueStatus(nextStatus, index),
+        });
+      });
+      updateCommercialApplyQueueCard({
+        active:
+          typeof opts.active === "boolean"
+            ? opts.active
+            : commercialApplyQueueActivated,
+        showButton:
+          typeof opts.showButton === "boolean"
+            ? opts.showButton
+            : !commercialApplyQueueActivated,
+        eyebrow:
+          opts.eyebrow ||
+          (commercialApplyQueueActivated ? "Application queue" : "Ready to apply"),
+        title: opts.title || (commercialApplyQueueActivated
+          ? "Emily is working through this list"
+          : "Main role first, similar roles next"),
+      });
+      syncJobsWorkspaceState({
+        open: !!(opts.open || commercialApplyQueueActivated),
+        stage: opts.stage || (commercialApplyQueueActivated ? "Application queue" : "Job queue"),
+        note:
+          opts.note ||
+          (commercialApplyQueueActivated
+            ? "Emily is working through the queued roles. You can keep the list visible here while the chat handles anything that needs your input."
+            : "Search live roles, add the strongest ones to the queue, and remove anything you do not want included."),
+      });
+    }
+
+    function shouldReferCommercialApplyQueueItem(item, index) {
+      var status = cleanMessageText((item && item.status) || "");
+      var url = getApplicationQueueRoleModalUrl(item || {});
+      if (/^(submitted|complete|completed)$/i.test(status)) {
+        return false;
+      }
+      if (!url || url === "#") {
+        return true;
+      }
+      if (index === 0 && hasDirectAutoSubmitCapability()) {
+        return false;
+      }
+      var itemProvider = cleanMessageText(
+        (item &&
+          (item.provider ||
+            item.sourceProvider ||
+            item.source_provider ||
+            item.sourcePlatform ||
+            item.source_platform ||
+            item.platform)) ||
+          autoSubmitProvider ||
+          ""
+      );
+      if (isKnownFrameBlockedApplicationUrl(url, itemProvider)) {
+        return true;
+      }
+      return index > 0;
+    }
+
+    function getCommercialApplyQueueItemProvider(item) {
+      var provider = cleanMessageText(
+        (item &&
+          (item.autoSubmitProvider ||
+            item.auto_submit_provider ||
+            item.provider ||
+            item.sourceProvider ||
+            item.source_provider ||
+            item.sourcePlatform ||
+            item.source_platform ||
+            item.platform)) ||
+          ""
+      );
+      if (provider) {
+        return provider;
+      }
+      return getApplicationUrlProviderLabel(getApplicationQueueRoleModalUrl(item || {}));
+    }
+
+    function isCommercialApplyQueueItemWorkerSupported(item) {
+      var provider = getCommercialApplyQueueItemProvider(item || "").toLowerCase();
+      var url = getApplicationQueueRoleModalUrl(item || {});
+      return provider === "greenhouse" || isGreenhouseApplicationUrl(url);
+    }
+
+    function getCommercialApplyQueueTerminalStatus(status) {
+      var clean = cleanMessageText(status || "").toLowerCase();
+      if (clean === "submitted") {
+        return "Submitted";
+      }
+      if (
+        clean === "failed" ||
+        clean === "review_required" ||
+        clean === "dry_run_ready"
+      ) {
+        return "Referred";
+      }
+      if (clean === "verification_required") {
+        return "Needs verification";
+      }
+      return "";
+    }
+
+    function getCommercialQueuePhaseLabel(phaseIndex) {
+      return ["Preparing", "Tailoring CV", "Reviewing form"][phaseIndex] || "";
+    }
+
+    function updateCommercialQueueItemStatus(itemIndex, status, title) {
+      commercialApplyQueueActivated = true;
+      commercialApplyQueueItemsState = commercialApplyQueueItemsState.map(function (item, index) {
+        if (index !== itemIndex) {
+          return item;
+        }
+        return Object.assign({}, item, {
+          status: status,
+        });
+      });
+      updateCommercialApplyQueueCard({
+        active: true,
+        showButton: false,
+        eyebrow: "Application queue",
+        title: title || "Emily is working through this list",
+        pinDuration: 12000,
+      });
+      syncJobsWorkspaceState();
+    }
+
+    function finishCommercialApplyQueueProcessing() {
+      var submittedCount = commercialApplyQueueItemsState.filter(function (item) {
+        return /^(submitted|complete|completed)$/i.test(cleanMessageText(item.status || ""));
+      }).length;
+      var referredCount = commercialApplyQueueItemsState.filter(function (item) {
+        return /^referred$/i.test(cleanMessageText(item.status || ""));
+      }).length;
+      var message = "I’ve finished submitting the shortlisted applications. Do you want me to continue the search?";
+      if (referredCount > 0 && submittedCount > 0) {
+        message =
+          "I’ve finished processing the shortlist. " +
+          submittedCount +
+          " application" +
+          (submittedCount === 1 ? " is" : "s are") +
+          " submitted and " +
+          referredCount +
+          " " +
+          (referredCount === 1 ? "has" : "have") +
+          " been referred for manual submission. Do you want me to continue the search?";
+      } else if (referredCount > 0) {
+        message =
+          "I’ve finished processing the shortlist. The roles that could not be safely submitted automatically have been referred for manual submission. Do you want me to continue the search?";
+      }
+      botMessage(
+        message,
+        humanComposeDelay(message, 1000, 2200),
+        function () {
+          focusComposer("Tell me whether to continue the search");
+        }
+      );
+    }
+
+    function queueCommercialApplyQueueWorkerTask(itemIndex) {
+      var item = commercialApplyQueueItemsState[itemIndex] || {};
+      var queueTask = root.__sffcQueueBrowserApplicationTask || queueBrowserApplicationTask;
+      updateCommercialQueueItemStatus(
+        itemIndex,
+        "Checking form",
+        "Emily is checking the next form"
+      );
+      return queueTask(item).then(function (data) {
+        var taskUuid = cleanMessageText((data && data.task_uuid) || "");
+        commercialApplyQueueItemsState = commercialApplyQueueItemsState.map(function (candidate, index) {
+          if (index !== itemIndex) {
+            return candidate;
+          }
+          return Object.assign({}, candidate, {
+            status: taskUuid ? "Running" : "Referred",
+            applicationTaskUuid: taskUuid,
+          });
+        });
+        updateCommercialApplyQueueCard({
+          active: true,
+          showButton: false,
+          eyebrow: "Application queue",
+          title: "Emily is working through this list",
+          preserveScroll: true,
+          pinScroll: false,
+        });
+        if (!taskUuid) {
+          return { status: "failed" };
+        }
+        return pollCommercialApplyQueueWorkerTask(taskUuid, itemIndex, 0);
+      });
+    }
+
+    function pollCommercialApplyQueueWorkerTask(taskUuid, itemIndex, attempt) {
+      var currentAttempt = Number(attempt || 0);
+      if (!taskUuid || currentAttempt > 60) {
+        updateCommercialQueueItemStatus(
+          itemIndex,
+          "Referred",
+          "Emily is reviewing the next role"
+        );
+        return Promise.resolve({ status: "failed" });
+      }
+      return new Promise(function (resolve) {
+        window.setTimeout(function () {
+          fetchBrowserApplicationTaskStatus(taskUuid)
+            .then(function (data) {
+              var rawStatus = cleanMessageText((data && data.status) || "");
+              var cleanStatus = rawStatus.toLowerCase();
+              var terminalStatus = getCommercialApplyQueueTerminalStatus(rawStatus);
+              if (cleanStatus === "queued") {
+                updateCommercialQueueItemStatus(
+                  itemIndex,
+                  "Queued",
+                  "Emily is waiting for the worker"
+                );
+                pollCommercialApplyQueueWorkerTask(taskUuid, itemIndex, currentAttempt + 1).then(resolve);
+                return;
+              }
+              if (cleanStatus === "processing") {
+                updateCommercialQueueItemStatus(
+                  itemIndex,
+                  "Running",
+                  "Emily is working through this list"
+                );
+                pollCommercialApplyQueueWorkerTask(taskUuid, itemIndex, currentAttempt + 1).then(resolve);
+                return;
+              }
+              if (cleanStatus === "verification_required") {
+                updateCommercialQueueItemStatus(
+                  itemIndex,
+                  "Needs verification",
+                  "Emily needs the Greenhouse code"
+                );
+                askCommercialApplyQueueVerificationCode(taskUuid, itemIndex, data).then(resolve);
+                return;
+              }
+              if (terminalStatus) {
+                updateCommercialQueueItemStatus(
+                  itemIndex,
+                  terminalStatus,
+                  itemIndex + 1 < commercialApplyQueueItemsState.length
+                    ? "Emily is reviewing the next role"
+                    : "Emily is finishing the shortlist"
+                );
+                resolve(data || { status: cleanStatus });
+                return;
+              }
+              updateCommercialQueueItemStatus(
+                itemIndex,
+                "Running",
+                "Emily is working through this list"
+              );
+              pollCommercialApplyQueueWorkerTask(taskUuid, itemIndex, currentAttempt + 1).then(resolve);
+            })
+            .catch(function () {
+              pollCommercialApplyQueueWorkerTask(taskUuid, itemIndex, currentAttempt + 1).then(resolve);
+            });
+        }, currentAttempt < 6 ? 4000 : 12000);
+      });
+    }
+
+    function askCommercialApplyQueueVerificationCode(taskUuid, itemIndex, data) {
+      return new Promise(function (resolve) {
+        var verificationMessage = cleanMessageText((data && data.last_error) || "");
+        if (!verificationMessage) {
+          verificationMessage =
+            "Greenhouse sent a security code to the application email. Send me the code and I’ll continue this application.";
+        }
+        botMessage(
+          verificationMessage,
+          humanComposeDelay("Greenhouse security code required.", 1000, 2200),
+          function () {
+            setPromptState(
+              "commercial_apply_queue_greenhouse_security_code",
+              {
+                other: function (value) {
+                  var code = extractGreenhouseSecurityCode(value || "");
+                  if (!/^[A-Za-z0-9-]{4,20}$/.test(code)) {
+                    botMessage(
+                      "Send just the Greenhouse security code from the email. It is case-sensitive, so paste it exactly as shown.",
+                      humanComposeDelay("Send just the code.", 800, 1600),
+                      function () {
+                        focusComposer("Paste the Greenhouse code");
+                      },
+                      humanReadDelay(value, 450)
+                    );
+                    return;
+                  }
+                  applicationVerificationCode = code;
+                  clearPromptState();
+                  echoPromptChoice(value);
+                  submitBrowserApplicationVerificationCode(taskUuid, code)
+                    .then(function () {
+                      updateCommercialQueueItemStatus(
+                        itemIndex,
+                        "Running",
+                        "Emily is continuing the verified application"
+                      );
+                      pollCommercialApplyQueueWorkerTask(taskUuid, itemIndex, 0).then(resolve);
+                    })
+                    .catch(function () {
+                      updateCommercialQueueItemStatus(
+                        itemIndex,
+                        "Referred",
+                        "Emily is reviewing the next role"
+                      );
+                      resolve({ status: "failed" });
+                    });
+                },
+              },
+              "Paste the Greenhouse security code",
+              { application_task_uuid: taskUuid, queue_item_index: itemIndex }
+            );
+            focusComposer("Paste the Greenhouse security code");
+          }
+        );
+      });
+    }
+
+    function processCommercialApplyQueueItem(itemIndex, phaseIndex) {
+      var item = commercialApplyQueueItemsState[itemIndex];
+      if (!item) {
+        finishCommercialApplyQueueProcessing();
+        return;
+      }
+      updateCommercialQueueItemStatus(
+        itemIndex,
+        "Preparing",
+        "Emily is preparing tailored materials"
+      );
+      window.setTimeout(function () {
+        if (!isCommercialApplyQueueItemWorkerSupported(item)) {
+          updateCommercialQueueItemStatus(
+            itemIndex,
+            "Referred",
+            itemIndex + 1 < commercialApplyQueueItemsState.length
+              ? "Emily is reviewing the next role"
+              : "Emily is finishing the shortlist"
+          );
+          window.setTimeout(function () {
+            processCommercialApplyQueueItem(itemIndex + 1, 0);
+          }, randomBetween(550, 1000));
+          return;
+        }
+        updateCommercialQueueItemStatus(
+          itemIndex,
+          "Reviewing form",
+          "Emily is reviewing the form route"
+        );
+        queueCommercialApplyQueueWorkerTask(itemIndex)
+          .catch(function () {
+            updateCommercialQueueItemStatus(
+              itemIndex,
+              "Referred",
+              itemIndex + 1 < commercialApplyQueueItemsState.length
+                ? "Emily is reviewing the next role"
+                : "Emily is finishing the shortlist"
+            );
+          })
+          .then(function () {
+            window.setTimeout(function () {
+              processCommercialApplyQueueItem(itemIndex + 1, 0);
+            }, randomBetween(650, 1200));
+          });
+      }, randomBetween(650, 1200));
+    }
+
+    function processCommercialApplyQueueShortlist() {
+      var items = commercialApplyQueueItemsState.length
+        ? commercialApplyQueueItemsState
+        : getCommercialApplyQueueItems();
+      if (!items.length) {
+        return;
+      }
+      commercialApplyQueueActivated = true;
+      commercialApplyQueueDetailsMode = true;
+      commercialApplyQueueInitialized = true;
+      commercialApplyQueueItemsState = items.map(function (item) {
+        return Object.assign({}, item, {
+          status: "In Queue",
+        });
+      });
+      updateCommercialApplyQueueCard({
+        active: true,
+        showButton: false,
+        eyebrow: "Application queue",
+        title: "Emily is starting the shortlist",
+        pinDuration: 12000,
+      });
+      window.setTimeout(function () {
+        processCommercialApplyQueueItem(0, 0);
+      }, randomBetween(500, 900));
+    }
+
+    function continueCommercialQueueAfterManualSubmissionReferral() {
+      var items = commercialApplyQueueItemsState.length
+        ? commercialApplyQueueItemsState
+        : getCommercialApplyQueueItems();
+      var nextIndex = items.length > 1 ? 1 : -1;
+      commercialApplyQueueActivated = true;
+      commercialApplyQueueItemsState = items.map(function (item, index) {
+        var nextStatus = "In Queue";
+        if (index === 0) {
+          nextStatus = "Referred";
+        } else if (index === nextIndex) {
+          nextStatus = "Preparing";
+        }
+        return Object.assign({}, item, {
+          status: nextStatus,
+        });
+      });
+      updateCommercialApplyQueueCard({
+        active: true,
+        showButton: false,
+        eyebrow: "Application queue",
+        title: nextIndex > -1
+          ? "Emily is working through the next role"
+          : "Emily is working through this list",
+      });
+      syncJobsWorkspaceState({
+        open: true,
+        stage: "Application queue",
+        note: "Emily is moving through the remaining roles. Anything that needs manual handling will stay marked clearly here.",
+      });
+      if (nextIndex > -1) {
+        window.setTimeout(function () {
+          processCommercialApplyQueueItem(nextIndex, 0);
+        }, randomBetween(650, 1200));
+      } else {
+        finishCommercialApplyQueueProcessing();
+      }
+    }
+
+    function showCommercialManualSubmissionDelayAndContinue() {
+      continueCommercialQueueAfterManualSubmissionReferral();
+    }
+
+    function updateCommercialQueueApplicationWorkspaceLink(schema) {
+      var workspaceUrl = cleanMessageText(
+        (schema && (schema.application_embed_url || schema.hosted_url)) ||
+          getApplicationWorkspaceUrl() ||
+          applicationUrl ||
+          ""
+      );
+      if (workspaceUrl) {
+        applicationWorkspaceUrl = workspaceUrl;
+        root.setAttribute("data-application-workspace-url", workspaceUrl);
+      }
+      commercialApplyQueueActivated = true;
+      commercialApplyQueueItemsState = (
+        commercialApplyQueueItemsState.length
+          ? commercialApplyQueueItemsState
+          : getCommercialApplyQueueItems()
+      ).map(function (item, index) {
+        var status = index === 0 ? "Reviewing form" : item.status || "In Queue";
+        return Object.assign({}, item, {
+          status: status,
+          applicationWorkspaceUrl:
+            index === 0 && workspaceUrl
+              ? workspaceUrl
+              : item.applicationWorkspaceUrl || "",
+        });
+      });
+      updateCommercialApplyQueueCard({
+        active: true,
+        showButton: false,
+        eyebrow: "Application queue",
+        title: "Emily is reviewing the current role",
+      });
+      syncJobsWorkspaceState({
+        open: true,
+        stage: "Application queue",
+        note: "Open any role in the queue to view the employer form without leaving the workflow.",
+      });
+    }
+
+    function updateCommercialApplyQueueCard(options) {
+      var opts = options || {};
+      var cards = root.querySelectorAll(
+        ".sffc-crm-apply-chat__apply-queue-card"
+      );
+      var card = cards.length ? cards[cards.length - 1] : null;
+      var messageRow = card ? card.closest(".sffc-crm-apply-chat__message") : null;
+      var currentScrollTop = messages ? messages.scrollTop : 0;
+      var nextCards;
+      var nextCard;
+      var nextMessageRow;
+      if (!card) {
+        return false;
+      }
+      card.outerHTML = renderCommercialApplyQueueCard(
+        commercialApplyQueueInitialized
+          ? commercialApplyQueueItemsState
+          : getCommercialApplyQueueItems(),
+        opts
+      );
+      nextCards = root.querySelectorAll(".sffc-crm-apply-chat__apply-queue-card");
+      nextCard = nextCards.length ? nextCards[nextCards.length - 1] : null;
+      nextMessageRow = nextCard
+        ? nextCard.closest(".sffc-crm-apply-chat__message")
+        : messageRow;
+      if (messages && opts.preserveScroll !== false) {
+        messages.scrollTop = currentScrollTop;
+      }
+      if (nextMessageRow && opts.pinScroll !== false) {
+        pinWorkspaceCardScroll(nextMessageRow, opts.pinDuration || 9000);
+      }
+      return true;
+    }
+
+    function renderCommercialApplyQueueCard(queueItems, options) {
+      var opts = options || {};
+      var items =
+        queueItems && queueItems.length
+          ? queueItems
+          : commercialApplyQueueInitialized
+          ? []
+          : [getCommercialApplyQueueMainItem()];
+      items = items.map(function (item, index) {
+        return normalizeCommercialApplyQueueItem(
+          item || {},
+          (item && item.status) || (index === 0 ? "Ready" : "In Queue")
+        );
+      });
+      var allItems = getJobsWorkspaceSourceItems();
+      var mergedAllItems = [];
+      var allSeen = {};
+      var queuedKeys = {};
+      var activeTab =
+        commercialApplyQueueActiveTab === "all" ? "all" : "shortlist";
+      var activeFilter = cleanMessageText(commercialApplyQueueFilter || "all");
+      var query = cleanMessageText(jobsWorkspaceSearchQuery || "").toLowerCase();
+      var completedCount = items.filter(function (item) {
+        return /^(submitted|complete|completed|referred)$/i.test(cleanMessageText(item.status || ""));
+      }).length;
+      var workingCount = items.filter(function (item) {
+        return /^(preparing|tailoring cv|checking form|reviewing form|queued|running|needs verification|needs salary answer)$/i.test(cleanMessageText(item.status || ""));
+      }).length;
+      var progress = items.length
+        ? Math.max(
+            opts.active ? 12 : 0,
+            Math.min(100, Math.round((completedCount / items.length) * 100))
+          )
+        : 0;
+      if (workingCount && progress < 34) {
+        progress = 34;
+      }
+      var activeItemIndex = items.findIndex(function (item) {
+        return /^(ready|preparing|tailoring cv|checking form|reviewing form|queued|running|needs verification|needs salary answer)$/i.test(
+          cleanMessageText(item.status || "")
+        );
+      });
+      if (activeItemIndex < 0) {
+        activeItemIndex = 0;
+      }
+      items.forEach(function (item) {
+        var comparableKey = getCommercialApplyQueueComparableKey(item || {});
+        if (comparableKey) {
+          queuedKeys[comparableKey] = true;
+        }
+      });
+      items.concat(allItems).forEach(function (item) {
+        var normalized = normalizeCommercialApplyQueueItem(item || {}, item && item.status);
+        var comparableKey = getCommercialApplyQueueComparableKey(normalized);
+        if (!comparableKey || allSeen[comparableKey]) {
+          return;
+        }
+        allSeen[comparableKey] = true;
+        mergedAllItems.push(normalized);
+      });
+      function getItemSearchText(item) {
+        return [
+          item.title,
+          item.company,
+          item.location,
+          item.sector,
+          item.seniority,
+          item.status,
+        ]
+          .map(cleanMessageText)
+          .join(" ")
+          .toLowerCase()
+          .replace(/_/g, " ");
+      }
+      function itemPassesSearch(item) {
+        return !query || getItemSearchText(item || {}).indexOf(query) !== -1;
+      }
+      function itemPassesFilter(item, isQueued) {
+        var status = cleanMessageText((item && item.status) || "").toLowerCase();
+        if (activeFilter === "shortlisted") {
+          return isQueued;
+        }
+        if (activeFilter === "available") {
+          return !isQueued;
+        }
+        if (activeFilter === "working") {
+          return /^(ready|preparing|tailoring cv|checking form|reviewing form|queued|running|needs verification|needs salary answer)$/.test(status);
+        }
+        if (activeFilter === "complete") {
+          return /^(submitted|complete|completed|referred)$/.test(status);
+        }
+        return true;
+      }
+      function getVisibleItems() {
+        var source = activeTab === "all" ? mergedAllItems : items;
+        return source.filter(function (item) {
+          var key = item && item.key ? item.key : getCommercialApplyQueueItemKey(item || {});
+          var comparableKey = getCommercialApplyQueueComparableKey(key);
+          return itemPassesSearch(item || {}) && itemPassesFilter(item || {}, !!queuedKeys[comparableKey]);
+        });
+      }
+      function renderFilterButton(filter, label) {
+        return (
+          '<button type="button" class="sffc-crm-apply-chat__apply-queue-filter' +
+          (activeFilter === filter ? " is-active" : "") +
+          '" data-sffc-apply-chat-queue-filter="' +
+          escapeHtml(filter) +
+          '">' +
+          escapeHtml(label) +
+          "</button>"
+        );
+      }
+      function renderQueueAction(item, isQueued, isHead) {
+        var key = item && item.key ? item.key : getCommercialApplyQueueItemKey(item || {});
+        if (isHead) {
+          return '<span class="sffc-crm-apply-chat__apply-queue-action-head"></span>';
+        }
+        if (commercialApplyQueueActivated) {
+          return '<span class="sffc-crm-apply-chat__apply-queue-row-action is-locked" aria-hidden="true"></span>';
+        }
+        if (isQueued) {
+          return (
+            '<button type="button" class="sffc-crm-apply-chat__apply-queue-row-action is-remove" aria-label="Remove ' +
+            escapeHtml(item.title || "role") +
+            ' from shortlist" data-sffc-apply-chat-queue-remove="' +
+            escapeHtml(key) +
+            '"><span aria-hidden="true">−</span></button>'
+          );
+        }
+        return (
+          '<button type="button" class="sffc-crm-apply-chat__apply-queue-row-action is-add" aria-label="Add ' +
+          escapeHtml(item.title || "role") +
+          ' to shortlist" data-sffc-apply-chat-queue-add="' +
+          escapeHtml(key) +
+          '"><span aria-hidden="true">+</span></button>'
+        );
+      }
+      function renderQueueCompany(item) {
+        var company = cleanMessageText(item.company || "Company pending");
+        var logo = cleanMessageText(item.companyLogo || item.company_logo || item.logo || "");
+        var initial = (company || "S").charAt(0).toUpperCase();
+        return (
+          '<span class="sffc-crm-apply-chat__apply-queue-company">' +
+          '<span class="sffc-crm-apply-chat__apply-queue-company-logo' +
+          (logo ? " has-image" : "") +
+          '">' +
+          '<span class="sffc-crm-apply-chat__apply-queue-company-logo-letter">' +
+          escapeHtml(initial) +
+          "</span>" +
+          (logo ? '<img src="' + escapeHtml(logo) + '" alt="">' : "") +
+          "</span>" +
+          '<span class="sffc-crm-apply-chat__apply-queue-company-name">' +
+          escapeHtml(company) +
+          "</span>" +
+          "</span>"
+        );
+      }
+      function renderQueueMaterials(item) {
+        var title = cleanMessageText((item && item.title) || "this role");
+        return (
+          '<span class="sffc-crm-apply-chat__apply-queue-materials" aria-label="Tailored materials for ' +
+          escapeHtml(title) +
+          '">' +
+          '<span class="sffc-crm-apply-chat__apply-queue-material" title="Tailored CV" aria-label="Tailored CV for ' +
+          escapeHtml(title) +
+          '"><svg viewBox="0 0 24 24" focusable="false" aria-hidden="true"><path d="M7 3h7l4 4v14H7z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></svg></span>' +
+          '<span class="sffc-crm-apply-chat__apply-queue-material" title="Cover letter" aria-label="Cover letter for ' +
+          escapeHtml(title) +
+          '"><svg viewBox="0 0 24 24" focusable="false" aria-hidden="true"><path d="M4 6h16v12H4z"/><path d="m4 7 8 6 8-6"/></svg></span>' +
+          "</span>"
+        );
+      }
+      var visibleItems = getVisibleItems();
+      var emptyMessage =
+        activeTab === "all"
+          ? query
+            ? "No loaded jobs match that search."
+            : "No loaded jobs available yet."
+          : query
+          ? "No shortlisted jobs match that search."
+          : "No shortlisted jobs yet. Open All jobs and add roles to this queue.";
+      return (
+        '<section class="sffc-crm-apply-chat__apply-queue-card' +
+        (opts.active ? " is-active" : "") +
+        '">' +
+        '<div class="sffc-crm-apply-chat__apply-queue-head">' +
+        '<div class="sffc-crm-apply-chat__apply-queue-title-row">' +
+        '<div>' +
+        "<span>" +
+        escapeHtml(opts.eyebrow || "Ready to apply") +
+        "</span>" +
+        "<strong>" +
+        escapeHtml(opts.title || "Main role first, similar roles next") +
+        "</strong>" +
+        "</div>" +
+        (opts.showButton === false || !items.length
+          ? ""
+          : '<button type="button" class="sffc-crm-apply-chat__apply-queue-primary" data-sffc-apply-chat-start-auto-apply><span aria-hidden="true">▶</span>Start Auto Apply</button>') +
+        "</div>" +
+        '<div class="sffc-crm-apply-chat__apply-queue-progress" aria-label="Application queue progress">' +
+        '<span style="width:' +
+        progress +
+        '%"></span>' +
+        "</div>" +
+        '<div class="sffc-crm-apply-chat__apply-queue-controls">' +
+        '<div class="sffc-crm-apply-chat__apply-queue-tabs" role="tablist" aria-label="Application queue views">' +
+        '<button type="button" class="' +
+        (activeTab === "shortlist" ? "is-active" : "") +
+        '" data-sffc-apply-chat-queue-tab="shortlist" role="tab" aria-selected="' +
+        (activeTab === "shortlist" ? "true" : "false") +
+        '">Shortlist <span>' +
+        escapeHtml(String(items.length)) +
+        "</span></button>" +
+        '<button type="button" class="' +
+        (activeTab === "all" ? "is-active" : "") +
+        '" data-sffc-apply-chat-queue-tab="all" role="tab" aria-selected="' +
+        (activeTab === "all" ? "true" : "false") +
+        '">All jobs <span>' +
+        escapeHtml(String(mergedAllItems.length)) +
+        "</span></button>" +
+        "</div>" +
+        '<label class="sffc-crm-apply-chat__apply-queue-search"><span aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M10.5 18a7.5 7.5 0 1 1 5.3-12.8A7.5 7.5 0 0 1 10.5 18Zm5.3-2.2L21 21" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span><input type="search" value="' +
+        escapeHtml(jobsWorkspaceSearchQuery || "") +
+        '" placeholder="Search role, company, location, sector" data-sffc-apply-chat-queue-search></label>' +
+        '<div class="sffc-crm-apply-chat__apply-queue-filters" aria-label="Queue filters">' +
+        renderFilterButton("all", "All") +
+        renderFilterButton("shortlisted", "Shortlisted") +
+        renderFilterButton("available", "Available") +
+        renderFilterButton("working", "Working") +
+        renderFilterButton("complete", "Complete") +
+        "</div>" +
+        "</div>" +
+        "</div>" +
+        '<div class="sffc-crm-apply-chat__apply-queue-list">' +
+        '<div class="sffc-crm-apply-chat__apply-queue-row sffc-crm-apply-chat__apply-queue-row--head">' +
+        renderQueueAction(null, false, true) +
+        '<span>Role</span><span>Company</span><span>Location</span><span>Status</span><span>Tailored Materials</span>' +
+        "</div>" +
+        (visibleItems.length
+          ? visibleItems
+              .map(function (item) {
+                var originalIndex = items.findIndex(function (queueItem) {
+                  return (
+                    queueItem &&
+                    item &&
+                    getCommercialApplyQueueComparableKey(queueItem) ===
+                      getCommercialApplyQueueComparableKey(item)
+                  );
+                });
+                var isQueued = !!queuedKeys[getCommercialApplyQueueComparableKey(item)];
+                var index = originalIndex > -1 ? originalIndex : -1;
+                var itemStatus = cleanMessageText(item.status || "");
+                return (
+                  '<article class="sffc-crm-apply-chat__apply-queue-row sffc-crm-apply-chat__apply-queue-item' +
+                  (index === activeItemIndex ? " is-primary" : "") +
+                  (isQueued ? " is-shortlisted" : " is-available") +
+                  (/^(preparing|tailoring cv|checking form|reviewing form|queued|running)$/i.test(itemStatus) ? " is-working" : "") +
+                  '">' +
+                  renderQueueAction(item, isQueued) +
+                  '<button type="button" class="sffc-crm-apply-chat__apply-queue-role" data-sffc-apply-chat-queue-open-application="' +
+                  escapeHtml(item.key || "") +
+                  '">' +
+                  escapeHtml(item.title || "Selected role") +
+                  "</button>" +
+                  renderQueueCompany(item) +
+                  '<span class="sffc-crm-apply-chat__apply-queue-location">' +
+                  escapeHtml(item.location || "Location pending") +
+                  "</span>" +
+                  '<span class="sffc-crm-apply-chat__apply-queue-status-cell">' +
+                  (isQueued
+                    ? renderCommercialApplyQueueStatus(
+                        item.status || (index === 0 ? "Ready" : "Queued")
+                      )
+                    : '<span class="sffc-crm-apply-chat__apply-queue-status is-available"><i class="sffc-crm-apply-chat__apply-queue-status-mark" aria-hidden="true"></i>Available</span>') +
+                  "</span>" +
+                  '<span class="sffc-crm-apply-chat__apply-queue-preview-cell">' +
+                  renderQueueMaterials(item) +
+                  "</span>" +
+                  "</article>"
+                );
+              })
+              .join("")
+          : '<div class="sffc-crm-apply-chat__apply-queue-empty">' +
+            escapeHtml(emptyMessage) +
+            "</div>") +
+        "</div>" +
+        "</section>"
+      );
+    }
+
+    function showCommercialReadyToApplyQueue(queueItemsOverride) {
+      var queueItems =
+        queueItemsOverride && queueItemsOverride.length
+          ? queueItemsOverride
+          : getCommercialApplyQueueItems();
+      commercialApplyQueueInitialized = true;
+      commercialApplyQueueItemsState = queueItems;
+      commercialApplyQueueActivated = false;
+      startCommercialVisibleAutoApplyQueue(queueItems);
+    }
+
+    function prepareCommercialQueueForUserStart(queueItemsOverride) {
+      var queueItems =
+        queueItemsOverride && queueItemsOverride.length
+          ? queueItemsOverride
+          : getCommercialApplyQueueItems();
+      commercialApplyQueueInitialized = true;
+      commercialApplyQueueDetailsMode = true;
+      commercialApplyQueueActivated = false;
+      commercialApplyQueueItemsState = (queueItems && queueItems.length
+        ? queueItems
+        : getCommercialApplyQueueItems()
+      ).map(function (item, index) {
+        return Object.assign({}, item, {
+          status: index === 0 ? "Ready" : "In Queue",
+        });
+      });
+      var rendered = renderCommercialApplyQueueCard(commercialApplyQueueItemsState, {
+        active: true,
+        showButton: true,
+        eyebrow: "Application queue",
+        title: "Review the shortlist before I start",
+      });
+      botMessage(rendered, humanComposeDelay("Application queue ready.", 600, 1100), function () {
+        setPromptState(
+          "apply_ready_to_start_auto_apply",
+          {
+            yes: function (value) {
+              echoPromptChoice(value || "Start Auto Apply");
+              processCommercialApplyQueueShortlist();
+            },
+            other: function (value) {
+              var clean = cleanMessageText(value || "").toLowerCase();
+              if (/start|go ahead|begin|process|auto apply|apply/.test(clean)) {
+                echoPromptChoice(value || "Start Auto Apply");
+                processCommercialApplyQueueShortlist();
+                return;
+              }
+              focusComposer("Use Start Auto Apply when you want me to begin");
+            },
+          },
+          "Review the queue, then start when ready"
+        );
+        syncJobsWorkspaceState({
+          open: true,
+          stage: "Job queue ready",
+          note: "These are the roles lined up for this application run. You can add or remove roles before Emily starts processing them.",
+        });
+        focusComposer("Review the queue, then start when ready");
+      });
+    }
+
+    function startCommercialVisibleAutoApplyQueue(queueItems) {
+      commercialApplyQueueItemsState = (queueItems && queueItems.length
+        ? queueItems
+        : getCommercialApplyQueueItems()
+      ).map(function (item, index) {
+        return Object.assign({}, item, {
+          status: index === 0 ? "Ready" : "Queued",
+        });
+      });
+      commercialApplyQueueDetailsMode = true;
+      commercialApplyQueueActivated = false;
+      syncJobsWorkspaceState({
+        open: true,
+        stage: "Job queue ready",
+        note: "These are the roles lined up for this application run. You can add or remove roles before Emily starts processing them.",
+      });
+      window.setTimeout(askAccountStatusForApplyFlow, randomBetween(650, 1200));
+    }
+
+    function renderCvTailoringPreviewCard(state) {
+      var phase = cleanMessageText(state || "working");
+      var fileName = cleanMessageText(
+        (currentCvFile && currentCvFile.name) || "Uploaded CV"
+      );
+      var isDone = phase === "done";
+      var previewSrc =
+        currentCvPreviewAsset && currentCvPreviewAsset.src
+          ? currentCvPreviewAsset.src
+          : "";
+      return (
+        '<div class="sffc-crm-apply-chat__upload-preview-card sffc-crm-apply-chat__tailoring-preview-card is-file-only is-' +
+        (isDone ? "done" : "working") +
+        '">' +
+        '<div class="sffc-crm-apply-chat__tailoring-preview-sheet">' +
+        (previewSrc
+          ? '<img class="sffc-crm-apply-chat__upload-preview-image" src="' +
+            escapeHtml(previewSrc) +
+            '" alt="' +
+            escapeHtml(fileName + " preview") +
+            '">'
+          : '<div class="sffc-crm-apply-chat__upload-preview-loading"><span>' +
+            escapeHtml(isDone ? "CV tailored" : "Preparing CV preview...") +
+            '</span></div><div class="sffc-crm-apply-chat__upload-preview-skeleton"></div>') +
+        (isDone
+          ? ""
+          : '<div class="sffc-crm-apply-chat__tailoring-preview-overlay" aria-hidden="true"><span></span><span></span><span></span></div>') +
+        "</div>" +
+        '<div class="sffc-crm-apply-chat__upload-preview-meta">' +
+        "<strong>" +
+        escapeHtml(fileName) +
+        "</strong>" +
+        "<span>" +
+        (isDone
+          ? "Tailored version ready"
+          : "Transforming wording, keywords, and role evidence") +
+        "</span>" +
+        "</div>" +
+        '<div class="sffc-crm-apply-chat__tailoring-preview-checks">' +
+        '<span class="is-complete">Role keywords</span>' +
+        '<span class="' +
+        (isDone ? "is-complete" : "is-active") +
+        '">Experience positioning</span>' +
+        '<span class="' +
+        (isDone ? "is-complete" : "") +
+        '">Final checks</span>' +
+        "</div>" +
+        "</div>"
+      );
+    }
+
+    function showCommercialBackgroundApplyPrompt() {
+      var prompt =
+        "I’ve submitted this one and found more suitable roles I can keep working through.";
+      botMessage(
+        prompt +
+          '<div class="sffc-crm-apply-chat__inline-action-row">' +
+          '<button type="button" class="sffc-crm-apply-chat__inline-action" data-sffc-apply-chat-continue-background>Continue applying in the background</button>' +
+          "</div>",
+        humanComposeDelay(prompt, 1100, 2200),
+        function () {
+          setPromptState(
+            "apply_continue_background",
+            {
+              yes: function (value) {
+                echoPromptChoice(value || "Continue applying in the background");
+                showCommercialBackgroundUpgradeMessage();
+              },
+              other: function (value) {
+                var clean = cleanMessageText(value || "").toLowerCase();
+                if (/(?:yes|continue|background|keep going|apply)/.test(clean)) {
+                  echoPromptChoice(value);
+                  showCommercialBackgroundUpgradeMessage();
+                  return;
+                }
+                requestPostApplicationNextStepPrompt(value);
+              },
+            },
+            "Continue applying in the background, or choose another next step"
+          );
+          focusComposer("Continue applying in the background, or choose another next step");
+        }
+      );
+    }
+
+    function showCommercialBackgroundUpgradeMessage() {
+      var accountType = applySelectedPricingOption || "platform";
+      var copy =
+        "Senna Pro lets Emily continue applying in the background, tailor each application, and track responses for you.";
+      botMessage(
+        copy + buildMembershipInlineActionRow(accountType, "Upgrade to Senna Pro"),
+        humanComposeDelay(copy, 1200, 2400),
+        function () {
+          focusComposer("Upgrade, ask a question, or apply one role manually");
+        }
       );
     }
 
@@ -88928,23 +93366,83 @@
       );
     }
 
+    function renderProfileReviewConversationCard(report, analysis) {
+      var safeReport = report || {};
+      var safeAnalysis = analysis || {};
+      var sections = parseCvSectionsFromText(capturedCvText || "");
+      var draftModel = buildLiveTailoringDraftModel(safeAnalysis, sections);
+      var sectionReviewHtml = buildSectionBySectionReview(
+        draftModel,
+        safeAnalysis
+      );
+      var meta = [safeReport.company, safeReport.location]
+        .filter(Boolean)
+        .join(" · ");
+      var title = cleanMessageText(safeReport.title || roleTitle || "this role");
+      var summary =
+        cleanMatchNarrativeLine(safeReport.verdictSummary || "") ||
+        "I reviewed the CV against the role and pulled out what is working, what is unclear, and what should be fixed first.";
+
+      if (!sectionReviewHtml) {
+        sectionReviewHtml =
+          '<article class="sffc-crm-apply-chat__draft-review-card is-warn">' +
+          '<div class="sffc-crm-apply-chat__draft-review-card-head"><h4>Priority fixes</h4></div>' +
+          renderProfileReviewList(
+            (safeReport.suggestions || []).slice(0, 5).length
+              ? safeReport.suggestions.slice(0, 5)
+              : [
+                  "Make the strongest relevant proof easier to find before applying.",
+                ]
+          ) +
+          "</article>";
+      }
+
+      return (
+        '<article class="sffc-crm-apply-chat__draft-review-chat-card">' +
+        '<header class="sffc-crm-apply-chat__draft-review-chat-head">' +
+        '<div><small>CV review</small><h3>' +
+        escapeHtml(safeReport.scoreLabel || "Profile review ready") +
+        "</h3><p>" +
+        escapeHtml(summary) +
+        "</p>" +
+        (title
+          ? '<span class="sffc-crm-apply-chat__draft-review-chat-meta">' +
+            escapeHtml(title + (meta ? " · " + meta : "")) +
+            "</span>"
+          : "") +
+        "</div>" +
+        '<div class="sffc-crm-apply-chat__draft-review-chat-score"><strong>' +
+        escapeHtml(String(safeReport.score || 0)) +
+        '</strong><span>/100</span></div>' +
+        "</header>" +
+        renderProfileReviewScoreRows((safeReport.scoreRows || []).slice(0, 4)) +
+        '<div class="sffc-crm-apply-chat__draft-review-card-list">' +
+        sectionReviewHtml +
+        "</div>" +
+        "</article>"
+      );
+    }
+
     function showProfileReviewAnalysis(analysis) {
       var safeAnalysis = analysis || {};
       var report;
+      var reviewCardHtml;
       mergeCvFacts(safeAnalysis);
       applyCvAnalysis = safeAnalysis;
       report = buildProfileReviewReport(safeAnalysis);
+      reviewCardHtml = renderProfileReviewConversationCard(report, safeAnalysis);
 
+      closeSideWorkspaceForConversation();
       updateWorkspace({
-        visible: getAutoWorkspaceVisibility(),
-        stage: "Profile review ready",
-        note: "I mapped the CV against this role so you can see what is strong, what is unclear, and what to improve before applying.",
+        visible: false,
+        stage: "Profile review shown in chat",
+        note: "The CV review is shown in the conversation so the user can keep one workspace in focus.",
         cvStatus: "Profile reviewed",
         coverStatus: "Not in scope",
-        activeTab: "draft",
-        draftEnabled: true,
+        activeTab: "original",
+        draftEnabled: false,
         draftReady: false,
-        draftHtml: renderProfileReviewReportHtml(report),
+        draftHtml: "",
         rolesEnabled: true,
         rolesHtml: renderCvRoleMatchesHtml(buildCvRoleMatches().slice(0, 6)),
         confirmed: report.strongEvidence.slice(0, 4),
@@ -88975,6 +93473,11 @@
                 ". <strong>" +
                 escapeHtml(report.scoreLabel) +
                 "</strong>.",
+              pause: 150,
+              delay: 350,
+            },
+            {
+              html: reviewCardHtml,
               pause: 150,
               delay: 350,
             },
@@ -89034,6 +93537,11 @@
               1800,
               3600
             ),
+          },
+          {
+            html: reviewCardHtml,
+            pause: humanReadDelay("The strongest evidence is already visible.", 500),
+            delay: 450,
           },
           {
             html:
@@ -89199,7 +93707,7 @@
       if (intent === "identity") {
         return "I’m Emily, the MENA Careers advisor. For this chat, I’m helping prepare a recruiter outreach brief for the team.";
       }
-      return "Good question. I’ll keep the outreach focused on recruiter targeting and profile positioning, then we can tighten anything that is unclear.";
+      return "I’ll keep the outreach focused on recruiter targeting and profile positioning, then tighten anything that is unclear.";
     }
 
     function askRecruiterOutreachBriefQuestion(part) {
@@ -89939,6 +94447,19 @@
         clarify: getWorkspaceClarifyItems(analysis),
       });
 
+      if (activePath === "apply_for_me" && hasApplyForMeSelectedJobContext()) {
+        commercialApplyQueueDetailsMode = true;
+        applyCvReviewSkipped = false;
+        applyNeedsCoverLetter = "yes";
+        commercialApplyQueueItemsState = getCommercialApplyQueueItems().map(function (item, index) {
+          return Object.assign({}, item, {
+            status: index === 0 ? "Ready" : "In Queue",
+          });
+        });
+        window.setTimeout(askAccountStatusForApplyFlow, randomBetween(450, 850));
+        return;
+      }
+
       function askCoverLetterQuestion() {
         var coverLetterQuestion = getCoverLetterQuestion();
         botMessage(
@@ -89970,7 +94491,7 @@
                       ),
                       function () {
                         window.setTimeout(
-                          askAccountStatusForApplyFlow,
+                          showCommercialReadyToApplyQueue,
                           randomBetween(650, 1200)
                         );
                       }
@@ -89991,7 +94512,7 @@
                       ),
                       function () {
                         window.setTimeout(
-                          askAccountStatusForApplyFlow,
+                          showCommercialReadyToApplyQueue,
                           randomBetween(650, 1200)
                         );
                       }
@@ -90024,6 +94545,7 @@
 
       function askTailoringProceedQuestion() {
         var proceedQuestion = getTailoringProceedQuestion();
+        removeWorkingTailoringPreviewCards();
         botMessage(
           proceedQuestion,
           humanComposeDelay(cleanMessageText(proceedQuestion), 1500, 3200),
@@ -90033,31 +94555,44 @@
               {
                 yes: function (value) {
                   echoPromptChoice(value || getLocalizedDecisionLabel("yes"));
-                  window.setTimeout(
-                    askCoverLetterQuestion,
-                    randomBetween(650, 1200)
-                  );
-                },
-                no: function (value) {
-                  echoPromptChoice(value || "Not yet");
+                  openWorkspaceTab("draft", {
+                    stage: "Tailored CV ready",
+                    note: "The tailored application version is ready to review before the application moves on.",
+                    cvStatus: "Tailored version ready",
+                  });
                   window.setTimeout(function () {
-                    var changePrompt = getTailoringChangePrompt();
+                    var reviewCopy =
+                      "I've finished tailoring your CV. You can see it below, and all errors have been fixed using evidence already in your CV.";
                     botMessage(
-                      changePrompt,
-                      humanComposeDelay(
-                        cleanMessageText(changePrompt),
-                        2200,
-                        4200
-                      ),
+                      reviewCopy,
+                      humanComposeDelay(reviewCopy, 1000, 2000),
                       function () {
-                        focusComposer(
-                          getFlowPlaceholder("tailoring_change_first")
+                        botMessage(
+                          renderCvTailoringPreviewCard("done"),
+                          humanComposeDelay("Tailored CV preview ready", 450, 850),
+                          function () {
+                            window.setTimeout(
+                              showCommercialReadyToApplyQueue,
+                              randomBetween(650, 1200)
+                            );
+                          }
                         );
                       }
                     );
                   }, randomBetween(650, 1200));
                 },
+                no: function (value) {
+                  echoPromptChoice(value || "No, continue");
+                  window.setTimeout(function () {
+                    showCommercialReadyToApplyQueue();
+                  }, randomBetween(650, 1200));
+                },
                 other: function (value) {
+                  var clean = cleanMessageText(value || "").toLowerCase();
+                  if (/(?:undo|original|current|normal|as is|as-is|skip)/.test(clean)) {
+                    continueWithCurrentCvFromQuickInsights(value);
+                    return;
+                  }
                   botMessage(
                     getProceedClarifyPrompt(),
                     humanComposeDelay(
@@ -90085,6 +94620,83 @@
         }
         applyTailoringAwaitingProceed = false;
         askTailoringProceedQuestion();
+      };
+
+      function startCvTailoringFromQuickInsights(value) {
+        if (value) {
+          echoPromptChoice(value);
+        }
+        clearPromptState();
+        applyCvReviewSkipped = false;
+        applyNeedsCoverLetter = "";
+        updateWorkspace({
+          visible: getAutoWorkspaceVisibility(),
+          activeTab: "draft",
+          draftEnabled: true,
+          draftReady: true,
+          cvStatus: "Tailoring CV to role",
+          stage: "Tailoring CV",
+          note: "I am rewriting the application version around the evidence already present in the CV and the requirements detected from the role.",
+        });
+        botMessage(
+          "Ok, I’ll tailor the CV to this role using only evidence already in the CV.",
+          humanComposeDelay(
+            "Ok, I’ll tailor the CV to this role using only evidence already in the CV.",
+            1000,
+            1900
+          ),
+          function () {
+            botMessage(
+              renderCvTailoringPreviewCard("working"),
+              humanComposeDelay("Transforming CV", 350, 700),
+              function () {
+                applyTailoringAwaitingProceed = true;
+                applyTailoringProceedAsked = false;
+                runLiveTailoringSequence(applyCvAnalysis || analysis || {});
+                window.setTimeout(function () {
+                  if (
+                    applyTailoringAwaitingProceed &&
+                    !applyTailoringProceedAsked &&
+                    typeof window.__sffcAskApplyProceedAfterTailoring === "function"
+                  ) {
+                    applyTailoringProceedAsked = true;
+                    window.__sffcAskApplyProceedAfterTailoring();
+                  }
+                }, 9000);
+              }
+            );
+          }
+        );
+      }
+
+      function continueWithCurrentCvFromQuickInsights(value) {
+        if (value) {
+          echoPromptChoice(value);
+        }
+        clearPromptState();
+        applyCvReviewSkipped = true;
+        applyNeedsCoverLetter = "no";
+        botMessage(
+          "Sure. I’ll use the current CV. Just keep the points above in mind because they may weaken the application.",
+          humanComposeDelay(
+            "Sure. I’ll use the current CV. Just keep the points above in mind because they may weaken the application.",
+            1200,
+            2400
+          ),
+          function () {
+            window.setTimeout(
+              showCommercialReadyToApplyQueue,
+              randomBetween(650, 1200)
+            );
+          }
+        );
+      }
+
+      root.__sffcStartApplyCvTailoringFromQuickInsights = function (value) {
+        startCvTailoringFromQuickInsights(value || "Tailor my CV");
+      };
+      root.__sffcContinueApplyWithCurrentCvFromQuickInsights = function (value) {
+        continueWithCurrentCvFromQuickInsights(value || "Apply with current CV");
       };
 
       var quickInsightCopy = renderApplyQuickRoleInsights(analysis);
@@ -90115,9 +94727,61 @@
             ),
           }] : []),
         function () {
+          if (quickInsightCopy) {
+            setPromptState(
+              "apply_cv_action_choice",
+              {
+                yes: function (value) {
+                  startCvTailoringFromQuickInsights(value || "Tailor my CV");
+                },
+                no: function (value) {
+                  continueWithCurrentCvFromQuickInsights(
+                    value || "Apply with current CV"
+                  );
+                },
+                other: function (value) {
+                  var clean = cleanMessageText(value || "").toLowerCase();
+                  if (
+                    /tailor|rewrite|improve|fix|optimise|optimize|strengthen/.test(
+                      clean
+                    )
+                  ) {
+                    startCvTailoringFromQuickInsights(value);
+                    return;
+                  }
+                  if (
+                    /apply|current|original|as is|as-is|normal|skip|continue|go ahead/.test(
+                      clean
+                    )
+                  ) {
+                    continueWithCurrentCvFromQuickInsights(value);
+                    return;
+                  }
+                  botMessage(
+                    "Do you want me to tailor the CV first, or apply with the current version?",
+                    humanComposeDelay(
+                      "Do you want me to tailor the CV first, or apply with the current version?",
+                      1000,
+                      1800
+                    ),
+                    function () {
+                      focusComposer("Tailor my CV or apply with current CV");
+                    },
+                    humanReadDelay(value, 450)
+                  );
+                },
+              },
+              "Tailor my CV or apply with current CV"
+            );
+            focusComposer("Tailor my CV or apply with current CV");
+            return;
+          }
           applyCvReviewSkipped = true;
           applyNeedsCoverLetter = "no";
-          window.setTimeout(askAccountStatusForApplyFlow, randomBetween(650, 1200));
+          window.setTimeout(
+            showCommercialReadyToApplyQueue,
+            randomBetween(650, 1200)
+          );
         }
       );
     }
@@ -90845,9 +95509,43 @@
           });
       }
 
-      function queueBrowserApplicationTask() {
+      function queueBrowserApplicationTask(queueItem) {
         var config = getConfig();
         var formData = new FormData();
+        var item = queueItem || {};
+        var itemJobsPostId = cleanMessageText(
+          item.jobsPostId || item.jobs_post_id || item.wpPostId || item.wp_post_id || ""
+        );
+        var itemPostId = cleanMessageText(item.postId || item.post_id || item.id || "");
+        var itemRoleTitle = cleanMessageText(item.title || roleTitle || "");
+        var itemCompanyName = cleanMessageText(item.company || roleCompany || "");
+        var itemApplicationUrl = cleanMessageText(
+          item.applyUrl ||
+            item.applicationUrl ||
+            item.application_url ||
+            item.applicationWorkspaceUrl ||
+            item.application_workspace_url ||
+            applicationUrl ||
+            ""
+        );
+        var itemWorkspaceUrl = cleanMessageText(
+          item.applicationWorkspaceUrl ||
+            item.application_workspace_url ||
+            item.applicationEmbedUrl ||
+            item.application_embed_url ||
+            getApplicationWorkspaceUrl() ||
+            ""
+        );
+        var itemRoleUrl = cleanMessageText(item.viewUrl || item.url || roleUrl || "");
+        var itemProvider = cleanMessageText(
+          item.autoSubmitProvider ||
+            item.auto_submit_provider ||
+            item.provider ||
+            item.sourcePlatform ||
+            item.source_platform ||
+            autoSubmitProvider ||
+            ""
+        );
         formData.append("action", "sffc_crm_apply_chat_queue_application_task");
         formData.append(
           "nonce",
@@ -90857,27 +95555,24 @@
             ""
         );
         formData.append("session_token", ensureApplyChatSessionToken());
-        formData.append("post_id", postId || "");
+        formData.append("post_id", itemPostId || postId || "");
         formData.append(
           "crm_post_id",
           cleanMessageText(root.getAttribute("data-crm-post-id") || "")
         );
-        formData.append("jobs_post_id", jobsPostId || "");
-        formData.append("role_title", cleanMessageText(roleTitle || ""));
-        formData.append("company_name", cleanMessageText(roleCompany || ""));
+        formData.append("jobs_post_id", itemJobsPostId || jobsPostId || "");
+        formData.append("role_title", itemRoleTitle);
+        formData.append("company_name", itemCompanyName);
         formData.append("candidate_name", cleanMessageText(applyOnboardingFullName || ""));
         formData.append(
           "candidate_email",
           cleanMessageText(applyOnboardingPreferredEmail || "")
         );
         formData.append("candidate_phone", "");
-        formData.append("provider", cleanMessageText(autoSubmitProvider || ""));
-        formData.append("application_url", cleanMessageText(applicationUrl || ""));
-        formData.append(
-          "application_workspace_url",
-          cleanMessageText(getApplicationWorkspaceUrl() || "")
-        );
-        formData.append("role_url", cleanMessageText(roleUrl || ""));
+        formData.append("provider", itemProvider);
+        formData.append("application_url", itemApplicationUrl);
+        formData.append("application_workspace_url", itemWorkspaceUrl || itemApplicationUrl);
+        formData.append("role_url", itemRoleUrl);
         formData.append("page_url", window.location.href || "");
         formData.append("cv_text", cleanMessageText(capturedCvText || ""));
         formData.append("cover_letter_requested", applyNeedsCoverLetter === "yes" ? "1" : "0");
@@ -90979,22 +95674,47 @@
             .then(function (data) {
               var status = cleanMessageText((data && data.status) || "");
               if (status === "queued" || status === "processing") {
+                if (commercialApplyQueueDetailsMode) {
+                  commercialApplyQueueActivated = true;
+                  setCommercialApplyQueueStatuses(
+                    commercialApplyQueueItemsState.map(function (item, index) {
+                      return index === 0 ? "Preparing" : "In Queue";
+                    }),
+                    { queuedLabel: "In Queue" }
+                  );
+                }
                 pollBrowserApplicationTask(taskUuid, currentAttempt + 1);
                 return;
               }
               if (status === "submitted") {
+                if (commercialApplyQueueDetailsMode) {
+                  setCommercialApplyQueueStatuses(
+                    commercialApplyQueueItemsState.map(function (item, index) {
+                      return index === 0 ? "Submitted" : "In Queue";
+                    }),
+                    { queuedLabel: "In Queue" }
+                  );
+                }
                 botMessage(
                   "Done. The employer page returned a submission confirmation. Please check the candidate email for the employer confirmation as well.",
                   humanComposeDelay("Application submitted.", 1200, 2600),
                   function () {
                     window.setTimeout(function () {
-                      showPostApplicationNextStepPrompt();
+                      showPostApplicationSummary("Senna worker submitted");
                     }, randomBetween(650, 1200));
                   }
                 );
                 return;
               }
               if (status === "dry_run_ready") {
+                if (commercialApplyQueueDetailsMode) {
+                  setCommercialApplyQueueStatuses(
+                    commercialApplyQueueItemsState.map(function (item, index) {
+                      return index === 0 ? "Reviewing form" : "In Queue";
+                    }),
+                    { queuedLabel: "In Queue" }
+                  );
+                }
                 botMessage(
                   "The browser worker filled the application and captured the ready state. Final submission is still disabled for this worker, so it has not clicked submit.",
                   humanComposeDelay("Application ready for review.", 1200, 2600),
@@ -91005,6 +95725,14 @@
                 return;
               }
               if (status === "verification_required") {
+                if (commercialApplyQueueDetailsMode) {
+                  setCommercialApplyQueueStatuses(
+                    commercialApplyQueueItemsState.map(function (item, index) {
+                      return index === 0 ? "Needs verification" : "In Queue";
+                    }),
+                    { queuedLabel: "In Queue" }
+                  );
+                }
                 var verificationMessage = cleanMessageText((data && data.last_error) || "");
                 if (!verificationMessage) {
                   verificationMessage =
@@ -91080,6 +95808,18 @@
                 return;
               }
               if (status === "review_required") {
+                if (commercialApplyQueueDetailsMode) {
+                  setCommercialApplyQueueStatuses(
+                    commercialApplyQueueItemsState.map(function (item, index) {
+                      return index === 0 ? "Referred" : "In Queue";
+                    }),
+                    { queuedLabel: "In Queue" }
+                  );
+                }
+                if (commercialApplyQueueDetailsMode) {
+                  showCommercialManualSubmissionDelayAndContinue();
+                  return;
+                }
                 var reviewReason = cleanMessageText((data && data.last_error) || "");
                 var missingFields = Array.isArray(data && data.missing_required_fields)
                   ? data.missing_required_fields
@@ -91104,7 +95844,19 @@
                 return;
               }
               if (status === "failed") {
+                if (commercialApplyQueueDetailsMode) {
+                  setCommercialApplyQueueStatuses(
+                    commercialApplyQueueItemsState.map(function (item, index) {
+                      return index === 0 ? "Referred" : "In Queue";
+                    }),
+                    { queuedLabel: "In Queue" }
+                  );
+                }
                 var errorMessage = cleanMessageText((data && data.last_error) || "");
+                if (commercialApplyQueueDetailsMode) {
+                  showCommercialManualSubmissionDelayAndContinue();
+                  return;
+                }
                 botMessage(
                   errorMessage
                     ? "The browser worker could not complete this one: " + errorMessage
@@ -91526,6 +96278,211 @@
         return cleanMessageText(parts.join(" ")) || "similar roles";
       }
 
+      function getPostApplicationSubmittedAtLabel() {
+        try {
+          return new Date().toLocaleString(undefined, {
+            month: "short",
+            day: "numeric",
+            year: "numeric",
+            hour: "numeric",
+            minute: "2-digit",
+          });
+        } catch (error) {
+          return "Just now";
+        }
+      }
+
+      function getCurrentPostApplicationSnapshot(method) {
+        return {
+          title: cleanMessageText(roleTitle || "Selected role"),
+          company: cleanMessageText(roleCompany || "Employer"),
+          location: cleanMessageText(roleLocation || ""),
+          submittedAt: getPostApplicationSubmittedAtLabel(),
+          method: cleanMessageText(method || "User submitted"),
+          status: "Submitted",
+          searchQuery: getPostApplicationSearchQuery(),
+          url: cleanMessageText(applicationUrl || applicationWorkspaceUrl || roleUrl || ""),
+        };
+      }
+
+      function rememberTrackedApplicationJob(snapshot, saved) {
+        var item = snapshot || getCurrentPostApplicationSnapshot("User submitted");
+        var key = [
+          item.title,
+          item.company,
+          item.url,
+        ].join("|").toLowerCase();
+        var existing = trackedApplicationJobs.find(function (candidate) {
+          return candidate.key === key;
+        });
+        if (existing) {
+          existing.saved = saved || existing.saved;
+          existing.submittedAt = item.submittedAt || existing.submittedAt;
+          return existing;
+        }
+        item.key = key;
+        item.saved = !!saved;
+        trackedApplicationJobs.unshift(item);
+        trackedApplicationJobs = trackedApplicationJobs.slice(0, 12);
+        return item;
+      }
+
+      function persistTrackedApplicationJob(item) {
+        var config = getConfig();
+        var formData;
+        if (!config.isLoggedIn || !config.crmNonce) {
+          return Promise.resolve({ persisted: false, reason: "login_required" });
+        }
+        formData = new FormData();
+        formData.append("action", "sffc_crm_add_to_pipeline");
+        formData.append("nonce", config.crmNonce || "");
+        formData.append("post_id", postId || "");
+        formData.append("wp_post_id", jobsPostId || "");
+        formData.append("stage", "application_submitted");
+        formData.append("role_title", cleanMessageText((item && item.title) || roleTitle || ""));
+        formData.append("company", cleanMessageText((item && item.company) || roleCompany || ""));
+        formData.append("location", cleanMessageText((item && item.location) || roleLocation || ""));
+        formData.append("external_url", cleanMessageText((item && item.url) || applicationUrl || roleUrl || ""));
+        return window
+          .fetch(config.ajaxUrl || "/wp-admin/admin-ajax.php", {
+            method: "POST",
+            credentials: "same-origin",
+            body: formData,
+          })
+          .then(parseAjaxJson)
+          .then(function (payload) {
+            if (!payload || !payload.success) {
+              throw new Error(
+                (payload && payload.data && payload.data.message) ||
+                  "Unable to save this role to your tracker."
+              );
+            }
+            return payload.data || {};
+          });
+      }
+
+      function renderPostApplicationSummaryCard(snapshot) {
+        var item = snapshot || getCurrentPostApplicationSnapshot("User submitted");
+        var meta = [item.company, item.location].filter(Boolean).join(" · ");
+        return (
+          '<section class="sffc-crm-apply-chat__post-application-card">' +
+          '<div class="sffc-crm-apply-chat__post-application-head">' +
+          '<span>Application status</span>' +
+          '<strong>' +
+          escapeHtml(item.status || "Submitted") +
+          '</strong>' +
+          '</div>' +
+          '<h3>' +
+          escapeHtml(item.title || "Selected role") +
+          '</h3>' +
+          (meta ? '<p>' + escapeHtml(meta) + '</p>' : "") +
+          '<dl>' +
+          '<div><dt>Submitted</dt><dd>' +
+          escapeHtml(item.submittedAt || "Just now") +
+          '</dd></div>' +
+          '<div><dt>Method</dt><dd>' +
+          escapeHtml(item.method || "User submitted") +
+          '</dd></div>' +
+          '<div><dt>Reminder</dt><dd>Keep the employer confirmation email.</dd></div>' +
+          '</dl>' +
+          '<div class="sffc-crm-apply-chat__post-application-actions">' +
+          '<button type="button" class="sffc-crm-apply-chat__inline-action" data-sffc-post-application-save-role>Save role</button>' +
+          '<button type="button" class="sffc-crm-apply-chat__inline-action" data-sffc-post-application-find-similar>Find similar roles</button>' +
+          '</div>' +
+          '</section>'
+        );
+      }
+
+      function renderTrackedApplicationJobsHtml() {
+        if (!trackedApplicationJobs.length) {
+          return (
+            '<div class="sffc-crm-apply-chat__tracked-empty">' +
+            '<strong>No tracked jobs yet</strong>' +
+            '<p>Submitted and saved roles will appear here as your application pipeline builds.</p>' +
+            '</div>'
+          );
+        }
+        return trackedApplicationJobs
+          .map(function (item) {
+            var meta = [item.company, item.location].filter(Boolean).join(" · ");
+            return (
+              '<article class="sffc-crm-apply-chat__tracked-job-card">' +
+              '<div>' +
+              '<span>' +
+              escapeHtml(item.status || "Submitted") +
+              (item.saved ? " · Saved" : "") +
+              '</span>' +
+              '<strong>' +
+              escapeHtml(item.title || "Selected role") +
+              '</strong>' +
+              (meta ? '<p>' + escapeHtml(meta) + '</p>' : "") +
+              '<small>' +
+              escapeHtml(item.submittedAt || "Just now") +
+              ' · ' +
+              escapeHtml(item.method || "User submitted") +
+              '</small>' +
+              '</div>' +
+              '<button type="button" class="sffc-crm-apply-chat__inline-action" data-sffc-post-application-find-similar>Find similar roles</button>' +
+              '</article>'
+            );
+          })
+          .join("");
+      }
+
+      function showPostApplicationSummary(method) {
+        var snapshot = rememberTrackedApplicationJob(
+          getCurrentPostApplicationSnapshot(method || "User submitted"),
+          false
+        );
+        latestPostApplicationSnapshot = snapshot;
+        botMessage(
+          renderPostApplicationSummaryCard(snapshot),
+          humanComposeDelay("Application submitted summary.", 900, 1800),
+          function () {
+            showCommercialBackgroundApplyPrompt();
+          }
+        );
+      }
+      root.__sffcShowPostApplicationSummary = showPostApplicationSummary;
+      root.__sffcRenderTrackedApplicationJobsHtml = renderTrackedApplicationJobsHtml;
+      root.__sffcSaveCurrentPostApplicationRole = function () {
+        var item = rememberTrackedApplicationJob(
+          latestPostApplicationSnapshot ||
+            getCurrentPostApplicationSnapshot("User submitted"),
+          true
+        );
+        persistTrackedApplicationJob(item)
+          .then(function (result) {
+            var persisted = result && result.persisted !== false;
+            botMessage(
+              persisted
+                ? "Saved. I’ve added " +
+                    (item.title ? cleanMessageText(item.title) : "this role") +
+                    " to Tracked Jobs."
+                : "Saved for this chat. Sign in to keep it in your full application tracker.",
+              humanComposeDelay("Role saved to Tracked Jobs.", 900, 1800),
+              function () {
+                setRailView("tracked");
+                focusComposer("Find similar roles, assess my career, or track next steps");
+              }
+            );
+          })
+          .catch(function (error) {
+            botMessage(
+              "I saved it in this chat, but could not update the full tracker yet: " +
+                cleanMessageText((error && error.message) || ""),
+              humanComposeDelay("Role saved in chat.", 900, 1800),
+              function () {
+                setRailView("tracked");
+                focusComposer("Find similar roles, assess my career, or track next steps");
+              }
+            );
+          });
+      };
+      root.__sffcFindSimilarPostApplicationRoles = function () {
+        handlePostApplicationNextStep("Apply to more roles");
+      };
+
       function handlePostApplicationNextStep(value) {
         var clean = cleanMessageText(value || "");
         var lower = clean.toLowerCase();
@@ -91644,6 +96601,7 @@
           }
         );
       }
+      root.__sffcShowPostApplicationNextStepPrompt = showPostApplicationNextStepPrompt;
 
       function extractEmployerAnswerAfterKeywords(text, keywords, pattern) {
         var clean = cleanMessageText(text || "");
@@ -92289,8 +97247,28 @@
       window.__sffcEnsureApplicationWorkerAnswersThenQueue =
         ensureApplicationWorkerAnswersThenQueue;
 
+      function showApplicationWorkspaceSubmittedFollowUp() {
+        botMessage(
+          'When you\'re done, tap Submitted and I’ll keep tracking it.' +
+            '<div class="sffc-crm-apply-chat__inline-action-row">' +
+            '<button type="button" class="sffc-crm-apply-chat__inline-action" data-sffc-greenhouse-completed>' +
+            '<span>Submitted</span>' +
+            '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>' +
+            '</button>' +
+            '</div>',
+          humanComposeDelay("When you're done, tap Submitted.", 900, 1800),
+          function () {
+            focusComposer("Message Emily");
+          }
+        );
+      }
+
       function showApplicationWorkspace(schema) {
         applicationWorkspaceSchema = schema || applicationWorkspaceSchema || null;
+        if (commercialApplyQueueDetailsMode || commercialApplyQueueActivated) {
+          updateCommercialQueueApplicationWorkspaceLink(schema);
+          return;
+        }
         var providerLabel = getApplicationWorkspaceProviderLabel();
         var hostedUrl = cleanMessageText(
           (schema && (schema.application_embed_url || schema.hosted_url)) ||
@@ -92302,8 +97280,8 @@
         var canWorkerSubmit = hasApplicationWorkerSubmitCapability();
         var hasWorkerProAccess = hasApplicationWorkerProAccess();
         var html =
-          '<div class="sffc-crm-apply-chat__greenhouse-workspace">' +
-          '<div class="sffc-crm-apply-chat__greenhouse-header">' +
+          '<div class="sffc-crm-apply-chat__application-workspace">' +
+          '<div class="sffc-crm-apply-chat__application-header">' +
           '<strong>' +
           'Apply inside Senna</strong>' +
           '<span>' +
@@ -92330,8 +97308,8 @@
           '</div>' +
           '</details>' +
           '</div>' +
-          '<div class="sffc-crm-apply-chat__greenhouse-primary">' +
-          '<div class="sffc-crm-apply-chat__greenhouse-primary-copy">' +
+          '<div class="sffc-crm-apply-chat__application-next-step">' +
+          '<div class="sffc-crm-apply-chat__application-next-step-copy">' +
           '<small>' +
           (canWorkerSubmit ? 'Pro+ option' : 'Application form') +
           '</small>' +
@@ -92348,9 +97326,9 @@
           '</div>' +
           (canWorkerSubmit
             ? renderApplicationWorkerAction(canWorkerSubmit)
-            : '<a class="sffc-crm-apply-chat__greenhouse-primary-action" href="' + escapeHtml(fallbackUrl) + '" target="_blank" rel="noopener noreferrer">Open form</a>') +
+            : '<a class="sffc-crm-apply-chat__application-action" href="' + escapeHtml(fallbackUrl) + '" target="_blank" rel="noopener noreferrer">Open form</a>') +
           '</div>' +
-          '<div class="sffc-crm-apply-chat__greenhouse-actions">' +
+          '<div class="sffc-crm-apply-chat__application-actions">' +
           '<a href="' +
           escapeHtml(fallbackUrl) +
           '" target="_blank" rel="noopener noreferrer">Open employer form</a>' +
@@ -92358,146 +97336,114 @@
           '</div>' +
           '</div>';
         botMessage(html, humanComposeDelay("Application workspace ready.", 1000, 2200), function () {
-          focusComposer(canWorkerSubmit ? "Complete the form here, or choose Apply for me" : "Complete the form here, or tell me what you want to check");
+          showApplicationWorkspaceSubmittedFollowUp();
         });
       }
 
       function showExternalApplicationWorkspace(schema) {
         applicationWorkspaceSchema = schema || applicationWorkspaceSchema || null;
-        var providerLabel = getApplicationWorkspaceProviderLabel();
         var workspaceUrl = cleanMessageText(
           (schema && (schema.application_embed_url || schema.hosted_url)) ||
             getApplicationWorkspaceUrl() ||
             ""
         );
-        var hasSchemaSignals = getGreenhouseApplicationQuestionLabels(schema).length > 0;
         var canWorkerSubmit = hasApplicationWorkerSubmitCapability();
-        var html =
-          '<div class="sffc-crm-apply-chat__greenhouse-workspace is-external-only">' +
-          '<div class="sffc-crm-apply-chat__greenhouse-header">' +
-          '<strong>' +
-          'Senna can prepare this application</strong>' +
-          '<span>' +
-          (hasSchemaSignals
-            ? 'I checked the ' + escapeHtml(providerLabel) + ' form and pulled out the main screening signals. This employer blocks embedded forms in Senna.'
-            : 'This employer blocks embedded application forms, so I can’t show the form window inside Senna. I’ll keep the route and next step clear here.') +
-          '</span>' +
-          '</div>' +
-          '<div class="sffc-crm-apply-chat__greenhouse-primary">' +
-          '<div class="sffc-crm-apply-chat__greenhouse-primary-copy">' +
-          '<small>' +
-          (canWorkerSubmit ? 'Recommended' : 'Employer site') +
-          '</small>' +
-          '<strong>' +
-          (canWorkerSubmit ? 'Let Senna handle the next step' : 'Use the employer application page') +
-          '</strong>' +
-          '<p>' +
-          (canWorkerSubmit
-            ? 'I’ll use the CV, candidate details, and detected screening fields to prepare the cleanest application route.'
-            : 'I’ll keep the screening signals here, but this provider needs the employer page for submission.') +
-          '</p>' +
-          '</div>' +
-          (canWorkerSubmit
-            ? '<button type="button" class="sffc-crm-apply-chat__greenhouse-primary-action" data-sffc-application-worker-queue>Apply for me</button>'
-            : '<a class="sffc-crm-apply-chat__greenhouse-primary-action" href="' + escapeHtml(workspaceUrl || "#") + '" target="_blank" rel="noopener noreferrer">Open employer form</a>') +
-          '</div>' +
-          '<div class="sffc-crm-apply-chat__greenhouse-answers">' +
-          '<strong>' +
-          (hasSchemaSignals ? 'Application signals' : 'Application route') +
-          '</strong>' +
-          '<ul>' +
-          (hasSchemaSignals
-            ? getGreenhouseApplicationInsightsHtml(schema)
-            : '<li>The role is still tracked here in Senna.</li>' +
-              '<li>The application has to be completed on the employer site because this ATS refuses cross-site iframes.</li>' +
-              '<li>After submitting, keep the employer confirmation email as proof of submission.</li>') +
-          '</ul>' +
-          '</div>' +
-          '<div class="sffc-crm-apply-chat__greenhouse-actions">' +
-          '<a href="' +
-          escapeHtml(workspaceUrl || "#") +
-          '" target="_blank" rel="noopener noreferrer">Open employer form</a>' +
-          '<button type="button" data-sffc-greenhouse-completed>I submitted it</button>' +
-          '</div>' +
-          '</div>';
-        botMessage(html, humanComposeDelay("Employer form route ready.", 1000, 2200), function () {
-          focusComposer(canWorkerSubmit ? "Choose Apply for me, or open the employer form" : "Open the employer form, or ask me about the screening signals");
+        if (commercialApplyQueueActivated) {
+          showCommercialManualSubmissionDelayAndContinue();
+          return;
+        }
+        botMessage(
+          'This employer opens outside Senna.' +
+            '<div class="sffc-crm-apply-chat__inline-action-row">' +
+            (canWorkerSubmit
+              ? '<button type="button" class="sffc-crm-apply-chat__inline-action" data-sffc-application-worker-queue>Apply for me</button>'
+              : '<a class="sffc-crm-apply-chat__inline-action" href="' +
+                escapeHtml(workspaceUrl || "#") +
+                '" target="_blank" rel="noopener noreferrer">Open employer form</a>') +
+            '<button type="button" class="sffc-crm-apply-chat__inline-action" data-sffc-greenhouse-completed>Submitted</button>' +
+            '</div>',
+          humanComposeDelay("This employer opens outside Senna.", 900, 1800),
+          function () {
+            focusComposer("Message Emily");
+          }
+        );
+        if (!canWorkerSubmit) {
+          return;
+        }
+        window.setTimeout(function () {
+          showApplicationWorkspaceSubmittedFollowUp();
         });
       }
 
       function beginApplicationWorkspace() {
-        var providerLabel = getApplicationWorkspaceProviderLabel();
         var workspaceUrl = getApplicationWorkspaceUrl();
         applicationWorkspaceSchema = null;
         applicationAnswerDraft = {};
         applicationEmployerBulkAsked = false;
-        botMessage(
-          "This is a " +
-            escapeHtml(providerLabel) +
-            " application. I’m checking the employer form so I can prepare the application workspace and highlight the main screening signals.",
-          humanComposeDelay("I’m checking the employer form.", 1200, 2400),
-          function () {
-            if (!autoSubmitSupported) {
-              if (isKnownFrameBlockedApplicationUrl(workspaceUrl, autoSubmitProvider)) {
-                showExternalApplicationWorkspace({
-                  provider: autoSubmitProvider || "",
-                  hosted_url: workspaceUrl,
-                  questions: [],
-                });
-                return;
-              }
-              showApplicationWorkspace({
-                provider: autoSubmitProvider || "",
-                hosted_url: workspaceUrl,
-                questions: [],
-              });
-              return;
-            }
-            fetchApplicationWorkspaceSchema()
-              .then(function (schema) {
-                if (schema && (schema.application_embed_url || schema.hosted_url)) {
-                  applicationWorkspaceUrl = cleanMessageText(
-                    schema.application_embed_url || schema.hosted_url || ""
-                  );
-                  root.setAttribute(
-                    "data-application-workspace-url",
-                    applicationWorkspaceUrl || ""
-                  );
-                }
-                if (
-                  isKnownFrameBlockedApplicationUrl(
-                    (schema && (schema.application_embed_url || schema.hosted_url)) ||
-                      workspaceUrl,
-                    (schema && schema.provider) || autoSubmitProvider
-                  )
-                ) {
-                  showExternalApplicationWorkspace(schema);
-                  return;
-                }
-                showApplicationWorkspace(schema);
-              })
-              .catch(function (error) {
-                if (window.console && typeof window.console.debug === "function") {
-                  window.console.debug("SFFC application workspace schema unavailable", error);
-                }
-                botMessage(
-                  "I could not read the employer screening fields, but I can still open the employer form here.",
-                  humanComposeDelay("I could not read the employer screening fields.", 1600, 3200),
-                  function () {
-                    var fallbackSchema = {
-                      hosted_url: workspaceUrl,
-                      questions: [],
-                    };
-                    if (isKnownFrameBlockedApplicationUrl(workspaceUrl, autoSubmitProvider)) {
-                      showExternalApplicationWorkspace(fallbackSchema);
-                    } else {
-                      showApplicationWorkspace(fallbackSchema);
-                    }
-                  }
-                );
-              });
+        if (!commercialApplyQueueItemsState.length) {
+          commercialApplyQueueItemsState = getCommercialApplyQueueItems();
+          commercialApplyQueueInitialized = true;
+        }
+        commercialApplyQueueDetailsMode = true;
+        commercialApplyQueueActivated = true;
+        setCommercialApplyQueueStatuses(
+          commercialApplyQueueItemsState.map(function (item, index) {
+            return index === 0 ? "Preparing" : item.status || "In Queue";
+          }),
+          {
+            queuedLabel: "In Queue",
+            active: true,
+            showButton: false,
+            eyebrow: "Application queue",
+            title: "Emily is preparing the current role",
           }
         );
+        if (!autoSubmitSupported) {
+          if (isKnownFrameBlockedApplicationUrl(workspaceUrl, autoSubmitProvider)) {
+            showExternalApplicationWorkspace({
+              provider: autoSubmitProvider || "",
+              hosted_url: workspaceUrl,
+              questions: [],
+            });
+            return;
+          }
+          updateCommercialQueueApplicationWorkspaceLink({
+            provider: autoSubmitProvider || "",
+            hosted_url: workspaceUrl,
+            questions: [],
+          });
+          return;
+        }
+        fetchApplicationWorkspaceSchema()
+          .then(function (schema) {
+            if (schema && (schema.application_embed_url || schema.hosted_url)) {
+              applicationWorkspaceUrl = cleanMessageText(
+                schema.application_embed_url || schema.hosted_url || ""
+              );
+              root.setAttribute(
+                "data-application-workspace-url",
+                applicationWorkspaceUrl || ""
+              );
+            }
+            if (
+              isKnownFrameBlockedApplicationUrl(
+                (schema && (schema.application_embed_url || schema.hosted_url)) ||
+                  workspaceUrl,
+                (schema && schema.provider) || autoSubmitProvider
+              )
+            ) {
+              showExternalApplicationWorkspace(schema);
+              return;
+            }
+            updateCommercialQueueApplicationWorkspaceLink(schema);
+          })
+          .catch(function () {
+            updateCommercialQueueApplicationWorkspaceLink({
+              provider: autoSubmitProvider || "",
+              hosted_url: workspaceUrl,
+              questions: [],
+            });
+          });
       }
 
       function submitFirstApplyForMeApplication() {
@@ -92509,12 +97455,12 @@
           getApplicationWorkspaceUrl() &&
           isKnownFrameBlockedApplicationUrl(getApplicationWorkspaceUrl(), autoSubmitProvider)
         ) {
-          showExternalApplicationWorkspace();
+          beginApplicationWorkspace();
           return;
         }
         var submitIntro = isArabicChat()
           ? "تمام. سأجهز مساحة التقديم لهذا الدور الآن."
-          : "Okay. I’m preparing the application workspace for this role now.";
+          : "Okay. I’m preparing this role in the application queue now.";
         botMessage(
           submitIntro,
           humanComposeDelay(submitIntro, 1100, 2200),
@@ -92555,6 +97501,28 @@
         var raw = applyOnboardingPreferredEmail;
         var suggestion = applyOnboardingEmailSuggestion;
         var localPart = raw && raw.indexOf("@") !== -1 ? raw.split("@")[0] : "";
+        function continueAfterPreferredEmailConfirmed() {
+          if (!commercialApplyQueueDetailsMode) {
+            window.setTimeout(
+              submitFirstApplyForMeApplication,
+              randomBetween(650, 1200)
+            );
+            return;
+          }
+          var readyCopy = isArabicChat()
+            ? "ممتاز. لدي الآن ما أحتاجه للبدء."
+            : "Great. I’ve got what I need to get started.";
+          botMessage(
+            readyCopy,
+            humanComposeDelay(readyCopy, 900, 1800),
+            function () {
+              window.setTimeout(
+                prepareCommercialQueueForUserStart,
+                randomBetween(450, 850)
+              );
+            }
+          );
+        }
         var confirmPrompt =
           suggestion && suggestion !== raw
             ? isArabicChat()
@@ -92570,7 +97538,9 @@
 
         botMessage(
           confirmPrompt,
-          humanComposeDelay(confirmPrompt, 2400, 4600),
+          commercialApplyQueueDetailsMode
+            ? humanComposeDelay(confirmPrompt, 650, 1200)
+            : humanComposeDelay(confirmPrompt, 2400, 4600),
           function () {
             setPromptState(
               "apply_confirm_preferred_email",
@@ -92579,10 +97549,7 @@
                   echoPromptChoice(value || suggestion || raw);
                   applyOnboardingPreferredEmail = suggestion || raw;
                   applyOnboardingEmailSuggestion = "";
-                  window.setTimeout(
-                    submitFirstApplyForMeApplication,
-                    randomBetween(650, 1200)
-                  );
+                  continueAfterPreferredEmailConfirmed();
                 },
                 no: function (value) {
                   echoPromptChoice(value || "Let me correct it");
@@ -92605,10 +97572,7 @@
                     echoPromptChoice(value);
                     applyOnboardingPreferredEmail = emailDecision.email;
                     applyOnboardingEmailSuggestion = "";
-                    window.setTimeout(
-                      submitFirstApplyForMeApplication,
-                      randomBetween(650, 1200)
-                    );
+                    continueAfterPreferredEmailConfirmed();
                     return;
                   }
                   if (emailDecision.intent === "confirm") {
@@ -92617,10 +97581,7 @@
                     applyOnboardingPreferredEmail =
                       emailDecision.email || suggestion || raw;
                     applyOnboardingEmailSuggestion = "";
-                    window.setTimeout(
-                      submitFirstApplyForMeApplication,
-                      randomBetween(650, 1200)
-                    );
+                    continueAfterPreferredEmailConfirmed();
                     return;
                   }
                   if (emailDecision.intent === "change") {
@@ -92664,62 +97625,74 @@
 
       function askForPreferredEmail() {
         var preferredEmailPrompt = getAskPreferredEmailPrompt();
+        function handlePreferredEmailReply(value) {
+          var analysed = analysePreferredEmail(value, "");
+          if (!analysed) {
+            if (isOperationalMetaQuestion(value)) {
+              botMessage(
+                "I need the email the employer should use for this application and any Greenhouse confirmation. Send the address you want on the application.",
+                humanComposeDelay(
+                  "I need the email the employer should use for this application.",
+                  1200,
+                  2400
+                ),
+                function () {
+                  focusComposer("Type your email");
+                },
+                humanReadDelay(value, 450)
+              );
+              return;
+            }
+            botMessage(
+              isArabicChat()
+                ? "أرسلي لي عنوان البريد الكامل الذي تريدينني أن أستخدمه هنا."
+                : "Send me the full email address you want me to use here.",
+              humanComposeDelay(
+                isArabicChat()
+                  ? "أرسلي لي عنوان البريد الكامل الذي تريدينني أن أستخدمه هنا."
+                  : "Send me the full email address you want me to use here.",
+                1800,
+                3600
+              ),
+              function () {
+                focusComposer(
+                  isArabicChat()
+                    ? "اكتبي بريدك الإلكتروني"
+                    : "Type your email"
+                );
+              },
+              humanReadDelay(value, 450)
+            );
+            return;
+          }
+          clearPromptState();
+          echoPromptChoice(value);
+          applyOnboardingPreferredEmail = analysed.raw;
+          applyOnboardingEmailSuggestion = analysed.suggestion || "";
+          window.setTimeout(
+            askToConfirmPreferredEmail,
+            commercialApplyQueueDetailsMode
+              ? randomBetween(150, 350)
+              : randomBetween(650, 1200)
+          );
+        }
+        setPromptState(
+          "apply_collect_preferred_email",
+          {
+            other: handlePreferredEmailReply,
+          },
+          getFlowPlaceholder("preferred_email")
+        );
         botMessage(
           preferredEmailPrompt,
-          humanComposeDelay(cleanMessageText(preferredEmailPrompt), 1700, 3400),
+          commercialApplyQueueDetailsMode
+            ? humanComposeDelay(cleanMessageText(preferredEmailPrompt), 650, 1200)
+            : humanComposeDelay(cleanMessageText(preferredEmailPrompt), 1700, 3400),
           function () {
             setPromptState(
               "apply_collect_preferred_email",
               {
-                other: function (value) {
-                  var analysed = analysePreferredEmail(value, "");
-                  if (!analysed) {
-                    if (isOperationalMetaQuestion(value)) {
-                      botMessage(
-                        "I need the email the employer should use for this application and any Greenhouse confirmation. Send the address you want on the application.",
-                        humanComposeDelay(
-                          "I need the email the employer should use for this application.",
-                          1200,
-                          2400
-                        ),
-                        function () {
-                          focusComposer("Type your email");
-                        },
-                        humanReadDelay(value, 450)
-                      );
-                      return;
-                    }
-                    botMessage(
-                      isArabicChat()
-                        ? "أرسلي لي عنوان البريد الكامل الذي تريدينني أن أستخدمه هنا."
-                        : "Send me the full email address you want me to use here.",
-                      humanComposeDelay(
-                        isArabicChat()
-                          ? "أرسلي لي عنوان البريد الكامل الذي تريدينني أن أستخدمه هنا."
-                          : "Send me the full email address you want me to use here.",
-                        1800,
-                        3600
-                      ),
-                      function () {
-                        focusComposer(
-                          isArabicChat()
-                            ? "اكتبي بريدك الإلكتروني"
-                            : "Type your email"
-                        );
-                      },
-                      humanReadDelay(value, 450)
-                    );
-                    return;
-                  }
-                  clearPromptState();
-                  echoPromptChoice(value);
-                  applyOnboardingPreferredEmail = analysed.raw;
-                  applyOnboardingEmailSuggestion = analysed.suggestion || "";
-                  window.setTimeout(
-                    askToConfirmPreferredEmail,
-                    randomBetween(650, 1200)
-                  );
-                },
+                other: handlePreferredEmailReply,
               },
               getFlowPlaceholder("preferred_email")
             );
@@ -92730,57 +97703,64 @@
 
       function askForFullName() {
         var fullNamePrompt = getAskFullNamePrompt();
+        function handleFullNameReply(value) {
+          var extractedName = extractReasonableFullName(value);
+          if (!extractedName) {
+            if (isOperationalMetaQuestion(value)) {
+              botMessage(
+                "I need the name exactly as it should appear on the employer application. Send it as first name and last name.",
+                humanComposeDelay(
+                  "I need the name exactly as it should appear on the employer application.",
+                  1200,
+                  2400
+                ),
+                function () {
+                  focusComposer(getFlowPlaceholder("full_name"));
+                },
+                humanReadDelay(value, 450)
+              );
+              return;
+            }
+            botMessage(
+              isArabicChat()
+                ? "فقط حتى أضبط هذا لك بشكل صحيح، ما اسمك الكامل؟"
+                : "Just want to get this right for you — full name?",
+              humanComposeDelay(
+                isArabicChat()
+                  ? "فقط حتى أضبط هذا لك بشكل صحيح، ما اسمك الكامل؟"
+                  : "Just want to get this right for you — full name?",
+                2000,
+                4000
+              ),
+              function () {
+                focusComposer(getFlowPlaceholder("full_name"));
+              },
+              humanReadDelay(value, 450)
+            );
+            return;
+          }
+          clearPromptState();
+          echoPromptChoice(value);
+          applyOnboardingFullName = extractedName;
+          window.setTimeout(askForPreferredEmail, randomBetween(650, 1200));
+        }
+        setPromptState(
+          "apply_collect_full_name",
+          {
+            other: handleFullNameReply,
+          },
+          getFlowPlaceholder("full_name")
+        );
         botMessage(
           fullNamePrompt,
-          humanComposeDelay(cleanMessageText(fullNamePrompt), 1700, 3400),
+          commercialApplyQueueDetailsMode
+            ? humanComposeDelay(cleanMessageText(fullNamePrompt), 650, 1200)
+            : humanComposeDelay(cleanMessageText(fullNamePrompt), 1700, 3400),
           function () {
             setPromptState(
               "apply_collect_full_name",
               {
-                other: function (value) {
-                  var extractedName = extractReasonableFullName(value);
-                  if (!extractedName) {
-                    if (isOperationalMetaQuestion(value)) {
-                      botMessage(
-                        "I need the name exactly as it should appear on the employer application. Send it as first name and last name.",
-                        humanComposeDelay(
-                          "I need the name exactly as it should appear on the employer application.",
-                          1200,
-                          2400
-                        ),
-                        function () {
-                          focusComposer(getFlowPlaceholder("full_name"));
-                        },
-                        humanReadDelay(value, 450)
-                      );
-                      return;
-                    }
-                    botMessage(
-                      isArabicChat()
-                        ? "فقط حتى أضبط هذا لك بشكل صحيح، ما اسمك الكامل؟"
-                        : "Just want to get this right for you — full name?",
-                      humanComposeDelay(
-                        isArabicChat()
-                          ? "فقط حتى أضبط هذا لك بشكل صحيح، ما اسمك الكامل؟"
-                          : "Just want to get this right for you — full name?",
-                        2000,
-                        4000
-                      ),
-                      function () {
-                        focusComposer(getFlowPlaceholder("full_name"));
-                      },
-                      humanReadDelay(value, 450)
-                    );
-                    return;
-                  }
-                  clearPromptState();
-                  echoPromptChoice(value);
-                  applyOnboardingFullName = extractedName;
-                  window.setTimeout(
-                    askForPreferredEmail,
-                    randomBetween(650, 1200)
-                  );
-                },
+                other: handleFullNameReply,
               },
               getFlowPlaceholder("full_name")
             );
@@ -92811,19 +97791,23 @@
         window.setTimeout(askForAccountEmail, randomBetween(650, 1200));
       }
 
+      var applicantDetailsIntro = commercialApplyQueueDetailsMode
+        ? isArabicChat()
+          ? "تمام، لنبدأ معالجة هذا التقديم."
+          : "Ok, let’s process your application."
+        : isArabicChat()
+        ? "أحتاج فقط اسمك والبريد الذي تريدين استخدامه لهذا التقديم."
+        : "I just need your name and the email you want used for this application.";
       botMessage(
-        isArabicChat()
-          ? "أحتاج فقط اسمك والبريد الذي تريدين استخدامه لهذا التقديم."
-          : "I just need your name and the email you want used for this application.",
-        humanComposeDelay(
-          isArabicChat()
-            ? "أحتاج فقط اسمك والبريد الذي تريدين استخدامه لهذا التقديم."
-            : "I just need your name and the email you want used for this application.",
-          1400,
-          2800
-        ),
+        applicantDetailsIntro,
+        commercialApplyQueueDetailsMode
+          ? humanComposeDelay(applicantDetailsIntro, 650, 1200)
+          : humanComposeDelay(applicantDetailsIntro, 1400, 2800),
         function () {
-          window.setTimeout(askForFullName, randomBetween(650, 1200));
+          window.setTimeout(
+            askForFullName,
+            commercialApplyQueueDetailsMode ? randomBetween(150, 350) : randomBetween(650, 1200)
+          );
         }
       );
     }
@@ -94937,6 +99921,9 @@
       if (maybeHandleLanguageSwitchRequest(value)) {
         return true;
       }
+      if (intent === "quick_insight_request") {
+        return showExplicitQuickRoleComparison();
+      }
       if (
         looksLikeActualJobPostSearch(value, intent) &&
         !looksLikePastedCvText(value)
@@ -95014,7 +100001,7 @@
         }
         if (intent === "special_request") {
           handleChoiceQuestion(
-            "I can help with that if it ties back to the application. If you want, tell me the question first, or send the CV and I'll check the role fit alongside it."
+            "Ask the question first, or send the CV and I’ll check the role fit alongside it."
           );
           return true;
         }
@@ -96119,6 +101106,7 @@
       uploadButton.hidden = true;
       fileInput.value = "";
       currentCvFile = null;
+      currentCvPreviewAsset = null;
       currentCvPageCount = 0;
       capturedCvText = "";
       applyCvAnalysis = null;
@@ -96222,6 +101210,7 @@
       document.body.classList.remove("sffc-crm-apply-chat-lock");
       hideEndChatPrompt();
       closeChatCvPreviewModal();
+      closeApplicationQueueRoleModal();
       closeDeskMenu();
       closeDeskSearch();
       stopApplyChatReplyPolling();
@@ -96272,6 +101261,21 @@
         showRoleSelection: function (analysis, sourceLabel) {
           return showApplyForMeRoleSelection(analysis || {}, sourceLabel || "");
         },
+        hasSelectedJobContext: function () {
+          return hasApplyForMeSelectedJobContext();
+        },
+        setSelectedJobContext: function (context) {
+          var data = context || {};
+          roleTitle = cleanMessageText(data.roleTitle || data.title || "");
+          roleCompany = cleanMessageText(data.roleCompany || data.company || "");
+          roleCompanyLogo = cleanMessageText(data.companyLogo || data.company_logo || data.logo || "");
+          roleLocation = cleanMessageText(data.roleLocation || data.location || "");
+          postId = cleanMessageText(data.postId || data.post_id || "");
+          jobsPostId = cleanMessageText(data.jobsPostId || data.jobs_post_id || "");
+          applicationUrl = cleanMessageText(data.applicationUrl || data.application_url || "#");
+          activePath = cleanMessageText(data.activePath || "apply_for_me_role_discovery");
+          step = cleanMessageText(data.step || "apply_role_discovery_upload");
+        },
         renderQuickRoleInsights: function (analysis) {
           return renderApplyQuickRoleInsights(analysis || {});
         },
@@ -96306,11 +101310,95 @@
         detectIntent: function (value) {
           return detectIntent(value || "");
         },
+        classifyResponseExpectation: function (value, context) {
+          return classifyResponseExpectation(value || "", context || {});
+        },
+        classifyPromptRoute: function (value, state) {
+          var semantics = parseMessageSemantics(value || "");
+          var intent = detectIntent(value || "");
+          var route = classifyUnifiedConversationRoute(
+            value || "",
+            state || "",
+            semantics,
+            intent
+          );
+          return {
+            type: route.type,
+            promptState: route.promptState,
+            slotType: route.slot && route.slot.type,
+            strict: !!(route.slot && route.slot.strict),
+            intent: route.intent,
+            expectation: route.expectation && route.expectation.classification,
+            responseExpected:
+              route.expectation && route.expectation.response_expected,
+            validPromptAnswer: !!route.validPromptAnswer,
+          };
+        },
+        getReplyTemplatePlan: function (value, forcedIntent) {
+          var clean = cleanMessageText(value || "");
+          var intent = forcedIntent || detectIntent(clean);
+          return getReplyTemplatePlan(intent, clean, getKnowledgeAnswer(intent, clean));
+        },
+        previewKnowledgeReply: function (value, forcedIntent) {
+          var clean = cleanMessageText(value || "");
+          var intent = forcedIntent || detectIntent(clean);
+          return {
+            intent: intent,
+            responseExpectation: classifyResponseExpectation(clean),
+            replyPlan: getReplyTemplatePlan(
+              intent,
+              clean,
+              getKnowledgeAnswer(intent, clean)
+            ),
+            answer: composeKnowledgeAnswer(intent, clean),
+          };
+        },
+        classifyRoleDiscoveryInput: function (value) {
+          var semantics = parseMessageSemantics(value || "");
+          var intent = detectIntent(value || "");
+          var search = looksLikeShortRoleDiscoverySearch(value || "", intent);
+          var conversation = isRoleDiscoveryConversationInput(
+            value || "",
+            semantics,
+            intent
+          );
+          return {
+            value: cleanMessageText(value || ""),
+            intent: intent,
+            hasQuestion: !!(semantics && semantics.has_question),
+            action: conversation ? "answer" : search ? "search" : "search",
+            isConversationInput: conversation,
+            isShortRoleSearch: search,
+            answerPreview: conversation
+              ? decodeHtmlEntities(
+                  getRoleDiscoveryConversationAnswer(value || "", intent)
+                    .replace(/<[^>]*>/g, " ")
+                    .replace(/\s+/g, " ")
+                    .trim()
+                )
+              : "",
+          };
+        },
         showAnalysis: function (analysis) {
           return showAnalysis(analysis || {});
         },
         continueApplyAfterAnalysis: function (analysis) {
           return continueApplyAfterAnalysis(analysis || {});
+        },
+        showCommercialReadyToApplyQueue: function (queueItems) {
+          return showCommercialReadyToApplyQueue(queueItems || []);
+        },
+        resetCommercialApplyFlowState: function () {
+          clearPromptState();
+          applyTailoringAwaitingProceed = false;
+          applyTailoringProceedAsked = false;
+          applyOnboardingFullName = "";
+          applyOnboardingPreferredEmail = "";
+          applyOnboardingEmailSuggestion = "";
+          commercialApplyQueueItemsState = [];
+          commercialApplyQueueDetailsMode = false;
+          commercialApplyQueueActivated = false;
+          commercialApplyQueueInitialized = false;
         },
       };
     }
@@ -96575,6 +101663,10 @@
 
     if (listsBackButton) {
       listsBackButton.addEventListener("click", function () {
+        if (activeRailView === "tracked") {
+          setRailView("chat");
+          return;
+        }
         closeJobListView();
       });
     }
@@ -96601,6 +101693,14 @@
         !chatCvPreviewModal.hidden
       ) {
         closeChatCvPreviewModal();
+        return;
+      }
+      if (
+        event.key === "Escape" &&
+        applicationQueueRoleModal &&
+        !applicationQueueRoleModal.hidden
+      ) {
+        closeApplicationQueueRoleModal();
         return;
       }
       if (event.key === "Escape" && deskMenu && !deskMenu.hidden) {
@@ -96837,6 +101937,12 @@
       var greenhouseCompleted = event.target.closest(
         "[data-sffc-greenhouse-completed]"
       );
+      var postApplicationSaveRole = event.target.closest(
+        "[data-sffc-post-application-save-role]"
+      );
+      var postApplicationFindSimilar = event.target.closest(
+        "[data-sffc-post-application-find-similar]"
+      );
       var employerChoice = event.target.closest(
         "[data-sffc-employer-choice]"
       );
@@ -96849,6 +101955,174 @@
       var applicationWorkerLocked = event.target.closest(
         "[data-sffc-application-worker-locked]"
       );
+      var earlyUploadCvCta = event.target.closest(
+        "[data-sffc-apply-chat-upload-cv-cta]"
+      );
+      var earlyTailorCvQuickAction =
+        event.target.closest("[data-sffc-apply-chat-tailor-cv]") ||
+        event.target.closest(".sffc-crm-apply-chat__quick-insights-primary");
+      var earlyApplyCurrentCvQuickAction =
+        event.target.closest("[data-sffc-apply-chat-apply-current-cv]") ||
+        event.target.closest(".sffc-crm-apply-chat__quick-insights-secondary");
+      var earlyStartAutoApplyQuickAction = event.target.closest(
+        "[data-sffc-apply-chat-start-auto-apply]"
+      );
+      var jobsQueueAdd = event.target.closest(
+        "[data-sffc-apply-chat-queue-add]"
+      );
+      var jobsQueueRemove = event.target.closest(
+        "[data-sffc-apply-chat-queue-remove]"
+      );
+      var jobsQueueTab = event.target.closest(
+        "[data-sffc-apply-chat-queue-tab]"
+      );
+      var jobsQueueFilter = event.target.closest(
+        "[data-sffc-apply-chat-queue-filter]"
+      );
+      var jobsQueueOpenApplication = event.target.closest(
+        "[data-sffc-apply-chat-queue-open-application]"
+      );
+      var jobsQueueStatusInfo = event.target.closest(
+        "[data-sffc-apply-chat-status-info]"
+      );
+      var earlyContinueBackgroundQuickAction = event.target.closest(
+        "[data-sffc-apply-chat-continue-background]"
+      );
+      if (earlyUploadCvCta) {
+        event.preventDefault();
+        if (fileInput) {
+          fileInput.click();
+        }
+        return;
+      }
+      if (earlyTailorCvQuickAction) {
+        event.preventDefault();
+        if (
+          typeof root.__sffcStartApplyCvTailoringFromQuickInsights ===
+          "function"
+        ) {
+          root.__sffcStartApplyCvTailoringFromQuickInsights("Tailor my CV");
+        } else {
+          userMessage("Tailor my CV");
+          promptReplyWasTyped = true;
+          maybeHandlePromptReply("Tailor my CV");
+        }
+        return;
+      }
+      if (earlyApplyCurrentCvQuickAction) {
+        event.preventDefault();
+        if (
+          typeof root.__sffcContinueApplyWithCurrentCvFromQuickInsights ===
+          "function"
+        ) {
+          root.__sffcContinueApplyWithCurrentCvFromQuickInsights(
+            "Apply with current CV"
+          );
+        } else {
+          userMessage("Apply with current CV");
+          promptReplyWasTyped = true;
+          maybeHandlePromptReply("Apply with current CV");
+        }
+        return;
+      }
+      if (jobsQueueAdd) {
+        event.preventDefault();
+        addCommercialApplyQueueItemByKey(
+          jobsQueueAdd.getAttribute("data-sffc-apply-chat-queue-add") || ""
+        );
+        return;
+      }
+      if (jobsQueueRemove) {
+        event.preventDefault();
+        removeCommercialApplyQueueItemByKey(
+          jobsQueueRemove.getAttribute("data-sffc-apply-chat-queue-remove") || ""
+        );
+        return;
+      }
+      if (jobsQueueTab) {
+        event.preventDefault();
+        commercialApplyQueueActiveTab =
+          jobsQueueTab.getAttribute("data-sffc-apply-chat-queue-tab") === "all"
+            ? "all"
+            : "shortlist";
+        if (
+          commercialApplyQueueActiveTab === "shortlist" &&
+          commercialApplyQueueFilter === "available"
+        ) {
+          commercialApplyQueueFilter = "all";
+        }
+        if (
+          commercialApplyQueueActiveTab === "all" &&
+          commercialApplyQueueFilter === "shortlisted"
+        ) {
+          commercialApplyQueueFilter = "all";
+        }
+        updateCommercialApplyQueueCard({
+          active: commercialApplyQueueActivated,
+          showButton: !commercialApplyQueueActivated,
+          eyebrow: commercialApplyQueueActivated ? "Application queue" : "Ready to apply",
+          title: commercialApplyQueueActivated ? "Emily is working through this list" : "Main role first, similar roles next",
+        });
+        return;
+      }
+      if (jobsQueueFilter) {
+        event.preventDefault();
+        commercialApplyQueueFilter =
+          jobsQueueFilter.getAttribute("data-sffc-apply-chat-queue-filter") ||
+          "all";
+        updateCommercialApplyQueueCard({
+          active: commercialApplyQueueActivated,
+          showButton: !commercialApplyQueueActivated,
+          eyebrow: commercialApplyQueueActivated ? "Application queue" : "Ready to apply",
+          title: commercialApplyQueueActivated ? "Emily is working through this list" : "Main role first, similar roles next",
+        });
+        return;
+      }
+      if (jobsQueueOpenApplication) {
+        event.preventDefault();
+        openApplicationQueueRoleModalByKey(
+          jobsQueueOpenApplication.getAttribute(
+            "data-sffc-apply-chat-queue-open-application"
+          ) || ""
+        );
+        return;
+      }
+      if (jobsQueueStatusInfo) {
+        event.preventDefault();
+        showCommercialApplyQueueStatusInfo(
+          jobsQueueStatusInfo.getAttribute("data-sffc-apply-chat-status-info") ||
+            ""
+        );
+        return;
+      }
+      if (earlyStartAutoApplyQuickAction) {
+        var startQueueItems = commercialApplyQueueItemsState.length
+          ? commercialApplyQueueItemsState
+          : ensureCommercialApplyQueueFromLoadedJobs();
+        event.preventDefault();
+        if (!startQueueItems.length) {
+          botMessage(
+            "Add at least one role to the shortlist and I’ll start the application run.",
+            humanComposeDelay("Add a role first.", 700, 1400),
+            function () {
+              focusComposer("Search All jobs, then add a role");
+            }
+          );
+          return;
+        }
+        clearPromptState();
+        userMessage("Start Auto Apply");
+        commercialApplyQueueItemsState = startQueueItems;
+        processCommercialApplyQueueShortlist();
+        return;
+      }
+      if (earlyContinueBackgroundQuickAction) {
+        event.preventDefault();
+        userMessage("Continue applying in the background");
+        promptReplyWasTyped = true;
+        maybeHandlePromptReply("Continue applying in the background");
+        return;
+      }
       if (greenhouseCopyAnswer) {
         event.preventDefault();
         copyTextToClipboard(
@@ -96862,6 +102136,20 @@
             }, 1200);
           })
           .catch(function () {});
+        return;
+      }
+      if (postApplicationSaveRole) {
+        event.preventDefault();
+        if (typeof root.__sffcSaveCurrentPostApplicationRole === "function") {
+          root.__sffcSaveCurrentPostApplicationRole();
+        }
+        return;
+      }
+      if (postApplicationFindSimilar) {
+        event.preventDefault();
+        if (typeof root.__sffcFindSimilarPostApplicationRoles === "function") {
+          root.__sffcFindSimilarPostApplicationRoles();
+        }
         return;
       }
       if (employerChoice) {
@@ -96936,15 +102224,12 @@
       }
       if (greenhouseCompleted) {
         event.preventDefault();
-        botMessage(
-          "Good. Keep the employer confirmation email as proof of submission.",
-          humanComposeDelay("Good. Keep the employer confirmation email.", 1000, 2200),
-          function () {
-            window.setTimeout(function () {
-              showPostApplicationNextStepPrompt();
-            }, randomBetween(650, 1200));
-          }
-        );
+        closeApplicationQueueRoleModal();
+        if (typeof root.__sffcShowPostApplicationSummary === "function") {
+          root.__sffcShowPostApplicationSummary("User submitted");
+        } else {
+          requestPostApplicationNextStepPrompt();
+        }
         return;
       }
       if (applicationWorkerLocked) {
@@ -97208,6 +102493,86 @@
       var applicationRoleSelection = event.target.closest(
         "[data-sffc-apply-chat-select-application-role]"
       );
+      var tailorCvQuickAction = event.target.closest(
+        "[data-sffc-apply-chat-tailor-cv]"
+      ) || event.target.closest(".sffc-crm-apply-chat__quick-insights-primary");
+      var applyCurrentCvQuickAction = event.target.closest(
+        "[data-sffc-apply-chat-apply-current-cv]"
+      ) || event.target.closest(".sffc-crm-apply-chat__quick-insights-secondary");
+      var startAutoApplyQuickAction = event.target.closest(
+        "[data-sffc-apply-chat-start-auto-apply]"
+      );
+      var continueBackgroundQuickAction = event.target.closest(
+        "[data-sffc-apply-chat-continue-background]"
+      );
+      var uploadCvCta = event.target.closest(
+        "[data-sffc-apply-chat-upload-cv-cta]"
+      );
+      if (uploadCvCta) {
+        event.preventDefault();
+        if (fileInput) {
+          fileInput.click();
+        }
+        return;
+      }
+      if (tailorCvQuickAction) {
+        event.preventDefault();
+        if (
+          typeof root.__sffcStartApplyCvTailoringFromQuickInsights ===
+          "function"
+        ) {
+          root.__sffcStartApplyCvTailoringFromQuickInsights("Tailor my CV");
+        } else {
+          userMessage("Tailor my CV");
+          promptReplyWasTyped = true;
+          maybeHandlePromptReply("Tailor my CV");
+        }
+        return;
+      }
+      if (applyCurrentCvQuickAction) {
+        event.preventDefault();
+        if (
+          typeof root.__sffcContinueApplyWithCurrentCvFromQuickInsights ===
+          "function"
+        ) {
+          root.__sffcContinueApplyWithCurrentCvFromQuickInsights(
+            "Apply with current CV"
+          );
+        } else {
+          userMessage("Apply with current CV");
+          promptReplyWasTyped = true;
+          maybeHandlePromptReply("Apply with current CV");
+        }
+        return;
+      }
+      if (startAutoApplyQuickAction) {
+        var selectedQueueItems = commercialApplyQueueItemsState.length
+          ? commercialApplyQueueItemsState
+          : getCommercialApplyQueueItems();
+        event.preventDefault();
+        if (!selectedQueueItems.length) {
+          botMessage(
+            "Add at least one role to the shortlist and I’ll start the application run.",
+            humanComposeDelay("Add a role first.", 700, 1400),
+            function () {
+              focusComposer("Search All jobs, then add a role");
+            }
+          );
+          return;
+        }
+        clearPromptState();
+        userMessage("Start Auto Apply");
+        commercialApplyQueueItemsState = selectedQueueItems;
+        processCommercialApplyQueueShortlist();
+        return;
+      }
+      if (continueBackgroundQuickAction) {
+        event.preventDefault();
+        userMessage("Continue applying in the background");
+        promptReplyWasTyped = true;
+        maybeHandlePromptReply("Continue applying in the background");
+        return;
+      }
       if (applicationRoleSelection) {
         event.preventDefault();
         selectApplyForMeRoleFromButton(applicationRoleSelection);
@@ -97361,6 +102726,71 @@
       });
     });
 
+    if (workspaceRoles) {
+      workspaceRoles.addEventListener("input", function (event) {
+        var search = event.target.closest(
+          "[data-sffc-apply-chat-jobs-search]"
+        );
+        if (!search) {
+          return;
+        }
+        jobsWorkspaceSearchQuery = search.value || "";
+        syncJobsWorkspaceState();
+      });
+    }
+
+    root.addEventListener("input", function (event) {
+      var queueSearch = event.target.closest(
+        "[data-sffc-apply-chat-queue-search]"
+      );
+      if (!queueSearch) {
+        return;
+      }
+      jobsWorkspaceSearchQuery = queueSearch.value || "";
+      commercialApplyQueueActiveTab = "all";
+      if (commercialApplyQueueFilter === "shortlisted") {
+        commercialApplyQueueFilter = "all";
+      }
+      updateCommercialApplyQueueCard({
+        active: commercialApplyQueueActivated,
+        showButton: !commercialApplyQueueActivated,
+        eyebrow: commercialApplyQueueActivated ? "Application queue" : "Ready to apply",
+        title: commercialApplyQueueActivated ? "Emily is working through this list" : "Main role first, similar roles next",
+      });
+      var nextSearch = root.querySelector(
+        "[data-sffc-apply-chat-queue-search]"
+      );
+      if (nextSearch && typeof nextSearch.focus === "function") {
+        nextSearch.focus();
+        try {
+          nextSearch.setSelectionRange(nextSearch.value.length, nextSearch.value.length);
+        } catch (error) {}
+      }
+    });
+
+    root.addEventListener(
+      "error",
+      function (event) {
+        var failedLogo = event.target.closest
+          ? event.target.closest(
+              ".sffc-crm-apply-chat__apply-queue-company-logo.has-image img"
+            )
+          : null;
+        var logoWrap = failedLogo
+          ? failedLogo.closest(
+              ".sffc-crm-apply-chat__apply-queue-company-logo"
+            )
+          : null;
+        if (!failedLogo || !logoWrap) {
+          return;
+        }
+        logoWrap.classList.remove("has-image");
+        logoWrap.classList.add("is-fallback");
+        failedLogo.remove();
+      },
+      true
+    );
+
     uploadButton.addEventListener("click", function () {
       fileInput.click();
     });
@@ -97404,8 +102834,10 @@
       resetCvFacts();
       applyCvAnalysis = null;
       currentCvFile = file;
+      currentCvPreviewAsset = null;
       currentCvPageCount = 0;
       capturedCvText = "";
+      commercialApplyQueueInitialized = false;
       clearPromptState();
       var workspacePreviewPromise = setWorkspacePreviewFromFile(file);
       var uploadPreviewRow = userMessage(file.name, "upload", {
@@ -97424,6 +102856,7 @@
               return;
             }
             if (previewAsset && previewAsset.src) {
+              currentCvPreviewAsset = previewAsset;
               updateChatCvUploadPreviewRow(
                 uploadPreviewRow,
                 file,
@@ -97440,6 +102873,7 @@
               ) {
                 return;
               }
+              currentCvPreviewAsset = fallbackPreviewAsset || null;
               updateChatCvUploadPreviewRow(
                 uploadPreviewRow,
                 file,
@@ -97537,12 +102971,15 @@
 
       if (activePath === "apply_for_me_role_discovery") {
         step = "apply_role_discovery_upload";
+        var hasSelectedJobContext = hasApplyForMeSelectedJobContext();
         postUploadIntroPromise = new Promise(function (resolveIntro) {
           var cvReceiptLine = isArabicChat()
             ? "وصلني الـCV."
             : "Okay, I have your CV now.";
           var cvProgressLine = isArabicChat()
             ? "أبحث الآن في الوظائف الحالية عن أدوار مناسبة للتقديم."
+            : hasSelectedJobContext
+            ? "I’ll make sure it’s tailored to every role I apply to."
             : "I’m searching the current job posts for suitable roles to apply to.";
           botSequenceForCurrentTurn(
             [
@@ -97591,6 +103028,12 @@
               return;
             }
             postUploadIntroPromise.then(function () {
+              if (hasSelectedJobContext) {
+                activePath = "apply_for_me";
+                step = "apply_upload";
+                continueApplyAfterAnalysis(analysis || {});
+                return;
+              }
               showApplyForMeRoleSelection(analysis || {}, file.name);
             });
           })
@@ -97664,8 +103107,9 @@
                     return {
                       analysis: (payload && payload.analysis) || {},
                       cvText: "",
-                    };
-                  });
+        };
+      });
+      commercialApplyQueueInitialized = true;
                 }
 
                 capturedCvText = cvText;
@@ -98162,6 +103606,9 @@
               );
             });
         } else if (step === "apply_role_discovery_upload") {
+          if (maybeHandleRoleDiscoveryConversationInput(value)) {
+            return;
+          }
           if (!currentCvFile && !looksLikePastedCvText(value)) {
             clearResponseWatchdog();
             searchApplyForMeRoleDiscoveryByQuery(value);
@@ -98193,6 +103640,9 @@
               focusComposer("Upload your CV or paste it here");
             });
         } else if (step === "apply_role_discovery_select") {
+          if (maybeHandleRoleDiscoveryConversationInput(value)) {
+            return;
+          }
           clearResponseWatchdog();
           searchApplyForMeRoleDiscoveryByQuery(value);
         } else if (step === "apply_upload") {

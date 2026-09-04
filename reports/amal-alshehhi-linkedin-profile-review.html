@@ -1,0 +1,557 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Amal AlShehhi LinkedIn Profile Review</title>
+  <style>
+    :root {
+      --ink: #1f2328;
+      --muted: #666f7a;
+      --line: #d8dee4;
+      --surface: #f3f6f8;
+      --card: #ffffff;
+      --blue: #0a66c2;
+      --navy: #004182;
+      --green: #057642;
+      --amber: #915907;
+      --red: #b42318;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--surface);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, Helvetica, sans-serif;
+      font-size: 15px;
+      line-height: 1.45;
+    }
+
+    main {
+      max-width: 1060px;
+      margin: 0 auto;
+      padding: 22px 18px 42px;
+    }
+
+    .topbar {
+      height: 58px;
+      background: #ffffff;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 22px;
+      margin: -22px -18px 18px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 750;
+      color: var(--navy);
+    }
+
+    .mark {
+      width: 32px;
+      height: 32px;
+      border-radius: 4px;
+      display: grid;
+      place-items: center;
+      background: var(--navy);
+      color: #fff;
+      font-weight: 800;
+    }
+
+    .status {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      min-height: 30px;
+      padding: 4px 12px;
+      border: 1px solid #e7c46b;
+      border-radius: 999px;
+      background: #fff8e5;
+      color: var(--amber);
+      font-size: 13px;
+      font-weight: 750;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--amber);
+    }
+
+    .profile-head {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 1px 2px rgba(16, 24, 40, 0.06);
+    }
+
+    .profile-band {
+      height: 72px;
+      background: linear-gradient(90deg, #004182 0%, #0a66c2 58%, #e8f3ff 100%);
+    }
+
+    .profile-body {
+      padding: 0 24px 22px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 270px;
+      gap: 22px;
+      align-items: start;
+    }
+
+    .avatar {
+      width: 76px;
+      height: 76px;
+      border-radius: 50%;
+      border: 4px solid #fff;
+      margin-top: -38px;
+      display: grid;
+      place-items: center;
+      background: #e7f1fb;
+      color: var(--blue);
+      font-size: 28px;
+      font-weight: 800;
+    }
+
+    h1, h2, h3, p {
+      margin-top: 0;
+    }
+
+    h1 {
+      font-size: 28px;
+      line-height: 1.15;
+      margin: 10px 0 5px;
+      letter-spacing: 0;
+    }
+
+    h2 {
+      font-size: 18px;
+      margin-bottom: 10px;
+      letter-spacing: 0;
+    }
+
+    h3 {
+      font-size: 15px;
+      margin-bottom: 4px;
+      letter-spacing: 0;
+    }
+
+    .headline {
+      color: #38434f;
+      font-size: 16px;
+      margin-bottom: 10px;
+      max-width: 720px;
+    }
+
+    .subline {
+      color: var(--muted);
+      font-size: 14px;
+      margin-bottom: 0;
+    }
+
+    .summary-box {
+      margin-top: 18px;
+      padding: 14px;
+      border-radius: 8px;
+      background: #f8fafc;
+      border: 1px solid var(--line);
+    }
+
+    .summary-box strong {
+      display: block;
+      font-size: 13px;
+      color: #38434f;
+      margin-bottom: 6px;
+    }
+
+    .meta {
+      color: var(--muted);
+      font-size: 14px;
+      margin: 0;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 14px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 18px;
+      box-shadow: 0 1px 2px rgba(16, 24, 40, 0.05);
+    }
+
+    .wide {
+      grid-column: 1 / -1;
+    }
+
+    .pill-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 12px;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      min-height: 27px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: #edf3f8;
+      color: var(--blue);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    ul {
+      padding-left: 20px;
+      margin: 0;
+    }
+
+    li + li {
+      margin-top: 7px;
+    }
+
+    .note {
+      border-left: 3px solid var(--blue);
+      background: #ffffff;
+    }
+
+    .strength {
+      border-top: 3px solid var(--green);
+    }
+
+    .risk {
+      border-top: 3px solid var(--amber);
+    }
+
+    .priority {
+      display: grid;
+      grid-template-columns: 28px minmax(0, 1fr);
+      gap: 12px;
+      align-items: start;
+      padding: 12px 0;
+      border-top: 1px solid var(--line);
+    }
+
+    .priority:first-of-type {
+      border-top: 0;
+      padding-top: 0;
+    }
+
+    .badge {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: var(--blue);
+      color: #fff;
+      font-weight: 800;
+      font-size: 13px;
+    }
+
+    .muted {
+      color: var(--muted);
+    }
+
+    .quote {
+      background: #fff8e5;
+      border: 1px solid #e7c46b;
+      border-radius: 8px;
+      padding: 12px 14px;
+      color: #7a4a05;
+      font-weight: 700;
+    }
+
+    .rewrite {
+      background: #f8fafc;
+      border: 1px dashed #aab7c4;
+      border-radius: 8px;
+      padding: 12px;
+      margin-top: 9px;
+      font-size: 14px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      overflow: hidden;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+    }
+
+    th, td {
+      padding: 10px;
+      text-align: left;
+      border-bottom: 1px solid var(--line);
+      vertical-align: top;
+    }
+
+    th {
+      background: #edf3f8;
+      color: #344054;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    tr:last-child td {
+      border-bottom: 0;
+    }
+
+    footer {
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: 16px;
+    }
+
+    @media (max-width: 820px) {
+      main {
+        padding: 16px 12px 34px;
+      }
+
+      .topbar {
+        margin: -16px -12px 14px;
+      }
+
+      .profile-body,
+      .grid {
+        grid-template-columns: 1fr;
+      }
+
+      h1 {
+        font-size: 24px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <nav class="topbar" aria-label="Report header">
+      <div class="brand">
+        <span class="mark">S</span>
+        <span>MENA Careers</span>
+      </div>
+      <div class="status"><span class="status-dot"></span>Needs repositioning</div>
+    </nav>
+
+    <section class="profile-head">
+      <div class="profile-band"></div>
+      <div class="profile-body">
+        <div>
+          <div class="avatar">AA</div>
+          <h1>Amal K. AlShehhi</h1>
+          <p class="headline">LinkedIn profile review for analyst, strategy, operations, and business-analysis opportunities</p>
+          <p class="subline">United Arab Emirates | MBA Graduate | ADQ, Khalifa University, Miral | LinkedIn reviewed from screenshots: September 2026</p>
+        </div>
+        <aside class="summary-box">
+          <strong>Assessment</strong>
+          <p class="meta">The profile has useful local experience, UAE market relevance, and clear upskilling signals. The main problem is that the headline, About section, and experience entries do not yet tell a recruiter what role Amal should be considered for.</p>
+        </aside>
+      </div>
+    </section>
+
+    <section class="grid">
+      <article class="card strength">
+        <h2>What Works</h2>
+        <ul>
+          <li>The profile photo is professional and gives the page a credible first impression.</li>
+          <li>There is a complete experience history across ADQ, Khalifa University, Miral, Agility, and Etihad.</li>
+          <li>The UAE location and Arabic background are valuable for Abu Dhabi and wider UAE employers.</li>
+          <li>The career break includes visible certificates, which helps show that the time is being used for upskilling.</li>
+          <li>The profile already has a LinkedIn headline and About section, so the foundation is there to improve quickly.</li>
+        </ul>
+        <div class="pill-row">
+          <span class="pill">UAE Market</span>
+          <span class="pill">ADQ</span>
+          <span class="pill">MBA</span>
+          <span class="pill">Operations</span>
+          <span class="pill">Business Analysis</span>
+        </div>
+      </article>
+
+      <article class="card risk">
+        <h2>Main Risks</h2>
+        <ul>
+          <li>The current headline is too broad: "MBA Graduate | Knowledge enthusiast | Always seeking new exciting growth opportunities".</li>
+          <li>The About section reads like a personal aspiration, not a recruiter-facing positioning statement.</li>
+          <li>The career break says "Gap year" and includes personal goals, which weakens the professional narrative.</li>
+          <li>Several experience entries show only skills tags rather than outcome-led descriptions.</li>
+          <li>Skills such as "Unsupervised Learning" appear disconnected from the actual target roles unless backed by projects.</li>
+        </ul>
+      </article>
+
+      <article class="card wide note">
+        <h2>Current Profile Diagnosis</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Profile Area</th>
+              <th>Current Signal</th>
+              <th>Recommended Direction</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Headline</td>
+              <td>General MBA graduate and growth-opportunity wording.</td>
+              <td>Use a searchable headline with target roles, core skills, location, and UAE market relevance.</td>
+            </tr>
+            <tr>
+              <td>About</td>
+              <td>Short, personal, and not specific enough for recruiters.</td>
+              <td>Lead with analyst positioning, 6+ years of experience, ADQ exposure, and technical upskilling.</td>
+            </tr>
+            <tr>
+              <td>Experience</td>
+              <td>Some roles show titles and skills, but not enough achievements.</td>
+              <td>Add 2-4 bullets per main role showing scope, action, tools, and measurable outcomes.</td>
+            </tr>
+            <tr>
+              <td>Career Break</td>
+              <td>"Gap year" and personal-goal wording.</td>
+              <td>Rename it to "Career Transition and Analytics Upskilling" and show projects completed.</td>
+            </tr>
+            <tr>
+              <td>Skills</td>
+              <td>Some skills are visible, but they do not yet form a coherent role narrative.</td>
+              <td>Pin skills aligned with Business Analysis, Strategy, Operations, Research, Power BI, Excel, SQL, and stakeholder management.</td>
+            </tr>
+            <tr>
+              <td>Activity</td>
+              <td>Mostly congratulatory comments.</td>
+              <td>Add light professional activity around UAE business, analytics, operations, consulting, and learning projects.</td>
+            </tr>
+          </tbody>
+        </table>
+      </article>
+
+      <article class="card wide">
+        <h2>Priority Fixes</h2>
+        <div class="priority">
+          <div class="badge">1</div>
+          <div>
+            <h3>Replace the headline with a recruiter-searchable version</h3>
+            <p class="muted">The headline is one of the highest-impact fields on LinkedIn. It should say what Amal does and what roles she is relevant for.</p>
+            <div class="rewrite">Recommended headline: UAE National | Business Analyst / Strategy Operations | MBA | ADQ Risk & Resilience | Research, Benchmarking, Power BI, SQL & Process Improvement</div>
+          </div>
+        </div>
+        <div class="priority">
+          <div class="badge">2</div>
+          <div>
+            <h3>Rewrite the About section around a clear target</h3>
+            <p class="muted">The current About section is pleasant but undersells the professional evidence. It needs to read like a short positioning pitch.</p>
+            <div class="rewrite">Suggested About: I am a UAE National and MBA graduate with 6+ years of experience across strategic operations, risk coordination, research, stakeholder management, and process improvement in Abu Dhabi organizations including ADQ, Khalifa University, and Miral. I am now targeting Business Analyst, Strategy Analyst, Operations Analyst, and Research Analyst roles where I can combine structured problem-solving, stakeholder coordination, data handling, and analytics tools including Excel, Power BI, SQL, and Tableau. My background includes risk and policy support, internal benchmarking, procurement coordination, admissions process management, operational reporting, and service improvement projects.</div>
+          </div>
+        </div>
+        <div class="priority">
+          <div class="badge">3</div>
+          <div>
+            <h3>Rename and reposition the career break</h3>
+            <p class="muted">"Gap year" creates the wrong first impression. The screenshots show this period includes certificates and learning, so frame it professionally.</p>
+            <div class="rewrite">Use: Career Transition and Analytics Upskilling. Description: Completed structured training in business analysis, Excel, SQL, Power BI, Tableau, consulting, FMCG case work, and investment analysis while preparing for analyst and strategy operations roles.</div>
+          </div>
+        </div>
+        <div class="priority">
+          <div class="badge">4</div>
+          <div>
+            <h3>Add stronger descriptions under ADQ</h3>
+            <p class="muted">ADQ is the strongest employer signal. The LinkedIn profile should not rely on the brand alone; it needs searchable, outcome-led bullets.</p>
+            <div class="rewrite">Example bullet: Supported risk management and resilience initiatives through stakeholder coordination, policy documentation, procurement tracking, controlled repositories, and internal research used for management decision support.</div>
+          </div>
+        </div>
+      </article>
+
+      <article class="card">
+        <h2>Profile Sections To Update</h2>
+        <ul>
+          <li>Add a custom LinkedIn URL if not already set.</li>
+          <li>Add a Featured section with certificates, business-analysis projects, dashboards, or case work.</li>
+          <li>Pin the strongest skills: Business Analysis, Strategic Planning, Operations, Risk Management, Stakeholder Management, Market Research, Benchmarking, Excel, Power BI, SQL, Tableau, Arabic.</li>
+          <li>Move weaker or unexplained AI/data science terms lower unless she has project evidence.</li>
+          <li>Add descriptions for Khalifa University and Miral that show process improvement, stakeholder handling, reporting, and operational coordination.</li>
+        </ul>
+      </article>
+
+      <article class="card">
+        <h2>Activity Strategy</h2>
+        <ul>
+          <li>Post one short learning update about the Business Analyst course and what skills were built.</li>
+          <li>Post one short project-style update showing a Power BI, SQL, Excel, or Tableau learning output.</li>
+          <li>Comment on UAE strategy, government transformation, analytics, operations, and business-analysis posts with specific observations.</li>
+          <li>Follow and engage with target employers in Abu Dhabi: government entities, investment platforms, consulting firms, semi-government organizations, and major local corporates.</li>
+          <li>Avoid only congratulatory comments; they do not build a professional keyword trail.</li>
+        </ul>
+      </article>
+
+      <article class="card wide">
+        <h2>Recommended Experience Rewrites</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Role</th>
+              <th>Suggested LinkedIn Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>ADQ - Senior Coordinator / Coordinator</td>
+              <td>Supported risk management, resilience, policy, procurement, documentation, and stakeholder initiatives across internal and external workstreams. Coordinated recurring meetings, maintained controlled records, supported research and benchmarking, and helped improve visibility across departmental actions and resource allocation.</td>
+            </tr>
+            <tr>
+              <td>Khalifa University - Administrative Assistant</td>
+              <td>Coordinated graduate admissions workflows, scheduled and tracked high-volume interviews, maintained academic records, and improved exit interview processing through a more structured verification and tracking approach.</td>
+            </tr>
+            <tr>
+              <td>Miral Experiences - Coordinator</td>
+              <td>Supported guest services operations, front-desk coordination, payroll inputs, expense forms, customer enquiries, onboarding support, and operational process improvement in a high-volume visitor environment.</td>
+            </tr>
+            <tr>
+              <td>Career Transition and Analytics Upskilling</td>
+              <td>Completed business-analysis and consulting programmes covering Excel, SQL, Power BI, Tableau, FMCG case work, consulting problem-solving, and investment analysis foundations. Building a portfolio of applied analytics and research projects for analyst-role transition.</td>
+            </tr>
+          </tbody>
+        </table>
+      </article>
+
+      <article class="card wide">
+        <h2>Suggested Featured Section</h2>
+        <p class="quote">Use the Featured section to prove the transition: certificates are useful, but applied projects will be more persuasive.</p>
+        <ul>
+          <li>Business Analyst Course certificate.</li>
+          <li>Nomu Al Ghurair Programme certificate or project summary.</li>
+          <li>Investment Analysis Certificate once completed.</li>
+          <li>One Power BI dashboard screenshot or project PDF.</li>
+          <li>One short market research or benchmarking sample, with sensitive information removed.</li>
+        </ul>
+      </article>
+
+      <article class="card wide">
+        <h2>Best Positioning</h2>
+        <p class="quote">Position Amal as a UAE National business analyst and strategy operations candidate, not simply as an MBA graduate seeking growth opportunities.</p>
+        <p class="muted">The strongest profile will combine Abu Dhabi institutional experience, stakeholder coordination, risk and resilience exposure, Arabic-English communication, and practical analytics upskilling. That is much more marketable than a broad "knowledge enthusiast" message.</p>
+      </article>
+    </section>
+
+    <footer>
+      Source reviewed: LinkedIn profile screenshots supplied on 2026-09-03.
+    </footer>
+  </main>
+</body>
+</html>

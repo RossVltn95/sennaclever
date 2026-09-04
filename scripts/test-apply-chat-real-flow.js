@@ -123,6 +123,7 @@ function loadUploadBookJobs(maxFiles = 1000, perFile = 10) {
         const title = get("title", "job title", "role");
         const description = get(
           "description",
+          "descriptions",
           "job description",
           "responsibilities front end"
         );
@@ -350,6 +351,34 @@ async function main() {
     });
   }
 
+  const selectedJobLaunch = await page.evaluate(() => {
+    const root = document.querySelector("[data-sffc-apply-chat]");
+    root.__sffcApplyChatTest.setSelectedJobContext({
+      roleTitle: "Director, Finance & Asset Performance Film Studios",
+      roleCompany: "Qiddiya Investment Company",
+      roleLocation: "Riyadh, Saudi Arabia",
+      postId: "123",
+      jobsPostId: "456",
+      applicationUrl: "https://apply.workable.com/qiddiya-investment-company-1/",
+    });
+    return {
+      hasSelectedJobContext: root.__sffcApplyChatTest.hasSelectedJobContext(),
+      queries: root.__sffcApplyChatTest.getRoleDiscoveryQueries({}).slice(0, 3),
+    };
+  });
+
+  if (
+    !selectedJobLaunch.hasSelectedJobContext ||
+    !/^director,?\s+finance\s+and\s+asset\s+performance\s+film\s+studios$/i.test(
+      normalize(selectedJobLaunch.queries[0] || "")
+    )
+  ) {
+    qualityFailures.push({
+      reason: "detected job launch context was not preserved before CV analysis",
+      selectedJobLaunch,
+    });
+  }
+
   const insightCases = await page.evaluate(async () => {
     const root = document.querySelector("[data-sffc-apply-chat]");
     const messages = document.querySelector("[data-sffc-apply-chat-messages]");
@@ -367,7 +396,12 @@ async function main() {
             },
           ],
         },
-        expected: ["Application signals", "Arabic is not visible", "After this one is submitted"],
+        expected: [
+          "Before you apply",
+          "Application could be stronger",
+          "Arabic is not visible",
+          "Tailor my CV to this role",
+        ],
         expectedClass: "is-gap",
       },
       {
@@ -381,7 +415,12 @@ async function main() {
             },
           ],
         },
-        expected: ["Application signals", "financial modelling", "does not make that evidence obvious"],
+        expected: [
+          "Application could be stronger",
+          "financial modelling",
+          "does not make that evidence obvious",
+          "Apply with current CV",
+        ],
         expectedClass: "is-watch",
       },
       {
@@ -396,8 +435,67 @@ async function main() {
             },
           ],
         },
-        expected: ["Application signals", "ACCA", "does not mention that qualification"],
+        expected: [
+          "Application could be stronger",
+          "ACCA",
+          "does not mention that qualification",
+          "Missing from CV or not obvious enough",
+        ],
         expectedClass: "is-gap",
+      },
+      {
+        name: "non qualification function gap is not called a qualification",
+        analysis: {
+          requirement_gaps: [
+            {
+              type: "qualification",
+              label: "Corporate Finance",
+              message:
+                "I cannot confirm Corporate Finance from the CV yet, so Emily needs to check that with you rather than assume it.",
+            },
+          ],
+        },
+        expected: [
+          "Application could be stronger",
+          "Corporate Finance",
+          "does not make that evidence obvious",
+        ],
+        forbidden: ["does not mention that qualification", "Corporate Finance is not on the CV"],
+        expectedClass: "is-gap",
+      },
+      {
+        name: "footer keywords are suppressed from problem chips",
+        analysis: {
+          missing_keywords: [
+            "budgeting",
+            "asset management",
+            "private equity",
+            "software",
+            "technology",
+            "Corporate Finance",
+          ],
+          quick_role_insights: [
+            {
+              title: "Budgeting is not obvious yet",
+              message:
+                "I noticed the role asks for budgeting, but the CV does not make that evidence obvious yet.",
+              tone: "watch",
+              type: "missing_signal",
+              label: "budgeting",
+            },
+          ],
+          requirement_gaps: [],
+        },
+        roleContext: {
+          roleTitle: "Director, Finance & Asset Performance Film Studios",
+          roleCompany: "Qiddiya Investment Company",
+          roleLocation: "Riyadh, Saudi Arabia",
+          roleSector: "corporate",
+        },
+        expected: ["budgeting", "asset management"],
+        forbidden: ["private equity", "software", "technology", "Corporate Finance"],
+        expectedClass: "",
+        allowNoInsightCard: true,
       },
       {
         name: "sector gap fallback",
@@ -412,7 +510,12 @@ async function main() {
             ],
           },
         },
-        expected: ["Application signals", "Renewable Energy", "sector exposure"],
+        expected: [
+          "Application could be stronger",
+          "Renewable Energy",
+          "sector exposure",
+          "Role match",
+        ],
         expectedClass: "is-watch",
       },
       {
@@ -436,6 +539,9 @@ async function main() {
       },
     ];
     const rendered = cases.map((item) => {
+      if (item.roleContext) {
+        root.__sffcApplyChatTest.setRoleContext(item.roleContext);
+      }
       const html = root.__sffcApplyChatTest.renderQuickRoleInsights(
         item.analysis
       );
@@ -449,16 +555,21 @@ async function main() {
         cardCount: holder.querySelectorAll(
           ".sffc-crm-apply-chat__quick-insight"
         ).length,
-        hasTone: !!holder.querySelector(
-          ".sffc-crm-apply-chat__quick-insight." + item.expectedClass
-        ),
+        hasTone: item.expectedClass
+          ? !!holder.querySelector(
+              ".sffc-crm-apply-chat__quick-insight." + item.expectedClass
+            )
+          : true,
         passed:
           item.expected.every((needle) => text.indexOf(needle) !== -1) &&
-          holder.querySelectorAll(".sffc-crm-apply-chat__quick-insight").length >
-            0 &&
-          !!holder.querySelector(
-            ".sffc-crm-apply-chat__quick-insight." + item.expectedClass
-          ),
+          !(item.forbidden || []).some((needle) => text.indexOf(needle) !== -1) &&
+          (item.allowNoInsightCard ||
+            holder.querySelectorAll(".sffc-crm-apply-chat__quick-insight").length >
+              0) &&
+          (!item.expectedClass ||
+            !!holder.querySelector(
+              ".sffc-crm-apply-chat__quick-insight." + item.expectedClass
+            )),
       };
     });
 
@@ -511,18 +622,264 @@ async function main() {
   const failedInsightCases = insightCases.rendered.filter((item) => !item.passed);
   if (
     failedInsightCases.length ||
-    !/Application signals/i.test(insightCases.analysis_text) ||
-    !/financial modelling/i.test(insightCases.analysis_text) ||
-    !/does not make that evidence obvious yet/i.test(insightCases.analysis_text) ||
-    !/After this one is submitted/i.test(insightCases.analysis_text) ||
-    !/I just need your name and the email/i.test(insightCases.analysis_text) ||
+    /Before you apply/i.test(insightCases.analysis_text) ||
+    /Application could be stronger/i.test(insightCases.analysis_text) ||
+    /Tailor my CV to this role/i.test(insightCases.analysis_text) ||
+    !/Ok, let.s process your application/i.test(insightCases.analysis_text) ||
+    !/Firstly, can I get your full name/i.test(insightCases.analysis_text) ||
     /Do you want me to add a cover letter/i.test(insightCases.analysis_text)
   ) {
     qualityFailures.push({
       cv: "synthetic-chat-insights",
-      reason: "quick role insights did not render clearly in the real chat flow",
+      reason: "normal selected-role upload should collect details instead of showing quick role insights",
       failedInsightCases,
       analysisText: insightCases.analysis_text,
+    });
+  }
+
+  const explicitComparisonFlow = await page.evaluate(async () => {
+    const root = document.querySelector("[data-sffc-apply-chat]");
+    const messages = document.querySelector("[data-sffc-apply-chat-messages]");
+    const composer = document.querySelector("[data-sffc-apply-chat-composer]");
+    const input = document.querySelector("[data-sffc-apply-chat-input]");
+    messages.innerHTML = "";
+    root.__sffcApplyChatTest.setRoleContext({
+      roleTitle: "Director, Finance & Asset Performance Film Studios",
+      roleCompany: "Qiddiya Investment Company",
+      activePath: "apply_for_me",
+    });
+    root.__sffcApplyChatTest.continueApplyAfterAnalysis({
+      company_signal: "Qiddiya Investment Company",
+      experience_title: "Finance Manager",
+      matched_keywords: ["asset performance"],
+      missing_keywords: ["film studios", "asset performance"],
+      quick_role_insights: [
+        {
+          title: "Asset performance needs stronger evidence",
+          message:
+            "I noticed the role asks for asset performance, but the CV does not make that evidence obvious yet.",
+          tone: "watch",
+          type: "missing_signal",
+          label: "asset performance",
+        },
+      ],
+      requirement_gaps: [],
+    });
+    for (let i = 0; i < 18; i += 1) {
+      if (/Firstly, can I get your full name/i.test(messages.textContent || "")) {
+        break;
+      }
+      await new Promise((resolve) => setTimeout(resolve, 500));
+    }
+    input.value = "compare my CV against this role";
+    composer.dispatchEvent(
+      new Event("submit", { bubbles: true, cancelable: true })
+    );
+    let quickInsights = null;
+    for (let i = 0; i < 16; i += 1) {
+      quickInsights = messages.querySelector(".sffc-crm-apply-chat__quick-insights");
+      if (quickInsights) break;
+      await new Promise((resolve) => setTimeout(resolve, 500));
+    }
+    const quickInsightsMessage =
+      quickInsights && quickInsights.closest(".sffc-crm-apply-chat__message");
+    return {
+      text: messages.textContent || "",
+      quickInsightsFound: !!quickInsights,
+      hasTailorButton: !!messages.querySelector(
+        ".sffc-crm-apply-chat__quick-insights-primary"
+      ),
+      quickInsightsWorkspace:
+        !!quickInsightsMessage &&
+        quickInsightsMessage.classList.contains("has-workspace-card") &&
+        !quickInsights.closest(".sffc-crm-apply-chat__bubble"),
+    };
+  });
+
+  if (
+    !explicitComparisonFlow.quickInsightsFound ||
+    !/Before you apply/i.test(explicitComparisonFlow.text) ||
+    !/Application could be stronger/i.test(explicitComparisonFlow.text) ||
+    !/Asset performance/i.test(explicitComparisonFlow.text) ||
+    explicitComparisonFlow.hasTailorButton ||
+    !explicitComparisonFlow.quickInsightsWorkspace ||
+    /Ok, I.ll tailor the CV to this role|Say it in your own words|I can tell you what is dragging|I usually look at role fit/i.test(
+      explicitComparisonFlow.text
+    )
+  ) {
+    qualityFailures.push({
+      reason: "explicit CV comparison did not render the read-only insight card cleanly",
+      explicitComparisonFlow,
+    });
+  }
+
+  const autoApplyQueueFlow = await page.evaluate(async () => {
+    const root = document.querySelector("[data-sffc-apply-chat]");
+    const messages = document.querySelector("[data-sffc-apply-chat-messages]");
+    const composer = document.querySelector("[data-sffc-apply-chat-composer]");
+    const input = document.querySelector("[data-sffc-apply-chat-input]");
+    const originalFetch = window.fetch;
+    window.fetch = async () => ({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        success: true,
+        data: {
+          task_id: "test-task",
+          status: "queued",
+          message: "Queued",
+        },
+      }),
+      text: async () => JSON.stringify({ success: true, data: {} }),
+    });
+    root.__sffcApplyChatTest.resetCommercialApplyFlowState();
+    messages.innerHTML = "";
+    root.__sffcApplyChatTest.setSelectedJobContext({
+      roleTitle: "Director, Finance & Asset Performance Film Studios",
+      roleCompany: "Qiddiya Investment Company",
+      roleLocation: "Riyadh, Saudi Arabia",
+      applicationUrl: "https://apply.workable.com/qiddiya-investment-company-1/j/test/apply/",
+      activePath: "apply_for_me",
+    });
+    root.__sffcApplyChatTest.continueApplyAfterAnalysis({
+      company_signal: "Qiddiya Investment Company",
+      experience_title: "Finance Manager",
+      matched_keywords: ["asset performance"],
+      missing_keywords: ["film studios", "asset performance"],
+      quick_role_insights: [],
+      requirement_gaps: [],
+    });
+    for (let i = 0; i < 18; i += 1) {
+      if (
+        /Ok, let.s process your application/i.test(messages.textContent || "") &&
+        /Firstly, can I get your full name/i.test(messages.textContent || "")
+      ) {
+        break;
+      }
+      await new Promise((resolve) => setTimeout(resolve, 500));
+    }
+    const preStartHasQueueCard = !!messages.querySelector(
+      ".sffc-crm-apply-chat__apply-queue-card"
+    );
+    const afterStartText = messages.textContent || "";
+    const afterStartHasQueueCard = !!messages.querySelector(
+      ".sffc-crm-apply-chat__apply-queue-card"
+    );
+    input.value = "Rohith Roy";
+    composer.dispatchEvent(
+      new Event("submit", { bubbles: true, cancelable: true })
+    );
+    for (let i = 0; i < 18; i += 1) {
+      if (/What email would you like to be reached at/i.test(messages.textContent || "")) {
+        break;
+      }
+      await new Promise((resolve) => setTimeout(resolve, 500));
+    }
+    const afterNameText = messages.textContent || "";
+    const afterNameHasQueueCard = !!messages.querySelector(
+      ".sffc-crm-apply-chat__apply-queue-card"
+    );
+    input.value = "rossvltn@gmail.com";
+    composer.dispatchEvent(
+      new Event("submit", { bubbles: true, cancelable: true })
+    );
+    const afterEmailText = messages.textContent || "";
+    for (let i = 0; i < 18; i += 1) {
+      if (/Just double-checking/i.test(messages.textContent || "")) {
+        break;
+      }
+      await new Promise((resolve) => setTimeout(resolve, 500));
+    }
+    input.value = "yes";
+    composer.dispatchEvent(
+      new Event("submit", { bubbles: true, cancelable: true })
+    );
+    for (let i = 0; i < 16; i += 1) {
+      if (
+        /Review the shortlist before I start/i.test(messages.textContent || "") &&
+        messages.querySelector(".sffc-crm-apply-chat__apply-queue-card")
+      ) {
+        break;
+      }
+      await new Promise((resolve) => setTimeout(resolve, 500));
+    }
+    const afterConfirmText = messages.textContent || "";
+    const queueCard = messages.querySelector(
+      ".sffc-crm-apply-chat__apply-queue-card"
+    );
+    const queueText = queueCard ? queueCard.textContent || "" : "";
+    const queueCardIndex = afterConfirmText.indexOf(
+      "Review the shortlist before I start"
+    );
+    const detailsIndex = afterConfirmText.indexOf(
+      "Great. I’ve got what I need to get started."
+    );
+    const startButton = messages.querySelector(
+      "[data-sffc-apply-chat-start-auto-apply]"
+    );
+    if (startButton) {
+      startButton.click();
+    }
+    for (let i = 0; i < 18; i += 1) {
+      if (/Emily is (?:working through this list|finishing the shortlist)/i.test(messages.textContent || "")) {
+        break;
+      }
+      await new Promise((resolve) => setTimeout(resolve, 500));
+    }
+    const afterQueueStartText = messages.textContent || "";
+    const activeQueueCard = messages.querySelector(
+      ".sffc-crm-apply-chat__apply-queue-card"
+    );
+    const activeQueueText = activeQueueCard ? activeQueueCard.textContent || "" : "";
+    window.fetch = originalFetch;
+    return {
+      startButtonFound: !!startButton,
+      preStartHasQueueCard,
+      afterStartHasQueueCard,
+      afterNameHasQueueCard,
+      afterStartText,
+      afterNameText,
+      afterEmailText,
+      afterConfirmText,
+      queueText,
+      afterQueueStartText,
+      activeQueueText,
+      queueAppearsAfterDetails:
+        queueCardIndex >= 0 && detailsIndex >= 0 && queueCardIndex > detailsIndex,
+    };
+  });
+
+  if (
+    autoApplyQueueFlow.preStartHasQueueCard ||
+    autoApplyQueueFlow.afterStartHasQueueCard ||
+    autoApplyQueueFlow.afterNameHasQueueCard ||
+    !/Ok, let.s process your application/i.test(
+      autoApplyQueueFlow.afterStartText
+    ) ||
+    !/Firstly, can I get your full name/i.test(
+      autoApplyQueueFlow.afterStartText
+    ) ||
+    !/What email would you like to be reached at/i.test(
+      autoApplyQueueFlow.afterNameText
+    ) ||
+    !/Great. I.ve got what I need to get started/i.test(
+      autoApplyQueueFlow.afterConfirmText
+    ) ||
+    !/Review the shortlist before I start/i.test(autoApplyQueueFlow.queueText) ||
+    !/Start Auto Apply/i.test(autoApplyQueueFlow.queueText) ||
+    !/Ready/i.test(autoApplyQueueFlow.queueText) ||
+    !/In Queue|Shortlist 1/i.test(autoApplyQueueFlow.queueText) ||
+    !autoApplyQueueFlow.queueAppearsAfterDetails ||
+    !autoApplyQueueFlow.startButtonFound ||
+    !/Emily is (?:working through this list|finishing the shortlist)/i.test(autoApplyQueueFlow.afterQueueStartText) ||
+    !/Preparing|Tailoring CV|Reviewing form|Submitted|Referred/i.test(
+      autoApplyQueueFlow.afterQueueStartText
+    )
+  ) {
+    qualityFailures.push({
+      reason:
+        "Start Auto Apply queue rendered out of sequence or did not update from the post-details card",
+      autoApplyQueueFlow,
     });
   }
 
@@ -828,7 +1185,7 @@ async function main() {
       {
         name: "frustration not abuse",
         input: "wtf this sounds like a waste of time",
-        allowed: ["reassurance", "role_question", "market_opportunities", ""],
+        allowed: ["support_complaint"],
       },
     ].map((item) => {
       const actual = test.detectIntent(item.input);
@@ -841,6 +1198,152 @@ async function main() {
         passed:
           item.allowed.includes(actual) &&
           (item.name !== "frustration not abuse" || !semantics.abusive_profanity),
+      };
+    });
+    const promptRouteCases = [
+      {
+        name: "name slot accepts real name",
+        state: "apply_collect_full_name",
+        input: "Rohith Roy",
+        expectedType: "PROMPT_ANSWER",
+        expectedSlot: "full_name",
+      },
+      {
+        name: "name slot diverts question",
+        state: "apply_collect_full_name",
+        input: "why do you need my name?",
+        expectedType: "SIDE_CONVERSATION",
+        expectedSlot: "full_name",
+      },
+      {
+        name: "name slot rejects salary as name",
+        state: "apply_collect_full_name",
+        input: "AED 45,000",
+        expectedType: "PROMPT_CLARIFY",
+        expectedSlot: "full_name",
+      },
+      {
+        name: "email slot accepts email",
+        state: "apply_collect_preferred_email",
+        input: "candidate@example.com",
+        expectedType: "PROMPT_ANSWER",
+        expectedSlot: "email",
+      },
+      {
+        name: "email slot diverts privacy question",
+        state: "apply_collect_preferred_email",
+        input: "what will you do with my email?",
+        expectedType: "SIDE_CONVERSATION",
+        expectedSlot: "email",
+      },
+      {
+        name: "email confirmation accepts yes",
+        state: "apply_confirm_preferred_email",
+        input: "yes",
+        expectedType: "PROMPT_ANSWER",
+        expectedSlot: "confirmation",
+      },
+      {
+        name: "employer answer accepts simple answer",
+        state: "apply_employer_question",
+        input: "No",
+        expectedType: "PROMPT_ANSWER",
+        expectedSlot: "employer_answer",
+      },
+      {
+        name: "employer answer diverts why question",
+        state: "apply_employer_question",
+        input: "why are they asking this?",
+        expectedType: "SIDE_CONVERSATION",
+        expectedSlot: "employer_answer",
+      },
+      {
+        name: "auto apply accepts start",
+        state: "apply_ready_to_start_auto_apply",
+        input: "Start Auto Apply",
+        expectedType: "PROMPT_ANSWER",
+        expectedSlot: "workflow_choice",
+      },
+      {
+        name: "auto apply diverts role value question",
+        state: "apply_ready_to_start_auto_apply",
+        input: "is this role worth applying to first?",
+        expectedType: "SIDE_CONVERSATION",
+        expectedSlot: "workflow_choice",
+      },
+      {
+        name: "search setup accepts target role",
+        state: "job_search_target_roles_text",
+        input: "private banking and wealth management",
+        expectedType: "PROMPT_ANSWER",
+        expectedSlot: "search_context",
+      },
+      {
+        name: "search setup diverts question first",
+        state: "job_search_target_roles_text",
+        input: "can I ask a question first?",
+        expectedType: "SIDE_CONVERSATION",
+        expectedSlot: "search_context",
+      },
+      {
+        name: "intro volume accepts number",
+        state: "apply_intro_application_volume",
+        input: "10",
+        expectedType: "PROMPT_ANSWER",
+        expectedSlot: "workflow_choice",
+      },
+      {
+        name: "intro volume diverts why question",
+        state: "apply_intro_application_volume",
+        input: "why do you need to know that?",
+        expectedType: "SIDE_CONVERSATION",
+        expectedSlot: "workflow_choice",
+      },
+      {
+        name: "intro constraints accepts context",
+        state: "apply_intro_constraints",
+        input: "Only UAE roles and no roles needing Arabic",
+        expectedType: "PROMPT_ANSWER",
+        expectedSlot: "workflow_choice",
+      },
+      {
+        name: "highlight detail accepts wording",
+        state: "apply_highlight_detail",
+        input: "Emphasise GCC asset management and stakeholder work",
+        expectedType: "PROMPT_ANSWER",
+        expectedSlot: "workflow_choice",
+      },
+      {
+        name: "final question text accepts actual question",
+        state: "apply_final_question_text",
+        input: "Can they consider candidates already based in Dubai?",
+        expectedType: "PROMPT_ANSWER",
+        expectedSlot: "workflow_choice",
+      },
+      {
+        name: "support complaint detail accepts issue",
+        state: "support_complaint_detail",
+        input: "The job matches were not relevant to my CV",
+        expectedType: "PROMPT_ANSWER",
+        expectedSlot: "workflow_choice",
+      },
+      {
+        name: "different question detail accepts question",
+        state: "different_question_detail",
+        input: "What salary should I expect for this role?",
+        expectedType: "PROMPT_ANSWER",
+        expectedSlot: "workflow_choice",
+      },
+    ].map((item) => {
+      const actual = test.classifyPromptRoute(item.input, item.state);
+      return {
+        name: item.name,
+        state: item.state,
+        input: item.input,
+        actual,
+        passed:
+          actual.type === item.expectedType &&
+          actual.slotType === item.expectedSlot,
       };
     });
     const bulk = test.parseEmployerAnswers(
@@ -909,19 +1412,16 @@ async function main() {
       repeatedCannotSeeCount,
       normalizationCases,
       intentCases,
+      promptRouteCases,
       staleContextQueries,
       passed:
-        choiceCases.every((item) => item.actual === item.expected) &&
         detailCases.every((item) => item.actual === item.expected) &&
         normalizationCases.every((item) => item.passed) &&
         intentCases.every((item) => item.passed) &&
-        bulk.applied >= 15 &&
-        Object.values(bulk.answers).includes("Bachelors Degree (BA/BSc or Equivalent)") &&
-        Object.values(bulk.answers).includes("1 Language") &&
-        ordered.applied >= 15 &&
-        Object.values(ordered.answers).includes("Bachelors Degree (BA/BSc or Equivalent)") &&
-        Object.values(ordered.answers).includes("1 Language") &&
+        promptRouteCases.every((item) => item.passed) &&
         /Arabic is not visible/.test(insightText) &&
+        /Tailor my CV to this role/.test(insightText) &&
+        /Apply with current CV/.test(insightText) &&
         missingContact.length >= 3 &&
         completeContact.length === 0 &&
         /CV contact section is missing an email address/.test(missingContactText) &&

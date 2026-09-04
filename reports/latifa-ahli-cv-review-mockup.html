@@ -1,0 +1,599 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Latifa Ahli CV Review Mockup</title>
+  <style>
+    :root {
+      --ink: #111827;
+      --muted: #4b5563;
+      --rule: #d1d5db;
+      --mark: #d91f2a;
+      --paper: #ffffff;
+      --desk: #f3f4f6;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--desk);
+      color: var(--ink);
+      font-family: Arial, Helvetica, sans-serif;
+      line-height: 1.28;
+    }
+
+    .mockup-shell {
+      padding: 28px;
+    }
+
+    .page {
+      position: relative;
+      width: min(1080px, 100%);
+      margin: 0 auto;
+      background: var(--paper);
+      box-shadow: 0 20px 60px rgba(15, 23, 42, 0.14);
+      padding: 54px 82px 58px;
+      overflow: hidden;
+    }
+
+    .page::before {
+      content: "Reviewed CV mockup";
+      position: absolute;
+      top: 18px;
+      right: 24px;
+      color: #9ca3af;
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .cv-header {
+      text-align: left;
+      margin-bottom: 16px;
+    }
+
+    h1 {
+      display: inline;
+      margin: 0;
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: 0;
+    }
+
+    .contact {
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .missing-link {
+      color: var(--mark);
+      font-family: "Bradley Hand", "Segoe Print", "Comic Sans MS", cursive;
+      font-size: 13px;
+      font-weight: 700;
+      margin-left: 12px;
+      transform: rotate(-1deg);
+      display: inline-block;
+    }
+
+    .summary {
+      position: relative;
+      max-width: 830px;
+      margin: 14px 0 18px;
+      font-size: 13.5px;
+    }
+
+    .section-title {
+      border-top: 1px solid var(--rule);
+      border-bottom: 1px solid var(--rule);
+      padding: 6px 0;
+      margin: 17px 0 10px;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+    }
+
+    .role {
+      position: relative;
+      margin-bottom: 17px;
+    }
+
+    .role-top,
+    .role-meta {
+      display: flex;
+      justify-content: space-between;
+      gap: 24px;
+      font-size: 13px;
+    }
+
+    .role-top strong,
+    .role-meta strong {
+      font-weight: 700;
+    }
+
+    .role-meta {
+      margin-top: 2px;
+      color: var(--muted);
+    }
+
+    ul {
+      margin: 7px 0 0 18px;
+      padding: 0;
+      font-size: 12.8px;
+    }
+
+    li {
+      margin-bottom: 5px;
+      padding-left: 2px;
+    }
+
+    .weak {
+      color: #6b7280;
+      text-decoration: line-through;
+      text-decoration-color: var(--mark);
+      text-decoration-thickness: 2px;
+    }
+
+    .highlight {
+      background: #fff1a8;
+      border-radius: 2px;
+      padding: 0 2px;
+    }
+
+    .needs-work {
+      background: rgba(217, 31, 42, 0.08);
+      border-bottom: 2px solid var(--mark);
+      padding: 0 2px;
+    }
+
+    .replacement {
+      display: block;
+      margin-top: 2px;
+      color: var(--mark);
+      font-family: "Bradley Hand", "Segoe Print", "Comic Sans MS", cursive;
+      font-weight: 700;
+      font-size: 12.5px;
+    }
+
+    .columns {
+      display: grid;
+      grid-template-columns: 1fr 1.35fr;
+      gap: 30px;
+    }
+
+    .markup {
+      color: var(--mark);
+      font-family: "Bradley Hand", "Segoe Print", "Comic Sans MS", cursive;
+      font-weight: 700;
+      font-size: 14px;
+      line-height: 1.1;
+    }
+
+    .markup.small {
+      font-size: 12.5px;
+      font-weight: 700;
+    }
+
+    .markup.inline {
+      display: inline-block;
+      margin-left: 10px;
+      transform: rotate(-1deg);
+    }
+
+    .markup-note {
+      position: absolute;
+      color: var(--mark);
+      font-family: "Bradley Hand", "Segoe Print", "Comic Sans MS", cursive;
+      font-size: 13px;
+      font-weight: 700;
+      line-height: 1.1;
+      max-width: 230px;
+    }
+
+    .markup-note::before {
+      content: "";
+      position: absolute;
+      width: 34px;
+      border-top: 2px solid var(--mark);
+      transform-origin: left center;
+    }
+
+    .markup-note::after {
+      content: "";
+      position: absolute;
+      left: -15px;
+      top: 8px;
+      width: 8px;
+      height: 8px;
+      border-top: 2px solid var(--mark);
+      border-left: 2px solid var(--mark);
+      transform: rotate(-45deg);
+    }
+
+    .target-note {
+      top: -30px;
+      left: 290px;
+      max-width: 420px;
+    }
+
+    .target-note::before {
+      left: -46px;
+      top: 20px;
+      transform: rotate(12deg);
+    }
+
+    .summary-note {
+      right: -55px;
+      top: 30px;
+      max-width: 185px;
+      transform: rotate(2deg);
+    }
+
+    .summary-note::before {
+      left: -42px;
+      top: 11px;
+      transform: rotate(170deg);
+    }
+
+    .outcome-note {
+      top: -18px;
+      right: -50px;
+      max-width: 260px;
+      transform: rotate(1deg);
+    }
+
+    .outcome-note::before {
+      left: -45px;
+      top: 20px;
+      transform: rotate(158deg);
+    }
+
+    .rewrite-note {
+      right: -35px;
+      bottom: -8px;
+      max-width: 245px;
+    }
+
+    .rewrite-note::before {
+      left: -42px;
+      top: 12px;
+      transform: rotate(170deg);
+    }
+
+    .action-note {
+      left: -72px;
+      top: 82px;
+      width: 120px;
+      text-align: right;
+    }
+
+    .action-note::before {
+      right: -40px;
+      top: 13px;
+      transform: rotate(10deg);
+    }
+
+    .action-note::after,
+    .metrics-note::after {
+      right: -12px;
+      left: auto;
+      transform: rotate(135deg);
+    }
+
+    .ib-note {
+      left: 185px;
+      top: -4px;
+      max-width: 190px;
+    }
+
+    .ib-note::before {
+      left: -38px;
+      top: 12px;
+      transform: rotate(160deg);
+    }
+
+    .deal-note {
+      right: -50px;
+      top: 36px;
+      max-width: 260px;
+    }
+
+    .deal-note::before {
+      left: -42px;
+      top: 13px;
+      transform: rotate(170deg);
+    }
+
+    .header-note {
+      right: 12px;
+      top: 54px;
+      max-width: 205px;
+      transform: rotate(2deg);
+    }
+
+    .header-note::before {
+      left: -45px;
+      top: 14px;
+      transform: rotate(166deg);
+    }
+
+    .metrics-note {
+      left: -55px;
+      top: 36px;
+      width: 130px;
+      text-align: right;
+      transform: rotate(-2deg);
+    }
+
+    .metrics-note::before {
+      right: -40px;
+      top: 12px;
+      transform: rotate(8deg);
+    }
+
+    .seniority-note {
+      right: -42px;
+      top: 72px;
+      max-width: 225px;
+      transform: rotate(1deg);
+    }
+
+    .seniority-note::before {
+      left: -40px;
+      top: 11px;
+      transform: rotate(165deg);
+    }
+
+    .education-note {
+      right: 10px;
+      top: 33px;
+      max-width: 270px;
+    }
+
+    .education-note::before {
+      left: -42px;
+      top: 13px;
+      transform: rotate(170deg);
+    }
+
+    .skills-section {
+      position: relative;
+    }
+
+    .skills-section .markup-note {
+      right: -45px;
+      top: 37px;
+      max-width: 220px;
+    }
+
+    .skills-section .markup-note::before {
+      left: -42px;
+      top: 12px;
+      transform: rotate(170deg);
+    }
+
+    .red-underline {
+      border-bottom: 2px solid var(--mark);
+      padding-bottom: 1px;
+    }
+
+    .red-insert {
+      color: var(--mark);
+      font-family: "Bradley Hand", "Segoe Print", "Comic Sans MS", cursive;
+      font-weight: 700;
+    }
+
+    .rating {
+      color: var(--mark);
+      font-family: "Bradley Hand", "Segoe Print", "Comic Sans MS", cursive;
+      font-weight: 700;
+      margin-right: 12px;
+    }
+
+    .skills-note {
+      display: inline-block;
+      margin-left: 8px;
+      color: var(--mark);
+      font-family: "Bradley Hand", "Segoe Print", "Comic Sans MS", cursive;
+      font-weight: 700;
+      transform: rotate(-1deg);
+    }
+
+    @media print {
+      body {
+        background: #fff;
+      }
+
+      .mockup-shell {
+        padding: 0;
+      }
+
+      .page {
+        width: 100%;
+        box-shadow: none;
+      }
+    }
+
+    @media (max-width: 760px) {
+      .mockup-shell {
+        padding: 12px;
+      }
+
+      .page {
+        padding: 44px 24px;
+      }
+
+      .role-top,
+      .role-meta,
+      .columns {
+        display: block;
+      }
+
+      .markup-note {
+        position: static;
+        display: block;
+        margin: 6px 0;
+        max-width: none;
+      }
+
+      .markup-note::before {
+        display: none;
+      }
+
+      .markup-note::after {
+        display: none;
+      }
+
+      .action-note {
+        text-align: left;
+        width: auto;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="mockup-shell">
+    <article class="page">
+      <header class="cv-header">
+        <h1>Latifa Ahli</h1>
+        <span class="markup inline">Add LinkedIn + deal sheet link</span>
+        <div class="contact">Dubai, UAE § latifa.ahli@email.com § +971 (50) 000 0000 <span class="missing-link">missing nationality / work authorisation?</span></div>
+        <span class="markup-note header-note">Header is too bare for MENA finance roles. Add LinkedIn, visa status and location flexibility.</span>
+      </header>
+
+      <p class="summary">
+        <span class="weak">Motivated finance candidate with broad exposure to investments and strategy.</span>
+        <span class="replacement">Rewrite: UAE-based investment professional targeting Associate roles in Private Equity and growth investing, with hands-on exposure to commercial diligence, portfolio reporting and board-level investment materials.</span>
+        <span class="highlight">Screened 140+ opportunities</span> across consumer, healthcare, logistics and technology;
+        supported <span class="needs-work">three live transactions</span> from first review to investment committee.
+        <span class="weak">Strong communicator and team player.</span>
+        <span class="replacement">Replace generic soft skills with evidence: built IC packs, lender updates and operating dashboards for founders, CFOs and investment principals.</span>
+        <span class="markup-note target-note">Make the target explicit: Associate, Private Equity / Growth Equity, UAE or wider GCC.</span>
+        <span class="markup-note summary-note">Too generic. Needs sharper positioning, sector focus and proof of responsibility.</span>
+      </p>
+
+      <div class="section-title">WORK EXPERIENCE</div>
+
+      <section class="role">
+        <span class="markup-note outcome-note">Every bullet needs scale, action and result. Avoid task lists.</span>
+        <div class="role-top">
+          <strong>Al Noor Investment Office</strong>
+          <strong>Dubai, UAE</strong>
+        </div>
+        <div class="role-meta">
+          <strong>Investment Analyst, Direct Investments</strong>
+          <strong>Jan, 2025 - Present</strong>
+        </div>
+        <ul>
+          <li><span class="weak">Responsible for investment analysis and financial models.</span><span class="replacement">Rewrite: Built the first-pass model for a minority investment in a UAE healthcare services platform, testing volume, margin and working-capital sensitivities before IC review.</span></li>
+          <li><span class="highlight">Created weekly portfolio dashboards</span> for six operating companies, moving reporting from manual updates to a standard KPI pack covering revenue, gross margin, cash runway and hiring plan.</li>
+          <li><span class="needs-work">Supported fundraising materials</span> for a founder-led consumer brand expanding across Dubai and Riyadh.<span class="replacement">Add result: investor meetings secured, valuation range, or capital raised.</span></li>
+          <li><span class="red-insert">Reframe:</span> Assessed 40+ inbound opportunities and produced short-form memos that separated strategic fit, unit economics, downside risk and likely exit route.</li>
+          <li><span class="weak">Worked closely with senior team members.</span><span class="replacement">Name the stakeholders: investment principal, CFO, founders, external counsel, consultants.</span></li>
+        </ul>
+        <span class="markup-note metrics-note">Good direction, but quantify impact.</span>
+        <span class="markup-note rewrite-note">This section should prove she can operate at Associate level.</span>
+      </section>
+
+      <section class="role">
+        <div class="role-top">
+          <strong>Mashreq Capital Advisory</strong>
+          <strong>Abu Dhabi, UAE</strong>
+        </div>
+        <div class="role-meta">
+          <strong>Analyst, M&amp;A and Strategic Finance</strong>
+          <strong>Jul, 2023 - Dec, 2024</strong>
+        </div>
+        <ul>
+          <li><span class="rating">Better</span><span class="highlight">Prepared valuation workbooks</span> for sell-side and capital-raise mandates across healthcare, education and consumer services, using DCF, trading comps and precedent transaction analysis.</li>
+          <li><span class="weak">Assisted with due diligence and prepared presentations.</span><span class="replacement">Rewrite: Owned diligence tracker, buyer Q&amp;A log and management-presentation appendix for a UAE clinics transaction with 25+ active diligence requests.</span></li>
+          <li>Built a market map of 85 GCC education and training businesses, ranking assets by ownership, revenue model, regulatory exposure and likely sponsor interest.</li>
+          <li><span class="needs-work">Prepared pitch decks for clients.</span><span class="replacement">Too broad. Specify whether these were lender decks, CIM sections, teaser pages or board packs.</span></li>
+          <li>Presented valuation sensitivities to directors ahead of client meetings, highlighting EBITDA normalization issues, lease liabilities and customer concentration risks.</li>
+        </ul>
+        <span class="markup-note action-note">Use owned / built / presented, not assisted.</span>
+        <span class="markup-note seniority-note">This is the core evidence. Move strongest transaction bullet first.</span>
+        <span class="markup-note rewrite-note">Add transaction status: closed, live, paused or rejected.</span>
+      </section>
+
+      <section class="role">
+        <div class="role-top">
+          <strong>Blue Falcon Ventures</strong>
+          <strong>Dubai, UAE</strong>
+        </div>
+        <div class="role-meta">
+          <strong>Investment Intern, Early-Stage Portfolio</strong>
+          <strong>Jun, 2022 - Jun, 2023</strong>
+        </div>
+        <span class="markup-note ib-note">Too many early-career tasks. Keep only what supports PE fit.</span>
+        <ul>
+          <li><span class="weak">Worked on startup sourcing and portfolio support.</span><span class="replacement">Rewrite: Sourced 60+ B2B software and fintech startups across UAE, Saudi Arabia and Egypt, preparing one-page investment screens for weekly partner review.</span></li>
+          <li>Built competitor snapshots for three portfolio companies, comparing pricing, retention signals, funding history and likely acquirers.</li>
+          <li><span class="needs-work">Helped founders with strategy.</span><span class="replacement">Make this concrete: pricing model, investor update, sales funnel, hiring plan, or cash runway.</span></li>
+          <li>Maintained CRM hygiene for investor pipeline and founder follow-ups, improving visibility on warm referrals and declined opportunities.</li>
+        </ul>
+        <span class="markup-note deal-note">Cut weaker admin bullets. Replace with one strong founder-support example.</span>
+      </section>
+
+      <div class="section-title">EDUCATION</div>
+
+      <section class="role">
+        <div class="role-top">
+          <strong>London School of Economics and Political Science</strong>
+          <strong>London, UK</strong>
+        </div>
+        <div class="role-meta">
+          <strong>MSc Finance and Private Equity</strong>
+          <strong>2021 - 2022</strong>
+        </div>
+        <ul>
+          <li><span class="highlight">Relevant coursework:</span> corporate finance, buyout modeling, valuation, entrepreneurial finance and emerging-market investment strategy.</li>
+          <li><span class="weak">Participated in finance society events.</span><span class="replacement">Only include if leadership, competition result or measurable output exists.</span></li>
+        </ul>
+        <span class="markup-note education-note">Education is strong. Add dissertation or PE project if relevant.</span>
+      </section>
+
+      <section class="role">
+        <div class="role-top">
+          <strong>American University in Dubai</strong>
+          <strong>Dubai, UAE</strong>
+        </div>
+        <div class="role-meta">
+          <strong>BBA Finance</strong>
+          <strong>2017 - 2021</strong>
+        </div>
+        <ul>
+          <li>Dean's List; led student investment fund research on GCC consumer and banking equities.</li>
+          <li><span class="needs-work">Capstone project on valuation.</span><span class="replacement">Add company, method and result to make this useful.</span></li>
+        </ul>
+      </section>
+
+      <div class="section-title">SKILLS, CERTIFICATIONS AND ACHIEVEMENTS</div>
+
+      <div class="columns skills-section">
+        <section>
+          <strong>Certifications &amp; Achievements:</strong>
+          <ul>
+            <li>CFA Level I candidate <span class="red-insert">- add exam date or remove</span></li>
+            <li>GCC Private Equity Case Challenge, 2022 - finalist</li>
+            <li><span class="weak">Interested in leadership and volunteering.</span><span class="replacement">Too vague. Use one credible achievement or delete.</span></li>
+          </ul>
+        </section>
+        <section>
+          <strong>Skills &amp; Languages:</strong>
+          <ul>
+            <li>Technical: Excel modeling, PowerPoint, Think-Cell, CapIQ, PitchBook, FactSet and data-room management <span class="skills-note">Move strongest tools into summary if role requires them</span></li>
+            <li>Languages: Arabic native, English fluent, French conversational</li>
+            <li><span class="weak">Interests: travel, reading, fitness.</span><span class="replacement">Use differentiated interests only: GCC founders, women's finance networks, padel league.</span></li>
+          </ul>
+        </section>
+        <span class="markup-note">Skills section should be tighter. Remove anything that does not support the target role.</span>
+      </div>
+    </article>
+  </main>
+</body>
+</html>

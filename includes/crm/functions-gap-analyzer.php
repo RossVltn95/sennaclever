@@ -42,6 +42,29 @@ if (!function_exists('sffc_build_crm_jd_text_for_analysis')) {
         return trim((string) $content);
     }
 
+    function sffc_clean_crm_jd_text_for_analysis($content) {
+        $content = trim(wp_strip_all_tags((string) $content));
+        if ($content === '') {
+            return '';
+        }
+
+        $patterns = [
+            '/\bAbout\s+MENA\s+Careers\b.*$/is',
+            '/\bMENA\s+Careers\s+is\s+a\s+finance\s+community\b.*$/is',
+            '/\bFor\s+more\s+information,\s+visit\s+joinsenna\.com\b.*$/is',
+            '/\bAbout\s+Senna\b.*$/is',
+        ];
+
+        foreach ($patterns as $pattern) {
+            $content = preg_replace($pattern, '', $content);
+        }
+
+        $content = preg_replace('/[ \t]+/', ' ', (string) $content);
+        $content = preg_replace('/\R{3,}/', "\n\n", (string) $content);
+
+        return trim((string) $content);
+    }
+
     /**
      * Build the full JD text for analysis (CRM version)
      *
@@ -114,10 +137,10 @@ if (!function_exists('sffc_build_crm_jd_text_for_analysis')) {
         if ($content) {
             $formatted_content = sffc_format_crm_jd_content_for_text($content);
             if ($formatted_content !== '') {
-                $jd_text .= "Job Description:\n" . $formatted_content;
+                $jd_text .= "Job Description:\n" . sffc_clean_crm_jd_text_for_analysis($formatted_content);
             }
         }
 
-        return $jd_text;
+        return sffc_clean_crm_jd_text_for_analysis($jd_text);
     }
 }

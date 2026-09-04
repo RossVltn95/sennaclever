@@ -107,8 +107,46 @@ class SFFC_CRM_SendGrid_Service {
         ];
     }
 
+    private function is_blocked_by_alert_email_kill_switch($sender_context = 'default', array $categories = []) {
+        if (!function_exists('sffc_crm_alert_email_sending_disabled') || !sffc_crm_alert_email_sending_disabled()) {
+            return false;
+        }
+
+        $sender_context = sanitize_key((string) $sender_context);
+        $categories = array_values(array_filter(array_map('sanitize_key', $categories)));
+
+        $exempt_contexts = apply_filters('sffc_crm_alert_email_kill_switch_exempt_contexts', [
+            'job_post_followup',
+            'top_match_exit',
+        ]);
+        $exempt_categories = apply_filters('sffc_crm_alert_email_kill_switch_exempt_categories', [
+            'community_cv_upload_membership',
+            'direct_apply_followup',
+            'job_post_followup',
+            'single_role_alert',
+            'tracker_alert',
+            'tracker_subscription',
+            'top_match_exit',
+        ]);
+
+        $exempt_contexts = array_values(array_filter(array_map('sanitize_key', (array) $exempt_contexts)));
+        $exempt_categories = array_values(array_filter(array_map('sanitize_key', (array) $exempt_categories)));
+
+        if ($sender_context !== '' && in_array($sender_context, $exempt_contexts, true)) {
+            return false;
+        }
+
+        foreach ($categories as $category) {
+            if (in_array($category, $exempt_categories, true)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     public function send_email_from_sender(array $sender, $subject, $html_body, $recipient_email, $send_at_unix = null, array $custom_args = [], array $categories = ['sender_test']) {
-        if (function_exists('sffc_crm_alert_email_sending_disabled') && sffc_crm_alert_email_sending_disabled()) {
+        if ($this->is_blocked_by_alert_email_kill_switch('default', $categories)) {
             return new WP_Error('alert_email_sending_disabled', 'Alert email sending is currently disabled.');
         }
 
@@ -469,7 +507,7 @@ class SFFC_CRM_SendGrid_Service {
     }
 
     public function send_email($subject, $html_body, $recipient_email, $send_at_unix = null, array $custom_args = [], array $categories = ['internship_alert'], $sender_context = 'default') {
-        if (function_exists('sffc_crm_alert_email_sending_disabled') && sffc_crm_alert_email_sending_disabled()) {
+        if ($this->is_blocked_by_alert_email_kill_switch($sender_context, $categories)) {
             return new WP_Error('alert_email_sending_disabled', 'Alert email sending is currently disabled.');
         }
 
