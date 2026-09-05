@@ -92256,6 +92256,11 @@
         "arrest or charge": "No",
         "awaiting trial": "No",
         "i hereby confirm that i have never had any criminal conviction": "Yes",
+        HateLove: "Love",
+        "hate love": "Love",
+        "Hate Love": "Love",
+        rating: "Love",
+        "candidate experience": "Love",
         CA_35795: "Bachelor Degree",
         CA_46626: "No",
         CA_35810: "No",
@@ -92793,6 +92798,94 @@
       return typeof Blob === "undefined" || file instanceof Blob;
     }
 
+    function queueWorkableAdminTestApplicationTask(queueItem) {
+      var config = getConfig();
+      var item = queueItem || {};
+      var formData = new FormData();
+      var itemJobsPostId = cleanMessageText(
+        item.jobsPostId || item.jobs_post_id || item.wpPostId || item.wp_post_id || ""
+      );
+      var itemPostId = cleanMessageText(item.postId || item.post_id || item.id || "");
+      var itemApplicationUrl = cleanMessageText(
+        item.applyUrl ||
+          item.applicationUrl ||
+          item.application_url ||
+          item.applicationWorkspaceUrl ||
+          item.application_workspace_url ||
+          ""
+      );
+      var itemWorkspaceUrl = cleanMessageText(
+        item.applicationWorkspaceUrl ||
+          item.application_workspace_url ||
+          item.applicationEmbedUrl ||
+          item.application_embed_url ||
+          itemApplicationUrl
+      );
+      var candidatePhone = cleanMessageText(workableTestCandidatePhone || "");
+      if (!candidatePhone && capturedCvText) {
+        candidatePhone = cleanMessageText(findCvPhone(capturedCvText) || "");
+      }
+
+      formData.append("action", "sffc_crm_apply_chat_queue_application_task");
+      formData.append(
+        "nonce",
+        config.applicationTaskNonce ||
+          config.autoSubmitSchemaNonce ||
+          config.nonce ||
+          ""
+      );
+      formData.append("session_token", ensureApplyChatSessionToken());
+      formData.append("post_id", itemPostId || postId || "");
+      formData.append(
+        "crm_post_id",
+        cleanMessageText(root.getAttribute("data-crm-post-id") || "")
+      );
+      formData.append("jobs_post_id", itemJobsPostId || jobsPostId || "");
+      formData.append("role_title", cleanMessageText(item.title || roleTitle || ""));
+      formData.append("company_name", cleanMessageText(item.company || roleCompany || ""));
+      formData.append("candidate_name", cleanMessageText(applyOnboardingFullName || ""));
+      formData.append("candidate_email", cleanMessageText(applyOnboardingPreferredEmail || ""));
+      formData.append("candidate_phone", candidatePhone);
+      formData.append("provider", "workable");
+      formData.append("application_url", itemApplicationUrl);
+      formData.append("application_workspace_url", itemWorkspaceUrl || itemApplicationUrl);
+      formData.append("role_url", cleanMessageText(item.viewUrl || item.url || roleUrl || ""));
+      formData.append("page_url", window.location.href || "");
+      formData.append("cv_text", cleanMessageText(capturedCvText || ""));
+      formData.append("cover_letter_requested", "0");
+      formData.append(
+        "application_answers",
+        JSON.stringify(
+          Object.assign(
+            {},
+            getWorkableTestApplicationAnswers(item),
+            applicationAnswerDraft || {}
+          )
+        )
+      );
+      formData.append("consent", "admin_clicked_workable_test_worker");
+      if (canAppendUploadedCvFile(currentCvFile)) {
+        formData.append("cv_file", currentCvFile, currentCvFile.name);
+      }
+
+      return window
+        .fetch(config.ajaxUrl || "/wp-admin/admin-ajax.php", {
+          method: "POST",
+          credentials: "same-origin",
+          body: formData,
+        })
+        .then(parseAjaxJson)
+        .then(function (payload) {
+          if (!payload || !payload.success) {
+            throw new Error(
+              (payload && payload.data && payload.data.message) ||
+                "I could not queue that Workable test job."
+            );
+          }
+          return payload.data || {};
+        });
+    }
+
     function queueSuccessFactorsAdminTestApplicationTask(queueItem) {
       var config = getConfig();
       var item = queueItem || {};
@@ -92942,6 +93035,9 @@
           if (button) {
             button.textContent = "Queued";
           }
+          if (taskId) {
+            pollSuccessFactorsAdminTestTask(taskId, item, button, 0);
+          }
         })
         .catch(function (error) {
           var message =
@@ -92959,6 +93055,116 @@
             }
           );
         });
+    }
+
+    function pollSuccessFactorsAdminTestTask(taskId, item, button, attempt) {
+      var currentAttempt = Number(attempt || 0);
+      if (!taskId || currentAttempt > 60) {
+        if (button) {
+          button.disabled = false;
+          button.textContent = "Check status";
+        }
+        botMessage(
+          "The SuccessFactors test is still not returning a final status. Task ID: " + taskId + ".",
+          humanComposeDelay("SuccessFactors test status timed out.", 900, 1800),
+          function () {
+            focusComposer("Check Railway for task " + taskId);
+          }
+        );
+        return;
+      }
+      window.setTimeout(function () {
+        fetchCommercialApplyQueueWorkerTaskStatus(taskId)
+          .then(function (data) {
+            var status = cleanMessageText((data && data.status) || "");
+            var cleanStatus = status.toLowerCase();
+            if (cleanStatus === "queued" || cleanStatus === "processing") {
+              if (button) {
+                button.textContent = cleanStatus === "queued" ? "Queued" : "Running";
+              }
+              pollSuccessFactorsAdminTestTask(taskId, item, button, currentAttempt + 1);
+              return;
+            }
+            if (button) {
+              button.disabled = false;
+              button.textContent =
+                cleanStatus === "submitted"
+                  ? "Submitted"
+                  : cleanStatus === "verification_required"
+                    ? "Verify"
+                    : "Review";
+            }
+            var role = cleanMessageText((data && data.role_title) || (item && item.title) || "this role");
+            var lastError = cleanMessageText((data && data.last_error) || "");
+            var missing = Array.isArray(data && data.missing_required_fields)
+              ? data.missing_required_fields.map(function (field) {
+                  return cleanMessageText(field || "");
+                }).filter(Boolean)
+              : [];
+            var diagnostics = [
+              "answers " +
+                String((data && data.application_answers_filled) || 0) +
+                "/" +
+                String((data && data.application_answers_attempted) || 0),
+              "choices " +
+                String((data && data.application_choice_answers_filled) || 0) +
+                "/" +
+                String((data && data.application_choice_answers_attempted) || 0),
+              "resume " + ((data && data.uploaded_resume) ? "uploaded" : "not uploaded"),
+            ];
+            var message = "";
+            if (cleanStatus === "submitted") {
+              message = "SuccessFactors test submitted for " + role + ". " + diagnostics.join("; ") + ".";
+            } else if (cleanStatus === "verification_required") {
+              message =
+                "SuccessFactors test needs verification for " +
+                role +
+                ". " +
+                diagnostics.join("; ") +
+                (lastError ? ". " + lastError : ".");
+            } else if (cleanStatus === "review_required") {
+              message =
+                "SuccessFactors test needs review for " +
+                role +
+                ". " +
+                diagnostics.join("; ") +
+                (missing.length ? ". Missing: " + missing.slice(0, 6).join("; ") : "") +
+                (lastError ? ". " + lastError : ".");
+            } else {
+              message =
+                "SuccessFactors test finished with status " +
+                (status || "unknown") +
+                " for " +
+                role +
+                ". " +
+                diagnostics.join("; ") +
+                (lastError ? ". " + lastError : ".");
+            }
+            botMessage(
+              message,
+              humanComposeDelay(message, 900, 1800),
+              function () {
+                focusComposer("Click another Test button or inspect Railway task " + taskId);
+              }
+            );
+          })
+          .catch(function (error) {
+            if (button) {
+              button.disabled = false;
+              button.textContent = "Check status";
+            }
+            var message =
+              cleanMessageText((error && error.message) || "") ||
+              "I could not read the SuccessFactors test status.";
+            botMessage(
+              message,
+              humanComposeDelay(message, 900, 1800),
+              function () {
+                focusComposer("Check Railway for task " + taskId);
+              }
+            );
+          });
+      }, currentAttempt < 4 ? 5000 : 10000);
     }
 
     function ensureSuccessFactorsTestCandidateDetailsThen(callback, options) {
@@ -93456,7 +93662,10 @@
 
     function queueCommercialApplyQueueWorkerTask(itemIndex) {
       var item = commercialApplyQueueItemsState[itemIndex] || {};
-      var queueTask = getBrowserApplicationQueueTask();
+      var queueTask =
+        isWorkableAdminTestEnabled() && isWorkableQueueItem(item)
+          ? queueWorkableAdminTestApplicationTask
+          : getBrowserApplicationQueueTask();
       updateCommercialQueueItemStatus(
         itemIndex,
         "Checking form",
@@ -93476,6 +93685,9 @@
         });
       }).then(function (data) {
         var taskUuid = cleanMessageText((data && data.task_uuid) || "");
+        if (taskUuid && isWorkableAdminTestEnabled() && isWorkableQueueItem(item)) {
+          window.__sffcWorkableLastTaskUuid = taskUuid;
+        }
         commercialApplyQueueItemsState = commercialApplyQueueItemsState.map(function (candidate, index) {
           if (index !== itemIndex) {
             return candidate;

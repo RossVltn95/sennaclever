@@ -823,6 +823,60 @@ async function main() {
           )
         );
       }
+      if (entries.action === "sffc_crm_apply_chat_application_task_status") {
+        window.__sffcSuccessFactorsStatusRequest = {
+          url: String(url || ""),
+          entries,
+        };
+        return Promise.resolve(
+          new Response(
+            JSON.stringify({
+              success: true,
+              data: {
+                task_uuid: entries.task_uuid,
+                status: "submitted",
+                role_title: "Investment Analyst",
+                company_name: "Commercial Bank",
+                provider: "successfactors",
+                uploaded_resume: true,
+                application_answers_attempted: 3,
+                application_answers_filled: 3,
+                application_choice_answers_attempted: 2,
+                application_choice_answers_filled: 2,
+                missing_required_fields: [],
+              },
+            }),
+            { status: 200, headers: { "Content-Type": "application/json" } }
+          )
+        );
+      }
+      if (entries.action === "sffc_crm_apply_chat_application_task_status") {
+        window.__sffcSuccessFactorsStatusRequest = {
+          url: String(url || ""),
+          entries,
+        };
+        return Promise.resolve(
+          new Response(
+            JSON.stringify({
+              success: true,
+              data: {
+                task_uuid: entries.task_uuid,
+                status: "submitted",
+                role_title: "Investment Analyst",
+                company_name: "Commercial Bank",
+                provider: "successfactors",
+                uploaded_resume: true,
+                application_answers_attempted: 3,
+                application_answers_filled: 3,
+                application_choice_answers_attempted: 2,
+                application_choice_answers_filled: 2,
+                missing_required_fields: [],
+              },
+            }),
+            { status: 200, headers: { "Content-Type": "application/json" } }
+          )
+        );
+      }
       window.__sffcSuccessFactorsProviderRequest = {
         url: String(url || ""),
         entries,
@@ -949,6 +1003,33 @@ async function main() {
           )
         );
       }
+      if (entries.action === "sffc_crm_apply_chat_application_task_status") {
+        window.__sffcSuccessFactorsStatusRequest = {
+          url: String(url || ""),
+          entries,
+        };
+        return Promise.resolve(
+          new Response(
+            JSON.stringify({
+              success: true,
+              data: {
+                task_uuid: entries.task_uuid,
+                status: "submitted",
+                role_title: "Investment Analyst",
+                company_name: "Commercial Bank",
+                provider: "successfactors",
+                uploaded_resume: true,
+                application_answers_attempted: 3,
+                application_answers_filled: 3,
+                application_choice_answers_attempted: 2,
+                application_choice_answers_filled: 2,
+                missing_required_fields: [],
+              },
+            }),
+            { status: 200, headers: { "Content-Type": "application/json" } }
+          )
+        );
+      }
       window.__sffcSuccessFactorsProviderRequest = {
         url: String(url || ""),
         entries,
@@ -1038,6 +1119,7 @@ async function main() {
       testButtons[0].click();
     }
     const queued = await waitFor(/SuccessFactors test queued in Railway/i);
+    const showedStatus = await waitFor(/SuccessFactors test submitted for Investment Analyst/i);
     window.fetch = originalFetch;
     return {
       text: messages.textContent || "",
@@ -1047,7 +1129,9 @@ async function main() {
       showedPicker,
       request: window.__sffcSuccessFactorsProviderRequest,
       queueRequest: window.__sffcSuccessFactorsQueueRequest,
+      statusRequest: window.__sffcSuccessFactorsStatusRequest,
       queued,
+      showedStatus,
       queueCount: state.length,
       titles: state.map((item) => item.title),
       hasAutoApplyQueue: !!messages.querySelector(".sffc-crm-apply-chat__apply-queue-card"),
@@ -1076,9 +1160,14 @@ async function main() {
       successFactorsSetupConversationFlow.queueRequest.entries.successfactors_account || ""
     ) ||
     !successFactorsSetupConversationFlow.queued ||
+    !successFactorsSetupConversationFlow.showedStatus ||
+    !successFactorsSetupConversationFlow.statusRequest ||
+    successFactorsSetupConversationFlow.statusRequest.entries.task_uuid !== "sf-test-task-1" ||
     successFactorsSetupConversationFlow.queueCount !== 2 ||
     successFactorsSetupConversationFlow.testButtonCount !== 2 ||
-    successFactorsSetupConversationFlow.firstButtonText !== "Queued" ||
+    !/^(Queued|Running|Submitted|Verify|Review)$/.test(
+      successFactorsSetupConversationFlow.firstButtonText || ""
+    ) ||
     !successFactorsSetupConversationFlow.titles.includes("Investment Analyst") ||
     !successFactorsSetupConversationFlow.titles.includes("Strategy Analyst") ||
     successFactorsSetupConversationFlow.titles.includes("Wrong Provider Role") ||
@@ -1209,18 +1298,36 @@ async function main() {
       card ? card.textContent || "" : ""
     );
     let queuedWorkerItem = null;
+    let queueRequest = null;
     let statusRequest = null;
     let statusPollCount = 0;
     const originalSetTimeout = window.setTimeout;
-    root.__sffcQueueBrowserApplicationTask = async (item) => {
-      queuedWorkerItem = item;
-      return { task_uuid: "workable-test-task-1" };
-    };
     window.fetch = async (_url, options) => {
       const body = options && options.body;
       const entries = body && typeof body.entries === "function"
         ? Object.fromEntries(body.entries())
         : {};
+      if (entries.action === "sffc_crm_apply_chat_queue_application_task") {
+        queueRequest = {
+          entries,
+          hasCvFile: body && typeof body.get === "function" && !!body.get("cv_file"),
+        };
+        queuedWorkerItem = {
+          title: entries.role_title,
+          company: entries.company_name,
+          provider: entries.provider,
+        };
+        return new Response(
+          JSON.stringify({
+            success: true,
+            data: {
+              task_uuid: "workable-test-task-1",
+              status: "queued",
+            },
+          }),
+          { status: 200, headers: { "Content-Type": "application/json" } }
+        );
+      }
       if (entries.action === "sffc_crm_apply_chat_application_task_status") {
         statusPollCount += 1;
         statusRequest = { entries };
@@ -1269,7 +1376,6 @@ async function main() {
       messages.querySelectorAll("[data-sffc-workable-test-job]")
     ).filter((button) => button.disabled).length;
     window.setTimeout = originalSetTimeout;
-    delete root.__sffcQueueBrowserApplicationTask;
     window.fetch = originalFetch;
     return {
       text: messages.textContent || "",
@@ -1292,6 +1398,7 @@ async function main() {
       testButtonCount: testButtons.length,
       hasTestColumn,
       queuedWorkerItem,
+      queueRequest,
       statusRequest,
       statusPollCount,
       showedResult,
@@ -1326,6 +1433,16 @@ async function main() {
     !workableSetupConversationFlow.queuedWorkerItem ||
     workableSetupConversationFlow.queuedWorkerItem.title !==
       "Leasing & Tenant Relations Manager" ||
+    !workableSetupConversationFlow.queueRequest ||
+    workableSetupConversationFlow.queueRequest.entries.provider !== "workable" ||
+    workableSetupConversationFlow.queueRequest.entries.role_title !==
+      "Leasing & Tenant Relations Manager" ||
+    workableSetupConversationFlow.queueRequest.entries.candidate_name !==
+      "Viktor Milanov" ||
+    workableSetupConversationFlow.queueRequest.entries.candidate_email !==
+      "rossvltn@gmail.com" ||
+    workableSetupConversationFlow.queueRequest.entries.candidate_phone !==
+      "+33782707653" ||
     !workableSetupConversationFlow.statusRequest ||
     workableSetupConversationFlow.statusRequest.entries.task_uuid !==
       "workable-test-task-1" ||

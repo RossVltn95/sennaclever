@@ -44056,6 +44056,95 @@ CRITICAL INSTRUCTIONS:
             ]);
         }
 
+        private function sanitize_crm_application_task_diagnostic_value($value, $depth = 0)
+        {
+            if ($depth > 4) {
+                return is_scalar($value) ? sanitize_text_field((string) $value) : null;
+            }
+            if (is_array($value)) {
+                $clean = [];
+                $count = 0;
+                foreach ($value as $key => $entry) {
+                    if ($count >= 80) {
+                        break;
+                    }
+                    $clean_key = is_int($key) ? $key : sanitize_key((string) $key);
+                    if ($clean_key === '') {
+                        $clean_key = 'item_' . $count;
+                    }
+                    $clean[$clean_key] = $this->sanitize_crm_application_task_diagnostic_value($entry, $depth + 1);
+                    $count++;
+                }
+                return $clean;
+            }
+            if (is_bool($value)) {
+                return $value;
+            }
+            if (is_int($value) || is_float($value)) {
+                return $value;
+            }
+            $text = sanitize_textarea_field((string) $value);
+            return substr($text, 0, 3000);
+        }
+
+        private function sanitize_crm_application_task_result_payload(array $payload)
+        {
+            $allowed_keys = [
+                'provider',
+                'url',
+                'allow_final_submit',
+                'clicked_submit',
+                'form_opened',
+                'form_ready',
+                'submit_before_url',
+                'submit_after_url',
+                'final_url',
+                'page_title',
+                'uploaded_resume',
+                'submission_confirmed',
+                'verification_required',
+                'verification_code_used',
+                'verification_code_filled',
+                'validation_detected',
+                'application_answers_attempted',
+                'application_answers_filled',
+                'application_choice_answers_attempted',
+                'application_choice_answers_filled',
+                'application_field_diagnostics',
+                'application_answer_items',
+                'successfactors_visible_fill',
+                'successfactors_step_advance',
+                'successfactors_profile_fill',
+                'successfactors_state',
+                'complete_required_fields',
+                'missing_required_fields',
+                'validation_errors',
+                'browser_diagnostics',
+                'intercepted_submit_request',
+                'observed_post_requests',
+                'last_error',
+                'status',
+            ];
+
+            $clean = [];
+            foreach ($allowed_keys as $key) {
+                if (!array_key_exists($key, $payload)) {
+                    continue;
+                }
+                if (in_array($key, ['url', 'submit_before_url', 'submit_after_url', 'final_url'], true)) {
+                    $clean[$key] = esc_url_raw((string) $payload[$key]);
+                    continue;
+                }
+                if (in_array($key, ['provider', 'status'], true)) {
+                    $clean[$key] = sanitize_key((string) $payload[$key]);
+                    continue;
+                }
+                $clean[$key] = $this->sanitize_crm_application_task_diagnostic_value($payload[$key]);
+            }
+
+            return $clean;
+        }
+
         public function ajax_crm_apply_chat_application_task_status()
         {
             check_ajax_referer('sffc_crm_apply_chat_queue_application_task', 'nonce');
@@ -44123,6 +44212,11 @@ CRITICAL INSTRUCTIONS:
                 'application_choice_answers_filled' => absint($result_payload['application_choice_answers_filled'] ?? 0),
                 'validation_errors' => array_map('sanitize_text_field', array_slice((array) ($result_payload['validation_errors'] ?? []), 0, 10)),
                 'missing_required_fields' => array_map('sanitize_text_field', array_slice((array) ($result_payload['missing_required_fields'] ?? []), 0, 10)),
+                'successfactors_visible_fill' => is_array($result_payload['successfactors_visible_fill'] ?? null) ? $this->sanitize_crm_application_task_diagnostic_value($result_payload['successfactors_visible_fill']) : null,
+                'successfactors_step_advance' => is_array($result_payload['successfactors_step_advance'] ?? null) ? $this->sanitize_crm_application_task_diagnostic_value($result_payload['successfactors_step_advance']) : null,
+                'successfactors_profile_fill' => is_array($result_payload['successfactors_profile_fill'] ?? null) ? $this->sanitize_crm_application_task_diagnostic_value($result_payload['successfactors_profile_fill']) : null,
+                'successfactors_state' => is_array($result_payload['successfactors_state'] ?? null) ? $this->sanitize_crm_application_task_diagnostic_value($result_payload['successfactors_state']) : null,
+                'result_payload' => $this->sanitize_crm_application_task_result_payload($result_payload),
                 'generated_account' => $generated_account,
                 'updated_at' => sanitize_text_field((string) ($task['updated_at'] ?? '')),
             ]);

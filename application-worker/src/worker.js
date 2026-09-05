@@ -656,6 +656,159 @@ async function ensureApplicationFormReady(page) {
   };
 }
 
+async function inspectWorkablePageState(page) {
+  return page.evaluate(() => {
+    const clean = (value) => String(value || "").replace(/\s+/g, " ").trim();
+    const isVisible = (element) => {
+      if (!element) return false;
+      const style = window.getComputedStyle(element);
+      const rect = element.getBoundingClientRect();
+      return style.visibility !== "hidden" && style.display !== "none" && rect.width > 0 && rect.height > 0;
+    };
+    const sampleControl = (control) => {
+      const id = control.getAttribute("id") || "";
+      const name = control.getAttribute("name") || "";
+      const label = id ? document.querySelector(`label[for="${CSS.escape(id)}"]`)?.textContent || "" : "";
+      const surrounding = control.closest("label, fieldset, section, div")?.textContent || "";
+      return {
+        tag: control.tagName.toLowerCase(),
+        type: control.getAttribute("type") || "",
+        id,
+        name,
+        placeholder: control.getAttribute("placeholder") || "",
+        aria_label: control.getAttribute("aria-label") || "",
+        label: clean(label).slice(0, 160),
+        text: clean(surrounding).slice(0, 240),
+        visible: isVisible(control),
+        disabled: Boolean(control.disabled),
+      };
+    };
+    const buttons = Array.from(document.querySelectorAll("button, a, input[type='button'], input[type='submit'], [role='button']"))
+      .filter(isVisible)
+      .map((node) => ({
+        tag: node.tagName.toLowerCase(),
+        text: clean(`${node.textContent || ""} ${node.getAttribute("value") || ""} ${node.getAttribute("aria-label") || ""}`).slice(0, 160),
+        href: node.getAttribute("href") || "",
+        type: node.getAttribute("type") || "",
+      }))
+      .filter((item) => item.text || item.href)
+      .slice(0, 40);
+    const links = Array.from(document.querySelectorAll("a[href]"))
+      .filter(isVisible)
+      .map((node) => ({
+        text: clean(node.textContent || "").slice(0, 120),
+        href: node.href || node.getAttribute("href") || "",
+      }))
+      .filter((item) => item.text || item.href)
+      .slice(0, 40);
+    const fields = Array.from(document.querySelectorAll("input, textarea, select, [role='combobox']"))
+      .map(sampleControl)
+      .slice(0, 80);
+    const bodyText = clean(document.body?.innerText || "");
+    return {
+      url: window.location.href,
+      title: document.title || "",
+      has_apply_text: /\bapply\b/i.test(bodyText),
+      has_import_resume_text: /import resume|import cv|resume|cv/i.test(bodyText),
+      body_text_sample: bodyText.slice(0, 1500),
+      visible_buttons: buttons,
+      visible_links: links,
+      field_samples: fields,
+      field_count: fields.length,
+      visible_field_count: fields.filter((field) => field.visible && !field.disabled && field.type !== "hidden").length,
+    };
+  }).catch((error) => ({
+    error: error && error.message ? error.message : String(error),
+  }));
+}
+
+async function ensureWorkableApplicationFormReady(page) {
+  const before = await inspectWorkablePageState(page);
+  if (await hasApplicationFormFields(page)) {
+    return { opened: false, ready: true, provider: "workable", before, after: before };
+  }
+
+  const directApplyHref = await page.evaluate(() => {
+    const clean = (value) => String(value || "").replace(/\s+/g, " ").trim();
+    const isVisible = (element) => {
+      if (!element) return false;
+      const style = window.getComputedStyle(element);
+      const rect = element.getBoundingClientRect();
+      return style.visibility !== "hidden" && style.display !== "none" && rect.width > 0 && rect.height > 0;
+    };
+    const anchors = Array.from(document.querySelectorAll("a[href]"));
+    const direct = anchors.find((anchor) => {
+      const href = anchor.href || anchor.getAttribute("href") || "";
+      const text = clean(`${anchor.textContent || ""} ${anchor.getAttribute("aria-label") || ""}`);
+      return isVisible(anchor) && /apply\.workable\.com|\/apply\/?$/i.test(href) && /\bapply\b|submit|candidate/i.test(`${text} ${href}`);
+    });
+    return direct ? direct.href : "";
+  }).catch(() => "");
+
+  let opened = false;
+  if (directApplyHref) {
+    opened = true;
+    await page.goto(directApplyHref, { waitUntil: "domcontentloaded", timeout: navigationTimeoutMs }).catch(() => {});
+  } else {
+    opened = await page.evaluate(() => {
+      const clean = (value) => String(value || "").replace(/\s+/g, " ").trim();
+      const isVisible = (element) => {
+        if (!element) return false;
+        const style = window.getComputedStyle(element);
+        const rect = element.getBoundingClientRect();
+        return style.visibility !== "hidden" && style.display !== "none" && rect.width > 0 && rect.height > 0;
+      };
+      const targets = Array.from(document.querySelectorAll("button, a, input[type=button], input[type=submit], [role='button']"));
+      const applyTarget = targets.find((target) => {
+        const text = clean(`${target.textContent || ""} ${target.getAttribute("value") || ""} ${target.getAttribute("aria-label") || ""}`);
+        return isVisible(target) && /\bapply now\b|\bapply for this job\b|^apply$|\bapply\b/i.test(text);
+      });
+      if (!applyTarget) {
+        return false;
+      }
+      applyTarget.scrollIntoView({ block: "center", inline: "nearest" });
+      applyTarget.click();
+      return true;
+    }).catch(() => false);
+  }
+
+  if (opened) {
+    await page.waitForNavigation({ waitUntil: "domcontentloaded", timeout: 12000 }).catch(() => {});
+    await page.waitForNetworkIdle({ idleTime: 1000, timeout: 18000 }).catch(() => {});
+    await page
+      .waitForSelector(
+        [
+          "#first_name",
+          "#last_name",
+          "#email",
+          "#phone",
+          'input[name="first_name"]',
+          'input[name="firstname"]',
+          'input[name="firstName"]',
+          'input[name="last_name"]',
+          'input[name="lastname"]',
+          'input[name="lastName"]',
+          'input[type="email"]',
+          'input[type="file"]',
+          'textarea',
+          'select',
+        ].join(","),
+        { timeout: 20000 }
+      )
+      .catch(() => {});
+  }
+
+  const after = await inspectWorkablePageState(page);
+  return {
+    opened,
+    ready: await hasApplicationFormFields(page),
+    provider: "workable",
+    direct_apply_href: directApplyHref,
+    before,
+    after,
+  };
+}
+
 async function uploadResume(page, cvPath) {
   if (!cvPath) {
     return false;
@@ -911,6 +1064,87 @@ function getQuestionChoiceLabels(question) {
   return Array.from(new Set(choices));
 }
 
+function compactQuestionText(value) {
+  return cleanText(value).toLowerCase().replace(/[^a-z0-9]+/g, "");
+}
+
+function getWorkableSyntheticAnswerForQuestion(question, answers = {}) {
+  const label = getQuestionLabel(question);
+  const fieldNames = getQuestionFieldNames(question);
+  const choices = getQuestionChoiceLabels(question);
+  const labelText = cleanText(label).toLowerCase();
+  const labelKey = compactQuestionText(label);
+  const fieldKey = compactQuestionText(fieldNames.join(" "));
+  const choiceLabels = choices.map(cleanText).filter(Boolean);
+  const choiceKeys = choiceLabels.map(compactQuestionText);
+  const joinedChoiceKey = choiceKeys.join("");
+  const haystack = `${labelText} ${fieldNames.join(" ").toLowerCase()} ${choiceLabels.join(" ").toLowerCase()}`;
+  const findChoice = (patterns, fallback = "") => {
+    const matched = choiceLabels.find((choice) => patterns.some((pattern) => pattern.test(choice)));
+    return matched || fallback;
+  };
+
+  if (!choiceLabels.length) {
+    if (/current\s+location|location|city/.test(haystack)) {
+      return answers["current location"] || answers.location || answers.address || "Riyadh, Saudi Arabia";
+    }
+    if (/phone|mobile|telephone/.test(haystack)) {
+      return answers.phone || answers.mobile || answers.telephone || "";
+    }
+    if (/date\s+of\s+birth|\bdob\b|birth\s+date/.test(haystack)) {
+      return answers["date of birth"] || answers.dob || "01/01/1990";
+    }
+    if (/expected.*salary|salary.*expect|desired.*salary|compensation/.test(haystack)) {
+      return answers["expected salary"] || answers["desired salary"] || answers.compensation || "SAR 45000";
+    }
+    if (/current.*salary|monthly.*salary/.test(haystack)) {
+      return answers["current salary"] || answers["current monthly salary"] || "SAR 35000";
+    }
+    if (/years.*experience|relevant.*experience/.test(haystack)) {
+      return answers["years of relevant experience"] || answers["relevant experience"] || "8";
+    }
+    if (/\bdetails\b|please\s+explain|provide\s+details/.test(haystack)) {
+      return answers.details || "Not applicable";
+    }
+    return "";
+  }
+
+  if (
+    labelKey === "hatelove" ||
+    fieldKey === "hatelove" ||
+    joinedChoiceKey === "hatelove" ||
+    (/hate/.test(haystack) && /love/.test(haystack)) ||
+    /rating|feedback|candidate\s+experience/.test(haystack)
+  ) {
+    return findChoice([/^love$/i, /excellent/i, /great/i, /very\s+good/i], choiceLabels[choiceLabels.length - 1] || "Love");
+  }
+  if (/highest.*education|education.*level|degree/.test(haystack)) {
+    return findChoice([/master/i, /bachelor/i, /degree/i], "Bachelor Degree");
+  }
+  if (/gender/.test(haystack)) {
+    return findChoice([/prefer.*not|decline|undisclosed|not.*say/i, /male/i], choiceLabels[0]);
+  }
+  if (/nationality|citizenship/.test(haystack)) {
+    return findChoice([/united kingdom|british|uk/i, /united states|american/i], "United Kingdom");
+  }
+  if (/privacy|consent|acknowledge|declaration|accurate|true|terms|notice/.test(haystack)) {
+    return findChoice([/^yes$/i, /agree/i, /accept/i, /confirm/i], "Yes");
+  }
+  if (/criminal|conviction|arrest|charge|trial/.test(haystack)) {
+    if (/never|confirm/.test(haystack)) {
+      return findChoice([/^yes$/i, /confirm/i, /agree/i], "Yes");
+    }
+    return findChoice([/^no$/i], "No");
+  }
+  if (/conflict\s+of\s+interest|family\s+member|close\s+personal|pif|qiddiya|delivery\s+partner|consultant/.test(haystack)) {
+    return findChoice([/^no$/i, /don't know/i], "No");
+  }
+  if (/work.*authori|eligible.*work|visa|sponsor/.test(haystack)) {
+    return /sponsor/.test(haystack) ? findChoice([/^no$/i], "No") : findChoice([/^yes$/i], "Yes");
+  }
+  return "";
+}
+
 function mergeQuestionsByFieldOrLabel(primaryQuestions, fallbackQuestions) {
   const normalizeKey = (value) => cleanText(value).toLowerCase().replace(/[^a-z0-9]+/g, "");
   const hasRequiredFlag = (question) => Object.prototype.hasOwnProperty.call(question || {}, "required");
@@ -982,6 +1216,103 @@ function getApplicationAnswers(task) {
   const payload = getTaskPayload(task);
   const answers = payload.application_answers || task.application_answers || {};
   return answers && typeof answers === "object" ? answers : {};
+}
+
+function escapeRegExp(value) {
+  return String(value || "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function getSuccessFactorsSyntheticAnswerForQuestion(question, answers, task, candidate) {
+  const label = getQuestionLabel(question);
+  const labelText = cleanText(label).toLowerCase();
+  const fieldNames = getQuestionFieldNames(question).map((name) => cleanText(name).toLowerCase());
+  const choiceLabels = getQuestionChoiceLabels(question).map(cleanText).filter(Boolean);
+  const haystack = `${labelText} ${fieldNames.join(" ")} ${choiceLabels.join(" ").toLowerCase()}`;
+  const profile = getCandidateProfileAnswers(task);
+  const cvText = getCvText(task);
+  const education = extractEducationFromCv(cvText);
+  const latestExperience = extractLatestExperienceFromCv(cvText);
+  const inferredCountry =
+    cleanText(profile.country_of_residence || profile.country || "") ||
+    inferCountryFromText(cvText) ||
+    inferCountryFromText(task?.location || "") ||
+    "";
+  const findChoice = (patterns, fallback = "") =>
+    choiceLabels.find((choice) => patterns.some((pattern) => pattern.test(choice))) || fallback;
+  const choiceOrText = (value, patterns = []) => {
+    if (choiceLabels.length) {
+      return findChoice(patterns.length ? patterns : [new RegExp(escapeRegExp(value), "i")], value);
+    }
+    return value;
+  };
+
+  if (/email/.test(haystack)) return candidate.email || "";
+  if (/first\s*name|given\s*name/.test(haystack)) return candidate.firstName || "";
+  if (/last\s*name|family\s*name|surname/.test(haystack)) return candidate.lastName || "";
+  if (/phone|mobile|telephone/.test(haystack)) return candidate.phone || answers.phone || "";
+  if (/country.*residence|residence.*country|current.*country|country$|location/.test(haystack)) {
+    return choiceOrText(inferredCountry || "United Arab Emirates", [
+      new RegExp(escapeRegExp(inferredCountry || "United Arab Emirates"), "i"),
+      /united arab emirates|uae/i,
+      /saudi arabia|qatar|singapore|united kingdom/i,
+    ]);
+  }
+  if (/nationality|citizenship/.test(haystack)) {
+    const nationality = cleanText(profile.nationality || answers.nationality || "") || inferredCountry || "United Kingdom";
+    return choiceOrText(nationality, [
+      new RegExp(escapeRegExp(nationality), "i"),
+      /united kingdom|british|uk/i,
+      /united arab emirates|emirati|uae/i,
+      /moroccan|morocco/i,
+    ]);
+  }
+  if (/gender|sex/.test(haystack)) {
+    return findChoice([/prefer.*not|decline|undisclosed|not.*say/i, /male/i, /female/i], "Prefer not to say");
+  }
+  if (/marital/.test(haystack)) {
+    return findChoice([/single/i, /not.*disclos|prefer.*not/i], "Single");
+  }
+  if (/type\s+of\s+business|business\s+type|industry|sector/.test(haystack)) {
+    const business = inferTypeOfBusiness(`${cvText} ${task?.role_title || ""} ${task?.company_name || ""}`) || "Financial Services";
+    return choiceOrText(business, [/financial services|banking|consulting|accounting/i]);
+  }
+  if (/subject|major|field\s+of\s+study|discipline/.test(haystack)) {
+    return choiceOrText(education.subject || "Finance", [/finance|business|economics|accounting|management/i]);
+  }
+  if (/degree\s+type|qualification|education\s+level|highest.*education|degree/.test(haystack)) {
+    return findChoice([/master/i, /bachelor/i, /degree/i], education.degree || "Bachelor Degree");
+  }
+  if (/country.*education|education.*country|school.*country|university.*country/.test(haystack)) {
+    const educationCountry = education.country || inferredCountry || "United Kingdom";
+    return choiceOrText(educationCountry, [new RegExp(escapeRegExp(educationCountry), "i"), /united kingdom|uae|united arab emirates/i]);
+  }
+  if (/institution|university|school|college/.test(haystack)) {
+    return education.school || "University";
+  }
+  if (/job\s*title|current\s*role|position/.test(haystack)) {
+    return latestExperience.title || task?.role_title || "Analyst";
+  }
+  if (/company|employer|organisation|organization/.test(haystack)) {
+    return latestExperience.company || "Current employer";
+  }
+  if (/salary|compensation|notice|availability|start\s+date/.test(haystack)) {
+    return getWorkableSyntheticAnswerForQuestion(question, answers) || "Not applicable";
+  }
+  if (/privacy|consent|acknowledge|declaration|accurate|true|terms|notice|confirm|certify|understand/.test(haystack)) {
+    return choiceLabels.length ? findChoice([/^yes$/i, /agree/i, /accept/i, /confirm/i, /acknowledge/i], "Yes") : "Yes";
+  }
+  if (/criminal|conviction|arrest|charge|trial|disciplinary|misconduct|conflict|family\s+member|related\s+party|politically\s+exposed|sanction/.test(haystack)) {
+    return choiceLabels.length ? findChoice([/^no$/i, /none/i, /not applicable/i], "No") : "No";
+  }
+  if (/work.*authori|eligible.*work|visa|sponsor|sponsorship/.test(haystack)) {
+    return /sponsor|sponsorship/.test(haystack)
+      ? findChoice([/^no$/i], "No")
+      : findChoice([/^yes$/i], "Yes");
+  }
+  if (/details|explain|comment|additional information/.test(haystack)) {
+    return "Not applicable";
+  }
+  return "";
 }
 
 function getCandidateProfileAnswers(task) {
@@ -1393,10 +1724,11 @@ function getVerificationCode(task) {
 
 function isWorkableApplication(task, url = "") {
   const provider = cleanText(task?.provider || "").toLowerCase();
+  const candidateUrl = cleanText(url || task?.application_workspace_url || task?.application_url || "");
   return (
     provider === "workable" ||
     provider === "workable_board" ||
-    /(?:^|\/\/)apply\.workable\.com\//i.test(cleanText(url || task?.application_workspace_url || task?.application_url || ""))
+    /(?:^|\/\/)(?:apply|jobs)\.workable\.com\//i.test(candidateUrl)
   );
 }
 
@@ -1873,7 +2205,7 @@ async function waitForWorkdayApplicationContent(page) {
 }
 
 async function waitForWorkdayLoginContent(page) {
-  await withTimeout(waitForWorkdayShell(page), 25000, null).catch(() => {});
+  await withTimeout(waitForWorkdayShell(page), 8000, null).catch(() => {});
   await page.waitForFunction(
     () => {
       const text = String(document.body?.innerText || "").replace(/\s+/g, " ").trim();
@@ -2308,6 +2640,7 @@ async function getWorkdayStepState(page) {
       { step: "my_experience", patterns: [/my experience/i, /work experience/i, /school or university/i, /overall result/i] },
       { step: "resume", patterns: [/upload.*(?:resume|cv)/i, /resume\/cv/i, /autofill/i] },
       { step: "my_information", patterns: [/my information/i, /legal name/i, /contact information/i, /address/i, /phone/i] },
+      { step: "my_work_availability", patterns: [/my work availability/i, /work availability/i, /availability/i] },
       { step: "application_questions", patterns: [/application questions/i, /questionnaire/i, /work authorization/i, /sponsorship/i] },
       { step: "voluntary_disclosures", patterns: [/voluntary/i, /self-identification/i, /diversity/i, /gender/i, /disability/i, /veteran/i] },
       { step: "review", patterns: [/review/i, /summary/i, /submit application/i] },
@@ -2573,9 +2906,10 @@ async function fillWorkdayInput(page, automationId, value) {
     return bScore - aScore || b.meta.top - a.meta.top;
   });
   let filled = false;
-  for (const candidate of candidates) {
-    if (await fillInputHandleWithVerification(page, candidate.field, value)) {
+  for (const candidate of candidates.slice(0, 2)) {
+    if (await withTimeout(fillInputHandleWithVerification(page, candidate.field, value), 7000, false).catch(() => false)) {
       filled = true;
+      break;
     }
   }
   if (filled) {
@@ -2584,11 +2918,140 @@ async function fillWorkdayInput(page, automationId, value) {
   return fillBySelectors(page, selectors, value);
 }
 
+async function fillWorkdayAccountInputDirect(page, automationId, value) {
+  const nextValue = cleanText(value);
+  if (!nextValue) {
+    return false;
+  }
+  const ok = await page.evaluate(({ id, expected }) => {
+    const visible = (element) => {
+      if (!element || element.disabled || element.type === "hidden") return false;
+      const style = window.getComputedStyle(element);
+      const rect = element.getBoundingClientRect();
+      return style.visibility !== "hidden" && style.display !== "none" && rect.width > 0 && rect.height > 0;
+    };
+    const setValue = (input, value) => {
+      const descriptor = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value");
+      input.focus();
+      if (typeof input.select === "function") {
+        input.select();
+      }
+      if (descriptor && descriptor.set) {
+        descriptor.set.call(input, "");
+      } else {
+        input.value = "";
+      }
+      input.dispatchEvent(new InputEvent("input", { bubbles: true, inputType: "deleteContentBackward", data: null }));
+      if (descriptor && descriptor.set) {
+        descriptor.set.call(input, value);
+      } else {
+        input.value = value;
+      }
+      input.dispatchEvent(new InputEvent("input", { bubbles: true, inputType: "insertText", data: value }));
+      input.dispatchEvent(new Event("change", { bubbles: true }));
+    };
+    const selector = [
+      `[role="dialog"] input[data-automation-id="${id}"]`,
+      `[aria-modal="true"] input[data-automation-id="${id}"]`,
+      `input[data-automation-id="${id}"]`,
+      `[role="dialog"] input[name="${id}"]`,
+      `[aria-modal="true"] input[name="${id}"]`,
+      `input[name="${id}"]`,
+    ].join(", ");
+    const candidates = Array.from(document.querySelectorAll(selector)).filter(visible);
+    candidates.sort((a, b) => {
+      const aDialog = a.closest('[role="dialog"], [aria-modal="true"]') ? 1 : 0;
+      const bDialog = b.closest('[role="dialog"], [aria-modal="true"]') ? 1 : 0;
+      const aRect = a.getBoundingClientRect();
+      const bRect = b.getBoundingClientRect();
+      return bDialog - aDialog || aRect.top - bRect.top;
+    });
+    const field = candidates[0];
+    if (!field) {
+      return false;
+    }
+    setValue(field, expected);
+    return String(field.value || "") === expected;
+  }, { id: automationId, expected: nextValue }).catch(() => false);
+  await new Promise((resolve) => setTimeout(resolve, 250));
+  return Boolean(ok);
+}
+
 async function fillWorkdayAccountFields(page, email, password) {
-  const filledEmail = await fillWorkdayInput(page, "email", email);
-  const filledPassword = await fillWorkdayInput(page, "password", password);
-  const filledVerify = await fillWorkdayInput(page, "verifyPassword", password);
+  const filledEmail = await fillWorkdayAccountInputDirect(page, "email", email);
+  const filledPassword = await fillWorkdayAccountInputDirect(page, "password", password);
+  const filledVerify = await fillWorkdayAccountInputDirect(page, "verifyPassword", password);
   return { email: filledEmail, password: filledPassword, verify_password: filledVerify };
+}
+
+async function clickWorkdayAccountSubmitDirect(page, mode) {
+  const wanted = mode === "create" ? /^(create account|sign up|register)$/i : /^(sign in|log in|login)$/i;
+  return page.evaluate((source) => {
+    const pattern = new RegExp(source, "i");
+    const clean = (value) => String(value || "").replace(/\s+/g, " ").trim();
+    const visible = (element) => {
+      if (!element) return false;
+      const style = window.getComputedStyle(element);
+      const rect = element.getBoundingClientRect();
+      return style.visibility !== "hidden" && style.display !== "none" && rect.width > 0 && rect.height > 0;
+    };
+    const buttons = Array.from(document.querySelectorAll('[role="dialog"] button, [aria-modal="true"] button, button, [role="button"], input[type="submit"]'))
+      .filter(visible)
+      .map((element) => {
+        const text = clean(`${element.textContent || ""} ${element.getAttribute("aria-label") || ""} ${element.value || ""}`);
+        const rect = element.getBoundingClientRect();
+        return {
+          element,
+          text,
+          inDialog: Boolean(element.closest('[role="dialog"], [aria-modal="true"]')),
+          top: rect.top,
+        };
+      })
+      .filter((entry) => pattern.test(entry.text) && !/create account.*sign in|sign in.*create account/i.test(entry.text));
+    buttons.sort((a, b) => Number(b.inDialog) - Number(a.inDialog) || b.top - a.top);
+    const button = buttons[0]?.element || null;
+    if (!button) {
+      return false;
+    }
+    button.click();
+    return true;
+  }, wanted.source).catch(() => false);
+}
+
+async function clickWorkdayHeaderSignInDirect(page) {
+  await dismissCookieBanners(page).catch(() => false);
+  const target = await page.evaluate(() => {
+    const clean = (value) => String(value || "").replace(/\s+/g, " ").trim();
+    const visible = (element) => {
+      if (!element) return false;
+      const style = window.getComputedStyle(element);
+      const rect = element.getBoundingClientRect();
+      return style.visibility !== "hidden" && style.display !== "none" && rect.width > 0 && rect.height > 0;
+    };
+    const button = document.querySelector('[data-automation-id="utilityButtonSignIn"]') ||
+      Array.from(document.querySelectorAll("button, a, [role='button']"))
+        .find((element) => visible(element) && /^sign in$/i.test(clean(`${element.textContent || ""} ${element.getAttribute("aria-label") || ""}`)));
+    if (!button || !visible(button)) {
+      return null;
+    }
+    const rect = button.getBoundingClientRect();
+    return {
+      x: Math.round(rect.left + rect.width / 2),
+      y: Math.round(rect.top + rect.height / 2),
+    };
+  }).catch(() => null);
+  if (!target) {
+    return false;
+  }
+  await page.mouse.move(target.x, target.y, { steps: 8 }).catch(() => {});
+  await page.mouse.click(target.x, target.y, { delay: 100 }).catch(() => {});
+  await new Promise((resolve) => setTimeout(resolve, 1200));
+  return true;
+}
+
+async function pressWorkdayAccountPasswordEnter(page) {
+  await page.keyboard.press("Enter").catch(() => {});
+  return true;
 }
 
 async function fillWorkdayVerificationCode(page, code) {
@@ -2639,6 +3102,7 @@ async function createWorkdayAccountIfAllowed(page, task, preflight) {
   const account = getWorkdayAccount(task);
   const generatedPassword = account.allow_generated_password && !account.password ? generateWorkdayPassword() : "";
   const password = account.password || generatedPassword;
+  const hasExplicitAccountConsent = Boolean((account.create_account || account.sign_in) && account.email && password);
   const result = {
     attempted: false,
     clicked_create_account: false,
@@ -2650,7 +3114,7 @@ async function createWorkdayAccountIfAllowed(page, task, preflight) {
     field_fill: {},
     last_error: "",
   };
-  if (!preflight.account_required) {
+  if (!preflight.account_required && !hasExplicitAccountConsent) {
     return result;
   }
   debugLog(task?.task_uuid || "workday", "workday_account_route_start", JSON.stringify({
@@ -2661,13 +3125,35 @@ async function createWorkdayAccountIfAllowed(page, task, preflight) {
   }));
   if (!account.create_account && account.sign_in && account.email && password) {
     result.attempted = true;
-    await clickWorkdayByAutomationOrText(page, ["utilityButtonSignIn", "signInLink"], [/sign in/, /log in/, /login/]);
-    await waitForWorkdayLoginContent(page);
+    const clickedSignIn = await withTimeout(
+      clickWorkdayHeaderSignInDirect(page).then((clicked) =>
+        clicked || clickWorkdayByAutomationOrText(page, ["utilityButtonSignIn", "signInLink"], [/sign in/, /log in/, /login/])
+      ),
+      12000,
+      false
+    );
+    result.clicked_sign_in = Boolean(clickedSignIn);
+    await withTimeout(waitForWorkdayLoginContent(page), 15000, null).catch(() => {});
+    let loginState = await withTimeout(getWorkdayVisibleState(page), 8000, {});
+    if (!Number(loginState.field_count || 0)) {
+      await withTimeout(waitForWorkdayLoginContent(page), 15000, null).catch(() => {});
+      loginState = await withTimeout(getWorkdayVisibleState(page), 8000, {});
+    }
+    debugLog(task?.task_uuid || "workday", "workday_sign_in_modal_state", JSON.stringify({
+      clicked_sign_in: result.clicked_sign_in,
+      url: loginState.url,
+      field_count: loginState.field_count,
+      has_create_account: loginState.has_create_account,
+      has_sign_in: loginState.has_sign_in,
+      has_verification: loginState.has_verification,
+      text_sample: cleanText(loginState.text_sample || "").slice(0, 220),
+    }));
     result.field_fill = {
-      email: await fillWorkdayInput(page, "email", account.email),
-      password: await fillWorkdayInput(page, "password", password),
+      email: await withTimeout(fillWorkdayAccountInputDirect(page, "email", account.email), 9000, false).catch(() => false),
+      password: await withTimeout(fillWorkdayAccountInputDirect(page, "password", password), 9000, false).catch(() => false),
       verify_password: true,
     };
+    debugLog(task?.task_uuid || "workday", "workday_sign_in_fill_result", JSON.stringify(result.field_fill));
     if (!result.field_fill.email || !result.field_fill.password) {
       result.last_error = "The Workday sign-in fields were not available.";
       return result;
@@ -2677,15 +3163,25 @@ async function createWorkdayAccountIfAllowed(page, task, preflight) {
       result.last_error = "Dry run stopped before signing into the tenant-specific Workday account.";
       return result;
     }
-    result.submitted_create_account = await clickWorkdayByAutomationOrText(
-      page,
-      ["signInSubmitButton", "submitButton"],
-      [/^sign in$/, /^log in$/, /^login$/]
-    );
-    await withTimeout(waitForWorkdayShell(page), 25000, null).catch(() => {});
+    result.submitted_create_account = await withTimeout(clickWorkdayAccountSubmitDirect(page, "sign_in"), 5000, false).catch(() => false);
+    debugLog(task?.task_uuid || "workday", "workday_sign_in_submit_result", result.submitted_create_account);
+    await new Promise((resolve) => setTimeout(resolve, 2500));
+    let afterKeyboardSubmit = await withTimeout(getWorkdayVisibleState(page), 8000, {});
+    if (!result.submitted_create_account && afterKeyboardSubmit.has_sign_in && !afterKeyboardSubmit.has_verification && afterKeyboardSubmit.field_count <= 4) {
+      result.submitted_create_account = await withTimeout(
+        clickWorkdayByAutomationOrText(
+          page,
+          ["signInSubmitButton", "submitButton"],
+          [/^sign in$/, /^log in$/, /^login$/]
+        ),
+        5000,
+        false
+      );
+    }
+    await withTimeout(waitForWorkdayApplicationContent(page), 20000, null).catch(() => {});
     const after = await withTimeout(getWorkdayVisibleState(page), 10000, {});
     result.after_submit_state = after;
-    result.verification_required = Boolean(after.has_verification || preflight.account_verification);
+    result.verification_required = Boolean(after.has_verification);
     if (!result.submitted_create_account) {
       result.last_error = "The worker could not click the Workday sign-in button.";
     } else if (result.verification_required) {
@@ -2715,15 +3211,15 @@ async function createWorkdayAccountIfAllowed(page, task, preflight) {
       false
     );
     if (clickedSignIn) {
-      await withTimeout(waitForWorkdayShell(page), workdayShellTimeoutMs + 1000, null);
+      await withTimeout(waitForWorkdayLoginContent(page), 15000, null).catch(() => {});
       result.clicked_create_account = await withTimeout(
         clickWorkdayByAutomationOrText(page, ["createAccountLink"], [/create account/, /register/, /sign up/]),
-        workdayShellTimeoutMs,
+        12000,
         false
       );
     }
   }
-  await withTimeout(waitForWorkdayShell(page), workdayShellTimeoutMs + 1000, null);
+  await withTimeout(waitForWorkdayLoginContent(page), 15000, null).catch(() => {});
   const accountFormState = await getWorkdayVisibleState(page);
   if (!/create account/i.test(accountFormState.title || accountFormState.text_sample || "")) {
     result.last_error = "The worker could not switch the Workday sign-in modal into create-account mode.";
@@ -2754,15 +3250,33 @@ async function createWorkdayAccountIfAllowed(page, task, preflight) {
     return result;
   }
   debugLog(task?.task_uuid || "workday", "workday_account_submit_create_start");
-  result.submitted_create_account = await clickWorkdayByAutomationOrText(
-    page,
-    ["createAccountSubmitButton"],
-    [/^create account$/]
-  );
+  result.submitted_create_account =
+    (await withTimeout(clickWorkdayAccountSubmitDirect(page, "create"), 8000, false).catch(() => false)) ||
+    (await withTimeout(
+      clickWorkdayByAutomationOrText(
+        page,
+        ["createAccountSubmitButton"],
+        [/^create account$/]
+      ),
+      8000,
+      false
+    ));
   debugLog(task?.task_uuid || "workday", "workday_account_submit_create_result", result.submitted_create_account);
-  await waitForWorkdayApplicationContent(page);
-  let after = await getWorkdayVisibleState(page);
-  let afterCompletion = await getRequiredFormCompletionState(page).catch(() => ({
+  await withTimeout(waitForWorkdayApplicationContent(page), 20000, null).catch(() => {});
+  let after = await withTimeout(getWorkdayVisibleState(page), 10000, {});
+  debugLog(task?.task_uuid || "workday", "workday_account_after_submit_state", JSON.stringify({
+    url: after.url,
+    title: after.title,
+    field_count: after.field_count,
+    has_create_account: after.has_create_account,
+    has_sign_in: after.has_sign_in,
+    has_verification: after.has_verification,
+    text_sample: cleanText(after.text_sample || "").slice(0, 220),
+  }));
+  let afterCompletion = await withTimeout(getRequiredFormCompletionState(page), 10000, {
+    complete_required_fields: [],
+    missing_required_fields: [],
+  }).catch(() => ({
     complete_required_fields: [],
     missing_required_fields: [],
   }));
@@ -2774,14 +3288,23 @@ async function createWorkdayAccountIfAllowed(page, task, preflight) {
   ) {
     debugLog(task?.task_uuid || "workday", "workday_account_retry_password_fill_start");
     result.retry_field_fill = await fillWorkdayAccountFields(page, account.email, password);
-    result.retried_create_account = await clickWorkdayByAutomationOrText(
-      page,
-      ["createAccountSubmitButton"],
-      [/^create account$/]
-    );
-    await waitForWorkdayApplicationContent(page);
-    after = await getWorkdayVisibleState(page);
-    afterCompletion = await getRequiredFormCompletionState(page).catch(() => ({
+    result.retried_create_account =
+      (await withTimeout(clickWorkdayAccountSubmitDirect(page, "create"), 8000, false).catch(() => false)) ||
+      (await withTimeout(
+        clickWorkdayByAutomationOrText(
+          page,
+          ["createAccountSubmitButton"],
+          [/^create account$/]
+        ),
+        8000,
+        false
+      ));
+    await withTimeout(waitForWorkdayApplicationContent(page), 20000, null).catch(() => {});
+    after = await withTimeout(getWorkdayVisibleState(page), 10000, {});
+    afterCompletion = await withTimeout(getRequiredFormCompletionState(page), 10000, {
+      complete_required_fields: [],
+      missing_required_fields: [],
+    }).catch(() => ({
       complete_required_fields: [],
       missing_required_fields: [],
     }));
@@ -2809,11 +3332,48 @@ async function ensureWorkdayApplicationFlowReady(page, task, preflight) {
   const result = {
     opened_apply: false,
     account_flow: null,
+    preapply_account_flow: null,
     candidate_home_resume: null,
     form_ready: false,
     state: {},
   };
   await waitForWorkdayShell(page);
+  await dismissCookieBanners(page).catch(() => false);
+  const preApplyAccount = getWorkdayAccount(task);
+  const preApplyState = await getWorkdayVisibleState(page).catch(() => ({}));
+  if (
+    preApplyAccount.sign_in &&
+    preApplyAccount.email &&
+    preApplyAccount.password &&
+    preApplyState.has_sign_in &&
+    !/\/apply(?:\/|$)/i.test(preApplyState.url || page.url())
+  ) {
+    debugLog(task?.task_uuid || "workday", "workday_preapply_sign_in_start", JSON.stringify({
+      url: preApplyState.url || page.url(),
+      field_count: preApplyState.field_count,
+      has_sign_in: preApplyState.has_sign_in,
+    }));
+    result.preapply_account_flow = await createWorkdayAccountIfAllowed(page, task, preflight).catch((error) => ({
+      attempted: true,
+      last_error: error?.message || String(error),
+    }));
+    const afterPreApplySignIn = await getWorkdayVisibleState(page).catch(() => ({}));
+    debugLog(task?.task_uuid || "workday", "workday_preapply_sign_in_result", JSON.stringify({
+      attempted: Boolean(result.preapply_account_flow?.attempted),
+      submitted: Boolean(result.preapply_account_flow?.submitted_create_account),
+      verification_required: Boolean(result.preapply_account_flow?.verification_required),
+      last_error: result.preapply_account_flow?.last_error || "",
+      url: afterPreApplySignIn.url || page.url(),
+      field_count: afterPreApplySignIn.field_count,
+      has_sign_in: afterPreApplySignIn.has_sign_in,
+      has_verification: afterPreApplySignIn.has_verification,
+    }));
+    if (result.preapply_account_flow?.verification_required || result.preapply_account_flow?.account_action_blocked) {
+      result.account_flow = result.preapply_account_flow;
+      result.state = afterPreApplySignIn;
+      return result;
+    }
+  }
   result.candidate_home_resume = await continueWorkdayDraftFromCandidateHome(page, task, preflight).catch((error) => ({
     attempted: true,
     clicked_continue: false,
@@ -2823,10 +3383,11 @@ async function ensureWorkdayApplicationFlowReady(page, task, preflight) {
     result.opened_apply = true;
     result.opened_apply_from_candidate_home = true;
     const state = await getWorkdayVisibleState(page);
+    const stateIsApplicationForm = isWorkdayApplicationFormState(state);
     result.form_ready = Boolean(
-      isWorkdayApplicationFormState(state) &&
+      stateIsApplicationForm &&
         !state.has_create_account &&
-        !state.has_sign_in
+        (!state.has_sign_in || Number(state.field_count || 0) || Number(state.file_input_count || 0) || Number(state.upload_control_count || 0))
     );
     result.state = state;
     debugLog(task?.task_uuid || "workday", "workday_candidate_home_resume_result", JSON.stringify({
@@ -2904,11 +3465,21 @@ async function ensureWorkdayApplicationFlowReady(page, task, preflight) {
     has_verification: state.has_verification,
     buttons: (state.buttons || []).map((button) => `${button.automation_id}:${button.text}`).slice(0, 12),
   }));
+  const workdayAccountForGate = getWorkdayAccount(task);
+  const shouldUseExplicitWorkdayAccount = Boolean(
+    (workdayAccountForGate.create_account || workdayAccountForGate.sign_in) &&
+      workdayAccountForGate.email &&
+      workdayAccountForGate.password &&
+      (state.has_create_account || state.has_sign_in)
+  );
   const hasAccountUi =
-    /\/login(?:\?|$)/i.test(state.url || page.url()) ||
-    state.has_create_account ||
-    state.has_sign_in ||
-    /create account|sign in|log in|login|password/i.test(cleanText(state.text_sample || ""));
+    (shouldUseExplicitWorkdayAccount || !isWorkdayApplicationFormState(state)) &&
+    (
+      /\/login(?:\?|$)/i.test(state.url || page.url()) ||
+      state.has_create_account ||
+      state.has_sign_in ||
+      /create account|sign in|log in|login|password/i.test(cleanText(state.text_sample || ""))
+    );
   if (hasAccountUi) {
     result.account_flow = await createWorkdayAccountIfAllowed(page, task, preflight);
     state = await getWorkdayVisibleState(page);
@@ -2981,12 +3552,32 @@ async function ensureWorkdayApplicationFlowReady(page, task, preflight) {
       }
     }
   }
+  if (!state.field_count && !state.file_input_count && !state.upload_control_count) {
+    const stepState = await getWorkdayStepState(page).catch(() => ({}));
+    const stage = getEffectiveWorkdayStage(getWorkdayStageFromState(state, stepState), stepState);
+    const shellText = cleanText(`${state.title || ""} ${state.text_sample || ""}`);
+    if (
+      ["resume", "my_information", "my_experience", "my_work_availability", "application_questions", "voluntary_disclosures", "review"].includes(stage) ||
+      /autofill with resume|my information|my experience|my work availability|application questions|voluntary disclosures|review/i.test(shellText)
+    ) {
+      debugLog(task?.task_uuid || "workday", "workday_wait_controls_before_ready_start", JSON.stringify({ stage }));
+      await dismissCookieBanners(page).catch(() => false);
+      await withTimeout(waitForWorkdayStageControls(page, stage || "resume"), 45000, null).catch(() => {});
+      state = await withTimeout(getWorkdayVisibleState(page), 10000, state).catch(() => state);
+      debugLog(task?.task_uuid || "workday", "workday_wait_controls_before_ready_result", JSON.stringify({
+        stage,
+        field_count: state.field_count,
+        file_input_count: state.file_input_count,
+        upload_control_count: state.upload_control_count,
+      }));
+    }
+  }
   result.form_ready = Boolean(
     isWorkdayApplicationFormState(state) &&
       !result.account_flow?.requires_consent &&
       !result.account_flow?.account_action_blocked &&
       !state.has_create_account &&
-      !state.has_sign_in
+      (!state.has_sign_in || Number(state.field_count || 0) || Number(state.file_input_count || 0) || Number(state.upload_control_count || 0))
   );
   result.state = state;
   return result;
@@ -3224,24 +3815,45 @@ async function uploadWorkdayResume(page, cvPath) {
 function buildWorkdayApplicationQuestionRepairItems(task) {
   const answers = getApplicationAnswers(task);
   const get = (patterns) => answerByPatterns(answers, patterns);
+  const yesAuthorizedToWork = [
+    "Yes",
+    "Yes, I am legally authorized to work",
+    "I am legally authorized to work",
+  ];
+  const noAnswer = ["No", "No, I do not", "No I do not"];
   return [
     { kind: "textarea", label: "motivation", patterns: [/why do you want to apply/i], answer: get([/why do you want to apply/, /motivation/, /why.*blackstone/]) },
-    { kind: "choice", label: "work_authorization", patterns: [/legally authorized to work/i, /employment eligibility/i], answer: get([/legally authorized/, /work authorized/, /employment authorization/]) },
-    { kind: "choice", label: "sponsorship", patterns: [/require blackstone to sponsor/i, /sponsor.*employment authorization/i, /visa/i], answer: get([/require.*sponsor/, /sponsorship/, /visa/]) },
-    { kind: "choice", label: "political_self_state", patterns: [/have you donated.*state or local political campaign/i], answer: get([/have you donated.*state or local political campaign/, /political.*self.*state/]) },
-    { kind: "choice", label: "political_spouse_state", patterns: [/has your spouse donated.*state or local political campaign/i], answer: get([/spouse donated.*state or local political campaign/, /political.*spouse.*state/]) },
-    { kind: "choice", label: "political_self_federal", patterns: [/have you donated.*candidate for any federal office/i], answer: get([/have you donated.*candidate for any federal office/, /political.*self.*federal/]) },
-    { kind: "choice", label: "political_spouse_federal", patterns: [/has your spouse donated.*candidate for any federal office/i], answer: get([/spouse donated.*candidate for any federal office/, /political.*spouse.*federal/]) },
-    { kind: "choice", label: "political_self_party", patterns: [/have you donated.*political party or political action committee/i], answer: get([/have you donated.*political party/, /political.*self.*party/]) },
-    { kind: "choice", label: "political_spouse_party", patterns: [/has your spouse donated.*political party or political action committee/i], answer: get([/spouse donated.*political party/, /political.*spouse.*party/]) },
-    { kind: "choice", label: "previous_blackstone_employment", patterns: [/ever been employed by blackstone/i], answer: get([/ever been employed by blackstone/, /previous.*blackstone/]) },
-    { kind: "choice", label: "relatives_blackstone", patterns: [/relatives or members of your household employed by blackstone/i], answer: get([/relatives.*blackstone/, /household.*blackstone/]) },
-    { kind: "choice", label: "relatives_deloitte", patterns: [/relatives or members of your household employed by deloitte/i], answer: get([/relatives.*deloitte/, /household.*deloitte/]) },
-    { kind: "choice", label: "family_business_relationship", patterns: [/spouse, sibling, parent.*child currently/i, /material business relationship/i], answer: get([/spouse.*sibling.*parent.*child/, /family.*business.*relationship/, /material business relationship/]) },
-    { kind: "choice", label: "government_official_or_affiliated", patterns: [/government official/i, /related to or affiliated with blackstone/i], answer: get([/government official/, /affiliated with blackstone/]) },
-    { kind: "choice", label: "outside_business_activities", patterns: [/outside business activities/i, /board affiliations/i, /consulting engagements/i], answer: get([/outside business activities/, /board affiliations/, /consulting engagements/]) },
-    { kind: "checkbox", label: "business_groups", patterns: [/opportunities are available.*business groups/i, /select those you are most interested/i], answer: get([/business groups/, /business units/, /opportunities.*interested/]) },
+    { kind: "choice", label: "work_authorization", patterns: [/legally authorized to work/i, /employment eligibility/i], answer: yesAuthorizedToWork },
+    { kind: "choice", label: "sponsorship", patterns: [/require blackstone to sponsor/i, /sponsor.*employment authorization/i, /visa/i], answer: noAnswer },
+    { kind: "choice", label: "political_self_state", patterns: [/have you donated.*state or local political campaign/i], answer: noAnswer },
+    { kind: "choice", label: "political_spouse_state", patterns: [/has your spouse donated.*state or local political campaign/i], answer: noAnswer },
+    { kind: "choice", label: "political_self_federal", patterns: [/have you donated.*candidate for any federal office/i], answer: noAnswer },
+    { kind: "choice", label: "political_spouse_federal", patterns: [/has your spouse donated.*candidate for any federal office/i], answer: noAnswer },
+    { kind: "choice", label: "political_self_party", patterns: [/have you donated.*political party or political action committee/i], answer: noAnswer },
+    { kind: "choice", label: "political_spouse_party", patterns: [/has your spouse donated.*political party or political action committee/i], answer: noAnswer },
+    { kind: "choice", label: "previous_blackstone_employment", patterns: [/ever been employed by blackstone/i], answer: noAnswer },
+    { kind: "choice", label: "relatives_blackstone", patterns: [/relatives or members of your household employed by blackstone/i], answer: noAnswer },
+    { kind: "choice", label: "relatives_deloitte", patterns: [/relatives or members of your household employed by deloitte/i], answer: noAnswer },
+    { kind: "choice", label: "family_business_relationship", patterns: [/spouse, sibling, parent.*child currently/i, /material business relationship/i], answer: noAnswer },
+    { kind: "choice", label: "government_official_or_affiliated", patterns: [/government official/i, /related to or affiliated with blackstone/i], answer: noAnswer },
+    { kind: "choice", label: "outside_business_activities", patterns: [/outside business activities/i, /board affiliations/i, /consulting engagements/i], answer: noAnswer },
+    {
+      kind: "random_checkbox",
+      label: "business_groups",
+      patterns: [
+        /opportunities are available.*business groups/i,
+        /select those you are most interested/i,
+        /by selecting below.*consent.*blackstone/i,
+        /considering you for relevant opportunities/i,
+      ],
+      answer: getRandomBlackstoneBusinessGroupDefault(),
+    },
   ].filter((item) => answerHasValue(item.answer));
+}
+
+function getRandomBlackstoneBusinessGroupDefault() {
+  const groups = ["Private Equity", "Credit", "Real Estate", "Infrastructure", "Blackstone Growth", "Tactical Opportunities"];
+  return groups[Math.floor(Math.random() * groups.length)] || "Private Equity";
 }
 
 async function repairWorkdayApplicationQuestionsPage(page, task) {
@@ -3258,9 +3870,11 @@ async function repairWorkdayApplicationQuestionsPage(page, task) {
       if (item.kind === "textarea") {
         result = await withTimeout(fillWorkdayTextareaByQuestionPatterns(page, item.patterns, answer), 5000, result);
       } else if (item.kind === "choice") {
-        result = await withTimeout(selectWorkdayDropdownByQuestionPatterns(page, item.patterns, answer), 4500, result);
+        result = await withTimeout(selectWorkdayDropdownByQuestionPatterns(page, item.patterns, item.answer), 4500, result);
       } else if (item.kind === "checkbox") {
         result = await withTimeout(clickWorkdayCheckboxesByAnswer(page, item.answer), 5000, result);
+      } else if (item.kind === "random_checkbox") {
+        result = await withTimeout(clickWorkdayRandomCheckboxByQuestionPatterns(page, item.patterns, item.answer), 5000, result);
       }
     } catch (error) {
       result = {
@@ -3280,6 +3894,7 @@ async function repairWorkdayApplicationQuestionsPage(page, task) {
       scope_found: Boolean(result.found),
       filled: Boolean(result.filled),
       scope_text: cleanText(result.scope_text || "").slice(0, 160),
+      selected_label: result.selected_label || undefined,
       error: result.error || undefined,
     });
     await page.keyboard.press("Escape").catch(() => {});
@@ -3408,15 +4023,11 @@ async function selectWorkdayDropdownByQuestionPatterns(page, patterns, answer) {
   await new Promise((resolve) => setTimeout(resolve, isInput ? 700 : 350));
   const filled =
     (await selectVisibleWorkdayOption(page, aliases).catch(() => false)) ||
-    (await openWorkdayDropdownNearQuestionLabel(page, patterns).then((opened) =>
-      opened ? selectVisibleWorkdayOption(page, aliases) || selectVisibleWorkdayOptOutOption(page) : false
-    ).catch(() => false)) ||
-    (await openFocusedWorkdayDropdownAndSelect(page, aliases).catch(() => false)) ||
     (await openWorkdayPromptByQuestionPatterns(page, patterns).then((opened) =>
-      opened ? selectVisibleWorkdayOption(page, aliases) || openFocusedWorkdayDropdownAndSelect(page, aliases) : false
+      opened ? selectVisibleWorkdayOption(page, aliases) : false
     ).catch(() => false)) ||
     (await openWorkdayQuestionDropdownByPatterns(page, patterns).then((opened) =>
-      opened ? selectVisibleWorkdayOption(page, aliases) || openFocusedWorkdayDropdownAndSelect(page, aliases) : false
+      opened ? selectVisibleWorkdayOption(page, aliases) : false
     ).catch(() => false)) ||
     (await selectVisibleWorkdayOption(page, aliases.map((alias) => (alias === "Yes" ? "Yes" : alias === "No" ? "No" : alias))).catch(() => false));
   await element.dispose().catch(() => {});
@@ -3764,6 +4375,99 @@ async function clickWorkdayCheckboxesByAnswer(page, answer) {
   return result;
 }
 
+async function clickWorkdayRandomCheckboxByQuestionPatterns(page, patterns, preferredAnswer = "") {
+  const patternSources = (patterns || []).map((pattern) => pattern.source || String(pattern)).filter(Boolean);
+  if (!patternSources.length) {
+    return { found: false, filled: false, scope_text: "" };
+  }
+  return page.evaluate(
+    ({ sources, preferred }) => {
+      const clean = (value) => String(value || "").replace(/\s+/g, " ").trim();
+      const compact = (value) => clean(value).toLowerCase().replace(/[^a-z0-9]+/g, "");
+      const visible = (element) => {
+        if (!element) return false;
+        const style = window.getComputedStyle(element);
+        const rect = element.getBoundingClientRect();
+        return (
+          style.visibility !== "hidden" &&
+          style.display !== "none" &&
+          rect.width > 0 &&
+          rect.height > 0 &&
+          element.getAttribute("aria-disabled") !== "true" &&
+          !element.disabled
+        );
+      };
+      const isChecked = (control) => {
+        if (control.matches("input[type='checkbox']")) {
+          return Boolean(control.checked);
+        }
+        return control.getAttribute("aria-checked") === "true";
+      };
+      const clickTargetFor = (control) => {
+        const id = control.getAttribute("id") || "";
+        const explicit = id ? document.querySelector(`label[for="${CSS.escape(id)}"]`) : null;
+        return explicit || control.closest("label") || control.closest("[role='checkbox']") || control;
+      };
+      const regexes = sources.map((source) => new RegExp(source, "i"));
+      const scopes = Array.from(document.querySelectorAll("fieldset, section, [role='group'], div"))
+        .filter(visible)
+        .map((scope) => ({ scope, text: clean(scope.textContent || "") }))
+        .filter((entry) => entry.text && regexes.some((regex) => regex.test(entry.text)))
+        .sort((a, b) => a.text.length - b.text.length);
+      for (const { scope, text } of scopes) {
+        const controls = Array.from(scope.querySelectorAll("input[type='checkbox'], [role='checkbox']"))
+          .filter(visible)
+          .filter((control) => {
+            const labelText = clean(clickTargetFor(control)?.textContent || control.getAttribute("aria-label") || "");
+            return !/\bread\b|\bagree\b|\baccept\b|\backnowledge\b|\bterms\b|\bconditions\b|\bprivacy\b/i.test(labelText);
+          });
+        if (!controls.length) {
+          continue;
+        }
+        const preferredCompact = compact(preferred);
+        const ranked = controls
+          .map((control, index) => {
+            const label = clean(`${clickTargetFor(control)?.textContent || ""} ${control.getAttribute("aria-label") || ""}`);
+            const labelCompact = compact(label);
+            const preferredScore =
+              preferredCompact && (labelCompact.includes(preferredCompact) || preferredCompact.includes(labelCompact)) ? 100 : 0;
+            return { control, label, score: preferredScore + Math.max(0, 20 - index) };
+          })
+          .sort((a, b) => b.score - a.score);
+        const target = ranked[0];
+        if (!target) {
+          continue;
+        }
+        const before = isChecked(target.control);
+        if (!before) {
+          const clickTarget = clickTargetFor(target.control);
+          clickTarget.scrollIntoView({ block: "center", inline: "nearest" });
+          clickTarget.click();
+          if (target.control.matches("input[type='checkbox']") && !target.control.checked) {
+            const descriptor = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "checked");
+            if (descriptor && descriptor.set) {
+              descriptor.set.call(target.control, true);
+            } else {
+              target.control.checked = true;
+            }
+            target.control.dispatchEvent(new Event("input", { bubbles: true }));
+            target.control.dispatchEvent(new Event("change", { bubbles: true }));
+          }
+        }
+        return {
+          found: true,
+          filled: isChecked(target.control) || !before,
+          scope_text: text.slice(0, 180),
+          selected_label: target.label.slice(0, 120),
+          preferred,
+        };
+      }
+      return { found: false, filled: false, scope_text: "", preferred };
+    },
+    { sources: patternSources, preferred: cleanText(preferredAnswer) }
+  ).catch((error) => ({ found: false, filled: false, error: error?.message || String(error), scope_text: "" }));
+}
+
 async function clickWorkdayConsentTermsCheckboxes(page) {
   return page.evaluate(() => {
     const clean = (value) => String(value || "").replace(/\s+/g, " ").trim();
@@ -3845,26 +4549,44 @@ async function clickWorkdayConsentTermsCheckboxes(page) {
 }
 
 async function repairWorkdayVoluntaryDisclosuresPage(page, task) {
-  const answers = getApplicationAnswers(task);
   const consentRepair = await clickWorkdayConsentTermsCheckboxes(page);
+  const optOutDisclosureAliases = [
+    "Prefer not to say",
+    "Prefer not to answer",
+    "I do not wish to answer",
+    "I don't wish to answer",
+    "I do not wish to disclose",
+    "I don't wish to disclose",
+    "I do not wish to provide this information",
+    "Decline to self-identify",
+    "Choose not to disclose",
+    "Not disclosed",
+  ];
   const disclosureItems = [
     {
       label: "gender",
       patterns: [/please select your gender/i, /^gender\b/i, /\bgender\*/i],
-      answer:
-        answerByPatterns(answers, [/^gender$/i, /please select your gender/i]) ||
-        [
-          "I do not wish to answer",
-          "I don't wish to answer",
-          "Prefer not to say",
-          "Prefer not to answer",
-          "I do not wish to disclose",
-          "I don't wish to disclose",
-          "I do not wish to provide this information",
-          "Decline to self-identify",
-          "Choose not to disclose",
-          "Not disclosed",
-        ],
+      answer: optOutDisclosureAliases,
+    },
+    {
+      label: "race_ethnicity",
+      patterns: [/race/i, /ethnic/i, /ethnicity/i, /racial/i],
+      answer: optOutDisclosureAliases,
+    },
+    {
+      label: "disability",
+      patterns: [/disability/i, /disabled/i],
+      answer: optOutDisclosureAliases,
+    },
+    {
+      label: "veteran_status",
+      patterns: [/veteran/i, /military/i, /armed forces/i],
+      answer: optOutDisclosureAliases,
+    },
+    {
+      label: "sexual_orientation",
+      patterns: [/sexual orientation/i, /orientation/i],
+      answer: optOutDisclosureAliases,
     },
   ];
   const choiceDiagnostics = [];
@@ -3889,6 +4611,9 @@ async function repairWorkdayVoluntaryDisclosuresPage(page, task) {
       filled: Boolean(result.filled),
       scope_text: cleanText(result.scope_text || "").slice(0, 160),
       option_texts: result.option_texts || undefined,
+      opener: result.opener || undefined,
+      reason: result.reason || undefined,
+      candidates: result.candidates || undefined,
       error: result.error || undefined,
       timeout: Boolean(result.timeout),
     });
@@ -3908,6 +4633,28 @@ async function selectWorkdayGenderDisclosure(page, answer) {
   const aliases = (Array.isArray(answer) ? answer : [answer]).map(cleanText).filter(Boolean);
   if (!aliases.length) {
     return { found: false, filled: false, scope_text: "" };
+  }
+  const labelOpened = await openWorkdayPromptButtonNearLabel(page, /^gender\*?$/i).catch(() => null);
+  if (labelOpened?.opened) {
+    const labelFilled = await selectVisibleWorkdayOption(page, aliases).catch(() => false);
+    if (labelFilled) {
+      return {
+        found: true,
+        filled: true,
+        scope_text: labelOpened.scope_text || "Gender",
+        opener: labelOpened.opener || undefined,
+      };
+    }
+    const optionTexts = await getVisibleWorkdayOptionTexts(page).catch(() => []);
+    if (optionTexts.length) {
+      return {
+        found: true,
+        filled: false,
+        scope_text: labelOpened.scope_text || "Gender",
+        opener: labelOpened.opener || undefined,
+        option_texts: optionTexts.slice(0, 12),
+      };
+    }
   }
   const directOpened = await openWorkdayButtonByText(page, [/gender/i, /select one|choose/i]).catch(() => false);
   if (directOpened) {
@@ -4026,6 +4773,19 @@ async function selectWorkdayGenderDisclosure(page, answer) {
   if (!pointResult?.found) {
     return { found: false, filled: false, scope_text: pointResult?.scope_text || "", error: pointResult?.error };
   }
+  await page.evaluate(({ x, y }) => {
+    const target = document.elementFromPoint(x, y);
+    if (!target) return false;
+    target.scrollIntoView?.({ block: "center", inline: "nearest" });
+    const eventInit = { bubbles: true, cancelable: true, view: window, clientX: x, clientY: y };
+    target.dispatchEvent(new PointerEvent("pointerdown", eventInit));
+    target.dispatchEvent(new MouseEvent("mousedown", eventInit));
+    target.dispatchEvent(new PointerEvent("pointerup", eventInit));
+    target.dispatchEvent(new MouseEvent("mouseup", eventInit));
+    target.dispatchEvent(new MouseEvent("click", eventInit));
+    return true;
+  }, { x: pointResult.x, y: pointResult.y }).catch(() => false);
+  await new Promise((resolve) => setTimeout(resolve, 350));
   await page.mouse.move(pointResult.x, pointResult.y, { steps: 8 }).catch(() => {});
   await page.mouse.click(pointResult.x, pointResult.y, { delay: 90 }).catch(() => {});
   await new Promise((resolve) => setTimeout(resolve, 700));
@@ -4052,6 +4812,169 @@ async function selectWorkdayGenderDisclosure(page, answer) {
     found: true,
     filled: Boolean(filled),
     scope_text: pointResult.scope_text || "Gender",
+    option_texts: optionTexts.slice(0, 12),
+  };
+}
+
+async function openWorkdayPromptButtonNearLabel(page, labelPattern) {
+  const patternSource = labelPattern?.source || String(labelPattern || "");
+  if (!patternSource) {
+    return { opened: false };
+  }
+  const target = await page.evaluate((source) => {
+    const clean = (value) => String(value || "").replace(/\s+/g, " ").trim();
+    const visible = (element) => {
+      if (!element) return false;
+      const style = window.getComputedStyle(element);
+      const rect = element.getBoundingClientRect();
+      return style.visibility !== "hidden" && style.display !== "none" && rect.width > 0 && rect.height > 0;
+    };
+    const labelRegex = new RegExp(source, "i");
+    const labels = Array.from(document.querySelectorAll("label, [data-automation-id*='label' i], [id*='label' i], span"))
+      .filter(visible)
+      .map((element) => ({ element, text: clean(element.textContent || ""), rect: element.getBoundingClientRect() }))
+      .filter((entry) => labelRegex.test(entry.text) && entry.text.length <= 40)
+      .sort((a, b) => a.text.length - b.text.length);
+    const label = labels[0];
+    if (!label) {
+      return { found: false, scope_text: "", reason: "label_not_found", candidates: [] };
+    }
+    const controls = Array.from(
+      document.querySelectorAll("button, [role='button'], [role='combobox'], [aria-haspopup='listbox'], input:not([type='hidden'])")
+    )
+      .filter(visible)
+      .map((element) => {
+        const rect = element.getBoundingClientRect();
+        const text = clean(`${element.textContent || ""} ${element.getAttribute("aria-label") || ""}`);
+        const idish = clean(
+          `${element.id || ""} ${element.getAttribute("name") || ""} ${element.getAttribute("data-automation-id") || ""} ${element.getAttribute("aria-labelledby") || ""}`
+        );
+        const relationText = clean(`${text} ${idish}`);
+        const verticalGap = rect.top - label.rect.bottom;
+        const leftDistance = Math.abs(rect.left - label.rect.left);
+        const rightOfLabel = rect.left >= label.rect.left - 40 && rect.left <= label.rect.left + 80;
+        const belowLabel = verticalGap >= -20 && verticalGap <= 95;
+        const isStepper = /my information|my experience|application questions|voluntary disclosures|review|completed step|current step/i.test(relationText);
+        const selectish =
+          /select one|choose|please select|prompt|combobox|listbox|required/i.test(relationText) ||
+          (rect.width >= 220 && rect.height >= 32 && rect.height <= 90);
+        const score =
+          (belowLabel ? 180 : 0) +
+          (rightOfLabel ? 100 : 0) +
+          (selectish ? 90 : 0) +
+          (rect.width >= 220 ? 55 : 0) +
+          (rect.height >= 32 && rect.height <= 72 ? 40 : 0) -
+          Math.abs(verticalGap) -
+          leftDistance / 4 -
+          (isStepper ? 500 : 0) -
+          (/back to job posting|save and continue|restore|settings|search/i.test(relationText) ? 300 : 0);
+        return { element, rect, text, idish, score };
+      })
+      .filter((entry) => entry.score > 100)
+      .sort((a, b) => b.score - a.score);
+    const selected = controls[0];
+    if (selected) {
+      return {
+        found: true,
+        scope_text: label.text,
+        x: Math.round(selected.rect.left + Math.max(12, selected.rect.width - 26)),
+        y: Math.round(selected.rect.top + selected.rect.height / 2),
+        opener: {
+          text: selected.text,
+          idish: selected.idish,
+          score: Math.round(selected.score),
+          rect: {
+            left: Math.round(selected.rect.left),
+            top: Math.round(selected.rect.top),
+            width: Math.round(selected.rect.width),
+            height: Math.round(selected.rect.height),
+          },
+        },
+      };
+    }
+    const inferred = {
+      x: Math.round(label.rect.left + 462),
+      y: Math.round(label.rect.bottom + 38),
+    };
+    const elementAtPoint = document.elementFromPoint(inferred.x, inferred.y);
+    if (visible(elementAtPoint)) {
+      return {
+        found: true,
+        scope_text: label.text,
+        x: inferred.x,
+        y: inferred.y,
+        opener: {
+          text: clean(`${elementAtPoint.textContent || ""} ${elementAtPoint.getAttribute?.("aria-label") || ""}`).slice(0, 120),
+          idish: clean(`${elementAtPoint.id || ""} ${elementAtPoint.getAttribute?.("data-automation-id") || ""}`).slice(0, 120),
+          score: 1,
+          rect: null,
+        },
+      };
+    }
+    return {
+      found: false,
+      scope_text: label.text,
+      reason: "control_not_found",
+      candidates: controls.slice(0, 6).map((entry) => ({
+        text: entry.text,
+        idish: entry.idish,
+        score: Math.round(entry.score),
+        rect: {
+          left: Math.round(entry.rect.left),
+          top: Math.round(entry.rect.top),
+          width: Math.round(entry.rect.width),
+          height: Math.round(entry.rect.height),
+        },
+      })),
+    };
+  }, patternSource).catch(() => null);
+  if (!target?.found) {
+    return {
+      opened: false,
+      scope_text: target?.scope_text || "",
+      reason: target?.reason || "control_not_found",
+      candidates: target?.candidates || [],
+    };
+  }
+  const rect = target.opener?.rect;
+  const points = rect
+    ? [
+        { x: rect.left + Math.max(12, rect.width - 26), y: rect.top + rect.height / 2 },
+        { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 },
+        { x: rect.left + 24, y: rect.top + rect.height / 2 },
+        { x: rect.left + Math.max(12, rect.width - 26), y: rect.top + Math.max(12, rect.height - 14) },
+      ]
+    : [{ x: target.x, y: target.y }];
+  for (const point of points) {
+    await page.mouse.move(point.x, point.y, { steps: 6 }).catch(() => {});
+    await page.mouse.click(point.x, point.y, { delay: 90 }).catch(() => {});
+    await new Promise((resolve) => setTimeout(resolve, 550));
+    const optionTexts = await getVisibleWorkdayOptionTexts(page).catch(() => []);
+    if (optionTexts.length) {
+      return {
+        opened: true,
+        scope_text: target.scope_text || "",
+        opener: target.opener || undefined,
+        option_texts: optionTexts.slice(0, 12),
+      };
+    }
+    await page.keyboard.press("Escape").catch(() => {});
+    await new Promise((resolve) => setTimeout(resolve, 150));
+  }
+  await page.keyboard.press("Enter").catch(() => {});
+  await new Promise((resolve) => setTimeout(resolve, 500));
+  let optionTexts = await getVisibleWorkdayOptionTexts(page).catch(() => []);
+  if (!optionTexts.length) {
+    await page.keyboard.down("Alt").catch(() => {});
+    await page.keyboard.press("ArrowDown").catch(() => {});
+    await page.keyboard.up("Alt").catch(() => {});
+    await new Promise((resolve) => setTimeout(resolve, 650));
+    optionTexts = await getVisibleWorkdayOptionTexts(page).catch(() => []);
+  }
+  return {
+    opened: Boolean(optionTexts.length),
+    scope_text: target.scope_text || "",
+    opener: target.opener || undefined,
     option_texts: optionTexts.slice(0, 12),
   };
 }
@@ -4295,16 +5218,31 @@ async function fillWorkdayExactTextField(page, field, value) {
 async function repairWorkdayKnownChoices(page, task) {
   const answers = getApplicationAnswers(task);
   const items = [
-    { label: "How Did You Hear About Us?", value: cleanText(answers["How Did You Hear About Us?"] || "Company Website") },
+    {
+      label: "How Did You Hear About Us?",
+      value: cleanText(answers["How Did You Hear About Us?"] || "Other"),
+      fallbacks: ["Other", "Company Website", "LinkedIn"],
+    },
     { label: "Country Phone Code", value: cleanText(answers["Country Phone Code"] || "United Kingdom (+44)") },
   ].filter((item) => item.value);
   let repaired = 0;
   for (const item of items) {
-    const directOk = await selectWorkdayChoiceByLabel(page, item.label, item.value).catch(() => false);
+    let directOk = false;
+    const values = Array.from(new Set([item.value, ...(item.fallbacks || [])].map(cleanText).filter(Boolean)));
+    for (const value of values) {
+      directOk = await selectWorkdayChoiceByLabel(page, item.label, value).catch(() => false);
+      if (directOk) {
+        break;
+      }
+      await page.keyboard.press("Escape").catch(() => {});
+      await new Promise((resolve) => setTimeout(resolve, 250));
+    }
     const isPhoneCode = /country phone code/i.test(item.label);
+    const isSource = /how did you hear about us/i.test(item.label);
     const ok =
       directOk ||
       (!isPhoneCode &&
+        !isSource &&
         (await fillChoiceByVisibleQuestion(page, {
           label: item.label,
           answer: item.value,
@@ -4315,6 +5253,10 @@ async function repairWorkdayKnownChoices(page, task) {
         }).catch(() => false)));
     if (ok) {
       repaired += 1;
+    }
+    if (/how did you hear about us/i.test(item.label)) {
+      const sourceState = await getWorkdaySourceSelectionState(page).catch(() => ({ found: false, selected: false, text: "" }));
+      debugLog(task?.task_uuid || "workday", "workday_source_choice_state", JSON.stringify(sourceState));
     }
     await page.keyboard.press("Escape").catch(() => {});
     await new Promise((resolve) => setTimeout(resolve, 250));
@@ -4795,6 +5737,9 @@ async function selectWorkdayChoiceByLabel(page, label, answer) {
   if (isPhoneCode) {
     return setWorkdayPhoneCountryCode(page, answer);
   }
+  if (isSource) {
+    return setWorkdaySourceChoice(page, answer);
+  }
   let directControl = null;
   const handle = await page.evaluateHandle(
     ({ label: targetLabel, exactOnly }) => {
@@ -4954,15 +5899,305 @@ async function selectWorkdayChoiceByLabel(page, label, answer) {
   if (optionElement) {
     await optionElement.click().catch(() => {});
     await option.dispose().catch(() => {});
+    const verified = isSource
+      ? await verifyWorkdayChoiceHasValue(page, control, [/how did you hear about us/i, /source/i]).catch(() => true)
+      : true;
     await control.dispose().catch(() => {});
     await handle.dispose().catch(() => {});
     await new Promise((resolve) => setTimeout(resolve, 450));
-    return true;
+    return Boolean(verified);
   }
   await option.dispose().catch(() => {});
   await control.dispose().catch(() => {});
   await handle.dispose().catch(() => {});
   return false;
+}
+
+async function verifyWorkdayChoiceHasValue(page, control, labelPatterns = []) {
+  const patternSources = labelPatterns.map((pattern) => pattern.source || String(pattern)).filter(Boolean);
+  if (!control) {
+    return false;
+  }
+  await new Promise((resolve) => setTimeout(resolve, 450));
+  return control.evaluate((element, sources) => {
+    const clean = (value) => String(value || "").replace(/\s+/g, " ").trim();
+    const regexes = sources.map((source) => new RegExp(source, "i"));
+    let scope = element.closest("fieldset, section, li, div") || element.parentElement;
+    for (let depth = 0; depth < 8 && scope; depth += 1) {
+      const text = clean(scope.textContent || "");
+      if (regexes.length && text && regexes.some((regex) => regex.test(text))) {
+        return !/\b0\s+items?\s+selected\b/i.test(text) && !/\bselect one\b/i.test(text);
+      }
+      scope = scope.parentElement;
+    }
+    const value = clean(element.value || element.getAttribute("aria-label") || "");
+    return Boolean(value && !/select one|0 items selected/i.test(value));
+  }, patternSources).catch(() => false);
+}
+
+async function getWorkdaySourceSelectionState(page) {
+  return page.evaluate(() => {
+    const clean = (value) => String(value || "").replace(/\s+/g, " ").trim();
+    const input = document.querySelector('input[id="source--source"], input[name="source--source"]');
+    if (!input) {
+      return { found: false, selected: false, text: "" };
+    }
+    let scope = input;
+    for (let depth = 0; depth < 12 && scope; depth += 1) {
+      const text = clean(scope.textContent || "");
+      if (/how did you hear about us\??/i.test(text)) {
+        const selected =
+          /\b[1-9]\d*\s+items?\s+selected\b/i.test(text) ||
+          /\b(selected|remove)\b/i.test(text) && !/\b0\s+items?\s+selected\b/i.test(text);
+        return { found: true, selected, text: text.slice(0, 320) };
+      }
+      scope = scope.parentElement;
+    }
+    const value = clean(input.value || "");
+    return {
+      found: true,
+      selected: Boolean(value && !/select one|0 items selected/i.test(value)),
+      text: value,
+    };
+  }).catch(() => ({ found: false, selected: false, text: "" }));
+}
+
+async function openWorkdaySourcePrompt(page, input) {
+  const target = await input.evaluate((element) => {
+    const clean = (value) => String(value || "").replace(/\s+/g, " ").trim();
+    const visible = (node) => {
+      if (!node) return false;
+      const style = window.getComputedStyle(node);
+      const rect = node.getBoundingClientRect();
+      return style.visibility !== "hidden" && style.display !== "none" && rect.width > 0 && rect.height > 0;
+    };
+    const inputRect = element.getBoundingClientRect();
+    let scope = element;
+    for (let depth = 0; depth < 12 && scope; depth += 1) {
+      const text = clean(scope.textContent || "");
+      if (/how did you hear about us\??/i.test(text)) {
+        break;
+      }
+      scope = scope.parentElement;
+    }
+    scope = scope || element.closest("fieldset, section, div") || element.parentElement;
+    const controls = Array.from(scope.querySelectorAll("button, [role='button'], [aria-haspopup='listbox'], [data-automation-id*='prompt' i], svg"))
+      .map((node) => node.closest("button, [role='button'], [aria-haspopup='listbox']") || node)
+      .filter((node, index, all) => node && all.indexOf(node) === index && visible(node))
+      .map((node) => {
+        const rect = node.getBoundingClientRect();
+        const text = clean(`${node.textContent || ""} ${node.getAttribute?.("aria-label") || ""} ${node.getAttribute?.("data-automation-id") || ""}`);
+        const verticalOverlap = Math.min(rect.bottom, inputRect.bottom) - Math.max(rect.top, inputRect.top);
+        const nearInput = rect.left >= inputRect.left - 8 && rect.right <= inputRect.right + 60 && verticalOverlap > 0;
+        const rightEdge = Math.abs(rect.right - inputRect.right);
+        const score =
+          (nearInput ? 200 : 0) +
+          (/prompt|list|select|source|menu/i.test(text) ? 80 : 0) +
+          (rect.left > inputRect.left + inputRect.width * 0.55 ? 70 : 0) -
+          rightEdge / 2;
+        return { rect, score };
+      })
+      .filter((entry) => entry.score > 80)
+      .sort((a, b) => b.score - a.score);
+    const best = controls[0]?.rect || inputRect;
+    return {
+      x: Math.round(best.left + Math.max(12, best.width - 16)),
+      y: Math.round(best.top + best.height / 2),
+      inputX: Math.round(inputRect.left + inputRect.width / 2),
+      inputY: Math.round(inputRect.top + inputRect.height / 2),
+    };
+  }).catch(() => null);
+  if (!target) {
+    return false;
+  }
+  const points = [
+    { x: target.x, y: target.y },
+    { x: target.inputX, y: target.inputY },
+  ];
+  for (const point of points) {
+    await page.mouse.click(point.x, point.y, { delay: 80 }).catch(() => {});
+    await new Promise((resolve) => setTimeout(resolve, 650));
+    const optionTexts = await getVisibleWorkdayOptionTexts(page).catch(() => []);
+    if (optionTexts.length) {
+      return true;
+    }
+  }
+  await page.keyboard.press("Enter").catch(() => {});
+  await new Promise((resolve) => setTimeout(resolve, 450));
+  let optionTexts = await getVisibleWorkdayOptionTexts(page).catch(() => []);
+  if (optionTexts.length) {
+    return true;
+  }
+  await page.keyboard.down("Alt").catch(() => {});
+  await page.keyboard.press("ArrowDown").catch(() => {});
+  await page.keyboard.up("Alt").catch(() => {});
+  await new Promise((resolve) => setTimeout(resolve, 650));
+  optionTexts = await getVisibleWorkdayOptionTexts(page).catch(() => []);
+  return Boolean(optionTexts.length);
+}
+
+async function setWorkdaySourceChoice(page, answer) {
+  const preferred = cleanText(answer);
+  const aliases = Array.from(
+    new Set(
+      [
+        preferred,
+        "Other",
+        "Company Website",
+        "LinkedIn",
+      ].map(cleanText).filter(Boolean)
+    )
+  );
+  const selector = 'input[id="source--source"], input[name="source--source"]';
+  const input = await page.$(selector).catch(() => null);
+  if (!input) {
+    return false;
+  }
+  const alreadySelected = await getWorkdaySourceSelectionState(page);
+  if (alreadySelected.selected) {
+    await input.dispose().catch(() => {});
+    return true;
+  }
+
+  for (const alias of aliases) {
+    await input.evaluate((element) => element.scrollIntoView({ block: "center", inline: "nearest" })).catch(() => {});
+    await page.keyboard.press("Escape").catch(() => {});
+    await new Promise((resolve) => setTimeout(resolve, 150));
+    await input
+      .evaluate((element) => {
+        const descriptor = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value");
+        element.focus();
+        if (descriptor && descriptor.set) {
+          descriptor.set.call(element, "");
+        } else {
+          element.value = "";
+        }
+        element.dispatchEvent(new InputEvent("input", { bubbles: true, inputType: "deleteContentBackward", data: null }));
+        element.dispatchEvent(new Event("change", { bubbles: true }));
+      })
+      .catch(() => {});
+    await openWorkdayDropdownNearQuestionLabel(page, [/how did you hear about us/i]).catch(() => false);
+    await new Promise((resolve) => setTimeout(resolve, 300));
+    await openWorkdaySourcePrompt(page, input).catch(() => false);
+    await input.click({ clickCount: 3 }).catch(() => {});
+    const modifier = process.platform === "darwin" ? "Meta" : "Control";
+    await page.keyboard.down(modifier).catch(() => {});
+    await page.keyboard.press("KeyA").catch(() => {});
+    await page.keyboard.up(modifier).catch(() => {});
+    await page.keyboard.press("Backspace").catch(() => {});
+    await new Promise((resolve) => setTimeout(resolve, 350));
+    await page.keyboard.type(alias, { delay: 25 }).catch(() => {});
+    await new Promise((resolve) => setTimeout(resolve, 900));
+    let selected = await selectWorkdaySourceVisibleOption(page, alias).catch(() => false);
+    if (!selected) {
+      await page.keyboard.press("ArrowDown").catch(() => {});
+      await new Promise((resolve) => setTimeout(resolve, 250));
+      await page.keyboard.press("Enter").catch(() => {});
+      selected = true;
+    }
+    await new Promise((resolve) => setTimeout(resolve, 700));
+    let state = await getWorkdaySourceSelectionState(page);
+    if (!state.selected) {
+      await page.keyboard.press("Tab").catch(() => {});
+      await new Promise((resolve) => setTimeout(resolve, 500));
+      state = await getWorkdaySourceSelectionState(page);
+    }
+    if (selected && state.selected) {
+      await input.dispose().catch(() => {});
+      await page.keyboard.press("Escape").catch(() => {});
+      return true;
+    }
+    await page.keyboard.press("Escape").catch(() => {});
+    await new Promise((resolve) => setTimeout(resolve, 250));
+  }
+  await input.dispose().catch(() => {});
+  return false;
+}
+
+async function selectWorkdaySourceVisibleOption(page, answer) {
+  const optionHandle = await page.evaluateHandle((targetAnswer) => {
+    const clean = (value) => String(value || "").replace(/\s+/g, " ").trim();
+    const normalize = (value) => clean(value).toLowerCase();
+    const compact = (value) => normalize(value).replace(/[^a-z0-9]+/g, "");
+    const visible = (element) => {
+      if (!element) return false;
+      const style = window.getComputedStyle(element);
+      const rect = element.getBoundingClientRect();
+      return style.visibility !== "hidden" && style.display !== "none" && rect.width > 0 && rect.height > 0;
+    };
+    const wanted = normalize(targetAnswer);
+    const wantedCompact = compact(targetAnswer);
+    const score = (candidate) => {
+      const option = normalize(candidate);
+      const optionCompact = compact(candidate);
+      if (!option || /select one|choose|please select|0 items selected|expanded|collapsed/i.test(option)) return 0;
+      if (/employee|referral|referred/i.test(option) && !/employee|referral|referred/i.test(wanted)) return 3;
+      if (wanted && (option === wanted || optionCompact === wantedCompact)) return 200;
+      if (wantedCompact && optionCompact.includes(wantedCompact)) return 170;
+      if (wantedCompact && wantedCompact.includes(optionCompact)) return 150;
+      if (/company website|careers website|career website|career site|company site|website/i.test(option)) return 120;
+      if (/job board/i.test(option)) return 100;
+      if (/linkedin/i.test(option)) return 90;
+      if (/other/i.test(option)) return 80;
+      return 10;
+    };
+    const options = Array.from(
+      document.querySelectorAll(
+        [
+          "[role='option']",
+          "[role='checkbox']",
+          "label",
+          "[data-automation-id*='promptOption']",
+          "[id*='promptOption']",
+          "[data-automation-id*='prompt' i]",
+          "[data-automation-id*='checkboxPanel' i] *",
+          "[data-automation-id*='selectedItem' i]",
+          "[role='listbox'] *",
+          "[role='dialog'] li",
+          "[aria-modal='true'] li",
+          "li",
+        ].join(", ")
+      )
+    )
+      .filter(visible)
+      .map((node) => {
+        const text = clean(`${node.textContent || ""} ${node.getAttribute("aria-label") || ""}`);
+        const target =
+          node.closest("label") ||
+          node.closest("[role='option'], [role='checkbox'], li, button, [role='button']") ||
+          node.querySelector?.("input[type='checkbox'], [role='checkbox']") ||
+          node;
+        return { node: target, text };
+      })
+      .filter((entry) => entry.text && !/errors found|error-/i.test(entry.text))
+      .filter((entry) => entry.text.length <= 180)
+      .map((entry) => ({ ...entry, score: score(entry.text) }))
+      .filter((entry) => entry.score > 0)
+      .sort((a, b) => b.score - a.score);
+    return options[0]?.node || null;
+  }, cleanText(answer));
+  const option = optionHandle.asElement();
+  if (!option) {
+    await optionHandle.dispose().catch(() => {});
+    return false;
+  }
+  await option.click().catch(() => {});
+  await optionHandle.dispose().catch(() => {});
+  await new Promise((resolve) => setTimeout(resolve, 450));
+  await page.evaluate(() => {
+    const clean = (value) => String(value || "").replace(/\s+/g, " ").trim();
+    const visible = (element) => {
+      if (!element) return false;
+      const style = window.getComputedStyle(element);
+      const rect = element.getBoundingClientRect();
+      return style.visibility !== "hidden" && style.display !== "none" && rect.width > 0 && rect.height > 0;
+    };
+    const confirm = Array.from(document.querySelectorAll("[role='dialog'] button, [aria-modal='true'] button, button, [role='button']"))
+      .filter(visible)
+      .find((button) => /^(ok|done|select|apply|add)$/i.test(clean(`${button.textContent || ""} ${button.getAttribute("aria-label") || ""}`)));
+    confirm?.click();
+  }).catch(() => {});
+  return true;
 }
 
 async function setWorkdayPhoneCountryCode(page, answer) {
@@ -5067,11 +6302,11 @@ function getWorkdayStageFromState(state = {}, stepState = {}) {
   if (state.has_verification || stepState.active_step === "verification") {
     return "verification";
   }
-  if (state.has_create_account || state.has_sign_in || stepState.active_step === "account") {
-    return "account";
-  }
   if (stepState.active_step) {
     return stepState.active_step;
+  }
+  if (state.has_create_account || state.has_sign_in) {
+    return "account";
   }
   const text = cleanText(state.text_sample || "").toLowerCase();
   if (/submit application|review your application|review and submit/.test(text)) {
@@ -5079,6 +6314,9 @@ function getWorkdayStageFromState(state = {}, stepState = {}) {
   }
   if (/my experience|work experience|school or university|overall result|field of study/.test(text)) {
     return "my_experience";
+  }
+  if (/my work availability|work availability|availability/.test(text)) {
+    return "my_work_availability";
   }
   if (/resume|cv|upload/.test(text) || Number(state.file_input_count || 0) > 0) {
     return "resume";
@@ -5168,15 +6406,19 @@ async function waitForWorkdayStageControls(page, stage) {
           /select file|upload.*(?:resume|cv)|attach.*(?:resume|cv)/i.test(String(element.textContent || element.getAttribute("aria-label") || ""))
         );
         const hasTargetText =
-          targetStage === "my_experience"
-            ? /my experience|work experience|school or university|education|resume\/cv/i.test(text)
-            : targetStage === "application_questions"
-              ? /application questions|work authorization|sponsorship|questionnaire/i.test(text)
-              : targetStage === "voluntary_disclosures"
-                ? /voluntary disclosures|self-identification|gender|disability|veteran/i.test(text)
-                : targetStage === "review"
-                  ? /review|submit application|review and submit/i.test(text)
-                  : true;
+          targetStage === "my_information"
+            ? /my information|legal name|contact information|address|phone|email/i.test(text)
+            : targetStage === "my_experience"
+              ? /my experience|work experience|school or university|education|resume\/cv/i.test(text)
+              : targetStage === "my_work_availability"
+                ? /my work availability|work availability|availability/i.test(text)
+              : targetStage === "application_questions"
+                ? /application questions|work authorization|sponsorship|questionnaire/i.test(text)
+                : targetStage === "voluntary_disclosures"
+                  ? /voluntary disclosures|self-identification|gender|disability|veteran/i.test(text)
+                  : targetStage === "review"
+                    ? /review|submit application|review and submit/i.test(text)
+                    : true;
         return Boolean(hasTargetText && (fields.length || uploadControl));
       },
       { timeout: 45000 },
@@ -5198,7 +6440,7 @@ function isWorkdayLoadingOnlyStage(state = {}) {
 
 function getEffectiveWorkdayStage(stage, stepState = {}) {
   const activeStep = cleanText(stepState.active_step || "");
-  if (["my_information", "my_experience", "application_questions", "voluntary_disclosures", "review"].includes(activeStep)) {
+  if (["my_information", "my_experience", "my_work_availability", "application_questions", "voluntary_disclosures", "review"].includes(activeStep)) {
     return activeStep;
   }
   return stage;
@@ -5313,7 +6555,7 @@ async function advanceWorkdaySteps(page, task, candidate, apiSchema = null, pref
       : liveSchema;
     let stage = getEffectiveWorkdayStage(getWorkdayStageFromState(state, stepState), stepState);
     if (
-      ["my_experience", "application_questions", "voluntary_disclosures", "review"].includes(stage) &&
+      ["my_information", "my_experience", "application_questions", "voluntary_disclosures", "review"].includes(stage) &&
       !state.field_count &&
       !state.file_input_count &&
       !state.upload_control_count
@@ -5473,18 +6715,23 @@ async function advanceWorkdaySteps(page, task, candidate, apiSchema = null, pref
         answersFilled.choice_filled += repairedChoices;
       }
     }
-    if (stage === "application_questions" && isWorkdayLoadingOnlyStage(state)) {
+    if (
+      ["my_information", "my_experience", "my_work_availability", "application_questions", "voluntary_disclosures", "review"].includes(stage) &&
+      isWorkdayLoadingOnlyStage(state)
+    ) {
+      await withTimeout(waitForWorkdayStageControls(page, stage), 30000, null).catch(() => {});
       const completion = await getRequiredFormCompletionState(page).catch(() => ({
         complete_required_fields: [],
         missing_required_fields: [],
       }));
       answersFilled.field_diagnostics.push({
-        workday_application_questions_loading_only: true,
+        workday_loading_only_stage: stage,
         missing_required_fields: completion.missing_required_fields || [],
       });
       if (completion.missing_required_fields?.length) {
         break;
       }
+      continue;
     }
     if (workdayStopAfterStage && stage === workdayStopAfterStage) {
       debugLog(task.task_uuid || "task", "workday_stop_after_stage", JSON.stringify({ step: index + 1, stage }));
@@ -5881,13 +7128,15 @@ function getMissingRequiredSchemaQuestions(task, candidate, hasResume, overrideS
   const questions = getSchemaQuestions(overrideSchema || getApplicationSchema(task));
   const answers = getApplicationAnswers(task);
   const coverLetterRequested = Number(task.cover_letter_requested || 0) === 1;
+  const isWorkable = isWorkableApplication(task);
   return questions
     .filter((question) => questionIsRequired(question))
     .filter((question) => question?.filled !== true)
     .filter(
       (question) =>
         !isCoveredByCandidateData(question, candidate, hasResume, coverLetterRequested) &&
-        !hasAnswerForQuestion(question, answers)
+        !hasAnswerForQuestion(question, answers) &&
+        !(isWorkable && answerHasValue(getWorkableSyntheticAnswerForQuestion(question, answers)))
     )
     .map((question) => getQuestionLabel(question) || getQuestionFieldNames(question).join(", "))
     .filter(Boolean);
@@ -5947,15 +7196,16 @@ function getAnswerForQuestion(question, answers) {
   return matched ? matched[1] : "";
 }
 
-async function fillApplicationAnswers(page, task, overrideSchema = null) {
+async function fillApplicationAnswers(page, task, overrideSchema = null, candidate = {}) {
   const schema = getApplicationSchema(task);
   const answers = getApplicationAnswers(task);
   const isWorkable = isWorkableApplication(task);
   const isWorkday = isWorkdayApplication(task);
+  const isSuccessFactors = isSuccessFactorsApplication(task);
   const questions = overrideSchema
     ? mergeQuestionsByFieldOrLabel(getSchemaQuestions(overrideSchema), getSchemaQuestions(schema))
     : getSchemaQuestions(schema);
-  if (!questions.length || !Object.keys(answers).length) {
+  if (!questions.length || (!Object.keys(answers).length && !isSuccessFactors)) {
     return { attempted: 0, filled: 0, choice_attempted: 0, choice_filled: 0, items: [] };
   }
 
@@ -5963,7 +7213,13 @@ async function fillApplicationAnswers(page, task, overrideSchema = null) {
     .map((question) => {
       const label = getQuestionLabel(question);
       const key = getQuestionFieldNames(question)[0] || label.toLowerCase();
-      const rawAnswer = getAnswerForQuestion(question, answers) || answers[key] || answers[String(key).toLowerCase()] || answers[label.toLowerCase()];
+      const rawAnswer =
+        getAnswerForQuestion(question, answers) ||
+        answers[key] ||
+        answers[String(key).toLowerCase()] ||
+        answers[label.toLowerCase()] ||
+        (isWorkable ? getWorkableSyntheticAnswerForQuestion(question, answers) : "") ||
+        (isSuccessFactors ? getSuccessFactorsSyntheticAnswerForQuestion(question, answers, task, candidate) : "");
       const answer =
         isWorkday && /phone number/i.test(label) && !/country phone code/i.test(label)
           ? normalizePhoneForDialCode(rawAnswer, answers["Country Phone Code"] || answers.country_phone_code || "")
@@ -5987,7 +7243,7 @@ async function fillApplicationAnswers(page, task, overrideSchema = null) {
         textOnlyWorkdayField;
       const choices = workdayTextLike ? [] : rawChoices;
       return {
-        provider: isWorkday ? "workday" : isWorkable ? "workable" : "generic",
+        provider: isWorkday ? "workday" : isWorkable ? "workable" : isSuccessFactors ? "successfactors" : "generic",
         label,
         fieldNames: getQuestionFieldNames(question),
         fieldTypes,
@@ -8799,6 +10055,17 @@ async function extractSubmissionState(page) {
       })
       .filter((text, index, list) => text && list.indexOf(text) === index)
       .slice(0, 12);
+    const visibleButtons = Array.from(document.querySelectorAll("button, input[type='submit'], input[type='button'], [role='button']"))
+      .filter((button) => {
+        const style = window.getComputedStyle(button);
+        const rect = button.getBoundingClientRect();
+        return style.visibility !== "hidden" && style.display !== "none" && rect.width > 0 && rect.height > 0;
+      })
+      .map((button) =>
+        clean(`${button.textContent || ""} ${button.getAttribute("value") || ""} ${button.getAttribute("aria-label") || ""}`)
+      )
+      .filter((text, index, list) => text && list.indexOf(text) === index)
+      .slice(0, 30);
     return {
       submission_confirmed: successPatterns.some((pattern) => pattern.test(bodyText)),
       validation_detected:
@@ -8807,9 +10074,230 @@ async function extractSubmissionState(page) {
         validationPatterns.some((pattern) => pattern.test(bodyText)),
       validation_errors: errors,
       missing_required_fields: missingRequired,
+      visible_buttons: visibleButtons,
       page_text_sample: bodyText.slice(0, 1200),
     };
   });
+}
+
+async function fillSuccessFactorsVisibleRequiredFields(page, task, candidate) {
+  const profile = getCandidateProfileAnswers(task);
+  const cvText = getCvText(task);
+  const education = extractEducationFromCv(cvText);
+  const latestExperience = extractLatestExperienceFromCv(cvText);
+  const defaults = {
+    firstName: candidate.firstName || "",
+    lastName: candidate.lastName || "",
+    email: candidate.email || "",
+    phone: candidate.phone || "",
+    nationality: cleanText(profile.nationality || "") || inferCountryFromText(cvText) || "United Kingdom",
+    country: cleanText(profile.country_of_residence || profile.country || "") || inferCountryFromText(cvText) || "United Arab Emirates",
+    businessType: inferTypeOfBusiness(`${cvText} ${task?.role_title || ""} ${task?.company_name || ""}`) || "Financial Services",
+    educationCountry: education.country || inferCountryFromText(cvText) || "United Kingdom",
+    subject: education.subject || "Finance",
+    degree: education.degree || "Bachelor Degree",
+    school: education.school || "University",
+    currentTitle: latestExperience.title || task?.role_title || "Analyst",
+    currentCompany: latestExperience.company || "Current employer",
+  };
+
+  return page.evaluate((defaults) => {
+    const clean = (value) => String(value || "").replace(/\s+/g, " ").trim();
+    const normalize = (value) => clean(value).toLowerCase();
+    const compact = (value) => normalize(value).replace(/[^a-z0-9]+/g, "");
+    const visible = (element) => {
+      if (!element || element.disabled || element.getAttribute("aria-hidden") === "true") return false;
+      const style = window.getComputedStyle(element);
+      const rect = element.getBoundingClientRect();
+      return style.visibility !== "hidden" && style.display !== "none" && rect.width > 1 && rect.height > 1;
+    };
+    const setValue = (element, value) => {
+      const prototype = element instanceof HTMLTextAreaElement ? HTMLTextAreaElement.prototype : HTMLInputElement.prototype;
+      const descriptor = Object.getOwnPropertyDescriptor(prototype, "value");
+      element.focus();
+      if (descriptor && descriptor.set) {
+        descriptor.set.call(element, value);
+      } else {
+        element.value = value;
+      }
+      element.dispatchEvent(new Event("input", { bubbles: true }));
+      element.dispatchEvent(new Event("change", { bubbles: true }));
+    };
+    const labelFor = (control) => {
+      const id = control.getAttribute("id") || "";
+      const explicit = id ? document.querySelector(`label[for="${CSS.escape(id)}"]`) : null;
+      const aria = (control.getAttribute("aria-labelledby") || "")
+        .split(/\s+/)
+        .map((part) => document.getElementById(part)?.textContent || "")
+        .join(" ");
+      const wrapper = control.closest("label, fieldset, section, li, div");
+      return clean(
+        `${explicit?.textContent || ""} ${aria} ${control.getAttribute("aria-label") || ""} ${
+          control.getAttribute("placeholder") || ""
+        } ${control.getAttribute("name") || ""} ${wrapper?.textContent || ""}`
+      ).slice(0, 500);
+    };
+    const answerFor = (label) => {
+      const text = normalize(label);
+      if (/email/.test(text)) return defaults.email;
+      if (/first\s*name|given\s*name/.test(text)) return defaults.firstName;
+      if (/last\s*name|family\s*name|surname/.test(text)) return defaults.lastName;
+      if (/phone|mobile|telephone/.test(text)) return defaults.phone;
+      if (/nationality|citizenship/.test(text)) return defaults.nationality;
+      if (/country.*education|education.*country|school.*country|university.*country/.test(text)) return defaults.educationCountry;
+      if (/country.*residence|residence.*country|current.*country|country\b|location/.test(text)) return defaults.country;
+      if (/type\s+of\s+business|business\s+type|industry|sector/.test(text)) return defaults.businessType;
+      if (/subject|major|field\s+of\s+study|discipline/.test(text)) return defaults.subject;
+      if (/degree\s+type|qualification|education\s+level|highest.*education|degree/.test(text)) return defaults.degree;
+      if (/institution|university|school|college/.test(text)) return defaults.school;
+      if (/job\s*title|current\s*role|position/.test(text)) return defaults.currentTitle;
+      if (/company|employer|organisation|organization/.test(text)) return defaults.currentCompany;
+      if (/gender|sex/.test(text)) return "Prefer not to say";
+      if (/marital/.test(text)) return "Single";
+      if (/privacy|consent|acknowledge|declaration|accurate|true|terms|notice|confirm|certify|understand/.test(text)) return "Yes";
+      if (/criminal|conviction|arrest|charge|trial|disciplinary|misconduct|conflict|family\s+member|related\s+party|politically\s+exposed|sanction/.test(text)) return "No";
+      if (/work.*authori|eligible.*work|visa/.test(text)) return "Yes";
+      if (/sponsor|sponsorship/.test(text)) return "No";
+      if (/details|explain|comment|additional information/.test(text)) return "Not applicable";
+      return "";
+    };
+    const scoreOption = (answer, optionText) => {
+      const wanted = normalize(answer);
+      const option = normalize(optionText);
+      const wantedCompact = compact(answer);
+      const optionCompact = compact(optionText);
+      if (!wanted || !option) return 0;
+      if (option === wanted || optionCompact === wantedCompact) return 100;
+      if (optionCompact.includes(wantedCompact) || wantedCompact.includes(optionCompact)) return 80;
+      if (/^yes$/.test(wanted) && /agree|accept|yes|confirm|acknowledge/i.test(option)) return 75;
+      if (/^no$/.test(wanted) && /^no\b|none|not applicable/i.test(option)) return 75;
+      if (/prefer not to say/i.test(wanted) && /prefer|decline|undisclosed|not.*say/i.test(option)) return 75;
+      return 0;
+    };
+    const result = { attempted: 0, filled: 0, choice_attempted: 0, choice_filled: 0, items: [] };
+    const controls = Array.from(document.querySelectorAll("input, textarea, select"))
+      .filter((control) => visible(control) && !/^(hidden|file|password|submit|button)$/i.test(control.type || ""));
+    const handledRadioNames = new Set();
+
+    for (const control of controls) {
+      const label = labelFor(control);
+      const answer = answerFor(label);
+      if (!answer) continue;
+      const type = normalize(control.type || control.tagName);
+      result.attempted += 1;
+      const item = { label: clean(label).slice(0, 180), type, answer, filled: false };
+
+      if (control.tagName === "SELECT") {
+        const options = Array.from(control.options || []).filter((option) => clean(option.textContent || option.label || option.value));
+        const selected = options
+          .map((option) => ({ option, score: scoreOption(answer, `${option.textContent || ""} ${option.label || ""} ${option.value || ""}`) }))
+          .filter((entry) => entry.score > 0)
+          .sort((a, b) => b.score - a.score)[0]?.option || null;
+        result.choice_attempted += 1;
+        if (selected && control.value !== selected.value) {
+          control.value = selected.value;
+          control.dispatchEvent(new Event("input", { bubbles: true }));
+          control.dispatchEvent(new Event("change", { bubbles: true }));
+        }
+        item.filled = Boolean(selected || clean(control.value));
+        if (item.filled) {
+          result.filled += 1;
+          result.choice_filled += 1;
+        }
+      } else if (/radio|checkbox/.test(type)) {
+        result.choice_attempted += 1;
+        const name = control.getAttribute("name") || "";
+        if (type === "radio" && name && handledRadioNames.has(name)) {
+          result.attempted -= 1;
+          result.choice_attempted -= 1;
+          continue;
+        }
+        if (type === "radio" && name) {
+          handledRadioNames.add(name);
+        }
+        const group = name
+          ? Array.from(document.querySelectorAll(`input[name="${CSS.escape(name)}"]`)).filter(visible)
+          : [control];
+        const selected = group
+          .map((candidate) => ({ candidate, score: scoreOption(answer, labelFor(candidate) || candidate.value || "") }))
+          .filter((entry) => entry.score > 0)
+          .sort((a, b) => b.score - a.score)[0]?.candidate || (group.length === 1 && answer === "Yes" ? group[0] : null);
+        if (selected && !selected.checked) {
+          selected.click();
+          const descriptor = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "checked");
+          if (descriptor && descriptor.set) {
+            descriptor.set.call(selected, true);
+          } else {
+            selected.checked = true;
+          }
+          selected.dispatchEvent(new Event("input", { bubbles: true }));
+          selected.dispatchEvent(new Event("change", { bubbles: true }));
+        }
+        item.filled = group.some((candidate) => candidate.checked);
+        if (item.filled) {
+          result.filled += 1;
+          result.choice_filled += 1;
+        }
+      } else if (!clean(control.value || "")) {
+        setValue(control, answer);
+        item.filled = clean(control.value || "") !== "";
+        if (item.filled) result.filled += 1;
+      } else {
+        item.filled = true;
+        result.filled += 1;
+      }
+      result.items.push(item);
+    }
+    return result;
+  }, defaults).catch((error) => ({
+    attempted: 0,
+    filled: 0,
+    choice_attempted: 0,
+    choice_filled: 0,
+    items: [],
+    error: error.message || String(error),
+  }));
+}
+
+async function advanceSuccessFactorsApplicationSteps(page, task, candidate) {
+  const clicked = [];
+  for (let index = 0; index < 6; index += 1) {
+    await fillSuccessFactorsVisibleRequiredFields(page, task, candidate).catch(() => null);
+    const buttonInfo = await page.evaluate(() => {
+      const clean = (value) => String(value || "").replace(/\s+/g, " ").trim();
+      const visible = (element) => {
+        if (!element || element.disabled) return false;
+        const style = window.getComputedStyle(element);
+        const rect = element.getBoundingClientRect();
+        return style.visibility !== "hidden" && style.display !== "none" && rect.width > 0 && rect.height > 0;
+      };
+      const buttons = Array.from(document.querySelectorAll("button, input[type='button'], input[type='submit'], a, [role='button']"))
+        .filter(visible)
+        .map((button) => ({
+          button,
+          text: clean(`${button.textContent || ""} ${button.getAttribute("value") || ""} ${button.getAttribute("aria-label") || ""}`),
+        }))
+        .filter((entry) => entry.text && !/cancel|back|previous|delete|remove|withdraw|sign out|logout/i.test(entry.text));
+      const next = buttons.find((entry) =>
+        /^(save and continue|continue|next|review|done)$/i.test(entry.text) ||
+        /save.*continue|continue.*application|next step|review application/i.test(entry.text)
+      );
+      if (!next || /submit/i.test(next.text)) {
+        return null;
+      }
+      next.button.scrollIntoView({ block: "center", inline: "nearest" });
+      next.button.click();
+      return { text: next.text };
+    }).catch(() => null);
+    if (!buttonInfo) {
+      break;
+    }
+    clicked.push(buttonInfo.text);
+    await page.waitForNavigation({ waitUntil: "domcontentloaded", timeout: 12000 }).catch(() => {});
+    await page.waitForNetworkIdle({ idleTime: 1000, timeout: 15000 }).catch(() => {});
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+  }
+  return { clicked_count: clicked.length, buttons: clicked };
 }
 
 async function getRequiredFormCompletionState(page) {
@@ -9103,6 +10591,12 @@ async function pageHasIncorrectGreenhouseVerificationCode(page) {
 async function getBrowserEnvironmentDiagnostics(page) {
   return page.evaluate(() => {
     const clean = (value) => String(value || "").replace(/\s+/g, " ").trim();
+    const isVisible = (element) => {
+      if (!element) return false;
+      const style = window.getComputedStyle(element);
+      const rect = element.getBoundingClientRect();
+      return style.visibility !== "hidden" && style.display !== "none" && rect.width > 0 && rect.height > 0;
+    };
     const bodyText = clean(document.body?.innerText || "");
     const verificationInputs = Array.from(document.querySelectorAll("input, textarea"))
       .map((control) => {
@@ -9116,7 +10610,47 @@ async function getBrowserEnvironmentDiagnostics(page) {
       })
       .filter((text) => /security code|verification code|confirmation code|code field/i.test(text))
       .slice(0, 5);
+    const visibleButtons = Array.from(document.querySelectorAll("button, a, input[type='button'], input[type='submit'], [role='button']"))
+      .filter(isVisible)
+      .map((node) => ({
+        tag: node.tagName.toLowerCase(),
+        text: clean(`${node.textContent || ""} ${node.getAttribute("value") || ""} ${node.getAttribute("aria-label") || ""}`).slice(0, 160),
+        href: node.getAttribute("href") || "",
+        type: node.getAttribute("type") || "",
+      }))
+      .filter((item) => item.text || item.href)
+      .slice(0, 40);
+    const visibleLinks = Array.from(document.querySelectorAll("a[href]"))
+      .filter(isVisible)
+      .map((node) => ({
+        text: clean(node.textContent || "").slice(0, 120),
+        href: node.href || node.getAttribute("href") || "",
+      }))
+      .filter((item) => item.text || item.href)
+      .slice(0, 40);
+    const fieldSamples = Array.from(document.querySelectorAll("input, textarea, select, [role='combobox']"))
+      .map((control) => {
+        const id = control.getAttribute("id") || "";
+        const name = control.getAttribute("name") || "";
+        const label = id ? document.querySelector(`label[for="${CSS.escape(id)}"]`)?.textContent || "" : "";
+        const wrapperText = control.closest("label, div, fieldset, section")?.textContent || "";
+        return {
+          tag: control.tagName.toLowerCase(),
+          type: control.getAttribute("type") || "",
+          id,
+          name,
+          placeholder: control.getAttribute("placeholder") || "",
+          aria_label: control.getAttribute("aria-label") || "",
+          label: clean(label).slice(0, 160),
+          text: clean(wrapperText).slice(0, 220),
+          visible: isVisible(control),
+          disabled: Boolean(control.disabled),
+        };
+      })
+      .slice(0, 80);
     return {
+      url: window.location.href,
+      title: document.title || "",
       user_agent: navigator.userAgent || "",
       webdriver: Boolean(navigator.webdriver),
       languages: Array.from(navigator.languages || []),
@@ -9128,6 +10662,11 @@ async function getBrowserEnvironmentDiagnostics(page) {
       has_greenhouse_verification_text: /security code|verification code|copy and paste.*code|enter.*code.*resubmit|code field/i.test(bodyText),
       has_incorrect_verification_text: /incorrect security code|security code incorrect|invalid security code|incorrect verification code|invalid verification code/i.test(bodyText),
       verification_input_samples: verificationInputs,
+      body_text_sample: bodyText.slice(0, 1500),
+      visible_buttons: visibleButtons,
+      visible_links: visibleLinks,
+      field_samples: fieldSamples,
+      visible_field_count: fieldSamples.filter((field) => field.visible && !field.disabled && field.type !== "hidden").length,
     };
   });
 }
@@ -9285,7 +10824,10 @@ function looksLikeFinalApplicationSubmitRequest(request) {
   );
 }
 
-async function clickLikelyApplyButton(page) {
+async function clickLikelyApplyButton(page, options = {}) {
+  const provider = cleanText(options.provider || "").toLowerCase();
+  const isWorkable = provider === "workable";
+  const isSuccessFactors = provider === "successfactors";
   const beforeUrl = page.url();
   let interceptedSubmitRequest = null;
   const observedPostRequests = [];
@@ -9307,14 +10849,21 @@ async function clickLikelyApplyButton(page) {
     };
     page.on("request", requestHandler);
   }
-  const submitHandle = await page.evaluateHandle(() => {
+  const submitHandle = await page.evaluateHandle((modes) => {
     const buttons = Array.from(document.querySelectorAll("button, input[type=submit]"));
+    const matchesSubmit = (text) => {
+      const clean = String(text || "").replace(/\s+/g, " ").trim();
+      const baseMatch = /submit application|send application|submit$/i.test(clean);
+      if (baseMatch) return true;
+      if (modes.workable && /^(send|apply|complete application|submit application)$/i.test(clean)) return true;
+      return Boolean(modes.successFactors && /^(apply|submit|done|finish|complete application)$/i.test(clean));
+    };
     return buttons.find((button) =>
-      /submit application|send application|submit$/i.test(
+      matchesSubmit(
         `${button.textContent || ""} ${button.getAttribute("value") || ""} ${button.getAttribute("aria-label") || ""}`
       )
     ) || null;
-  });
+  }, { workable: isWorkable, successFactors: isSuccessFactors });
   const submitElement = submitHandle.asElement();
   let clicked = false;
   if (submitElement) {
@@ -9326,12 +10875,19 @@ async function clickLikelyApplyButton(page) {
     await submitElement.dispose().catch(() => {});
   } else {
     await submitHandle.dispose().catch(() => {});
-    const submitPoint = await page.evaluate(() => {
+    const submitPoint = await page.evaluate((modes) => {
       const clean = (value) => String(value || "").replace(/\s+/g, " ").trim();
       const isVisible = (element) => {
         const style = window.getComputedStyle(element);
         const rect = element.getBoundingClientRect();
         return style.visibility !== "hidden" && style.display !== "none" && rect.width > 0 && rect.height > 0;
+      };
+      const matchesSubmit = (text) => {
+        const value = clean(text);
+        const baseMatch = /submit application|send application|submit$/i.test(value);
+        if (baseMatch) return true;
+        if (modes.workable && /^(send|apply|complete application|submit application)$/i.test(value)) return true;
+        return Boolean(modes.successFactors && /^(apply|submit|done|finish|complete application)$/i.test(value));
       };
       const buttons = Array.from(document.querySelectorAll("button, input[type=submit], [role='button']"));
       const button = buttons.find((candidate) => {
@@ -9340,7 +10896,7 @@ async function clickLikelyApplyButton(page) {
             candidate.getAttribute("aria-label") || ""
           }`
         );
-        return isVisible(candidate) && /submit application|send application|submit$/i.test(text);
+        return isVisible(candidate) && matchesSubmit(text);
       });
       if (!button) {
         window.scrollTo(0, document.body.scrollHeight);
@@ -9350,7 +10906,7 @@ async function clickLikelyApplyButton(page) {
               candidate.getAttribute("aria-label") || ""
             }`
           );
-          return /submit application|send application|submit$/i.test(text);
+          return matchesSubmit(text);
         });
         if (!bottomButton) return null;
         bottomButton.scrollIntoView({ block: "center", inline: "nearest" });
@@ -9360,7 +10916,7 @@ async function clickLikelyApplyButton(page) {
       button.scrollIntoView({ block: "center", inline: "nearest" });
       const rect = button.getBoundingClientRect();
       return { x: Math.round(rect.left + rect.width / 2), y: Math.round(rect.top + rect.height / 2) };
-    }).catch(() => null);
+    }, { workable: isWorkable, successFactors: isSuccessFactors }).catch(() => null);
     if (submitPoint) {
       await new Promise((resolve) => setTimeout(resolve, 250));
       await page.mouse.click(submitPoint.x, submitPoint.y).then(() => {
@@ -10261,12 +11817,25 @@ async function processSuccessFactorsTask(page, task, candidate, cvPath, url) {
       .catch((error) => ({ error: error.message || String(error) }));
   await page.waitForNetworkIdle({ idleTime: 1000, timeout: 20000 }).catch(() => {});
   const uploadedResume = successFactorsProfileFill.uploaded_resume || await withTimeout(uploadResume(page, cvPath), 30000, false).catch(() => false);
-  const applicationAnswers = await fillApplicationAnswers(page, task, null).catch((error) => ({
+  const applicationAnswers = await fillApplicationAnswers(page, task, null, candidate).catch((error) => ({
     attempted: 0,
     filled: 0,
     choice_attempted: 0,
     choice_filled: 0,
     field_diagnostics: [{ error: error.message || String(error) }],
+  }));
+  const successFactorsVisibleFill = await fillSuccessFactorsVisibleRequiredFields(page, task, candidate).catch((error) => ({
+    attempted: 0,
+    filled: 0,
+    choice_attempted: 0,
+    choice_filled: 0,
+    items: [],
+    error: error.message || String(error),
+  }));
+  const successFactorsStepAdvance = await advanceSuccessFactorsApplicationSteps(page, task, candidate).catch((error) => ({
+    clicked_count: 0,
+    buttons: [],
+    error: error.message || String(error),
   }));
   const formCompletion = await getRequiredFormCompletionState(page).catch(() => ({
     complete_required_fields: [],
@@ -10287,11 +11856,13 @@ async function processSuccessFactorsTask(page, task, candidate, cvPath, url) {
       form_opened: formReady.opened,
       form_ready: formReady.ready,
       uploaded_resume: uploadedResume,
-      application_answers_attempted: applicationAnswers.attempted,
-      application_answers_filled: applicationAnswers.filled,
-      application_choice_answers_attempted: applicationAnswers.choice_attempted,
-      application_choice_answers_filled: applicationAnswers.choice_filled,
+      application_answers_attempted: (applicationAnswers.attempted || 0) + (successFactorsVisibleFill.attempted || 0),
+      application_answers_filled: (applicationAnswers.filled || 0) + (successFactorsVisibleFill.filled || 0),
+      application_choice_answers_attempted: (applicationAnswers.choice_attempted || 0) + (successFactorsVisibleFill.choice_attempted || 0),
+      application_choice_answers_filled: (applicationAnswers.choice_filled || 0) + (successFactorsVisibleFill.choice_filled || 0),
       application_field_diagnostics: applicationAnswers.field_diagnostics || [],
+      successfactors_visible_fill: successFactorsVisibleFill,
+      successfactors_step_advance: successFactorsStepAdvance,
       complete_required_fields: formCompletion.complete_required_fields,
       missing_required_fields: formCompletion.missing_required_fields,
       successfactors_state: state,
@@ -10319,11 +11890,13 @@ async function processSuccessFactorsTask(page, task, candidate, cvPath, url) {
       form_opened: formReady.opened,
       form_ready: formReady.ready,
       uploaded_resume: uploadedResume,
-      application_answers_attempted: applicationAnswers.attempted,
-      application_answers_filled: applicationAnswers.filled,
-      application_choice_answers_attempted: applicationAnswers.choice_attempted,
-      application_choice_answers_filled: applicationAnswers.choice_filled,
+      application_answers_attempted: (applicationAnswers.attempted || 0) + (successFactorsVisibleFill.attempted || 0),
+      application_answers_filled: (applicationAnswers.filled || 0) + (successFactorsVisibleFill.filled || 0),
+      application_choice_answers_attempted: (applicationAnswers.choice_attempted || 0) + (successFactorsVisibleFill.choice_attempted || 0),
+      application_choice_answers_filled: (applicationAnswers.choice_filled || 0) + (successFactorsVisibleFill.choice_filled || 0),
       application_field_diagnostics: applicationAnswers.field_diagnostics || [],
+      successfactors_visible_fill: successFactorsVisibleFill,
+      successfactors_step_advance: successFactorsStepAdvance,
       complete_required_fields: formCompletion.complete_required_fields,
       missing_required_fields: missingRequiredFields,
       successfactors_state: state,
@@ -10337,7 +11910,7 @@ async function processSuccessFactorsTask(page, task, candidate, cvPath, url) {
   let clickedSubmit = false;
   let submitResult = { clicked: false, beforeUrl: page.url(), afterUrl: page.url() };
   if (allowFinalSubmit) {
-    submitResult = await clickLikelyApplyButton(page);
+    submitResult = await clickLikelyApplyButton(page, { provider: "successfactors" });
     clickedSubmit = Boolean(submitResult.clicked);
     await page.screenshot({ path: screenshotPath, fullPage: true }).catch(() => {});
     state = await getSuccessFactorsVisibleState(page);
@@ -10373,11 +11946,13 @@ async function processSuccessFactorsTask(page, task, candidate, cvPath, url) {
     uploaded_resume: uploadedResume,
     successfactors_profile_fill: successFactorsProfileFill,
     core_field_fill: coreFieldFill,
-    application_answers_attempted: applicationAnswers.attempted,
-    application_answers_filled: applicationAnswers.filled,
-    application_choice_answers_attempted: applicationAnswers.choice_attempted,
-    application_choice_answers_filled: applicationAnswers.choice_filled,
+    application_answers_attempted: (applicationAnswers.attempted || 0) + (successFactorsVisibleFill.attempted || 0),
+    application_answers_filled: (applicationAnswers.filled || 0) + (successFactorsVisibleFill.filled || 0),
+    application_choice_answers_attempted: (applicationAnswers.choice_attempted || 0) + (successFactorsVisibleFill.choice_attempted || 0),
+    application_choice_answers_filled: (applicationAnswers.choice_filled || 0) + (successFactorsVisibleFill.choice_filled || 0),
     application_field_diagnostics: applicationAnswers.field_diagnostics || [],
+    successfactors_visible_fill: successFactorsVisibleFill,
+    successfactors_step_advance: successFactorsStepAdvance,
     complete_required_fields: formCompletion.complete_required_fields,
     missing_required_fields: submitResult.missing_required_fields || missingRequiredFields,
     intercepted_submit_request: submitResult.intercepted_submit_request || null,
@@ -10435,13 +12010,15 @@ async function processTask(task) {
       debugLog(task.task_uuid || "task", "successfactors_adapter_start");
       return await processSuccessFactorsTask(page, task, candidate, cvPath, url);
     }
-    debugLog(task.task_uuid || "task", "form_ready_check");
-    const formReady = await ensureApplicationFormReady(page);
+    const isWorkable = isWorkableApplication(task, url);
+    debugLog(task.task_uuid || "task", isWorkable ? "workable_form_ready_check" : "form_ready_check");
+    const formReady = isWorkable
+      ? await ensureWorkableApplicationFormReady(page)
+      : await ensureApplicationFormReady(page);
     const dismissedCookies = await dismissCookieBanners(page);
     debugLog(task.task_uuid || "task", "cookies_dismissed", Boolean(dismissedCookies));
     debugLog(task.task_uuid || "task", "form_ready", JSON.stringify(formReady));
 
-    const isWorkable = isWorkableApplication(task, url);
     let uploadedResume = false;
     let workableResumeImport = null;
     if (isWorkable) {
@@ -10495,9 +12072,21 @@ async function processTask(task) {
     if (workableResumeImport) {
       browserDiagnostics = {
         ...browserDiagnostics,
+        workable_form_ready: formReady,
         workable_resume_import: workableResumeImport,
       };
+    } else if (isWorkable) {
+      browserDiagnostics = {
+        ...browserDiagnostics,
+        workable_form_ready: formReady,
+      };
     }
+    const workableBrowserDiagnostics = isWorkable
+      ? {
+          workable_form_ready: formReady,
+          workable_resume_import: workableResumeImport,
+        }
+      : {};
 
     const screenshotPath = path.join(os.tmpdir(), `${task.task_uuid}.png`);
     debugLog(task.task_uuid || "task", "screenshot_before_submit", screenshotPath);
@@ -10573,6 +12162,10 @@ async function processTask(task) {
 
     const buildVerificationRequiredResult = async (message, submitState = {}) => {
       browserDiagnostics = await getBrowserEnvironmentDiagnostics(page).catch(() => browserDiagnostics || {});
+      browserDiagnostics = {
+        ...browserDiagnostics,
+        ...workableBrowserDiagnostics,
+      };
       await page.screenshot({ path: screenshotPath, fullPage: true }).catch(() => {});
       return {
         provider: task.provider || "",
@@ -10617,7 +12210,7 @@ async function processTask(task) {
     let verificationWaitTimedOut = false;
     if (allowFinalSubmit) {
       debugLog(task.task_uuid || "task", "click_submit");
-      submitResult = await clickLikelyApplyButton(page);
+      submitResult = await clickLikelyApplyButton(page, { provider: isWorkable ? "workable" : "" });
       debugLog(
         task.task_uuid || "task",
         "submit_result",
@@ -10678,6 +12271,10 @@ async function processTask(task) {
       }
       await page.screenshot({ path: screenshotPath, fullPage: true }).catch(() => {});
       browserDiagnostics = await getBrowserEnvironmentDiagnostics(page).catch(() => browserDiagnostics || {});
+      browserDiagnostics = {
+        ...browserDiagnostics,
+        ...workableBrowserDiagnostics,
+      };
     }
 
     let status = "dry_run_ready";
@@ -10771,11 +12368,19 @@ async function runOnce() {
     const result = await processTask(task);
     await completeTask(task.task_uuid, result.status, result);
     lastTaskStatus = `${task.task_uuid}:${result.status}`;
+    const logProvider = cleanText(result.provider || task.provider || "unknown");
+    const logRole = cleanText(task.role_title || result.role_title || "").slice(0, 80);
+    const logCompany = cleanText(task.company_name || result.company_name || "").slice(0, 80);
+    const logError = cleanText(result.last_error || "").slice(0, 180);
     console.log(
-      `[${new Date().toISOString()}] ${task.task_uuid} ${result.status}` +
+      `[${new Date().toISOString()}] ${task.task_uuid} provider=${logProvider} status=${result.status}` +
+        ` company="${logCompany}" role="${logRole}"` +
         ` answers=${result.application_answers_filled || 0}/${result.application_answers_attempted || 0}` +
         ` choices=${result.application_choice_answers_filled || 0}/${result.application_choice_answers_attempted || 0}` +
-        ` missing=${(result.missing_required_fields || []).length}`
+        ` resume=${result.uploaded_resume ? "uploaded" : "not_uploaded"}` +
+        ` missing=${(result.missing_required_fields || []).length}` +
+        (result.final_url ? ` final_url="${cleanText(result.final_url).slice(0, 180)}"` : "") +
+        (logError ? ` error="${logError}"` : "")
     );
   } catch (error) {
     await completeTask(task.task_uuid, "failed", {
