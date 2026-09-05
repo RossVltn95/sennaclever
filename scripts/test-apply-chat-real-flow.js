@@ -863,10 +863,7 @@ async function main() {
     form.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
     for (let index = 0; index < 30; index += 1) {
       await new Promise((resolve) => setTimeout(resolve, 250));
-      if (
-        /SuccessFactors jobs loaded/i.test(messages.textContent || "") &&
-        /Upload the test CV first/i.test(messages.textContent || "")
-      ) {
+      if (/Upload the test CV first/i.test(messages.textContent || "")) {
         break;
       }
     }
@@ -877,6 +874,7 @@ async function main() {
       request: window.__sffcSuccessFactorsProviderRequest,
       enabled: root.__sffcApplyChatTest.isSuccessFactorsAdminTestEnabled(),
       queueCount: state.length,
+      hasAutoApplyQueue: !!messages.querySelector(".sffc-crm-apply-chat__apply-queue-card"),
       titles: state.map((item) => item.title),
       providers: state.map(
         (item) => item.autoSubmitProvider || item.auto_submit_provider || item.provider || ""
@@ -888,23 +886,16 @@ async function main() {
   });
 
   if (
-    !successFactorsCommandFlow.request ||
-    successFactorsCommandFlow.request.entries.provider !== "successfactors" ||
+    successFactorsCommandFlow.request ||
     !successFactorsCommandFlow.enabled ||
-    !/SuccessFactors admin test/i.test(successFactorsCommandFlow.text) ||
+    !/focused SuccessFactors test/i.test(successFactorsCommandFlow.text) ||
     !/Upload the test CV first/i.test(successFactorsCommandFlow.text) ||
-    successFactorsCommandFlow.queueCount !== 2 ||
-    !successFactorsCommandFlow.titles.includes("Investment Analyst") ||
-    !successFactorsCommandFlow.titles.includes("Strategy Analyst") ||
-    successFactorsCommandFlow.titles.includes("Wrong Provider Role") ||
-    !successFactorsCommandFlow.providers.every((provider) =>
-      /successfactors/i.test(provider)
-    ) ||
-    !successFactorsCommandFlow.successFactorsFlags.every(Boolean)
+    successFactorsCommandFlow.hasAutoApplyQueue ||
+    successFactorsCommandFlow.queueCount !== 0
   ) {
     qualityFailures.push({
       reason:
-        "test successfactors command did not load a SuccessFactors-only admin queue",
+        "test successfactors command did not start the lightweight setup conversation",
       successFactorsCommandFlow,
     });
   }
@@ -915,6 +906,62 @@ async function main() {
     const form = document.querySelector("[data-sffc-apply-chat-composer]");
     const input = document.querySelector("[data-sffc-apply-chat-input]");
     const test = root.__sffcApplyChatTest;
+    const originalFetch = window.fetch;
+    window.fetch = function (url, options) {
+      const body = options && options.body;
+      const entries = {};
+      if (body && typeof body.forEach === "function") {
+        body.forEach((value, key) => {
+          entries[key] = String(value);
+        });
+      }
+      window.__sffcSuccessFactorsProviderRequest = {
+        url: String(url || ""),
+        entries,
+      };
+      return Promise.resolve(
+        new Response(
+          JSON.stringify({
+            success: true,
+            data: {
+              provider: "successfactors",
+              query: "successfactors",
+              items: [
+                {
+                  title: "Investment Analyst",
+                  company: "Commercial Bank",
+                  location: "Qatar",
+                  apply_url:
+                    "https://career2.successfactors.eu/career?company=thecommerc&career_ns=job_listing&career_job_req_id=7725",
+                  application_workspace_url:
+                    "https://career2.successfactors.eu/career?company=thecommerc&career_ns=job_application&career_job_req_id=7725",
+                  source_platform: "SAP SuccessFactors",
+                },
+                {
+                  title: "Strategy Analyst",
+                  company: "Elm",
+                  location: "Riyadh",
+                  apply_url:
+                    "https://career.elm.sa/elm/job/Riyadh-Strategy-Analyst-12345/123456/",
+                  application_workspace_url:
+                    "https://career.elm.sa/elm/job/Riyadh-Strategy-Analyst-12345/123456/",
+                  source_platform: "SAP SuccessFactors",
+                },
+                {
+                  title: "Wrong Provider Role",
+                  company: "Other",
+                  location: "Dubai",
+                  apply_url: "https://example.com/apply",
+                  application_workspace_url: "https://example.com/apply",
+                  source_platform: "Other",
+                },
+              ],
+            },
+          }),
+          { status: 200, headers: { "Content-Type": "application/json" } }
+        )
+      );
+    };
     function submit(value) {
       input.value = value;
       form.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
@@ -928,23 +975,43 @@ async function main() {
       }
       return false;
     }
-    test.setCurrentCvFileForTest("successfactors-test-cv.pdf");
-    const startButton = messages.querySelector(
-      "[data-sffc-apply-chat-start-auto-apply]"
-    );
-    if (startButton) {
-      startButton.click();
+    async function waitForPrompt(state) {
+      for (let index = 0; index < 40; index += 1) {
+        await new Promise((resolve) => setTimeout(resolve, 250));
+        if (test.getPromptState && test.getPromptState() === state) {
+          return true;
+        }
+      }
+      return false;
     }
+    test.setCurrentCvFileForTest("successfactors-test-cv.pdf");
+    test.continueSuccessFactorsTestSetup();
     const askedName = await waitFor(/candidate full name/i);
+    await waitForPrompt("successfactors_test_full_name");
     submit("Ross Valentino");
     const askedEmail = await waitFor(/What email should I use for the SuccessFactors test application/i);
+    await waitForPrompt("successfactors_test_email");
     submit("rossvltn@gmail.com");
     const askedConfirm = await waitFor(/Just double-checking - is that rossvltn@gmail\.com/i);
+    await waitForPrompt("successfactors_test_confirm_email");
+    submit("yes");
+    const showedPicker = await waitFor(/Choose one job to test/i);
+    const state = test.getCommercialApplyQueueState();
+    const testButtons = Array.from(
+      messages.querySelectorAll("[data-sffc-successfactors-test-job]")
+    );
+    window.fetch = originalFetch;
     return {
       text: messages.textContent || "",
       askedName,
       askedEmail,
       askedConfirm,
+      showedPicker,
+      request: window.__sffcSuccessFactorsProviderRequest,
+      queueCount: state.length,
+      titles: state.map((item) => item.title),
+      hasAutoApplyQueue: !!messages.querySelector(".sffc-crm-apply-chat__apply-queue-card"),
+      testButtonCount: testButtons.length,
       enabled: test.isSuccessFactorsAdminTestEnabled(),
     };
   });
@@ -954,6 +1021,15 @@ async function main() {
     !successFactorsSetupConversationFlow.askedName ||
     !successFactorsSetupConversationFlow.askedEmail ||
     !successFactorsSetupConversationFlow.askedConfirm ||
+    !successFactorsSetupConversationFlow.showedPicker ||
+    !successFactorsSetupConversationFlow.request ||
+    successFactorsSetupConversationFlow.request.entries.provider !== "successfactors" ||
+    successFactorsSetupConversationFlow.queueCount !== 2 ||
+    successFactorsSetupConversationFlow.testButtonCount !== 2 ||
+    !successFactorsSetupConversationFlow.titles.includes("Investment Analyst") ||
+    !successFactorsSetupConversationFlow.titles.includes("Strategy Analyst") ||
+    successFactorsSetupConversationFlow.titles.includes("Wrong Provider Role") ||
+    successFactorsSetupConversationFlow.hasAutoApplyQueue ||
     /Send the role, location, or career question/i.test(
       successFactorsSetupConversationFlow.text
     ) ||
@@ -963,6 +1039,169 @@ async function main() {
       reason:
         "successfactors admin test setup did not keep CV/name/email inside the test conversation",
       successFactorsSetupConversationFlow,
+    });
+  }
+
+  const workableSetupConversationFlow = await page.evaluate(async () => {
+    const root = document.querySelector("[data-sffc-apply-chat]");
+    const messages = document.querySelector("[data-sffc-apply-chat-messages]");
+    const form = document.querySelector("[data-sffc-apply-chat-composer]");
+    const input = document.querySelector("[data-sffc-apply-chat-input]");
+    const test = root.__sffcApplyChatTest;
+    const originalFetch = window.fetch;
+    window.sffcCrmApplyChatArticle = {
+      ...(window.sffcCrmApplyChatArticle || {}),
+      isAdminTester: true,
+    };
+    window.fetch = async (_url, options) => {
+      const body = options && options.body;
+      const entries = body && typeof body.entries === "function"
+        ? Object.fromEntries(body.entries())
+        : {};
+      window.__sffcWorkableProviderRequest = { entries };
+      return new Response(
+        JSON.stringify({
+          success: true,
+          data: {
+            items: [
+              {
+                title: "Leasing & Tenant Relations Manager",
+                company: "Qiddiya Investment Company",
+                location: "Riyadh, Saudi Arabia",
+                apply_url:
+                  "https://apply.workable.com/qiddiya-investment-company-1/j/F2F2483923/apply/",
+                source_platform: "Workable",
+                auto_submit_provider: "workable",
+              },
+              {
+                title: "Director, Delivery Contracts",
+                company: "Qiddiya Investment Company",
+                location: "Riyadh, Saudi Arabia",
+                apply_url:
+                  "https://apply.workable.com/qiddiya-investment-company-1/j/30C888938C/apply/",
+                source_platform: "Workable",
+                auto_submit_provider: "workable",
+              },
+              {
+                title: "Wrong Provider Role",
+                company: "Other",
+                location: "Dubai",
+                apply_url: "https://example.com/apply",
+                source_platform: "Other",
+              },
+            ],
+          },
+        }),
+        { status: 200, headers: { "Content-Type": "application/json" } }
+      );
+    };
+
+    function submit(value) {
+      input.value = value;
+      form.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
+    }
+    async function waitFor(pattern) {
+      for (let index = 0; index < 40; index += 1) {
+        await new Promise((resolve) => setTimeout(resolve, 250));
+        if (pattern.test(messages.textContent || "")) {
+          return true;
+        }
+      }
+      return false;
+    }
+    async function waitForPrompt(state) {
+      for (let index = 0; index < 40; index += 1) {
+        await new Promise((resolve) => setTimeout(resolve, 250));
+        if (test.getPromptState && test.getPromptState() === state) {
+          return true;
+        }
+      }
+      return false;
+    }
+    async function waitForSelector(selector) {
+      for (let index = 0; index < 40; index += 1) {
+        await new Promise((resolve) => setTimeout(resolve, 250));
+        if (messages.querySelector(selector)) {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    test.resetCommercialApplyFlowState();
+    messages.innerHTML = "";
+    submit("test workable");
+    const askedCv = await waitFor(/Upload the test CV first/i);
+    test.setCurrentCvFileForTest("workable-test-cv.pdf");
+    const continuedAfterCv = test.continueWorkableAdminTestAfterCvForTest();
+    const askedName = await waitFor(/candidate full name/i);
+    await waitForPrompt("workable_test_full_name");
+    submit("Viktor Milanov");
+    const askedEmail = await waitFor(/What email should I use for the Workable test application/i);
+    await waitForPrompt("workable_test_email");
+    submit("rossvltn@gmail.com");
+    const askedConfirm = await waitFor(/Just double-checking - is that rossvltn@gmail\.com/i);
+    await waitForPrompt("workable_test_confirm_email");
+    submit("yes");
+    const askedPhone = await waitFor(/What phone number should I use for the test application/i);
+    await waitForPrompt("workable_test_phone");
+    submit("+33782707653");
+    const showedReady = await waitFor(/Review these Workable jobs before Railway starts/i);
+    await waitForSelector(".sffc-crm-apply-chat__apply-queue-card");
+    const state = test.getCommercialApplyQueueState();
+    const card = messages.querySelector(".sffc-crm-apply-chat__apply-queue-card");
+    const startButton = messages.querySelector("[data-sffc-apply-chat-start-auto-apply]");
+    window.fetch = originalFetch;
+    return {
+      text: messages.textContent || "",
+      request: window.__sffcWorkableProviderRequest,
+      enabled: test.isWorkableAdminTestEnabled(),
+      continuedAfterCv,
+      askedCv,
+      askedName,
+      askedEmail,
+      askedConfirm,
+      askedPhone,
+      showedReady,
+      queueCount: state.length,
+      titles: state.map((item) => item.title),
+      providers: state.map(
+        (item) => item.autoSubmitProvider || item.auto_submit_provider || item.provider || ""
+      ),
+      hasCard: !!card,
+      hasStartButton: !!startButton,
+    };
+  });
+
+  if (
+    !workableSetupConversationFlow.request ||
+    workableSetupConversationFlow.request.entries.provider !== "workable" ||
+    !workableSetupConversationFlow.enabled ||
+    !workableSetupConversationFlow.continuedAfterCv ||
+    !workableSetupConversationFlow.askedCv ||
+    !workableSetupConversationFlow.askedName ||
+    !workableSetupConversationFlow.askedEmail ||
+    !workableSetupConversationFlow.askedConfirm ||
+    !workableSetupConversationFlow.askedPhone ||
+    !workableSetupConversationFlow.showedReady ||
+    workableSetupConversationFlow.queueCount !== 2 ||
+    !workableSetupConversationFlow.titles.includes("Leasing & Tenant Relations Manager") ||
+    !workableSetupConversationFlow.titles.includes("Director, Delivery Contracts") ||
+    workableSetupConversationFlow.titles.includes("Wrong Provider Role") ||
+    !workableSetupConversationFlow.providers.every((provider) =>
+      /workable/i.test(provider)
+    ) ||
+    !workableSetupConversationFlow.hasCard ||
+    !workableSetupConversationFlow.hasStartButton ||
+    /Send the role, location, or career question/i.test(
+      workableSetupConversationFlow.text
+    ) ||
+    /Send the detail for this step/i.test(workableSetupConversationFlow.text)
+  ) {
+    qualityFailures.push({
+      reason:
+        "workable admin test setup did not keep CV/name/email/phone inside the test conversation",
+      workableSetupConversationFlow,
     });
   }
 
@@ -1057,9 +1296,10 @@ async function main() {
       await new Promise((resolve) => setTimeout(resolve, 500));
     }
     const afterConfirmText = messages.textContent || "";
-    const queueCard = messages.querySelector(
+    const queueCards = Array.from(messages.querySelectorAll(
       ".sffc-crm-apply-chat__apply-queue-card"
-    );
+    ));
+    const queueCard = queueCards[queueCards.length - 1] || null;
     const queueText = queueCard ? queueCard.textContent || "" : "";
     const queueCardIndex = afterConfirmText.indexOf(
       "Review the shortlist before I start"
@@ -1080,9 +1320,10 @@ async function main() {
       await new Promise((resolve) => setTimeout(resolve, 500));
     }
     const afterQueueStartText = messages.textContent || "";
-    const activeQueueCard = messages.querySelector(
+    const activeQueueCards = Array.from(messages.querySelectorAll(
       ".sffc-crm-apply-chat__apply-queue-card"
-    );
+    ));
+    const activeQueueCard = activeQueueCards[activeQueueCards.length - 1] || null;
     const activeQueueText = activeQueueCard ? activeQueueCard.textContent || "" : "";
     window.fetch = originalFetch;
     return {

@@ -86499,6 +86499,10 @@
       cleanValue = cleanMessageText(value || "").toLowerCase();
       trimmedValue = cleanMessageText(value || "");
       promptStateValue = String(promptState || "");
+      yesHandler = promptHandlers && promptHandlers.yes;
+      noHandler = promptHandlers && promptHandlers.no;
+      otherHandler = promptHandlers && promptHandlers.other;
+      questionHandler = promptHandlers && promptHandlers.question;
 
       if (
         /^successfactors_test_(?:full_name|email)$/.test(promptStateValue) &&
@@ -86566,10 +86570,6 @@
         /\b(how|what|why|who|where|when|safe|real|fake|data|privacy|support)\b/.test(
           cleanValue
         );
-      yesHandler = promptHandlers && promptHandlers.yes;
-      noHandler = promptHandlers && promptHandlers.no;
-      otherHandler = promptHandlers && promptHandlers.other;
-      questionHandler = promptHandlers && promptHandlers.question;
       preferSemanticFirst = false;
       simpleBinaryOnlyReply = false;
       operationalPromptState =
@@ -86582,6 +86582,72 @@
       semanticFirstPromptState = !!(
         !operationalPromptState && conversationalPromptState
       );
+
+      if (
+        /^(workable_test_full_name|workable_test_email|workable_test_phone|workable_test_custom_questions|successfactors_test_full_name|successfactors_test_email)$/.test(
+          promptStateValue
+        ) &&
+        typeof otherHandler === "function" &&
+        trimmedValue
+      ) {
+        clearResponseWatchdog();
+        promptReplyWasTyped = true;
+        runAfterCurrentThought(function () {
+          otherHandler(value);
+        });
+        return true;
+      }
+
+      if (
+        /^(workable_test_confirm_email|successfactors_test_confirm_email)$/.test(
+          promptStateValue
+        ) &&
+        promptHandlers &&
+        trimmedValue
+      ) {
+        clearResponseWatchdog();
+        promptReplyWasTyped = true;
+        runAfterCurrentThought(function () {
+          if (binary === "yes" && typeof yesHandler === "function") {
+            yesHandler(value);
+            return;
+          }
+          if (binary === "no" && typeof noHandler === "function") {
+            noHandler(value);
+            return;
+          }
+          if (typeof otherHandler === "function") {
+            otherHandler(value);
+          }
+        });
+        return true;
+      }
+
+      if (
+        /^(workable_test_ready|successfactors_test_ready)$/.test(promptStateValue) &&
+        promptHandlers &&
+        trimmedValue
+      ) {
+        clearResponseWatchdog();
+        promptReplyWasTyped = true;
+        runAfterCurrentThought(function () {
+          if (binary === "yes" && typeof yesHandler === "function") {
+            yesHandler(value);
+            return;
+          }
+          if (
+            /\b(start|submit|run|apply|ready|go)\b/i.test(trimmedValue) &&
+            typeof otherHandler === "function"
+          ) {
+            otherHandler(value);
+            return;
+          }
+          if (typeof otherHandler === "function") {
+            otherHandler(value);
+          }
+        });
+        return true;
+      }
 
       unifiedRoute = classifyUnifiedConversationRoute(
         value,
@@ -92382,7 +92448,7 @@
       }
       if (!cleanMessageText(workableTestCandidatePhone || "")) {
         botMessage(
-          "What phone number should I use? Workable usually needs this before the form will submit.",
+          "What phone number should I use for the test application?",
           humanComposeDelay("Need candidate phone.", 700, 1400),
           function () {
             setPromptState(
@@ -92406,7 +92472,7 @@
       botMessage(
         shouldStartImmediately
           ? "Great. I’ve got the test details and I’m starting the Workable worker run now."
-          : "Great. I’ve got the test details. Review the Workable queue, then start the test when you’re ready.",
+          : "Great. I’ve got the CV, name, email and phone. Review the Workable jobs, then start the test.",
         humanComposeDelay(
           shouldStartImmediately
             ? "Starting Workable worker."
@@ -92490,6 +92556,184 @@
       focusComposer("Review the SuccessFactors list, then start the test");
     }
 
+    function renderSuccessFactorsTestJobPicker(jobs) {
+      var rows = (jobs || []).slice(0, 4).map(function (job, index) {
+        var title = cleanMessageText(job.title || "Untitled role");
+        var company = cleanMessageText(job.company || "Company");
+        var location = cleanMessageText(job.location || "");
+        var host = getApplicationUrlHost(
+          job.applyUrl ||
+            job.applicationUrl ||
+            job.application_url ||
+            job.applicationWorkspaceUrl ||
+            job.application_workspace_url ||
+            ""
+        );
+        return (
+          '<div class="sffc-crm-apply-chat__sf-test-row">' +
+          '<div class="sffc-crm-apply-chat__sf-test-main">' +
+          '<strong>' + escapeHtml(title) + "</strong>" +
+          '<span>' +
+          escapeHtml([company, location].filter(Boolean).join(" · ")) +
+          "</span>" +
+          (host ? '<small>' + escapeHtml(host) + "</small>" : "") +
+          "</div>" +
+          '<button type="button" class="sffc-crm-apply-chat__sf-test-button" data-sffc-successfactors-test-job="' +
+          String(index) +
+          '">Test</button>' +
+          "</div>"
+        );
+      }).join("");
+      return (
+        '<section class="sffc-crm-apply-chat__sf-test-card" data-sffc-successfactors-test-card>' +
+        '<div class="sffc-crm-apply-chat__sf-test-head">' +
+        '<span>SuccessFactors Test</span>' +
+        "<h3>Choose one job to test</h3>" +
+        "<p>Using " +
+        escapeHtml(cleanMessageText(applyOnboardingFullName || "the candidate")) +
+        " · " +
+        escapeHtml(cleanMessageText(applyOnboardingPreferredEmail || "")) +
+        "</p>" +
+        "</div>" +
+        '<div class="sffc-crm-apply-chat__sf-test-list">' +
+        rows +
+        "</div>" +
+        "</section>"
+      );
+    }
+
+    function showSuccessFactorsTestJobPicker() {
+      var jobs = commercialApplyQueueItemsState.slice(0, 4);
+      if (!jobs.length) {
+        botMessage(
+          "I couldn’t find SuccessFactors jobs in the current job table.",
+          humanComposeDelay("No SuccessFactors jobs found.", 700, 1400),
+          function () {
+            focusComposer("Check the feed, then type test successfactors again");
+          }
+        );
+        return;
+      }
+      botMessage(
+        renderSuccessFactorsTestJobPicker(jobs),
+        humanComposeDelay("SuccessFactors test jobs ready.", 700, 1400),
+        function () {
+          setPromptState(
+            "successfactors_test_ready",
+            {
+              other: function () {
+                focusComposer("Click Test beside a SuccessFactors job");
+              },
+            },
+            "Click Test beside a SuccessFactors job",
+            { provider: "successfactors" }
+          );
+          focusComposer("Click Test beside a SuccessFactors job");
+        }
+      );
+    }
+
+    function loadSuccessFactorsTestJobsThen(callback) {
+      fetchActualJobPosts("successfactors", 8, "successfactors")
+        .then(function (items) {
+          var successFactorsItems = (items || []).filter(function (item) {
+            return isSuccessFactorsQueueItem(item || {});
+          });
+          var normalized = successFactorsItems.map(function (item, index) {
+            return normalizeCommercialApplyQueueItem(
+              Object.assign({}, item, {
+                autoSubmitSupported: true,
+                auto_submit_supported: "1",
+                autoSubmitProvider: "successfactors",
+                auto_submit_provider: "successfactors",
+                provider: "successfactors",
+                status: "Ready",
+              }),
+              "Ready"
+            );
+          }).slice(0, 4);
+          commercialApplyQueueItemsState = normalized;
+          commercialApplyQueueCatalogState = normalized.slice(0);
+          if (typeof callback === "function") {
+            callback(normalized);
+          }
+        })
+        .catch(function () {
+          botMessage(
+            "I could not load the SuccessFactors test jobs from WordPress just now.",
+            humanComposeDelay("SuccessFactors test load failed.", 700, 1400),
+            function () {
+              focusComposer("Try test successfactors again");
+            }
+          );
+        });
+    }
+
+    function runSuccessFactorsSingleJobTest(index, button) {
+      var itemIndex = Number(index);
+      var item = commercialApplyQueueItemsState[itemIndex] || null;
+      var queueTask = root.__sffcQueueBrowserApplicationTask || queueBrowserApplicationTask;
+      if (!item || !isSuccessFactorsQueueItem(item)) {
+        botMessage(
+          "That SuccessFactors test job is no longer available. Type test successfactors to reload the list.",
+          humanComposeDelay("SuccessFactors test job missing.", 700, 1400),
+          function () {
+            focusComposer("Type test successfactors to reload");
+          }
+        );
+        return;
+      }
+      if (!currentCvFile || !cleanMessageText(applyOnboardingFullName || "") || !cleanMessageText(applyOnboardingPreferredEmail || "")) {
+        ensureSuccessFactorsTestCandidateDetailsThen(showSuccessFactorsTestJobPicker, {
+          setupOnly: true,
+        });
+        return;
+      }
+      successFactorsAccountPreference = "create";
+      successFactorsAccountPassword = "";
+      if (button) {
+        button.disabled = true;
+        button.textContent = "Testing";
+      }
+      botMessage(
+        "I’m sending this SuccessFactors test job to Railway now.",
+        humanComposeDelay("Queueing SuccessFactors test.", 700, 1400)
+      );
+      queueTask(item)
+        .then(function (data) {
+          var taskId = cleanMessageText((data && data.task_uuid) || "");
+          var message = taskId
+            ? "SuccessFactors test queued in Railway. Task ID: " + taskId + "."
+            : "SuccessFactors test queued in Railway.";
+          botMessage(
+            message,
+            humanComposeDelay(message, 900, 1800),
+            function () {
+              focusComposer("Click another Test button or check Railway");
+            }
+          );
+          if (button) {
+            button.textContent = "Queued";
+          }
+        })
+        .catch(function (error) {
+          var message =
+            cleanMessageText((error && error.message) || "") ||
+            "I could not queue that SuccessFactors test job.";
+          if (button) {
+            button.disabled = false;
+            button.textContent = "Test";
+          }
+          botMessage(
+            message,
+            humanComposeDelay(message, 900, 1800),
+            function () {
+              focusComposer("Try the same job again or pick another one");
+            }
+          );
+        });
+    }
+
     function ensureSuccessFactorsTestCandidateDetailsThen(callback, options) {
       var setupOnly = !!(options && options.setupOnly);
       if (!isSuccessFactorsAdminTestEnabled()) {
@@ -92500,7 +92744,7 @@
       }
       if (!currentCvFile) {
         botMessage(
-          "Upload the test CV first, then click Start Auto Apply again.",
+          "Upload the test CV first. After that I’ll ask for the name and email, then show SuccessFactors jobs to test.",
           humanComposeDelay("Upload the test CV first.", 700, 1400),
           function () {
             focusComposer("Upload the test CV");
@@ -92648,7 +92892,27 @@
       );
       fetchActualJobPosts("workable", 12, "workable")
         .then(function (items) {
-          var normalized = (items || []).map(function (item, index) {
+          var workableItems = (items || []).filter(function (item) {
+            var provider = cleanMessageText(
+              item.autoSubmitProvider ||
+                item.auto_submit_provider ||
+                item.provider ||
+                item.sourcePlatform ||
+                item.source_platform ||
+                ""
+            );
+            var applyUrl = cleanMessageText(
+              item.applyUrl ||
+                item.apply_url ||
+                item.applicationUrl ||
+                item.application_url ||
+                item.applicationWorkspaceUrl ||
+                item.application_workspace_url ||
+                ""
+            );
+            return /workable/i.test(provider) || /(?:^|\.)workable\.com/i.test(applyUrl);
+          });
+          var normalized = workableItems.map(function (item, index) {
             return normalizeCommercialApplyQueueItem(
               Object.assign({}, item, {
                 autoSubmitSupported: true,
@@ -92677,7 +92941,7 @@
           botMessage(
             "I found " +
               normalized.length +
-              " Workable jobs for this test. Before I show the run card, I need the candidate details the worker will use.",
+              " Workable jobs for this test. I’ll collect the CV, name, email and phone first, then show the jobs.",
             humanComposeDelay("Workable jobs loaded.", 700, 1400),
             function () {
               ensureWorkableTestCandidateDetailsThen(showWorkableAdminTestReadyCard, {
@@ -92712,71 +92976,30 @@
       successFactorsAccountPreference = "";
       successFactorsAccountPassword = "";
       successFactorsProfileDraft = {};
+      applyOnboardingFullName = "";
+      applyOnboardingPreferredEmail = "";
+      applyOnboardingEmailSuggestion = "";
+      currentCvFile = null;
+      currentCvPreviewAsset = null;
+      currentCvPageCount = 0;
+      capturedCvText = "";
       commercialApplyQueueActivated = false;
-      commercialApplyQueueDetailsMode = true;
-      commercialApplyQueueInitialized = true;
+      commercialApplyQueueDetailsMode = false;
+      commercialApplyQueueInitialized = false;
       commercialApplyQueueActiveTab = "shortlist";
       commercialApplyQueueFilter = "all";
+      commercialApplyQueueItemsState = [];
+      commercialApplyQueueCatalogState = [];
       jobsWorkspaceSearchQuery = "";
       botMessage(
-        "I’m loading current SuccessFactors jobs for an admin submission test.",
-        humanComposeDelay("Loading SuccessFactors jobs.", 700, 1400)
+        "Let’s run a focused SuccessFactors test. I’ll collect the CV, name and email first, then show a few SuccessFactors jobs with Test buttons.",
+        humanComposeDelay("Starting SuccessFactors test setup.", 700, 1400),
+        function () {
+          ensureSuccessFactorsTestCandidateDetailsThen(function () {
+            loadSuccessFactorsTestJobsThen(showSuccessFactorsTestJobPicker);
+          }, { setupOnly: true });
+        }
       );
-      fetchActualJobPosts("successfactors", 12, "successfactors")
-        .then(function (items) {
-          var successFactorsItems = (items || []).filter(function (item) {
-            return isSuccessFactorsQueueItem(item || {});
-          });
-          var normalized = successFactorsItems.map(function (item, index) {
-            return normalizeCommercialApplyQueueItem(
-              Object.assign({}, item, {
-                autoSubmitSupported: true,
-                auto_submit_supported: "1",
-                autoSubmitProvider: "successfactors",
-                auto_submit_provider: "successfactors",
-                provider: "successfactors",
-                status: index === 0 ? "Ready" : "In Queue",
-              }),
-              index === 0 ? "Ready" : "In Queue"
-            );
-          });
-          commercialApplyQueueItemsState = normalized;
-          rememberCommercialApplyQueueCatalogItems(normalized);
-          if (!normalized.length) {
-            botMessage(
-              "I couldn’t find SuccessFactors jobs in the current job table.",
-              humanComposeDelay("No SuccessFactors jobs found.", 700, 1400),
-              function () {
-                focusComposer("Check the feed, then type test successfactors again");
-              }
-            );
-            return;
-          }
-          botMessage(
-            renderCommercialApplyQueueCard(normalized, {
-              active: false,
-              showButton: true,
-              eyebrow: "SuccessFactors admin test",
-              title: "Choose the jobs to submit through Railway",
-            }),
-            humanComposeDelay("SuccessFactors jobs loaded.", 700, 1400),
-            function () {
-              ensureSuccessFactorsTestCandidateDetailsThen(
-                setSuccessFactorsTestReadyPrompt,
-                { setupOnly: true }
-              );
-            }
-          );
-        })
-        .catch(function () {
-          botMessage(
-            "I could not load the SuccessFactors test jobs from WordPress just now.",
-            humanComposeDelay("SuccessFactors test load failed.", 700, 1400),
-            function () {
-              focusComposer("Try test successfactors again");
-            }
-          );
-        });
       return true;
     }
 
@@ -103142,6 +103365,9 @@
         detectIntent: function (value) {
           return detectIntent(value || "");
         },
+        getPromptState: function () {
+          return promptState || "";
+        },
         classifyResponseExpectation: function (value, context) {
           return classifyResponseExpectation(value || "", context || {});
         },
@@ -103283,8 +103509,28 @@
         startSuccessFactorsAdminTestFlow: function () {
           return startSuccessFactorsAdminTestFlow();
         },
+        continueSuccessFactorsTestSetup: function () {
+          return ensureSuccessFactorsTestCandidateDetailsThen(function () {
+            loadSuccessFactorsTestJobsThen(showSuccessFactorsTestJobPicker);
+          }, { setupOnly: true });
+        },
         isSuccessFactorsAdminTestEnabled: function () {
           return isSuccessFactorsAdminTestEnabled();
+        },
+        startWorkableAdminTestFlow: function () {
+          return startWorkableAdminTestFlow();
+        },
+        continueWorkableAdminTestAfterCvForTest: function () {
+          var callback = workableTestPendingDetailsCallback || showWorkableAdminTestReadyCard;
+          var options = workableTestPendingDetailsOptions || { startImmediately: false };
+          workableTestAwaitingCv = false;
+          workableTestPendingDetailsCallback = null;
+          workableTestPendingDetailsOptions = null;
+          ensureWorkableTestCandidateDetailsThen(callback, options);
+          return true;
+        },
+        isWorkableAdminTestEnabled: function () {
+          return isWorkableAdminTestEnabled();
         },
       };
     }
@@ -103910,6 +104156,9 @@
       var successFactorsAccountRouteChoice = event.target.closest(
         "[data-sffc-successfactors-account-route]"
       );
+      var successFactorsTestJob = event.target.closest(
+        "[data-sffc-successfactors-test-job]"
+      );
       if (earlyUploadCvCta) {
         event.preventDefault();
         if (fileInput) {
@@ -104083,6 +104332,14 @@
             successFactorsAccountRouteChoice.textContent || successFactorsRoute
           );
         }
+        return;
+      }
+      if (successFactorsTestJob) {
+        event.preventDefault();
+        runSuccessFactorsSingleJobTest(
+          successFactorsTestJob.getAttribute("data-sffc-successfactors-test-job"),
+          successFactorsTestJob
+        );
         return;
       }
       if (greenhouseCopyAnswer) {
@@ -104878,10 +105135,9 @@
               "Okay, I have the test CV now.",
               humanComposeDelay("CV captured for SuccessFactors test.", 700, 1400),
               function () {
-                ensureSuccessFactorsTestCandidateDetailsThen(
-                  setSuccessFactorsTestReadyPrompt,
-                  { setupOnly: true }
-                );
+                ensureSuccessFactorsTestCandidateDetailsThen(function () {
+                  loadSuccessFactorsTestJobsThen(showSuccessFactorsTestJobPicker);
+                }, { setupOnly: true });
               }
             );
           });

@@ -3209,6 +3209,171 @@ async function uploadWorkdayResume(page, cvPath) {
   };
 }
 
+function buildWorkdayApplicationQuestionRepairItems(task) {
+  const answers = getApplicationAnswers(task);
+  const get = (patterns) => answerByPatterns(answers, patterns);
+  return [
+    { kind: "textarea", label: "motivation", patterns: [/why do you want to apply/i], answer: get([/why do you want to apply/, /motivation/, /why.*blackstone/]) },
+    { kind: "choice", label: "work_authorization", patterns: [/legally authorized to work/i, /employment eligibility/i], answer: get([/legally authorized/, /work authorized/, /employment authorization/]) },
+    { kind: "choice", label: "sponsorship", patterns: [/require blackstone to sponsor/i, /sponsor.*employment authorization/i, /visa/i], answer: get([/require.*sponsor/, /sponsorship/, /visa/]) },
+    { kind: "choice", label: "political_self_state", patterns: [/have you donated.*state or local political campaign/i], answer: get([/have you donated.*state or local political campaign/, /political.*self.*state/]) },
+    { kind: "choice", label: "political_spouse_state", patterns: [/has your spouse donated.*state or local political campaign/i], answer: get([/spouse donated.*state or local political campaign/, /political.*spouse.*state/]) },
+    { kind: "choice", label: "political_self_federal", patterns: [/have you donated.*candidate for any federal office/i], answer: get([/have you donated.*candidate for any federal office/, /political.*self.*federal/]) },
+    { kind: "choice", label: "political_spouse_federal", patterns: [/has your spouse donated.*candidate for any federal office/i], answer: get([/spouse donated.*candidate for any federal office/, /political.*spouse.*federal/]) },
+    { kind: "choice", label: "political_self_party", patterns: [/have you donated.*political party or political action committee/i], answer: get([/have you donated.*political party/, /political.*self.*party/]) },
+    { kind: "choice", label: "political_spouse_party", patterns: [/has your spouse donated.*political party or political action committee/i], answer: get([/spouse donated.*political party/, /political.*spouse.*party/]) },
+    { kind: "choice", label: "previous_blackstone_employment", patterns: [/ever been employed by blackstone/i], answer: get([/ever been employed by blackstone/, /previous.*blackstone/]) },
+    { kind: "choice", label: "relatives_blackstone", patterns: [/relatives or members of your household employed by blackstone/i], answer: get([/relatives.*blackstone/, /household.*blackstone/]) },
+    { kind: "choice", label: "relatives_deloitte", patterns: [/relatives or members of your household employed by deloitte/i], answer: get([/relatives.*deloitte/, /household.*deloitte/]) },
+    { kind: "choice", label: "family_business_relationship", patterns: [/spouse, sibling, parent.*child currently/i, /material business relationship/i], answer: get([/spouse.*sibling.*parent.*child/, /family.*business.*relationship/, /material business relationship/]) },
+    { kind: "choice", label: "government_official_or_affiliated", patterns: [/government official/i, /related to or affiliated with blackstone/i], answer: get([/government official/, /affiliated with blackstone/]) },
+    { kind: "choice", label: "outside_business_activities", patterns: [/outside business activities/i, /board affiliations/i, /consulting engagements/i], answer: get([/outside business activities/, /board affiliations/, /consulting engagements/]) },
+    { kind: "checkbox", label: "business_groups", patterns: [/opportunities are available.*business groups/i, /select those you are most interested/i], answer: get([/business groups/, /business units/, /opportunities.*interested/]) },
+  ].filter((item) => answerHasValue(item.answer));
+}
+
+async function repairWorkdayApplicationQuestionsPage(page, task) {
+  const repairItems = buildWorkdayApplicationQuestionRepairItems(task);
+  if (!repairItems.length) {
+    return { attempted: 0, filled: 0, items: [] };
+  }
+  return page.evaluate(async (items) => {
+    const clean = (value) => String(value || "").replace(/\s+/g, " ").trim();
+    const normalize = (value) => clean(value).toLowerCase();
+    const compact = (value) => normalize(value).replace(/[^a-z0-9]+/g, "");
+    const isVisible = (element) => {
+      if (!element) return false;
+      const style = window.getComputedStyle(element);
+      const rect = element.getBoundingClientRect();
+      return style.visibility !== "hidden" && style.display !== "none" && rect.width > 0 && rect.height > 0;
+    };
+    const setNativeValue = (element, value) => {
+      const prototype = element instanceof HTMLTextAreaElement ? HTMLTextAreaElement.prototype : HTMLInputElement.prototype;
+      const descriptor = Object.getOwnPropertyDescriptor(prototype, "value");
+      element.focus();
+      if (descriptor && descriptor.set) {
+        descriptor.set.call(element, "");
+        descriptor.set.call(element, value);
+      } else {
+        element.value = value;
+      }
+      element.dispatchEvent(new Event("input", { bubbles: true }));
+      element.dispatchEvent(new Event("change", { bubbles: true }));
+      element.dispatchEvent(new Event("blur", { bubbles: true }));
+    };
+    const findScope = (patterns) => {
+      const regexes = patterns.map((source) => new RegExp(source, "i"));
+      const scopes = [];
+      const controls = Array.from(document.querySelectorAll("textarea, input:not([type='hidden']), button, [role='button'], [role='combobox']"))
+        .filter(isVisible);
+      for (const control of controls) {
+        let cursor = control;
+        for (let depth = 0; cursor && depth < 8; depth += 1) {
+          const text = clean(cursor.textContent || "");
+          if (text && regexes.some((regex) => regex.test(text))) {
+            scopes.push(cursor);
+            break;
+          }
+          cursor = cursor.parentElement;
+        }
+      }
+      return Array.from(new Set(scopes))
+        .sort((a, b) => clean(a.textContent || "").length - clean(b.textContent || "").length)[0] || null;
+    };
+    const score = (answer, optionText) => {
+      const wanted = normalize(answer);
+      const option = normalize(optionText);
+      const wantedCompact = compact(answer);
+      const optionCompact = compact(optionText);
+      if (!wanted || !option) return 0;
+      if (option === wanted || optionCompact === wantedCompact) return 100;
+      if (/^no$/.test(wanted) && /^no\b/.test(option)) return 94;
+      if (/^yes$/.test(wanted) && /^yes\b/.test(option)) return 94;
+      if (wantedCompact && optionCompact.includes(wantedCompact)) return 86;
+      if (wantedCompact && wantedCompact.includes(optionCompact)) return 82;
+      return 0;
+    };
+    const clickChoice = async (scope, answer) => {
+      const opener = Array.from(scope.querySelectorAll("button, [role='button'], [role='combobox'], input"))
+        .filter(isVisible)
+        .find((control) => /select one|choose|yes|no/i.test(clean(`${control.textContent || ""} ${control.value || ""} ${control.getAttribute("aria-label") || ""}`)));
+      if (!opener) return false;
+      opener.scrollIntoView({ block: "center", inline: "nearest" });
+      opener.click();
+      if (opener.matches("input")) {
+        setNativeValue(opener, answer);
+      }
+      await new Promise((resolve) => setTimeout(resolve, 300));
+      const option = Array.from(document.querySelectorAll("[role='option'], li, button, [role='menuitem']"))
+        .filter(isVisible)
+        .map((candidate) => ({ candidate, score: score(answer, `${candidate.textContent || ""} ${candidate.getAttribute("aria-label") || ""}`) }))
+        .filter((entry) => entry.score > 0)
+        .sort((a, b) => b.score - a.score)[0]?.candidate || null;
+      if (!option) return false;
+      option.scrollIntoView({ block: "center", inline: "nearest" });
+      option.click();
+      await new Promise((resolve) => setTimeout(resolve, 180));
+      return true;
+    };
+    const clickCheckboxes = (answer) => {
+      const values = Array.isArray(answer) ? answer : clean(answer).split(/\s*,\s*|\s*;\s*/).filter(Boolean);
+      let clicked = 0;
+      for (const value of values) {
+        const wanted = compact(value);
+        const label = Array.from(document.querySelectorAll("label, span"))
+          .filter(isVisible)
+          .filter((element) => compact(element.textContent || "") === wanted)
+          .sort((a, b) => clean(a.textContent || "").length - clean(b.textContent || "").length)[0] || null;
+        const input = label?.getAttribute("for")
+          ? document.getElementById(label.getAttribute("for"))
+          : label?.closest("label")?.querySelector("input[type='checkbox']") ||
+            label?.parentElement?.querySelector("input[type='checkbox']") ||
+            Array.from(document.querySelectorAll("input[type='checkbox']")).find((checkbox) => {
+              const scopeText = clean(checkbox.closest("label, div, li, fieldset")?.textContent || "");
+              return compact(scopeText) === wanted;
+            });
+        if (input && input.type === "checkbox") {
+          if (!input.checked) {
+            (label || input).click();
+          }
+          clicked += input.checked ? 1 : 0;
+        }
+      }
+      return clicked > 0;
+    };
+    let filled = 0;
+    const diagnostics = [];
+    for (const item of items) {
+      const answer = Array.isArray(item.answer) ? item.answer[0] : item.answer;
+      const scope = findScope(item.patterns);
+      let ok = false;
+      if (item.kind === "textarea" && scope) {
+        const field = Array.from(scope.querySelectorAll("textarea")).filter(isVisible)[0] || null;
+        if (field) {
+          setNativeValue(field, answer);
+          ok = clean(field.value || "") !== "";
+        }
+      } else if (item.kind === "choice" && scope) {
+        ok = await clickChoice(scope, answer);
+      } else if (item.kind === "checkbox") {
+        ok = clickCheckboxes(item.answer);
+      }
+      if (ok) filled += 1;
+      diagnostics.push({
+        label: item.label,
+        kind: item.kind,
+        scope_found: Boolean(scope),
+        filled: ok,
+        scope_text: clean((scope && scope.textContent) || "").slice(0, 160),
+      });
+    }
+    return { attempted: items.length, filled, items: diagnostics };
+  }, repairItems.map((item) => ({
+    ...item,
+    patterns: item.patterns.map((pattern) => pattern.source),
+  }))).catch((error) => ({ attempted: repairItems.length, filled: 0, error: error?.message || String(error), items: [] }));
+}
+
 async function fillWorkdayCoreCandidateFields(page, candidate) {
   const firstName = normalizePersonNameCase(candidate.firstName);
   const lastName = normalizePersonNameCase(candidate.lastName);
@@ -4486,6 +4651,25 @@ async function advanceWorkdaySteps(page, task, candidate, apiSchema = null, pref
       filled: stepAnswers.filled,
       timed_out: Boolean(stepAnswers.timeout || stepAnswers.field_diagnostics?.some((entry) => entry.timeout)),
     }));
+    if (stage === "application_questions" && state.field_count > 0) {
+      debugLog(task.task_uuid || "task", "workday_application_questions_repair_start", JSON.stringify({ step: index + 1 }));
+      const questionnaireRepair = await withTimeout(
+        repairWorkdayApplicationQuestionsPage(page, task),
+        30000,
+        { attempted: 0, filled: 0, timeout: true, items: [] }
+      ).catch((error) => ({ attempted: 0, filled: 0, error: error?.message || String(error), items: [] }));
+      debugLog(task.task_uuid || "task", "workday_application_questions_repair_result", JSON.stringify(questionnaireRepair));
+      if (questionnaireRepair.attempted || questionnaireRepair.filled) {
+        stepAnswers.attempted += questionnaireRepair.attempted || 0;
+        stepAnswers.filled += questionnaireRepair.filled || 0;
+        stepAnswers.choice_attempted += (questionnaireRepair.items || []).filter((item) => item.kind !== "textarea").length;
+        stepAnswers.choice_filled += (questionnaireRepair.items || []).filter((item) => item.kind !== "textarea" && item.filled).length;
+        stepAnswers.field_diagnostics = [
+          ...(stepAnswers.field_diagnostics || []),
+          { workday_application_questions_repair: questionnaireRepair },
+        ];
+      }
+    }
     answersFilled = {
       attempted: answersFilled.attempted + stepAnswers.attempted,
       filled: answersFilled.filled + stepAnswers.filled,
@@ -4941,6 +5125,22 @@ function getAnswerForQuestion(question, answers) {
   const labelKey = compact(label);
   if (!labelKey) {
     return "";
+  }
+  const selectedGroupOption = Object.entries(answers || {}).find(([key, value]) => {
+    if (!answerHasValue(value)) {
+      return false;
+    }
+    const keyCompact = compact(key);
+    if (!/businessgroups|businessunits|opportunities|interested/i.test(keyCompact)) {
+      return false;
+    }
+    const values = Array.isArray(value)
+      ? value
+      : cleanText(value).split(/\s*,\s*|\s*;\s*/).filter(Boolean);
+    return values.some((entry) => compact(entry) === labelKey);
+  });
+  if (selectedGroupOption) {
+    return "Yes";
   }
   const matched = Object.entries(answers || {}).find(([key, value]) => {
     if (!answerHasValue(value)) {
