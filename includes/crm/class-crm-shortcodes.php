@@ -10635,6 +10635,18 @@ CSS;
             }));
         }
 
+        private function xpath_literal($value)
+        {
+            $value = (string) $value;
+            if (strpos($value, '"') === false) {
+                return '"' . $value . '"';
+            }
+            if (strpos($value, "'") === false) {
+                return "'" . $value . "'";
+            }
+            return 'concat("' . str_replace('"', '", \'"\', "', $value) . '")';
+        }
+
         private function fetch_crm_apply_chat_greenhouse_schema_from_hosted_url($jobs_post_id)
         {
             $jobs_post_id = absint($jobs_post_id);
