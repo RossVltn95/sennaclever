@@ -909,6 +909,63 @@ async function main() {
     });
   }
 
+  const successFactorsSetupConversationFlow = await page.evaluate(async () => {
+    const root = document.querySelector("[data-sffc-apply-chat]");
+    const messages = document.querySelector("[data-sffc-apply-chat-messages]");
+    const form = document.querySelector("[data-sffc-apply-chat-composer]");
+    const input = document.querySelector("[data-sffc-apply-chat-input]");
+    const test = root.__sffcApplyChatTest;
+    function submit(value) {
+      input.value = value;
+      form.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
+    }
+    async function waitFor(pattern) {
+      for (let index = 0; index < 40; index += 1) {
+        await new Promise((resolve) => setTimeout(resolve, 250));
+        if (pattern.test(messages.textContent || "")) {
+          return true;
+        }
+      }
+      return false;
+    }
+    test.setCurrentCvFileForTest("successfactors-test-cv.pdf");
+    const startButton = messages.querySelector(
+      "[data-sffc-apply-chat-start-auto-apply]"
+    );
+    if (startButton) {
+      startButton.click();
+    }
+    const askedName = await waitFor(/candidate full name/i);
+    submit("Ross Valentino");
+    const askedEmail = await waitFor(/What email should I use for the SuccessFactors test application/i);
+    submit("rossvltn@gmail.com");
+    const askedConfirm = await waitFor(/Just double-checking - is that rossvltn@gmail\.com/i);
+    return {
+      text: messages.textContent || "",
+      askedName,
+      askedEmail,
+      askedConfirm,
+      enabled: test.isSuccessFactorsAdminTestEnabled(),
+    };
+  });
+
+  if (
+    !successFactorsSetupConversationFlow.enabled ||
+    !successFactorsSetupConversationFlow.askedName ||
+    !successFactorsSetupConversationFlow.askedEmail ||
+    !successFactorsSetupConversationFlow.askedConfirm ||
+    /Send the role, location, or career question/i.test(
+      successFactorsSetupConversationFlow.text
+    ) ||
+    /Send the detail for this step/i.test(successFactorsSetupConversationFlow.text)
+  ) {
+    qualityFailures.push({
+      reason:
+        "successfactors admin test setup did not keep CV/name/email inside the test conversation",
+      successFactorsSetupConversationFlow,
+    });
+  }
+
   const autoApplyQueueFlow = await page.evaluate(async () => {
     const root = document.querySelector("[data-sffc-apply-chat]");
     const messages = document.querySelector("[data-sffc-apply-chat-messages]");

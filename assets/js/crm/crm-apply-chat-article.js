@@ -83787,7 +83787,7 @@
         return false;
       }
       if (
-        /^(greenhouse_security_code|commercial_apply_queue_verification_code|workable_test_ready|workable_test_full_name|workable_test_email|workable_test_confirm_email|workable_test_phone|workable_test_custom_questions|workday_account_route|workday_account_password|successfactors_account_route|successfactors_account_password|successfactors_profile_[a-z_]+|job_search_(?:collect_preferred_email|collect_full_name|confirm_email|check_inbox|email_received|delivery_frequency|reuse_preferred_email|signed_in)|catch_up_collect_full_name|catch_up_collect_email|catch_up_confirm_email|apply_account_email|apply_waiting_for_signup|apply_select_pricing_option|apply_confirm_preferred_email|apply_collect_preferred_email|apply_collect_full_name|apply_employer_question|apply_employer_questions_bulk)$/.test(
+        /^(greenhouse_security_code|commercial_apply_queue_verification_code|workable_test_ready|workable_test_full_name|workable_test_email|workable_test_confirm_email|workable_test_phone|workable_test_custom_questions|successfactors_test_ready|successfactors_test_full_name|successfactors_test_email|successfactors_test_confirm_email|workday_account_route|workday_account_password|successfactors_account_route|successfactors_account_password|successfactors_profile_[a-z_]+|job_search_(?:collect_preferred_email|collect_full_name|confirm_email|check_inbox|email_received|delivery_frequency|reuse_preferred_email|signed_in)|catch_up_collect_full_name|catch_up_collect_email|catch_up_confirm_email|apply_account_email|apply_waiting_for_signup|apply_select_pricing_option|apply_confirm_preferred_email|apply_collect_preferred_email|apply_collect_full_name|apply_employer_question|apply_employer_questions_bulk)$/.test(
           promptKey
         )
       ) {
@@ -83804,7 +83804,7 @@
 
     function isStrictPromptOwnedState(state) {
       var promptKey = String(state || "");
-      return /^(greenhouse_security_code|commercial_apply_queue_verification_code|workable_test_ready|workable_test_full_name|workable_test_email|workable_test_confirm_email|workable_test_phone|workable_test_custom_questions|workday_account_route|workday_account_password|successfactors_account_route|successfactors_account_password|successfactors_profile_[a-z_]+|profile_review_target_role|job_search_(?:similar_roles|location|visa|other_roles|other_roles_text|target_roles_text|anything_missed|anything_missed_text|member_follow_up|matching_cv_follow_up|package_choice)|recruiter_outreach_(?:role|seniority|locations|sectors|targets|outcome)|apply_(?:role_search_type|matching_roles|cv_action_choice|cv_decision|account_check|other_roles_text|qualification_check|qualification_present|qualification_alternative|qualification_alternative_detail|work_authorization_check|cover_letter_check|tailoring_progress_check|tailored_versions|ready_to_start_auto_apply|continue_background|final_questions|final_question_text|highlight_question|highlight_detail|post_application_next)|apply_intro_(?:helpful_mode|home_query_confirm|home_query_correct|home_roles|home_sectors|home_market|application_volume|intro_volume|lane|constraints|highlight_check|highlight_detail|priority)|member_desk_refine_(?:roles|sectors|locations)|review_clarification_check|confirm_recent_role|show_issue_decision|continue_fix|consultant_route_confirm|consultant_route_clarify|direct_apply_cv_review_offer|payment_failure_detail|support_complaint_detail|different_question_detail)$/.test(
+      return /^(greenhouse_security_code|commercial_apply_queue_verification_code|workable_test_ready|workable_test_full_name|workable_test_email|workable_test_confirm_email|workable_test_phone|workable_test_custom_questions|successfactors_test_ready|successfactors_test_full_name|successfactors_test_email|successfactors_test_confirm_email|workday_account_route|workday_account_password|successfactors_account_route|successfactors_account_password|successfactors_profile_[a-z_]+|profile_review_target_role|job_search_(?:similar_roles|location|visa|other_roles|other_roles_text|target_roles_text|anything_missed|anything_missed_text|member_follow_up|matching_cv_follow_up|package_choice)|recruiter_outreach_(?:role|seniority|locations|sectors|targets|outcome)|apply_(?:role_search_type|matching_roles|cv_action_choice|cv_decision|account_check|other_roles_text|qualification_check|qualification_present|qualification_alternative|qualification_alternative_detail|work_authorization_check|cover_letter_check|tailoring_progress_check|tailored_versions|ready_to_start_auto_apply|continue_background|final_questions|final_question_text|highlight_question|highlight_detail|post_application_next)|apply_intro_(?:helpful_mode|home_query_confirm|home_query_correct|home_roles|home_sectors|home_market|application_volume|intro_volume|lane|constraints|highlight_check|highlight_detail|priority)|member_desk_refine_(?:roles|sectors|locations)|review_clarification_check|confirm_recent_role|show_issue_decision|continue_fix|consultant_route_confirm|consultant_route_clarify|direct_apply_cv_review_offer|payment_failure_detail|support_complaint_detail|different_question_detail)$/.test(
         promptKey
       );
     }
@@ -86101,7 +86101,7 @@
           placeholder: getSemanticPromptClarify(promptKey).placeholder,
         };
       }
-      if (/collect_preferred_email|collect_email|account_email/i.test(promptKey)) {
+      if (/collect_preferred_email|collect_email|account_email|test_email/i.test(promptKey)) {
         return {
           type: "email",
           strict: true,
@@ -86500,6 +86500,61 @@
       trimmedValue = cleanMessageText(value || "");
       promptStateValue = String(promptState || "");
 
+      if (
+        /^successfactors_test_(?:full_name|email)$/.test(promptStateValue) &&
+        typeof otherHandler === "function" &&
+        trimmedValue
+      ) {
+        clearResponseWatchdog();
+        promptReplyWasTyped = true;
+        runAfterCurrentThought(function () {
+          otherHandler(value);
+        });
+        return true;
+      }
+
+      if (
+        promptStateValue === "successfactors_test_confirm_email" &&
+        promptHandlers &&
+        trimmedValue
+      ) {
+        clearResponseWatchdog();
+        promptReplyWasTyped = true;
+        runAfterCurrentThought(function () {
+          if (binary === "yes" && typeof yesHandler === "function") {
+            yesHandler(value);
+            return;
+          }
+          if (binary === "no" && typeof noHandler === "function") {
+            noHandler(value);
+            return;
+          }
+          if (typeof otherHandler === "function") {
+            otherHandler(value);
+          }
+        });
+        return true;
+      }
+
+      if (
+        promptStateValue === "successfactors_test_ready" &&
+        promptHandlers &&
+        trimmedValue
+      ) {
+        clearResponseWatchdog();
+        promptReplyWasTyped = true;
+        runAfterCurrentThought(function () {
+          if (binary === "yes" && typeof yesHandler === "function") {
+            yesHandler(value);
+            return;
+          }
+          if (typeof otherHandler === "function") {
+            otherHandler(value);
+          }
+        });
+        return true;
+      }
+
       if (offScriptIntent === "quick_insight_request") {
         clearResponseWatchdog();
         return showExplicitQuickRoleComparison({
@@ -86518,7 +86573,7 @@
       preferSemanticFirst = false;
       simpleBinaryOnlyReply = false;
       operationalPromptState =
-        /^(greenhouse_security_code|commercial_apply_queue_verification_code|workable_test_ready|workable_test_full_name|workable_test_email|workable_test_confirm_email|workable_test_phone|workable_test_custom_questions|workday_account_route|workday_account_password|successfactors_account_route|successfactors_account_password|successfactors_profile_[a-z_]+|job_search_(?:collect_preferred_email|collect_full_name|confirm_email|check_inbox|email_received|delivery_frequency|reuse_preferred_email|signed_in)|catch_up_collect_full_name|catch_up_collect_email|catch_up_confirm_email|apply_account_email|apply_waiting_for_signup|apply_select_pricing_option|apply_confirm_preferred_email|apply_collect_preferred_email|apply_collect_full_name|apply_employer_question|apply_employer_questions_bulk)$/.test(
+        /^(greenhouse_security_code|commercial_apply_queue_verification_code|workable_test_ready|workable_test_full_name|workable_test_email|workable_test_confirm_email|workable_test_phone|workable_test_custom_questions|successfactors_test_ready|successfactors_test_full_name|successfactors_test_email|successfactors_test_confirm_email|workday_account_route|workday_account_password|successfactors_account_route|successfactors_account_password|successfactors_profile_[a-z_]+|job_search_(?:collect_preferred_email|collect_full_name|confirm_email|check_inbox|email_received|delivery_frequency|reuse_preferred_email|signed_in)|catch_up_collect_full_name|catch_up_collect_email|catch_up_confirm_email|apply_account_email|apply_waiting_for_signup|apply_select_pricing_option|apply_confirm_preferred_email|apply_collect_preferred_email|apply_collect_full_name|apply_employer_question|apply_employer_questions_bulk)$/.test(
           promptStateValue
         );
       conversationalPromptState = isConversationalPromptState(promptStateValue);
@@ -86607,6 +86662,8 @@
           promptStateValue === "workable_test_full_name" ||
           promptStateValue === "workable_test_email" ||
           promptStateValue === "workable_test_phone" ||
+          promptStateValue === "successfactors_test_full_name" ||
+          promptStateValue === "successfactors_test_email" ||
           promptStateValue === "workday_account_password" ||
           promptStateValue === "successfactors_account_password" ||
           /^successfactors_profile_[a-z_]+$/.test(promptStateValue)) &&
@@ -92365,7 +92422,7 @@
 
     function setSuccessFactorsTestReadyPrompt() {
       setPromptState(
-        "workable_test_ready",
+        "successfactors_test_ready",
         {
           yes: function (value) {
             echoPromptChoice(value || "Start Auto Apply");
@@ -92413,7 +92470,7 @@
           humanComposeDelay("Need candidate name.", 700, 1400),
           function () {
             setPromptState(
-              "workable_test_full_name",
+              "successfactors_test_full_name",
               {
                 other: function (value) {
                   applyOnboardingFullName = cleanMessageText(value || "");
@@ -92436,7 +92493,7 @@
           humanComposeDelay("Need candidate email.", 700, 1400),
           function () {
             setPromptState(
-              "workable_test_email",
+              "successfactors_test_email",
               {
                 other: function (value) {
                   var email = extractEmailCandidate(value || "");
@@ -92458,7 +92515,7 @@
                     humanComposeDelay("Confirm email.", 700, 1400),
                     function () {
                       setPromptState(
-                        "workable_test_confirm_email",
+                        "successfactors_test_confirm_email",
                         {
                           yes: function (reply) {
                             applyOnboardingPreferredEmail = applyOnboardingEmailSuggestion;
@@ -102978,6 +103035,13 @@
       root.__sffcApplyChatTest = {
         setCapturedCvText: function (text) {
           capturedCvText = cleanMessageText(text || "");
+        },
+        setCurrentCvFileForTest: function (name) {
+          currentCvFile = {
+            name: cleanMessageText(name || "test-cv.pdf"),
+            size: 1024,
+            type: "application/pdf",
+          };
         },
         setRoleContext: function (context) {
           context = context || {};
