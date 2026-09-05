@@ -806,6 +806,23 @@ async function main() {
           entries[key] = String(value);
         });
       }
+      if (entries.action === "sffc_crm_apply_chat_queue_application_task") {
+        window.__sffcSuccessFactorsQueueRequest = {
+          url: String(url || ""),
+          entries,
+        };
+        return Promise.resolve(
+          new Response(
+            JSON.stringify({
+              success: true,
+              data: {
+                task_uuid: "sf-test-task-1",
+              },
+            }),
+            { status: 200, headers: { "Content-Type": "application/json" } }
+          )
+        );
+      }
       window.__sffcSuccessFactorsProviderRequest = {
         url: String(url || ""),
         entries,
@@ -915,6 +932,23 @@ async function main() {
           entries[key] = String(value);
         });
       }
+      if (entries.action === "sffc_crm_apply_chat_queue_application_task") {
+        window.__sffcSuccessFactorsQueueRequest = {
+          url: String(url || ""),
+          entries,
+        };
+        return Promise.resolve(
+          new Response(
+            JSON.stringify({
+              success: true,
+              data: {
+                task_uuid: "sf-test-task-1",
+              },
+            }),
+            { status: 200, headers: { "Content-Type": "application/json" } }
+          )
+        );
+      }
       window.__sffcSuccessFactorsProviderRequest = {
         url: String(url || ""),
         entries,
@@ -1000,6 +1034,10 @@ async function main() {
     const testButtons = Array.from(
       messages.querySelectorAll("[data-sffc-successfactors-test-job]")
     );
+    if (testButtons[0]) {
+      testButtons[0].click();
+    }
+    const queued = await waitFor(/SuccessFactors test queued in Railway/i);
     window.fetch = originalFetch;
     return {
       text: messages.textContent || "",
@@ -1008,10 +1046,13 @@ async function main() {
       askedConfirm,
       showedPicker,
       request: window.__sffcSuccessFactorsProviderRequest,
+      queueRequest: window.__sffcSuccessFactorsQueueRequest,
+      queued,
       queueCount: state.length,
       titles: state.map((item) => item.title),
       hasAutoApplyQueue: !!messages.querySelector(".sffc-crm-apply-chat__apply-queue-card"),
       testButtonCount: testButtons.length,
+      firstButtonText: testButtons[0] ? testButtons[0].textContent : "",
       enabled: test.isSuccessFactorsAdminTestEnabled(),
     };
   });
@@ -1024,8 +1065,20 @@ async function main() {
     !successFactorsSetupConversationFlow.showedPicker ||
     !successFactorsSetupConversationFlow.request ||
     successFactorsSetupConversationFlow.request.entries.provider !== "successfactors" ||
+    !successFactorsSetupConversationFlow.queueRequest ||
+    successFactorsSetupConversationFlow.queueRequest.entries.action !==
+      "sffc_crm_apply_chat_queue_application_task" ||
+    successFactorsSetupConversationFlow.queueRequest.entries.provider !== "successfactors" ||
+    !/create_account":true/.test(
+      successFactorsSetupConversationFlow.queueRequest.entries.successfactors_account || ""
+    ) ||
+    !/allow_generated_password":true/.test(
+      successFactorsSetupConversationFlow.queueRequest.entries.successfactors_account || ""
+    ) ||
+    !successFactorsSetupConversationFlow.queued ||
     successFactorsSetupConversationFlow.queueCount !== 2 ||
     successFactorsSetupConversationFlow.testButtonCount !== 2 ||
+    successFactorsSetupConversationFlow.firstButtonText !== "Queued" ||
     !successFactorsSetupConversationFlow.titles.includes("Investment Analyst") ||
     !successFactorsSetupConversationFlow.titles.includes("Strategy Analyst") ||
     successFactorsSetupConversationFlow.titles.includes("Wrong Provider Role") ||
@@ -1146,11 +1199,77 @@ async function main() {
     const askedPhone = await waitFor(/What phone number should I use for the test application/i);
     await waitForPrompt("workable_test_phone");
     submit("+33782707653");
-    const showedReady = await waitFor(/Review these Workable jobs before Railway starts/i);
+    const showedReady = await waitFor(/Choose one Workable job to test/i);
     await waitForSelector(".sffc-crm-apply-chat__apply-queue-card");
     const state = test.getCommercialApplyQueueState();
     const card = messages.querySelector(".sffc-crm-apply-chat__apply-queue-card");
     const startButton = messages.querySelector("[data-sffc-apply-chat-start-auto-apply]");
+    const testButtons = messages.querySelectorAll("[data-sffc-workable-test-job]");
+    const hasTestColumn = /Role\s*Company\s*Location\s*Status\s*Test/i.test(
+      card ? card.textContent || "" : ""
+    );
+    let queuedWorkerItem = null;
+    let statusRequest = null;
+    let statusPollCount = 0;
+    const originalSetTimeout = window.setTimeout;
+    root.__sffcQueueBrowserApplicationTask = async (item) => {
+      queuedWorkerItem = item;
+      return { task_uuid: "workable-test-task-1" };
+    };
+    window.fetch = async (_url, options) => {
+      const body = options && options.body;
+      const entries = body && typeof body.entries === "function"
+        ? Object.fromEntries(body.entries())
+        : {};
+      if (entries.action === "sffc_crm_apply_chat_application_task_status") {
+        statusPollCount += 1;
+        statusRequest = { entries };
+        return new Response(
+          JSON.stringify({
+            success: true,
+            data: {
+              status: "submitted",
+              uploaded_resume: true,
+              application_answers_attempted: 4,
+              application_answers_filled: 4,
+              application_choice_answers_attempted: 3,
+              application_choice_answers_filled: 3,
+            },
+          }),
+          { status: 200, headers: { "Content-Type": "application/json" } }
+        );
+      }
+      return new Response(JSON.stringify({ success: true, data: {} }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    };
+    window.setTimeout = (callback) => {
+      originalSetTimeout(callback, 0);
+      return 1;
+    };
+    const firstTestButton = messages.querySelector("[data-sffc-workable-test-job='0']");
+    if (firstTestButton) {
+      firstTestButton.click();
+    }
+    await new Promise((resolve) => originalSetTimeout(resolve, 1200));
+    let showedResult = /Workable test result|Railway worker diagnostics/i.test(
+      messages.textContent || ""
+    );
+    if (!showedResult) {
+      showedResult = await waitFor(/Workable test result|Railway worker diagnostics/i);
+    }
+    await new Promise((resolve) => originalSetTimeout(resolve, 1200));
+    const statusTextAfterClick = messages.textContent || "";
+    showedResult =
+      showedResult ||
+      /Workable test result|Railway worker diagnostics/i.test(statusTextAfterClick);
+    const cardAfterClick = messages.querySelector(".sffc-crm-apply-chat__apply-queue-card");
+    const disabledAfterRender = Array.from(
+      messages.querySelectorAll("[data-sffc-workable-test-job]")
+    ).filter((button) => button.disabled).length;
+    window.setTimeout = originalSetTimeout;
+    delete root.__sffcQueueBrowserApplicationTask;
     window.fetch = originalFetch;
     return {
       text: messages.textContent || "",
@@ -1170,6 +1289,15 @@ async function main() {
       ),
       hasCard: !!card,
       hasStartButton: !!startButton,
+      testButtonCount: testButtons.length,
+      hasTestColumn,
+      queuedWorkerItem,
+      statusRequest,
+      statusPollCount,
+      showedResult,
+      hasCardAfterClick: !!cardAfterClick,
+      disabledAfterRender,
+      statusTextAfterClick,
     };
   });
 
@@ -1192,7 +1320,22 @@ async function main() {
       /workable/i.test(provider)
     ) ||
     !workableSetupConversationFlow.hasCard ||
-    !workableSetupConversationFlow.hasStartButton ||
+    workableSetupConversationFlow.hasStartButton ||
+    workableSetupConversationFlow.testButtonCount !== 2 ||
+    !workableSetupConversationFlow.hasTestColumn ||
+    !workableSetupConversationFlow.queuedWorkerItem ||
+    workableSetupConversationFlow.queuedWorkerItem.title !==
+      "Leasing & Tenant Relations Manager" ||
+    !workableSetupConversationFlow.statusRequest ||
+    workableSetupConversationFlow.statusRequest.entries.task_uuid !==
+      "workable-test-task-1" ||
+    workableSetupConversationFlow.statusPollCount < 1 ||
+    !workableSetupConversationFlow.showedResult ||
+    !workableSetupConversationFlow.hasCardAfterClick ||
+    !/Submitted/i.test(workableSetupConversationFlow.statusTextAfterClick) ||
+    !/Railway worker diagnostics/i.test(
+      workableSetupConversationFlow.statusTextAfterClick
+    ) ||
     /Send the role, location, or career question/i.test(
       workableSetupConversationFlow.text
     ) ||

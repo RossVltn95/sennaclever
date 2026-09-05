@@ -14597,7 +14597,7 @@ body.sffc-crm-apply-chat-lock {
 
 .sffc-crm-apply-chat .sffc-crm-apply-chat__apply-queue-row {
   display: grid !important;
-  grid-template-columns: minmax(180px, 2fr) minmax(130px, 1.15fr) minmax(130px, 1.15fr) minmax(112px, auto) !important;
+  grid-template-columns: 34px minmax(180px, 2fr) minmax(130px, 1.15fr) minmax(130px, 1.15fr) minmax(112px, auto) minmax(86px, auto) !important;
   align-items: center !important;
   gap: 16px !important;
   min-height: 52px !important;
@@ -14802,6 +14802,48 @@ body.sffc-crm-apply-chat-lock {
   outline: 0 !important;
 }
 
+.sffc-crm-apply-chat .sffc-crm-apply-chat__apply-queue-test {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 7px !important;
+  min-width: 76px !important;
+  min-height: 34px !important;
+  padding: 7px 13px !important;
+  border: 1px solid #0a66c2 !important;
+  border-radius: 999px !important;
+  background: #ffffff !important;
+  color: #0a66c2 !important;
+  font-size: 12px !important;
+  font-weight: 850 !important;
+  line-height: 1 !important;
+  letter-spacing: 0 !important;
+  text-decoration: none !important;
+  text-transform: none !important;
+  white-space: nowrap !important;
+  cursor: pointer !important;
+  box-shadow: none !important;
+}
+
+.sffc-crm-apply-chat .sffc-crm-apply-chat__apply-queue-test span {
+  display: inline-flex !important;
+  color: inherit !important;
+  font-size: 10px !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+}
+
+.sffc-crm-apply-chat .sffc-crm-apply-chat__apply-queue-test:hover,
+.sffc-crm-apply-chat .sffc-crm-apply-chat__apply-queue-test:focus-visible {
+  background: #eaf4ff !important;
+  outline: 0 !important;
+}
+
+.sffc-crm-apply-chat .sffc-crm-apply-chat__apply-queue-test:disabled {
+  opacity: 0.68 !important;
+  cursor: progress !important;
+}
+
 .sffc-crm-apply-chat .sffc-crm-apply-chat__status-info-modal {
   display: grid !important;
   gap: 12px !important;
@@ -14976,6 +15018,12 @@ body.sffc-crm-apply-chat-lock {
 
   .sffc-crm-apply-chat .sffc-crm-apply-chat__apply-queue-materials {
     justify-content: flex-end !important;
+  }
+
+  .sffc-crm-apply-chat .sffc-crm-apply-chat__apply-queue-test {
+    min-width: 70px !important;
+    min-height: 32px !important;
+    padding: 7px 11px !important;
   }
 
   .sffc-crm-apply-chat .sffc-crm-apply-chat__apply-queue-status {

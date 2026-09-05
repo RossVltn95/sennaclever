@@ -2202,6 +2202,18 @@ async function continueWorkdayDraftFromCandidateHome(page, task, preflight) {
   if (result.clicked_continue) {
     await withTimeout(waitForWorkdayApplicationContent(page), 30000, null).catch(() => {});
     result.state = await withTimeout(getWorkdayVisibleState(page), 10000, {});
+    if (
+      !Number(result.state.field_count || 0) &&
+      !Number(result.state.file_input_count || 0) &&
+      !Number(result.state.upload_control_count || 0)
+    ) {
+      const stepState = await withTimeout(getWorkdayStepState(page), 10000, {});
+      const stage = getWorkdayStageFromState(result.state, stepState);
+      if (["my_information", "my_experience", "application_questions", "voluntary_disclosures", "review"].includes(stage)) {
+        await withTimeout(waitForWorkdayStageControls(page, stage), 35000, null).catch(() => {});
+        result.state = await withTimeout(getWorkdayVisibleState(page), 10000, result.state);
+      }
+    }
     debugLog(debugId, "workday_candidate_home_resume_result", JSON.stringify({
       url: page.url(),
       field_count: result.state.field_count,
@@ -3237,141 +3249,801 @@ async function repairWorkdayApplicationQuestionsPage(page, task) {
   if (!repairItems.length) {
     return { attempted: 0, filled: 0, items: [] };
   }
-  return page.evaluate(async (items) => {
-    const clean = (value) => String(value || "").replace(/\s+/g, " ").trim();
-    const normalize = (value) => clean(value).toLowerCase();
-    const compact = (value) => normalize(value).replace(/[^a-z0-9]+/g, "");
-    const isVisible = (element) => {
-      if (!element) return false;
-      const style = window.getComputedStyle(element);
-      const rect = element.getBoundingClientRect();
-      return style.visibility !== "hidden" && style.display !== "none" && rect.width > 0 && rect.height > 0;
-    };
-    const setNativeValue = (element, value) => {
-      const prototype = element instanceof HTMLTextAreaElement ? HTMLTextAreaElement.prototype : HTMLInputElement.prototype;
-      const descriptor = Object.getOwnPropertyDescriptor(prototype, "value");
-      element.focus();
-      if (descriptor && descriptor.set) {
-        descriptor.set.call(element, "");
-        descriptor.set.call(element, value);
-      } else {
-        element.value = value;
+  let filled = 0;
+  const diagnostics = [];
+  for (const item of repairItems) {
+    const answer = Array.isArray(item.answer) ? item.answer[0] : item.answer;
+    let result = { found: false, filled: false, scope_text: "" };
+    try {
+      if (item.kind === "textarea") {
+        result = await withTimeout(fillWorkdayTextareaByQuestionPatterns(page, item.patterns, answer), 5000, result);
+      } else if (item.kind === "choice") {
+        result = await withTimeout(selectWorkdayDropdownByQuestionPatterns(page, item.patterns, answer), 4500, result);
+      } else if (item.kind === "checkbox") {
+        result = await withTimeout(clickWorkdayCheckboxesByAnswer(page, item.answer), 5000, result);
       }
-      element.dispatchEvent(new Event("input", { bubbles: true }));
-      element.dispatchEvent(new Event("change", { bubbles: true }));
-      element.dispatchEvent(new Event("blur", { bubbles: true }));
-    };
-    const findScope = (patterns) => {
-      const regexes = patterns.map((source) => new RegExp(source, "i"));
-      const scopes = [];
-      const controls = Array.from(document.querySelectorAll("textarea, input:not([type='hidden']), button, [role='button'], [role='combobox']"))
-        .filter(isVisible);
+    } catch (error) {
+      result = {
+        found: Boolean(result.found),
+        filled: false,
+        error: error?.message || String(error),
+        scope_text: result.scope_text || "",
+      };
+    }
+    if (result.filled) {
+      filled += 1;
+    }
+    diagnostics.push({
+      label: item.label,
+      kind: item.kind,
+      answer_present: answerHasValue(item.answer),
+      scope_found: Boolean(result.found),
+      filled: Boolean(result.filled),
+      scope_text: cleanText(result.scope_text || "").slice(0, 160),
+      error: result.error || undefined,
+    });
+    await page.keyboard.press("Escape").catch(() => {});
+    await new Promise((resolve) => setTimeout(resolve, 250));
+  }
+  return { attempted: repairItems.length, filled, items: diagnostics };
+}
+
+async function findWorkdayQuestionControl(page, patterns, kind) {
+  const patternSources = (patterns || []).map((pattern) => pattern.source || String(pattern)).filter(Boolean);
+  if (!patternSources.length) {
+    return { element: null, scopeText: "" };
+  }
+  const handle = await page.evaluateHandle(
+    ({ sources, kind: controlKind }) => {
+      const clean = (value) => String(value || "").replace(/\s+/g, " ").trim();
+      const visible = (element) => {
+        if (!element) return false;
+        const style = window.getComputedStyle(element);
+        const rect = element.getBoundingClientRect();
+        return (
+          style.visibility !== "hidden" &&
+          style.display !== "none" &&
+          rect.width > 0 &&
+          rect.height > 0 &&
+          !element.disabled &&
+          element.getAttribute("aria-disabled") !== "true"
+        );
+      };
+      const rejectScopeText = (text) => /^errors and alerts found\b|^error[-\s]/i.test(clean(text));
+      const regexes = sources.map((source) => new RegExp(source, "i"));
+      const controls = Array.from(
+        document.querySelectorAll("textarea, input:not([type='hidden']), button, [role='button'], [role='combobox'], [aria-haspopup='listbox']")
+      ).filter(visible);
+      const candidates = [];
       for (const control of controls) {
+        const tag = control.tagName;
+        const type = control.type || "";
+        const ownText = clean(`${control.textContent || ""} ${control.value || ""} ${control.getAttribute("aria-label") || ""}`);
+        if (controlKind === "textarea" && tag !== "TEXTAREA") {
+          continue;
+        }
+        if (controlKind === "choice") {
+          const choiceLike =
+            control.getAttribute("role") === "combobox" ||
+            control.getAttribute("aria-haspopup") === "listbox" ||
+            /select|prompt|questionnaire/i.test(`${control.id || ""} ${control.name || ""} ${control.getAttribute("data-automation-id") || ""}`) ||
+            /select one|choose|yes|no/i.test(ownText);
+          if (!choiceLike || /^(file|radio|checkbox|submit)$/i.test(type)) {
+            continue;
+          }
+        }
         let cursor = control;
-        for (let depth = 0; cursor && depth < 8; depth += 1) {
+        for (let depth = 0; cursor && depth < 10; depth += 1) {
           const text = clean(cursor.textContent || "");
+          if (text && rejectScopeText(text)) {
+            break;
+          }
           if (text && regexes.some((regex) => regex.test(text))) {
-            scopes.push(cursor);
+            const hasSelect = /select one|choose|yes|no/i.test(text) || /select one|choose|yes|no/i.test(ownText);
+            const hasTextarea = Boolean(cursor.querySelector("textarea")) || tag === "TEXTAREA";
+            const fieldish =
+              cursor.matches?.("[data-automation-id*='formField'], fieldset, [role='group']") ||
+              /formField|form-field|questionnaire/i.test(`${cursor.className || ""} ${cursor.getAttribute("data-automation-id") || ""}`);
+            const score =
+              (fieldish ? 60 : 0) +
+              (controlKind === "choice" && hasSelect ? 90 : 0) +
+              (controlKind === "textarea" && hasTextarea ? 90 : 0) -
+              Math.min(text.length / 50, 40) -
+              depth;
+            candidates.push({ control, scopeText: text, score });
             break;
           }
           cursor = cursor.parentElement;
         }
       }
-      return Array.from(new Set(scopes))
-        .sort((a, b) => clean(a.textContent || "").length - clean(b.textContent || "").length)[0] || null;
+      candidates.sort((a, b) => b.score - a.score);
+      return candidates[0] || null;
+    },
+    { sources: patternSources, kind }
+  );
+  const propertyHandle = await handle.getProperty("control").catch(() => null);
+  const element = propertyHandle?.asElement() || null;
+  const scopeText = await handle.getProperty("scopeText").then((property) => property.jsonValue()).catch(() => "");
+  if (propertyHandle && !element) {
+    await propertyHandle.dispose().catch(() => {});
+  }
+  await handle.dispose().catch(() => {});
+  return { element, scopeText };
+}
+
+async function fillWorkdayTextareaByQuestionPatterns(page, patterns, answer) {
+  const value = cleanText(answer);
+  if (!value) {
+    return { found: false, filled: false, scope_text: "" };
+  }
+  const { element, scopeText } = await findWorkdayQuestionControl(page, patterns, "textarea");
+  if (!element) {
+    return { found: false, filled: false, scope_text: "" };
+  }
+  const filled = await fillInputHandleWithVerification(page, element, value).catch(() => false);
+  await element.dispose().catch(() => {});
+  return { found: true, filled: Boolean(filled), scope_text: scopeText };
+}
+
+async function selectWorkdayDropdownByQuestionPatterns(page, patterns, answer) {
+  const aliases = (Array.isArray(answer) ? answer : [answer]).map(cleanText).filter(Boolean);
+  const value = aliases[0] || "";
+  if (!aliases.length) {
+    return { found: false, filled: false, scope_text: "" };
+  }
+  const { element, scopeText } = await findWorkdayQuestionControl(page, patterns, "choice");
+  if (!element) {
+    const opened = await openWorkdayPromptByQuestionPatterns(page, patterns);
+    const filledFromPrompt = opened
+      ? await selectVisibleWorkdayOption(page, aliases).catch(() => false)
+      : false;
+    return { found: Boolean(opened), filled: Boolean(filledFromPrompt), scope_text: "" };
+  }
+  await element.evaluate((control) => control.scrollIntoView({ block: "center", inline: "nearest" })).catch(() => {});
+  await element.click().catch(() => {});
+  const isInput = await element.evaluate((control) => control.tagName === "INPUT").catch(() => false);
+  if (isInput) {
+    await fillInputHandleWithVerification(page, element, value).catch(() => false);
+  }
+  await new Promise((resolve) => setTimeout(resolve, isInput ? 700 : 350));
+  const filled =
+    (await selectVisibleWorkdayOption(page, aliases).catch(() => false)) ||
+    (await openWorkdayDropdownNearQuestionLabel(page, patterns).then((opened) =>
+      opened ? selectVisibleWorkdayOption(page, aliases) || selectVisibleWorkdayOptOutOption(page) : false
+    ).catch(() => false)) ||
+    (await openFocusedWorkdayDropdownAndSelect(page, aliases).catch(() => false)) ||
+    (await openWorkdayPromptByQuestionPatterns(page, patterns).then((opened) =>
+      opened ? selectVisibleWorkdayOption(page, aliases) || openFocusedWorkdayDropdownAndSelect(page, aliases) : false
+    ).catch(() => false)) ||
+    (await openWorkdayQuestionDropdownByPatterns(page, patterns).then((opened) =>
+      opened ? selectVisibleWorkdayOption(page, aliases) || openFocusedWorkdayDropdownAndSelect(page, aliases) : false
+    ).catch(() => false)) ||
+    (await selectVisibleWorkdayOption(page, aliases.map((alias) => (alias === "Yes" ? "Yes" : alias === "No" ? "No" : alias))).catch(() => false));
+  await element.dispose().catch(() => {});
+  return { found: true, filled: Boolean(filled), scope_text: scopeText };
+}
+
+async function openWorkdayDropdownNearQuestionLabel(page, patterns) {
+  const patternSources = (patterns || []).map((pattern) => pattern.source || String(pattern)).filter(Boolean);
+  if (!patternSources.length) {
+    return false;
+  }
+  const point = await page.evaluate((sources) => {
+    const clean = (value) => String(value || "").replace(/\s+/g, " ").trim();
+    const visible = (element) => {
+      if (!element) return false;
+      const style = window.getComputedStyle(element);
+      const rect = element.getBoundingClientRect();
+      return style.visibility !== "hidden" && style.display !== "none" && rect.width > 0 && rect.height > 0;
     };
-    const score = (answer, optionText) => {
-      const wanted = normalize(answer);
-      const option = normalize(optionText);
-      const wantedCompact = compact(answer);
-      const optionCompact = compact(optionText);
-      if (!wanted || !option) return 0;
-      if (option === wanted || optionCompact === wantedCompact) return 100;
-      if (/^no$/.test(wanted) && /^no\b/.test(option)) return 94;
-      if (/^yes$/.test(wanted) && /^yes\b/.test(option)) return 94;
-      if (wantedCompact && optionCompact.includes(wantedCompact)) return 86;
-      if (wantedCompact && wantedCompact.includes(optionCompact)) return 82;
-      return 0;
-    };
-    const clickChoice = async (scope, answer) => {
-      const opener = Array.from(scope.querySelectorAll("button, [role='button'], [role='combobox'], input"))
-        .filter(isVisible)
-        .find((control) => /select one|choose|yes|no/i.test(clean(`${control.textContent || ""} ${control.value || ""} ${control.getAttribute("aria-label") || ""}`)));
-      if (!opener) return false;
-      opener.scrollIntoView({ block: "center", inline: "nearest" });
-      opener.click();
-      if (opener.matches("input")) {
-        setNativeValue(opener, answer);
+    const regexes = sources.map((source) => new RegExp(source, "i"));
+    const labels = Array.from(document.querySelectorAll("label, span, div"))
+      .filter(visible)
+      .map((element) => ({ element, text: clean(element.textContent || ""), rect: element.getBoundingClientRect() }))
+      .filter((entry) => {
+        if (!entry.text || /^error[-\s]|errors found|errors and alerts/i.test(entry.text)) {
+          return false;
+        }
+        if (!regexes.some((regex) => regex.test(entry.text))) {
+          return false;
+        }
+        return entry.text.length <= 120;
+      })
+      .sort((a, b) => a.text.length - b.text.length);
+    const controls = Array.from(
+      document.querySelectorAll(
+        "button, [role='button'], [role='combobox'], [aria-haspopup='listbox'], input:not([type='hidden']), [data-automation-id*='prompt']"
+      )
+    )
+      .filter(visible)
+      .map((element) => {
+        const rect = element.getBoundingClientRect();
+        const text = clean(`${element.textContent || ""} ${element.value || ""} ${element.getAttribute("aria-label") || ""}`);
+        const idish = `${element.id || ""} ${element.name || ""} ${element.getAttribute("data-automation-id") || ""}`;
+        return { element, rect, text, idish };
+      })
+      .filter((entry) => {
+        if (/navigation|utility|logo|back|footer/i.test(entry.idish)) {
+          return false;
+        }
+        return /select one|choose|please select/i.test(entry.text) || /prompt|select|combobox/i.test(entry.idish);
+      });
+    for (const label of labels) {
+      const ranked = controls
+        .map((control) => {
+          const verticalGap = control.rect.top - label.rect.bottom;
+          const horizontalOverlap = Math.min(label.rect.right + 520, control.rect.right) - Math.max(label.rect.left - 20, control.rect.left);
+          const belowLabel = verticalGap >= -12 && verticalGap <= 120;
+          const wideSelect = control.rect.width >= 180 && control.rect.height >= 28;
+          const score =
+            (belowLabel ? 120 : 0) +
+            (horizontalOverlap > 0 ? 80 : 0) +
+            (wideSelect ? 60 : 0) +
+            (/select one|choose|please select/i.test(control.text) ? 80 : 0) +
+            (/prompt|select|combobox/i.test(control.idish) ? 50 : 0) -
+            Math.abs(verticalGap);
+          return { ...control, score };
+        })
+        .filter((entry) => entry.score > 80)
+        .sort((a, b) => b.score - a.score);
+      const selected = ranked[0];
+      if (selected) {
+        return {
+          x: Math.round(selected.rect.left + Math.max(12, selected.rect.width - 28)),
+          y: Math.round(selected.rect.top + selected.rect.height / 2),
+          text: selected.text,
+        };
       }
-      await new Promise((resolve) => setTimeout(resolve, 300));
-      const option = Array.from(document.querySelectorAll("[role='option'], li, button, [role='menuitem']"))
-        .filter(isVisible)
-        .map((candidate) => ({ candidate, score: score(answer, `${candidate.textContent || ""} ${candidate.getAttribute("aria-label") || ""}`) }))
-        .filter((entry) => entry.score > 0)
-        .sort((a, b) => b.score - a.score)[0]?.candidate || null;
-      if (!option) return false;
-      option.scrollIntoView({ block: "center", inline: "nearest" });
-      option.click();
-      await new Promise((resolve) => setTimeout(resolve, 180));
+    }
+    return null;
+  }, patternSources).catch(() => null);
+  if (!point) {
+    return false;
+  }
+  await page.mouse.move(point.x, point.y, { steps: 8 }).catch(() => {});
+  await page.mouse.click(point.x, point.y, { delay: 100 }).catch(() => {});
+  await new Promise((resolve) => setTimeout(resolve, 700));
+  return true;
+}
+
+async function selectVisibleWorkdayOptOutOption(page) {
+  const aliases = [
+    "I do not wish to answer",
+    "I don't wish to answer",
+    "Prefer not to say",
+    "Prefer not to answer",
+    "I do not wish to disclose",
+    "I don't wish to disclose",
+    "I do not wish to provide this information",
+    "Decline to self-identify",
+    "Choose not to disclose",
+    "Not disclosed",
+  ];
+  return selectVisibleWorkdayOption(page, aliases);
+}
+
+async function openFocusedWorkdayDropdownAndSelect(page, aliases) {
+  const wanted = (aliases || []).map(cleanText).filter(Boolean);
+  if (!wanted.length) {
+    return false;
+  }
+  const openAttempts = [
+    async () => page.keyboard.press("Enter"),
+    async () => page.keyboard.press("Space"),
+    async () => {
+      await page.keyboard.down("Alt").catch(() => {});
+      await page.keyboard.press("ArrowDown").catch(() => {});
+      await page.keyboard.up("Alt").catch(() => {});
+    },
+    async () => page.keyboard.press("ArrowDown"),
+  ];
+  for (const open of openAttempts) {
+    await open().catch(() => {});
+    await new Promise((resolve) => setTimeout(resolve, 500));
+    if (await selectVisibleWorkdayOption(page, wanted).catch(() => false)) {
       return true;
-    };
-    const clickCheckboxes = (answer) => {
-      const values = Array.isArray(answer) ? answer : clean(answer).split(/\s*,\s*|\s*;\s*/).filter(Boolean);
-      let clicked = 0;
-      for (const value of values) {
-        const wanted = compact(value);
-        const label = Array.from(document.querySelectorAll("label, span"))
-          .filter(isVisible)
-          .filter((element) => compact(element.textContent || "") === wanted)
-          .sort((a, b) => clean(a.textContent || "").length - clean(b.textContent || "").length)[0] || null;
-        const input = label?.getAttribute("for")
-          ? document.getElementById(label.getAttribute("for"))
-          : label?.closest("label")?.querySelector("input[type='checkbox']") ||
-            label?.parentElement?.querySelector("input[type='checkbox']") ||
-            Array.from(document.querySelectorAll("input[type='checkbox']")).find((checkbox) => {
-              const scopeText = clean(checkbox.closest("label, div, li, fieldset")?.textContent || "");
-              return compact(scopeText) === wanted;
-            });
-        if (input && input.type === "checkbox") {
-          if (!input.checked) {
-            (label || input).click();
-          }
-          clicked += input.checked ? 1 : 0;
+    }
+  }
+  for (const alias of wanted) {
+    await page.keyboard.type(alias, { delay: 20 }).catch(() => {});
+    await new Promise((resolve) => setTimeout(resolve, 700));
+    if (await selectVisibleWorkdayOption(page, wanted).catch(() => false)) {
+      return true;
+    }
+    await page.keyboard.press("Enter").catch(() => {});
+    await new Promise((resolve) => setTimeout(resolve, 500));
+    const activeText = await page.evaluate(() => {
+      const clean = (value) => String(value || "").replace(/\s+/g, " ").trim();
+      const active = document.activeElement;
+      let scope = active;
+      for (let depth = 0; scope && depth < 6; depth += 1) {
+        const text = clean(scope.textContent || "");
+        if (text && !/select one/i.test(text)) {
+          return text;
         }
+        scope = scope.parentElement;
       }
-      return clicked > 0;
+      return "";
+    }).catch(() => "");
+    if (wanted.some((aliasText) => scoreChoice(aliasText, activeText) >= 80)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+async function openWorkdayPromptByQuestionPatterns(page, patterns) {
+  const patternSources = (patterns || []).map((pattern) => pattern.source || String(pattern)).filter(Boolean);
+  if (!patternSources.length) {
+    return false;
+  }
+  const point = await page.evaluate((sources) => {
+    const clean = (value) => String(value || "").replace(/\s+/g, " ").trim();
+    const visible = (element) => {
+      if (!element) return false;
+      const style = window.getComputedStyle(element);
+      const rect = element.getBoundingClientRect();
+      return style.visibility !== "hidden" && style.display !== "none" && rect.width > 0 && rect.height > 0;
     };
+    const regexes = sources.map((source) => new RegExp(source, "i"));
+    const rejectText = (text) => /^errors and alerts found\b|^error[-\s]/i.test(clean(text));
+    const allScopes = Array.from(document.querySelectorAll("fieldset, [data-automation-id*='formField'], div, section, li"))
+      .filter(visible)
+      .map((scope) => ({ scope, text: clean(scope.textContent || "") }))
+      .filter((entry) => entry.text && !rejectText(entry.text) && regexes.some((regex) => regex.test(entry.text)))
+      .sort((a, b) => a.text.length - b.text.length);
+    for (const { scope } of allScopes) {
+      const controls = Array.from(
+        scope.querySelectorAll(
+          "[data-automation-id*='promptIcon'], [data-automation-id*='prompt'], [data-automation-id*='select'], [aria-haspopup='listbox'], [role='combobox'], button, [role='button'], input:not([type='hidden'])"
+        )
+      ).filter(visible);
+      const ranked = controls
+        .map((control) => {
+          const rect = control.getBoundingClientRect();
+          const text = clean(`${control.textContent || ""} ${control.value || ""} ${control.getAttribute("aria-label") || ""}`);
+          const idish = `${control.id || ""} ${control.name || ""} ${control.getAttribute("data-automation-id") || ""}`;
+          const score =
+            (/select one|choose|please select/i.test(text) ? 90 : 0) +
+            (/prompt|select|combobox/i.test(idish) ? 70 : 0) +
+            (rect.width >= 220 && rect.height >= 30 ? 65 : 0) +
+            (control.getAttribute("aria-haspopup") === "listbox" || control.getAttribute("role") === "combobox" ? 80 : 0) +
+            Math.min(rect.right / 200, 20);
+          return { control, rect, score };
+        })
+        .filter((entry) => entry.score > 0)
+        .sort((a, b) => b.score - a.score);
+      const selected = ranked[0];
+      if (!selected) {
+        const rect = scope.getBoundingClientRect();
+        if (rect.width > 240 && rect.height > 30) {
+          return {
+            x: Math.round(rect.left + Math.min(rect.width - 24, Math.max(220, rect.width * 0.92))),
+            y: Math.round(rect.top + Math.min(rect.height - 12, Math.max(34, rect.height * 0.65))),
+          };
+        }
+        continue;
+      }
+      return {
+        x: Math.round(selected.rect.left + Math.max(12, selected.rect.width - 24)),
+        y: Math.round(selected.rect.top + selected.rect.height / 2),
+      };
+    }
+    return null;
+  }, patternSources).catch(() => null);
+  if (!point) {
+    return false;
+  }
+  await page.mouse.move(point.x, point.y, { steps: 8 }).catch(() => {});
+  await page.mouse.click(point.x, point.y, { delay: 80 }).catch(() => {});
+  await new Promise((resolve) => setTimeout(resolve, 650));
+  return true;
+}
+
+async function openWorkdayQuestionDropdownByPatterns(page, patterns) {
+  const patternSources = (patterns || []).map((pattern) => pattern.source || String(pattern)).filter(Boolean);
+  if (!patternSources.length) {
+    return false;
+  }
+  const point = await page.evaluate((sources) => {
+    const clean = (value) => String(value || "").replace(/\s+/g, " ").trim();
+    const visible = (element) => {
+      if (!element) return false;
+      const style = window.getComputedStyle(element);
+      const rect = element.getBoundingClientRect();
+      return style.visibility !== "hidden" && style.display !== "none" && rect.width > 0 && rect.height > 0;
+    };
+    const regexes = sources.map((source) => new RegExp(source, "i"));
+    const controls = Array.from(
+      document.querySelectorAll("button, [role='button'], [role='combobox'], [aria-haspopup='listbox'], input:not([type='hidden'])")
+    ).filter(visible);
+    const candidates = [];
+    for (const control of controls) {
+      let scope = control;
+      for (let depth = 0; scope && depth < 10; depth += 1) {
+        const text = clean(scope.textContent || "");
+        if (/^errors and alerts found\b|^error[-\s]/i.test(text)) {
+          break;
+        }
+        if (text && regexes.some((regex) => regex.test(text))) {
+          const selectish = /select one|choose|please select/i.test(text);
+          const rectTarget = visible(control) ? control : scope;
+          const rect = rectTarget.getBoundingClientRect();
+          candidates.push({
+            x: Math.round(rect.left + Math.max(12, rect.width - 24)),
+            y: Math.round(rect.top + rect.height / 2),
+            score: (selectish ? 80 : 0) - depth - Math.min(text.length / 80, 25),
+          });
+          break;
+        }
+        scope = scope.parentElement;
+      }
+    }
+    candidates.sort((a, b) => b.score - a.score);
+    return candidates[0] || null;
+  }, patternSources).catch(() => null);
+  if (!point) {
+    return false;
+  }
+  await page.mouse.move(point.x, point.y, { steps: 6 }).catch(() => {});
+  await page.mouse.click(point.x, point.y, { delay: 80 }).catch(() => {});
+  await new Promise((resolve) => setTimeout(resolve, 500));
+  return true;
+}
+
+async function clickWorkdayCheckboxesByAnswer(page, answer) {
+  const values = Array.isArray(answer) ? answer : cleanText(answer).split(/\s*,\s*|\s*;\s*/).filter(Boolean);
+  const wanted = values.map(cleanText).filter(Boolean);
+  if (!wanted.length) {
+    return { found: false, filled: false, scope_text: "" };
+  }
+  const result = await page.evaluate((targets) => {
+    const clean = (value) => String(value || "").replace(/\s+/g, " ").trim();
+    const compact = (value) => clean(value).toLowerCase().replace(/[^a-z0-9]+/g, "");
+    const visible = (element) => {
+      if (!element) return false;
+      const style = window.getComputedStyle(element);
+      const rect = element.getBoundingClientRect();
+      return style.visibility !== "hidden" && style.display !== "none" && rect.width > 0 && rect.height > 0;
+    };
+    let found = 0;
     let filled = 0;
-    const diagnostics = [];
-    for (const item of items) {
-      const answer = Array.isArray(item.answer) ? item.answer[0] : item.answer;
-      const scope = findScope(item.patterns);
-      let ok = false;
-      if (item.kind === "textarea" && scope) {
-        const field = Array.from(scope.querySelectorAll("textarea")).filter(isVisible)[0] || null;
-        if (field) {
-          setNativeValue(field, answer);
-          ok = clean(field.value || "") !== "";
+    for (const target of targets) {
+      const targetCompact = compact(target);
+      const label = Array.from(document.querySelectorAll("label, span, div"))
+        .filter(visible)
+        .filter((element) => compact(element.textContent || "") === targetCompact)
+        .sort((a, b) => clean(a.textContent || "").length - clean(b.textContent || "").length)[0] || null;
+      let scope = label;
+      for (let depth = 0; scope && depth < 6; depth += 1) {
+        const scopeText = clean(scope.textContent || "");
+        if (scopeText && compact(scopeText).includes(targetCompact)) {
+          break;
         }
-      } else if (item.kind === "choice" && scope) {
-        ok = await clickChoice(scope, answer);
-      } else if (item.kind === "checkbox") {
-        ok = clickCheckboxes(item.answer);
+        scope = scope.parentElement;
       }
-      if (ok) filled += 1;
+      const input = label?.getAttribute?.("for")
+        ? document.getElementById(label.getAttribute("for"))
+        : label?.closest("label")?.querySelector("input[type='checkbox']") ||
+          scope?.querySelector("input[type='checkbox']") ||
+          Array.from(document.querySelectorAll("input[type='checkbox']")).find((checkbox) => {
+            const scopeText = clean(checkbox.closest("label, div, li, fieldset")?.textContent || "");
+            return compact(scopeText) === targetCompact || compact(scopeText).includes(targetCompact);
+          });
+      const customCheckbox =
+        label?.closest("[role='checkbox']") ||
+        scope?.querySelector("[role='checkbox']") ||
+        Array.from(document.querySelectorAll("[role='checkbox']")).find((checkbox) => {
+          const scopeText = clean(checkbox.closest("label, div, li, fieldset")?.textContent || "");
+          return compact(scopeText) === targetCompact || compact(scopeText).includes(targetCompact);
+        });
+      if (!input && !customCheckbox && !label) {
+        continue;
+      }
+      found += 1;
+      if (input) {
+        if (!input.checked) {
+          (label || input).click();
+        }
+        if (input.checked) {
+          filled += 1;
+        }
+        continue;
+      }
+      const checked = customCheckbox?.getAttribute("aria-checked") === "true";
+      if (!checked) {
+        (customCheckbox || label).click();
+      }
+      const checkedAfter = customCheckbox?.getAttribute("aria-checked") === "true";
+      if (checked || checkedAfter || !customCheckbox) {
+        filled += 1;
+      }
+    }
+    return { found: found > 0, filled: filled > 0, scope_text: targets.join(", ") };
+  }, wanted).catch((error) => ({ found: false, filled: false, error: error?.message || String(error), scope_text: "" }));
+  return result;
+}
+
+async function clickWorkdayConsentTermsCheckboxes(page) {
+  return page.evaluate(() => {
+    const clean = (value) => String(value || "").replace(/\s+/g, " ").trim();
+    const visible = (element) => {
+      if (!element) return false;
+      const style = window.getComputedStyle(element);
+      const rect = element.getBoundingClientRect();
+      return style.visibility !== "hidden" && style.display !== "none" && rect.width > 0 && rect.height > 0;
+    };
+    const cssEscape = (value) =>
+      window.CSS && CSS.escape ? CSS.escape(value) : String(value || "").replace(/"/g, '\\"');
+    const consentPattern = /\b(read|agree|accept|acknowledge|consent|terms|conditions|privacy|notice)\b/i;
+    const blockedPattern = /\b(gender|ethnicity|race|veteran|disability|sexual orientation|pronouns|date of birth)\b/i;
+    const getLabelText = (control) => {
+      const id = control.getAttribute("id") || "";
+      const explicit = id ? document.querySelector(`label[for="${cssEscape(id)}"]`) : null;
+      const labelledBy = (control.getAttribute("aria-labelledby") || "")
+        .split(/\s+/)
+        .map((part) => document.getElementById(part)?.textContent || "")
+        .join(" ");
+      const scope =
+        explicit ||
+        control.closest("label") ||
+        control.closest("[role='checkbox']") ||
+        control.closest("fieldset, div, li, section") ||
+        control.parentElement;
+      return clean(`${explicit?.textContent || ""} ${labelledBy} ${control.getAttribute("aria-label") || ""} ${scope?.textContent || ""}`);
+    };
+    const isChecked = (control) => {
+      if (control.matches("input[type='checkbox']")) {
+        return Boolean(control.checked);
+      }
+      return control.getAttribute("aria-checked") === "true";
+    };
+    const clickTargetFor = (control) => {
+      const id = control.getAttribute("id") || "";
+      const explicit = id ? document.querySelector(`label[for="${cssEscape(id)}"]`) : null;
+      return explicit || control.closest("label") || control.closest("[role='checkbox']") || control;
+    };
+    const controls = Array.from(document.querySelectorAll("input[type='checkbox'], [role='checkbox']"))
+      .filter(visible)
+      .map((control) => ({ control, label: getLabelText(control) }))
+      .filter((entry) => consentPattern.test(entry.label) && !blockedPattern.test(entry.label));
+    const diagnostics = [];
+    let filled = 0;
+    for (const entry of controls) {
+      const before = isChecked(entry.control);
+      if (!before) {
+        const target = clickTargetFor(entry.control);
+        target.scrollIntoView({ block: "center", inline: "nearest" });
+        target.click();
+        if (entry.control.matches("input[type='checkbox']") && !entry.control.checked) {
+          const descriptor = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "checked");
+          if (descriptor && descriptor.set) {
+            descriptor.set.call(entry.control, true);
+          } else {
+            entry.control.checked = true;
+          }
+          entry.control.dispatchEvent(new Event("input", { bubbles: true }));
+          entry.control.dispatchEvent(new Event("change", { bubbles: true }));
+        }
+      }
+      const after = isChecked(entry.control);
+      if (after) {
+        filled += 1;
+      }
       diagnostics.push({
-        label: item.label,
-        kind: item.kind,
-        scope_found: Boolean(scope),
-        filled: ok,
-        scope_text: clean((scope && scope.textContent) || "").slice(0, 160),
+        label: clean(entry.label).slice(0, 180),
+        checked_before: before,
+        checked_after: after,
       });
     }
-    return { attempted: items.length, filled, items: diagnostics };
-  }, repairItems.map((item) => ({
-    ...item,
-    patterns: item.patterns.map((pattern) => pattern.source),
-  }))).catch((error) => ({ attempted: repairItems.length, filled: 0, error: error?.message || String(error), items: [] }));
+    return {
+      attempted: controls.length,
+      filled,
+      items: diagnostics,
+    };
+  }).catch((error) => ({ attempted: 0, filled: 0, error: error?.message || String(error), items: [] }));
+}
+
+async function repairWorkdayVoluntaryDisclosuresPage(page, task) {
+  const answers = getApplicationAnswers(task);
+  const consentRepair = await clickWorkdayConsentTermsCheckboxes(page);
+  const disclosureItems = [
+    {
+      label: "gender",
+      patterns: [/please select your gender/i, /^gender\b/i, /\bgender\*/i],
+      answer:
+        answerByPatterns(answers, [/^gender$/i, /please select your gender/i]) ||
+        [
+          "I do not wish to answer",
+          "I don't wish to answer",
+          "Prefer not to say",
+          "Prefer not to answer",
+          "I do not wish to disclose",
+          "I don't wish to disclose",
+          "I do not wish to provide this information",
+          "Decline to self-identify",
+          "Choose not to disclose",
+          "Not disclosed",
+        ],
+    },
+  ];
+  const choiceDiagnostics = [];
+  let choiceFilled = 0;
+  for (const item of disclosureItems) {
+    const repairPromise =
+      item.label === "gender"
+        ? selectWorkdayGenderDisclosure(page, item.answer)
+        : selectWorkdayDropdownByQuestionPatterns(page, item.patterns, item.answer);
+    const result = await withTimeout(
+      repairPromise,
+      7000,
+      { found: false, filled: false, timeout: true, scope_text: "" }
+    ).catch((error) => ({ found: false, filled: false, error: error?.message || String(error), scope_text: "" }));
+    if (result.filled) {
+      choiceFilled += 1;
+    }
+    choiceDiagnostics.push({
+      label: item.label,
+      kind: "choice",
+      scope_found: Boolean(result.found),
+      filled: Boolean(result.filled),
+      scope_text: cleanText(result.scope_text || "").slice(0, 160),
+      error: result.error || undefined,
+      timeout: Boolean(result.timeout),
+    });
+  }
+  return {
+    attempted: (consentRepair.attempted || 0) + disclosureItems.length,
+    filled: (consentRepair.filled || 0) + choiceFilled,
+    items: [
+      ...(consentRepair.items || []).map((item) => ({ ...item, kind: "checkbox" })),
+      ...choiceDiagnostics,
+    ],
+    consent: consentRepair,
+  };
+}
+
+async function selectWorkdayGenderDisclosure(page, answer) {
+  const aliases = (Array.isArray(answer) ? answer : [answer]).map(cleanText).filter(Boolean);
+  if (!aliases.length) {
+    return { found: false, filled: false, scope_text: "" };
+  }
+  const pointResult = await page.evaluate(() => {
+    const clean = (value) => String(value || "").replace(/\s+/g, " ").trim();
+    const visible = (element) => {
+      if (!element) return false;
+      const style = window.getComputedStyle(element);
+      const rect = element.getBoundingClientRect();
+      return style.visibility !== "hidden" && style.display !== "none" && rect.width > 0 && rect.height > 0;
+    };
+    const rectData = (rect) => ({
+      x: Math.round(rect.left + Math.max(12, rect.width - 28)),
+      y: Math.round(rect.top + rect.height / 2),
+    });
+    const labelCandidates = Array.from(document.querySelectorAll("label, [id*='label' i], [data-automation-id*='label' i], span"))
+      .filter(visible)
+      .map((element) => ({ element, text: clean(element.textContent || ""), rect: element.getBoundingClientRect() }))
+      .filter((entry) => /^gender\*?$/i.test(entry.text) || /^gender\*?\s*select one/i.test(entry.text))
+      .sort((a, b) => a.text.length - b.text.length);
+    const controlCandidates = Array.from(
+      document.querySelectorAll(
+        "button, [role='button'], [role='combobox'], [aria-haspopup='listbox'], input:not([type='hidden']), [data-automation-id*='prompt'], [data-automation-id*='select']"
+      )
+    )
+      .filter(visible)
+      .map((element) => {
+        const rect = element.getBoundingClientRect();
+        const text = clean(`${element.textContent || ""} ${element.value || ""} ${element.getAttribute("aria-label") || ""}`);
+        const idish = `${element.id || ""} ${element.name || ""} ${element.getAttribute("data-automation-id") || ""} ${element.getAttribute("aria-labelledby") || ""}`;
+        return { element, rect, text, idish };
+      })
+      .filter((entry) => {
+        if (/navigation|utility|logo|back|footer/i.test(entry.idish)) {
+          return false;
+        }
+        return /gender|select one|choose|prompt|combobox|select/i.test(`${entry.text} ${entry.idish}`);
+      });
+    for (const label of labelCandidates) {
+      const inferredSelectPoint = {
+        x: Math.round(label.rect.left + 460),
+        y: Math.round(label.rect.bottom + 34),
+      };
+      const inferredElement = document.elementFromPoint(inferredSelectPoint.x, inferredSelectPoint.y);
+      if (
+        inferredElement &&
+        visible(inferredElement) &&
+        !/error[-\s]|errors found/i.test(clean(inferredElement.closest("div, fieldset, section")?.textContent || ""))
+      ) {
+        return {
+          found: true,
+          scope_text: label.text,
+          x: inferredSelectPoint.x,
+          y: inferredSelectPoint.y,
+        };
+      }
+      const explicitFor = label.element.getAttribute("for") || "";
+      const explicitControl = explicitFor ? document.getElementById(explicitFor) : null;
+      if (visible(explicitControl)) {
+        return { found: true, scope_text: label.text, ...rectData(explicitControl.getBoundingClientRect()) };
+      }
+      let scope = label.element;
+      for (let depth = 0; scope && depth < 6; depth += 1) {
+        const inScope = controlCandidates
+          .filter((entry) => scope.contains(entry.element) && entry.element !== label.element)
+          .map((entry) => ({
+            ...entry,
+            score:
+              (/select one|choose/i.test(entry.text) ? 120 : 0) +
+              (/gender|prompt|select|combobox/i.test(entry.idish) ? 90 : 0) +
+              (entry.rect.width >= 180 ? 70 : 0) +
+              (entry.rect.top >= label.rect.top - 12 ? 40 : 0) -
+              Math.abs(entry.rect.top - label.rect.bottom),
+          }))
+          .filter((entry) => entry.score > 50)
+          .sort((a, b) => b.score - a.score);
+        if (inScope[0]) {
+          return { found: true, scope_text: clean(scope.textContent || "").slice(0, 180), ...rectData(inScope[0].rect) };
+        }
+        scope = scope.parentElement;
+      }
+      const nearBelow = controlCandidates
+        .map((entry) => {
+          const verticalGap = entry.rect.top - label.rect.bottom;
+          const horizontalDistance = Math.abs(entry.rect.left - label.rect.left);
+          return {
+            ...entry,
+            score:
+              (verticalGap >= -12 && verticalGap <= 140 ? 140 : 0) +
+              (horizontalDistance <= 80 ? 80 : 0) +
+              (/select one|choose/i.test(entry.text) ? 110 : 0) +
+              (entry.rect.width >= 180 ? 50 : 0) -
+              Math.abs(verticalGap) -
+              horizontalDistance / 8,
+          };
+        })
+        .filter((entry) => entry.score > 80)
+        .sort((a, b) => b.score - a.score);
+      if (nearBelow[0]) {
+        return { found: true, scope_text: label.text, ...rectData(nearBelow[0].rect) };
+      }
+    }
+    const directGenderControl = controlCandidates
+      .filter((entry) => /gender/i.test(entry.idish))
+      .sort((a, b) => b.rect.width - a.rect.width)[0];
+    if (directGenderControl) {
+      return { found: true, scope_text: clean(`${directGenderControl.text} ${directGenderControl.idish}`).slice(0, 180), ...rectData(directGenderControl.rect) };
+    }
+    return { found: false, scope_text: "" };
+  }).catch((error) => ({ found: false, error: error?.message || String(error), scope_text: "" }));
+  if (!pointResult?.found) {
+    return { found: false, filled: false, scope_text: pointResult?.scope_text || "", error: pointResult?.error };
+  }
+  await page.mouse.move(pointResult.x, pointResult.y, { steps: 8 }).catch(() => {});
+  await page.mouse.click(pointResult.x, pointResult.y, { delay: 90 }).catch(() => {});
+  await new Promise((resolve) => setTimeout(resolve, 700));
+  let filled = await selectVisibleWorkdayOption(page, aliases).catch(() => false);
+  if (!filled) {
+    await page.keyboard.press("Enter").catch(() => {});
+    await new Promise((resolve) => setTimeout(resolve, 450));
+    filled = await selectVisibleWorkdayOption(page, aliases).catch(() => false);
+  }
+  if (!filled) {
+    await page.keyboard.press("Space").catch(() => {});
+    await new Promise((resolve) => setTimeout(resolve, 450));
+    filled = await selectVisibleWorkdayOption(page, aliases).catch(() => false);
+  }
+  if (!filled) {
+    await page.keyboard.down("Alt").catch(() => {});
+    await page.keyboard.press("ArrowDown").catch(() => {});
+    await page.keyboard.up("Alt").catch(() => {});
+    await new Promise((resolve) => setTimeout(resolve, 600));
+    filled = await selectVisibleWorkdayOption(page, aliases).catch(() => false);
+  }
+  return {
+    found: true,
+    filled: Boolean(filled),
+    scope_text: pointResult.scope_text || "Gender",
+  };
 }
 
 async function fillWorkdayCoreCandidateFields(page, candidate) {
@@ -4442,6 +5114,14 @@ function isWorkdayLoadingOnlyStage(state = {}) {
   );
 }
 
+function getEffectiveWorkdayStage(stage, stepState = {}) {
+  const activeStep = cleanText(stepState.active_step || "");
+  if (["my_information", "my_experience", "application_questions", "voluntary_disclosures", "review"].includes(activeStep)) {
+    return activeStep;
+  }
+  return stage;
+}
+
 async function clickWorkdayNextForStage(page, stage) {
   if (stage === "review" || stage === "submitted" || stage === "verification" || stage === "account") {
     return false;
@@ -4521,13 +5201,13 @@ async function waitForWorkdayPostTransitionReady(page, stage, preflight = {}) {
   await withTimeout(waitForWorkdayStepTransition(page, ""), 12000, null).catch(() => {});
   let nextState = await withTimeout(getWorkdayVisibleState(page), 10000, {});
   let nextStepState = await withTimeout(getWorkdayStepState(page), 10000, {});
-  let nextStage = getWorkdayStageFromState(nextState, nextStepState) || stage;
+  let nextStage = getEffectiveWorkdayStage(getWorkdayStageFromState(nextState, nextStepState) || stage, nextStepState);
   if (isWorkdayLoadingOnlyStage(nextState)) {
     await withTimeout(waitForWorkdayStageControls(page, nextStage), 30000, null).catch(() => {});
     await ensureWorkdayPreferredLocale(page, preflight).catch(() => false);
     nextState = await withTimeout(getWorkdayVisibleState(page), 10000, {});
     nextStepState = await withTimeout(getWorkdayStepState(page), 10000, {});
-    nextStage = getWorkdayStageFromState(nextState, nextStepState) || nextStage;
+    nextStage = getEffectiveWorkdayStage(getWorkdayStageFromState(nextState, nextStepState) || nextStage, nextStepState);
   }
   return { state: nextState, stepState: nextStepState, stage: nextStage };
 }
@@ -4549,7 +5229,7 @@ async function advanceWorkdaySteps(page, task, candidate, apiSchema = null, pref
           questions: mergeQuestionsByFieldOrLabel(liveSchema.questions || [], getSchemaQuestions(apiSchema)),
         }
       : liveSchema;
-    let stage = getWorkdayStageFromState(state, stepState);
+    let stage = getEffectiveWorkdayStage(getWorkdayStageFromState(state, stepState), stepState);
     if (
       ["my_experience", "application_questions", "voluntary_disclosures", "review"].includes(stage) &&
       !state.field_count &&
@@ -4567,7 +5247,7 @@ async function advanceWorkdaySteps(page, task, candidate, apiSchema = null, pref
             questions: mergeQuestionsByFieldOrLabel(liveSchema.questions || [], getSchemaQuestions(apiSchema)),
           }
         : liveSchema;
-      stage = getWorkdayStageFromState(state, stepState);
+      stage = getEffectiveWorkdayStage(getWorkdayStageFromState(state, stepState), stepState);
       debugLog(task.task_uuid || "task", "workday_wait_stage_controls_result", JSON.stringify({
         step: index + 1,
         stage,
@@ -4655,7 +5335,7 @@ async function advanceWorkdaySteps(page, task, candidate, apiSchema = null, pref
       debugLog(task.task_uuid || "task", "workday_application_questions_repair_start", JSON.stringify({ step: index + 1 }));
       const questionnaireRepair = await withTimeout(
         repairWorkdayApplicationQuestionsPage(page, task),
-        30000,
+        90000,
         { attempted: 0, filled: 0, timeout: true, items: [] }
       ).catch((error) => ({ attempted: 0, filled: 0, error: error?.message || String(error), items: [] }));
       debugLog(task.task_uuid || "task", "workday_application_questions_repair_result", JSON.stringify(questionnaireRepair));
@@ -4667,6 +5347,25 @@ async function advanceWorkdaySteps(page, task, candidate, apiSchema = null, pref
         stepAnswers.field_diagnostics = [
           ...(stepAnswers.field_diagnostics || []),
           { workday_application_questions_repair: questionnaireRepair },
+        ];
+      }
+    }
+    if (stage === "voluntary_disclosures" && state.field_count > 0) {
+      debugLog(task.task_uuid || "task", "workday_voluntary_disclosures_repair_start", JSON.stringify({ step: index + 1 }));
+      const voluntaryRepair = await withTimeout(
+        repairWorkdayVoluntaryDisclosuresPage(page, task),
+        12000,
+        { attempted: 0, filled: 0, timeout: true, items: [] }
+      ).catch((error) => ({ attempted: 0, filled: 0, error: error?.message || String(error), items: [] }));
+      debugLog(task.task_uuid || "task", "workday_voluntary_disclosures_repair_result", JSON.stringify(voluntaryRepair));
+      if (voluntaryRepair.attempted || voluntaryRepair.filled) {
+        stepAnswers.attempted += voluntaryRepair.attempted || 0;
+        stepAnswers.filled += voluntaryRepair.filled || 0;
+        stepAnswers.choice_attempted += voluntaryRepair.attempted || 0;
+        stepAnswers.choice_filled += voluntaryRepair.filled || 0;
+        stepAnswers.field_diagnostics = [
+          ...(stepAnswers.field_diagnostics || []),
+          { workday_voluntary_disclosures_repair: voluntaryRepair },
         ];
       }
     }
@@ -4867,7 +5566,9 @@ async function processWorkdayTask(page, task, candidate, cvPath, url) {
     lastError = accountFlow.last_error;
   } else if (!flow.form_ready) {
     status = "review_required";
-    lastError = preflight.account_required
+    lastError = flow.opened_apply
+      ? "The worker opened the Workday application, but the current step did not finish rendering usable fields before the timeout."
+      : preflight.account_required
       ? accountFlow.last_error || "Workday requires a tenant-specific candidate account before the application form is available."
       : "The worker could not reach the visible Workday application form.";
   } else if (formCompletion.missing_required_fields.length > 0) {
@@ -4875,6 +5576,9 @@ async function processWorkdayTask(page, task, candidate, cvPath, url) {
     lastError =
       "The Workday application still has required fields that need review: " +
       formCompletion.missing_required_fields.slice(0, 10).join("; ");
+  } else if (workdayStopAfterStage) {
+    status = "dry_run_ready";
+    lastError = "";
   } else if (allowFinalSubmit) {
     const submitResult = await clickLikelyApplyButton(page);
     await page.screenshot({ path: screenshotPath, fullPage: true }).catch(() => {});

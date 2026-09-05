@@ -19415,6 +19415,7 @@
     var workableTestCandidatePhone = "";
     var workableTestAdminAnswers = {};
     var workableTestResults = [];
+    var workableTestInFlight = false;
     var catchUpInviteFullName = "";
     var catchUpInviteEmail = "";
     var applySelectedPricingOption = "";
@@ -35643,6 +35644,38 @@
       return /(?:^|\/\/)apply\.workable\.com\//i.test(
         cleanMessageText(url || "")
       );
+    }
+
+    function isWorkableQueueItem(item) {
+      var provider = cleanMessageText(
+        (item &&
+          (item.autoSubmitProvider ||
+            item.auto_submit_provider ||
+            item.provider ||
+            item.sourceProvider ||
+            item.source_provider ||
+            item.sourcePlatform ||
+            item.source_platform ||
+            item.platform)) ||
+          autoSubmitProvider ||
+          ""
+      ).toLowerCase();
+      var url = cleanMessageText(
+        (item &&
+          (item.applyUrl ||
+            item.applicationUrl ||
+            item.application_url ||
+            item.applicationWorkspaceUrl ||
+            item.application_workspace_url ||
+            item.applicationEmbedUrl ||
+            item.application_embed_url ||
+            item.url ||
+            item.viewUrl)) ||
+          getApplicationWorkspaceUrl() ||
+          applicationUrl ||
+          ""
+      );
+      return provider === "workable" || isWorkableApplicationUrl(url);
     }
 
     function isWorkdayApplicationUrl(url) {
@@ -91716,7 +91749,7 @@
         isWorkableAdminTestEnabled() || isSuccessFactorsAdminTestEnabled()
           ? (commercialApplyQueueCatalogState.length
               ? commercialApplyQueueCatalogState
-              : items)
+              : commercialApplyQueueItemsState)
           : getJobsWorkspaceSourceItems();
       var query = cleanMessageText(jobsWorkspaceSearchQuery || "").toLowerCase();
       var queuedKeys = {};
@@ -92502,35 +92535,104 @@
       botMessage(
         renderCommercialApplyQueueCard(commercialApplyQueueItemsState, {
           active: false,
-          showButton: true,
+          showButton: false,
           eyebrow: "Workable test run",
-          title: "Review these Workable jobs before Railway starts",
-          buttonLabel: "Start Workable Test",
+          title: "Choose one Workable job to test",
         }),
         humanComposeDelay("Workable test run ready.", 700, 1400),
         function () {
           setPromptState(
             "workable_test_ready",
             {
-              yes: function (value) {
-                echoPromptChoice(value || "Start Workable Test");
-                processCommercialApplyQueueShortlist();
-              },
               other: function (value) {
-                if (/start|submit|run|apply/i.test(cleanMessageText(value || ""))) {
-                  echoPromptChoice(value || "Start Workable Test");
-                  processCommercialApplyQueueShortlist();
-                  return;
-                }
-                focusComposer("Review the Workable test list, then start when ready");
+                focusComposer("Click Test beside one Workable job");
               },
             },
-            "Review the Workable test list, then start when ready",
+            "Click Test beside one Workable job",
             { provider: "workable" }
           );
-          focusComposer("Review the Workable test list, then start when ready");
+          focusComposer("Click Test beside one Workable job");
         }
       );
+    }
+
+    function runWorkableSingleJobTest(index, button) {
+      var itemIndex = Number(index);
+      var item = commercialApplyQueueItemsState[itemIndex] || null;
+      if (workableTestInFlight) {
+        botMessage(
+          "One Workable test is already running. Wait for that result before starting another one.",
+          humanComposeDelay("Workable test already running.", 700, 1400),
+          function () {
+            focusComposer("Wait for the current Workable test result");
+          }
+        );
+        return;
+      }
+      if (!item || !isWorkableQueueItem(item)) {
+        botMessage(
+          "That Workable test job is no longer available. Type test workable to reload the list.",
+          humanComposeDelay("Workable test job missing.", 700, 1400),
+          function () {
+            focusComposer("Type test workable to reload");
+          }
+        );
+        return;
+      }
+      if (
+        !currentCvFile ||
+        !cleanMessageText(applyOnboardingFullName || "") ||
+        !cleanMessageText(applyOnboardingPreferredEmail || "") ||
+        !cleanMessageText(workableTestCandidatePhone || "")
+      ) {
+        ensureWorkableTestCandidateDetailsThen(showWorkableAdminTestReadyCard, {
+          startImmediately: false,
+        });
+        return;
+      }
+      workableTestResults = [];
+      workableTestMode = true;
+      successFactorsTestMode = false;
+      workableTestInFlight = true;
+      commercialApplyQueueActivated = true;
+      commercialApplyQueueDetailsMode = true;
+      commercialApplyQueueInitialized = true;
+      clearPromptState();
+      if (button) {
+        button.disabled = true;
+        button.innerHTML = '<span aria-hidden="true">▶</span>Testing';
+      }
+      userMessage("Test " + cleanMessageText(item.title || "Workable job"));
+      updateCommercialQueueItemStatus(
+        itemIndex,
+        "Checking form",
+        "Workable test is running"
+      );
+      queueCommercialApplyQueueWorkerTask(itemIndex)
+        .catch(function (error) {
+          updateCommercialQueueItemStatus(
+            itemIndex,
+            "Referred",
+            "Workable test finished"
+          );
+          workableTestResults.push({
+            item: item,
+            data: {
+              status: "failed",
+              last_error:
+                cleanMessageText((error && error.message) || "") ||
+                "The chat could not queue or poll this Workable worker task.",
+            },
+          });
+        })
+        .then(function () {
+          workableTestInFlight = false;
+          if (button) {
+            button.disabled = false;
+            button.innerHTML = '<span aria-hidden="true">▶</span>Test';
+          }
+          showWorkableTestSummary();
+        });
     }
 
     function setSuccessFactorsTestReadyPrompt() {
@@ -92669,10 +92771,135 @@
         });
     }
 
+    function getBrowserApplicationQueueTask() {
+      if (root && typeof root.__sffcQueueBrowserApplicationTask === "function") {
+        return root.__sffcQueueBrowserApplicationTask;
+      }
+      if (
+        typeof window !== "undefined" &&
+        typeof window.__sffcQueueBrowserApplicationTask === "function"
+      ) {
+        return window.__sffcQueueBrowserApplicationTask;
+      }
+      return typeof queueBrowserApplicationTask === "function"
+        ? queueBrowserApplicationTask
+        : null;
+    }
+
+    function canAppendUploadedCvFile(file) {
+      if (!file || !file.name) {
+        return false;
+      }
+      return typeof Blob === "undefined" || file instanceof Blob;
+    }
+
+    function queueSuccessFactorsAdminTestApplicationTask(queueItem) {
+      var config = getConfig();
+      var item = queueItem || {};
+      var formData = new FormData();
+      var candidateName = cleanMessageText(applyOnboardingFullName || "");
+      var nameParts = candidateName.split(/\s+/).filter(Boolean);
+      var itemJobsPostId = cleanMessageText(
+        item.jobsPostId || item.jobs_post_id || item.wpPostId || item.wp_post_id || ""
+      );
+      var itemPostId = cleanMessageText(item.postId || item.post_id || item.id || "");
+      var itemApplicationUrl = cleanMessageText(
+        item.applyUrl ||
+          item.applicationUrl ||
+          item.application_url ||
+          item.applicationWorkspaceUrl ||
+          item.application_workspace_url ||
+          ""
+      );
+      var itemWorkspaceUrl = cleanMessageText(
+        item.applicationWorkspaceUrl ||
+          item.application_workspace_url ||
+          item.applicationEmbedUrl ||
+          item.application_embed_url ||
+          itemApplicationUrl
+      );
+      formData.append("action", "sffc_crm_apply_chat_queue_application_task");
+      formData.append(
+        "nonce",
+        config.applicationTaskNonce ||
+          config.autoSubmitSchemaNonce ||
+          config.nonce ||
+          ""
+      );
+      formData.append("session_token", ensureApplyChatSessionToken());
+      formData.append("post_id", itemPostId || postId || "");
+      formData.append(
+        "crm_post_id",
+        cleanMessageText(root.getAttribute("data-crm-post-id") || "")
+      );
+      formData.append("jobs_post_id", itemJobsPostId || jobsPostId || "");
+      formData.append("role_title", cleanMessageText(item.title || roleTitle || ""));
+      formData.append("company_name", cleanMessageText(item.company || roleCompany || ""));
+      formData.append("candidate_name", candidateName);
+      formData.append("candidate_email", cleanMessageText(applyOnboardingPreferredEmail || ""));
+      formData.append("provider", "successfactors");
+      formData.append("application_url", itemApplicationUrl);
+      formData.append("application_workspace_url", itemWorkspaceUrl || itemApplicationUrl);
+      formData.append("role_url", cleanMessageText(item.viewUrl || item.url || roleUrl || ""));
+      formData.append("page_url", window.location.href || "");
+      formData.append("cv_text", cleanMessageText(capturedCvText || ""));
+      formData.append("cover_letter_requested", "0");
+      formData.append("application_answers", JSON.stringify(applicationAnswerDraft || {}));
+      formData.append(
+        "successfactors_profile",
+        JSON.stringify(Object.assign({}, successFactorsProfileDraft || {}))
+      );
+      formData.append("verification_code", cleanMessageText(applicationVerificationCode || ""));
+      formData.append("consent", "admin_clicked_successfactors_test_worker");
+      formData.append(
+        "successfactors_consent",
+        JSON.stringify({
+          scope: "admin_clicked_successfactors_test_worker",
+          account_route: "create",
+          create_account: true,
+          sign_in: false,
+          final_submit: true,
+          captured_at: new Date().toISOString(),
+        })
+      );
+      formData.append(
+        "successfactors_account",
+        JSON.stringify({
+          account_route: "create",
+          create_account: true,
+          sign_in: false,
+          first_name: nameParts[0] || "",
+          last_name: nameParts.slice(1).join(" "),
+          email: cleanMessageText(applyOnboardingPreferredEmail || ""),
+          password: "",
+          allow_generated_password: true,
+        })
+      );
+      if (canAppendUploadedCvFile(currentCvFile)) {
+        formData.append("cv_file", currentCvFile, currentCvFile.name);
+      }
+      return window
+        .fetch(config.ajaxUrl || "/wp-admin/admin-ajax.php", {
+          method: "POST",
+          credentials: "same-origin",
+          body: formData,
+        })
+        .then(parseAjaxJson)
+        .then(function (payload) {
+          if (!payload || !payload.success) {
+            throw new Error(
+              (payload && payload.data && payload.data.message) ||
+                "I could not queue that SuccessFactors test job."
+            );
+          }
+          return payload.data || {};
+        });
+    }
+
     function runSuccessFactorsSingleJobTest(index, button) {
       var itemIndex = Number(index);
       var item = commercialApplyQueueItemsState[itemIndex] || null;
-      var queueTask = root.__sffcQueueBrowserApplicationTask || queueBrowserApplicationTask;
+      var queueTask = queueSuccessFactorsAdminTestApplicationTask;
       if (!item || !isSuccessFactorsQueueItem(item)) {
         botMessage(
           "That SuccessFactors test job is no longer available. Type test successfactors to reload the list.",
@@ -92873,6 +93100,7 @@
       workableTestResults = [];
       workableTestAdminAnswers = {};
       workableTestCandidatePhone = "";
+      workableTestInFlight = false;
       applyOnboardingFullName = "";
       applyOnboardingPreferredEmail = "";
       applyOnboardingEmailSuggestion = "";
@@ -93049,9 +93277,186 @@
       );
     }
 
+    function getSuccessFactorsProfilePayload() {
+      var profile = {};
+      var text = cleanMessageText(capturedCvText || "");
+      var headerModel = null;
+      if (text) {
+        try {
+          headerModel = buildCvHeaderModel(text, parseCvSectionsFromText(text));
+        } catch (error) {
+          headerModel = null;
+        }
+        if (headerModel && headerModel.location) {
+          profile.country_of_residence = cleanMessageText(headerModel.location || "");
+        } else {
+          var countryMatch = text.match(/\b(United Arab Emirates|Saudi Arabia|Qatar|United Kingdom|France|Morocco|Singapore|India|United States)\b/i);
+          if (countryMatch && countryMatch[1]) {
+            profile.country_of_residence = cleanMessageText(countryMatch[1]);
+          }
+        }
+        var nationalityMatch = text.match(/\bnationality\s*(?:is|:|-)?\s*([A-Za-z ]{2,40})/i);
+        if (nationalityMatch && nationalityMatch[1]) {
+          profile.nationality = cleanMessageText(nationalityMatch[1]).replace(/\s+national(?:ity)?$/i, "");
+        }
+      }
+      return Object.assign({}, profile, successFactorsProfileDraft || {});
+    }
+
+    function ensureWorkdayAccountChoiceThenQueue(queueItem, startQueueCallback) {
+      if (!isWorkdayQueueItem(queueItem || {}) || workdayAccountPreference) {
+        startQueueCallback();
+        return;
+      }
+      botMessage(
+        "This employer uses Workday, so I need the account route before I can send it to the worker. Should I create a new Workday account for this employer, or use an existing one?",
+        humanComposeDelay("Workday needs an account route.", 1200, 2600),
+        function () {
+          setPromptState(
+            "workday_account_route",
+            {
+              create: function (value) {
+                workdayAccountPreference = "create";
+                workdayAccountPassword = "";
+                clearPromptState();
+                echoPromptChoice(value || "Create a new Workday account");
+                startQueueCallback();
+              },
+              existing: function (value) {
+                workdayAccountPreference = "sign_in";
+                clearPromptState();
+                echoPromptChoice(value || "Use existing Workday account");
+                botMessage(
+                  "Send the password for this employer’s Workday account. I’ll only attach it to this application task.",
+                  humanComposeDelay("Existing Workday password required.", 900, 1800),
+                  function () {
+                    setPromptState(
+                      "workday_account_password",
+                      {
+                        other: function (passwordValue) {
+                          var cleanPassword = String(passwordValue || "").trim();
+                          if (!cleanPassword) {
+                            focusComposer("Enter the Workday account password");
+                            return;
+                          }
+                          workdayAccountPassword = cleanPassword;
+                          clearPromptState();
+                          userMessage("Workday password provided");
+                          startQueueCallback();
+                        },
+                      },
+                      "Enter the Workday account password",
+                      { provider: "workday" }
+                    );
+                    focusComposer("Enter the Workday account password");
+                  }
+                );
+              },
+              other: function () {
+                focusComposer("Choose Create new account or Use existing account");
+              },
+            },
+            "Choose Workday account route",
+            { provider: "workday" }
+          );
+          botMessage(
+            '<div class="sffc-crm-apply-chat__inline-action-row">' +
+              '<button type="button" class="sffc-crm-apply-chat__inline-action" data-sffc-workday-account-route="create">Create new account</button>' +
+              '<button type="button" class="sffc-crm-apply-chat__inline-action" data-sffc-workday-account-route="existing">Use existing account</button>' +
+            "</div>",
+            0
+          );
+          focusComposer("Choose a Workday account route");
+        }
+      );
+    }
+
+    function ensureSuccessFactorsAccountChoiceThenQueue(queueItem, startQueueCallback) {
+      if (!isSuccessFactorsQueueItem(queueItem || {})) {
+        startQueueCallback();
+        return;
+      }
+      if (!successFactorsAccountPreference) {
+        successFactorsAccountPreference = "create";
+        successFactorsAccountPassword = "";
+      }
+      startQueueCallback();
+    }
+
+    function ensureSuccessFactorsProfileThenQueue(queueItem, startQueueCallback) {
+      if (!isSuccessFactorsQueueItem(queueItem || {})) {
+        startQueueCallback();
+        return;
+      }
+      startQueueCallback();
+    }
+
+    function fetchBrowserApplicationTaskStatus(taskUuid) {
+      var config = getConfig();
+      var formData = new FormData();
+      formData.append("action", "sffc_crm_apply_chat_application_task_status");
+      formData.append(
+        "nonce",
+        config.applicationTaskNonce ||
+          config.autoSubmitSchemaNonce ||
+          config.nonce ||
+          ""
+      );
+      formData.append("task_uuid", cleanMessageText(taskUuid || ""));
+      formData.append("session_token", ensureApplyChatSessionToken());
+      return window
+        .fetch(config.ajaxUrl || "/wp-admin/admin-ajax.php", {
+          method: "POST",
+          credentials: "same-origin",
+          body: formData,
+        })
+        .then(parseAjaxJson)
+        .then(function (payload) {
+          if (!payload || !payload.success) {
+            throw new Error(
+              (payload && payload.data && payload.data.message) ||
+                "I could not check this application task."
+            );
+          }
+          return payload.data || {};
+        });
+    }
+
+    function submitBrowserApplicationVerificationCode(taskUuid, code) {
+      var config = getConfig();
+      var formData = new FormData();
+      formData.append("action", "sffc_crm_apply_chat_application_task_verification_code");
+      formData.append(
+        "nonce",
+        config.applicationTaskNonce ||
+          config.autoSubmitSchemaNonce ||
+          config.nonce ||
+          ""
+      );
+      formData.append("task_uuid", cleanMessageText(taskUuid || ""));
+      formData.append("session_token", ensureApplyChatSessionToken());
+      formData.append("verification_code", code || "");
+      return window
+        .fetch(config.ajaxUrl || "/wp-admin/admin-ajax.php", {
+          method: "POST",
+          credentials: "same-origin",
+          body: formData,
+        })
+        .then(parseAjaxJson)
+        .then(function (payload) {
+          if (!payload || !payload.success) {
+            throw new Error(
+              (payload && payload.data && payload.data.message) ||
+                "I could not send this verification code to the active application."
+            );
+          }
+          return payload.data || {};
+        });
+    }
+
     function queueCommercialApplyQueueWorkerTask(itemIndex) {
       var item = commercialApplyQueueItemsState[itemIndex] || {};
-      var queueTask = root.__sffcQueueBrowserApplicationTask || queueBrowserApplicationTask;
+      var queueTask = getBrowserApplicationQueueTask();
       updateCommercialQueueItemStatus(
         itemIndex,
         "Checking form",
@@ -93061,6 +93466,10 @@
         ensureWorkdayAccountChoiceThenQueue(item, function () {
           ensureSuccessFactorsAccountChoiceThenQueue(item, function () {
             ensureSuccessFactorsProfileThenQueue(item, function () {
+              if (typeof queueTask !== "function") {
+                reject(new Error("I could not start the application worker from this chat session."));
+                return;
+              }
               queueTask(item).then(resolve).catch(reject);
             });
           });
@@ -93103,7 +93512,11 @@
           return { status: "failed" };
         }
         return pollCommercialApplyQueueWorkerTask(taskUuid, itemIndex, 0).then(function (result) {
-          if (shouldRetryWorkableTestWithAdminAnswers(itemIndex, result || {})) {
+          if (
+            typeof shouldRetryWorkableTestWithAdminAnswers === "function" &&
+            typeof askWorkableTestCustomQuestions === "function" &&
+            shouldRetryWorkableTestWithAdminAnswers(itemIndex, result || {})
+          ) {
             commercialApplyQueueItemsState = commercialApplyQueueItemsState.map(function (candidate, index) {
               if (index !== itemIndex) {
                 return candidate;
@@ -93144,6 +93557,69 @@
       });
     }
 
+    function fetchCommercialApplyQueueWorkerTaskStatus(taskUuid) {
+      var config = getConfig();
+      var formData = new FormData();
+      formData.append("action", "sffc_crm_apply_chat_application_task_status");
+      formData.append(
+        "nonce",
+        config.applicationTaskNonce ||
+          config.autoSubmitSchemaNonce ||
+          config.nonce ||
+          ""
+      );
+      formData.append("task_uuid", cleanMessageText(taskUuid || ""));
+      formData.append("session_token", ensureApplyChatSessionToken());
+      return window
+        .fetch(config.ajaxUrl || "/wp-admin/admin-ajax.php", {
+          method: "POST",
+          credentials: "same-origin",
+          body: formData,
+        })
+        .then(parseAjaxJson)
+        .then(function (payload) {
+          if (!payload || !payload.success) {
+            throw new Error(
+              (payload && payload.data && payload.data.message) ||
+                "I could not check this application task."
+            );
+          }
+          return payload.data || {};
+        });
+    }
+
+    function submitCommercialApplyQueueVerificationCode(taskUuid, code) {
+      var config = getConfig();
+      var formData = new FormData();
+      formData.append("action", "sffc_crm_apply_chat_application_task_verification_code");
+      formData.append(
+        "nonce",
+        config.applicationTaskNonce ||
+          config.autoSubmitSchemaNonce ||
+          config.nonce ||
+          ""
+      );
+      formData.append("task_uuid", cleanMessageText(taskUuid || ""));
+      formData.append("session_token", ensureApplyChatSessionToken());
+      formData.append("verification_code", code || "");
+      return window
+        .fetch(config.ajaxUrl || "/wp-admin/admin-ajax.php", {
+          method: "POST",
+          credentials: "same-origin",
+          body: formData,
+        })
+        .then(parseAjaxJson)
+        .then(function (payload) {
+          if (!payload || !payload.success) {
+            throw new Error(
+              (payload && payload.data && payload.data.message) ||
+                "I could not send this verification code to the active application."
+            );
+          }
+          return payload.data || {};
+        });
+    }
+
     function pollCommercialApplyQueueWorkerTask(taskUuid, itemIndex, attempt) {
       var currentAttempt = Number(attempt || 0);
       if (!taskUuid || currentAttempt > 60) {
@@ -93156,7 +93632,7 @@
       }
       return new Promise(function (resolve) {
         window.setTimeout(function () {
-          fetchBrowserApplicationTaskStatus(taskUuid)
+          fetchCommercialApplyQueueWorkerTaskStatus(taskUuid)
             .then(function (data) {
               var rawStatus = cleanMessageText((data && data.status) || "");
               var cleanStatus = rawStatus.toLowerCase();
@@ -93252,7 +93728,7 @@
                   applicationVerificationCode = code;
                   clearPromptState();
                   echoPromptChoice(value);
-                  submitBrowserApplicationVerificationCode(taskUuid, code)
+                  submitCommercialApplyQueueVerificationCode(taskUuid, code)
                     .then(function () {
                       updateCommercialQueueItemStatus(
                         itemIndex,
@@ -93777,8 +94253,25 @@
           "</span>"
         );
       }
-      function renderQueueMaterials(item) {
+      function renderQueueMaterials(item, itemIndex) {
         var title = cleanMessageText((item && item.title) || "this role");
+        var status = cleanMessageText((item && item.status) || "");
+        var isTesting =
+          /^(checking form|running|queued|retrying|needs answer)$/i.test(status);
+        var disableTestButton = workableTestInFlight || isTesting;
+        if (isWorkableAdminTestEnabled() && itemIndex > -1) {
+          return (
+            '<button type="button" class="sffc-crm-apply-chat__apply-queue-test' +
+            (isTesting ? " is-testing" : "") +
+            '" data-sffc-workable-test-job="' +
+            escapeHtml(String(itemIndex)) +
+            '"' +
+            (disableTestButton ? " disabled" : "") +
+            '><span aria-hidden="true">▶</span>' +
+            escapeHtml(isTesting ? "Testing" : "Test") +
+            "</button>"
+          );
+        }
         return (
           '<span class="sffc-crm-apply-chat__apply-queue-materials" aria-label="Tailored materials for ' +
           escapeHtml(title) +
@@ -93858,7 +94351,9 @@
         '<div class="sffc-crm-apply-chat__apply-queue-list">' +
         '<div class="sffc-crm-apply-chat__apply-queue-row sffc-crm-apply-chat__apply-queue-row--head">' +
         renderQueueAction(null, false, true) +
-        '<span>Role</span><span>Company</span><span>Location</span><span>Status</span><span>Tailored Materials</span>' +
+        '<span>Role</span><span>Company</span><span>Location</span><span>Status</span><span>' +
+        escapeHtml(isWorkableAdminTestEnabled() ? "Test" : "Tailored Materials") +
+        "</span>" +
         "</div>" +
         (visibleItems.length
           ? visibleItems
@@ -93900,7 +94395,7 @@
                     : '<span class="sffc-crm-apply-chat__apply-queue-status is-available"><i class="sffc-crm-apply-chat__apply-queue-status-mark" aria-hidden="true"></i>Available</span>') +
                   "</span>" +
                   '<span class="sffc-crm-apply-chat__apply-queue-preview-cell">' +
-                  renderQueueMaterials(item) +
+                  renderQueueMaterials(item, index) +
                   "</span>" +
                   "</article>"
                 );
@@ -97590,7 +98085,7 @@
             })
           );
         }
-        if (currentCvFile && currentCvFile.name) {
+        if (canAppendUploadedCvFile(currentCvFile)) {
           formData.append("cv_file", currentCvFile, currentCvFile.name);
         }
 
@@ -103491,6 +103986,7 @@
           workableTestAwaitingCv = false;
           workableTestPendingDetailsCallback = null;
           workableTestPendingDetailsOptions = null;
+          workableTestInFlight = false;
           workableTestResults = [];
           workableTestAdminAnswers = {};
           workableTestCandidatePhone = "";
@@ -104159,6 +104655,9 @@
       var successFactorsTestJob = event.target.closest(
         "[data-sffc-successfactors-test-job]"
       );
+      var workableTestJob = event.target.closest(
+        "[data-sffc-workable-test-job]"
+      );
       if (earlyUploadCvCta) {
         event.preventDefault();
         if (fileInput) {
@@ -104339,6 +104838,14 @@
         runSuccessFactorsSingleJobTest(
           successFactorsTestJob.getAttribute("data-sffc-successfactors-test-job"),
           successFactorsTestJob
+        );
+        return;
+      }
+      if (workableTestJob) {
+        event.preventDefault();
+        runWorkableSingleJobTest(
+          workableTestJob.getAttribute("data-sffc-workable-test-job"),
+          workableTestJob
         );
         return;
       }
