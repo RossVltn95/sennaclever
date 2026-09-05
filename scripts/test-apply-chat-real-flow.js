@@ -713,6 +713,202 @@ async function main() {
     });
   }
 
+  const queueRemovalFlow = await page.evaluate(async () => {
+    const root = document.querySelector("[data-sffc-apply-chat]");
+    const messages = document.querySelector("[data-sffc-apply-chat-messages]");
+    root.__sffcApplyChatTest.resetCommercialApplyFlowState();
+    messages.innerHTML = "";
+    root.__sffcApplyChatTest.renderCommercialQueueForReview([
+      {
+        title: "Investment Analyst",
+        company: "Parrot Analytics",
+        location: "Qatar (Remote)",
+        applyUrl: "https://example.com/parrot/apply",
+      },
+      {
+        title: "Capital Transactions Intern",
+        company: "ESR Group",
+        location: "Singapore",
+        applyUrl: "https://example.com/esr/apply",
+      },
+    ]);
+    const beforeCard = messages.querySelector(
+      ".sffc-crm-apply-chat__apply-queue-card"
+    );
+    const beforeText = beforeCard ? beforeCard.textContent || "" : "";
+    const removeButton = beforeCard
+      ? beforeCard.querySelector(
+          ".sffc-crm-apply-chat__apply-queue-row-action.is-remove"
+        )
+      : null;
+    if (removeButton) {
+      removeButton.click();
+    }
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    const afterCard = messages.querySelector(
+      ".sffc-crm-apply-chat__apply-queue-card"
+    );
+    const afterText = afterCard ? afterCard.textContent || "" : "";
+    const stateAfterRemove =
+      root.__sffcApplyChatTest.getCommercialApplyQueueState();
+    const allJobsTab = afterCard
+      ? afterCard.querySelector('[data-sffc-apply-chat-queue-tab="all"]')
+      : null;
+    if (allJobsTab) {
+      allJobsTab.click();
+    }
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    const allJobsCard = messages.querySelector(
+      ".sffc-crm-apply-chat__apply-queue-card"
+    );
+    const allJobsText = allJobsCard ? allJobsCard.textContent || "" : "";
+    return {
+      beforeText,
+      afterText,
+      allJobsText,
+      removeButtonFound: !!removeButton,
+      stateAfterRemoveCount: stateAfterRemove.length,
+      stateAfterRemoveTitles: stateAfterRemove.map((item) => item.title),
+    };
+  });
+
+  if (
+    !queueRemovalFlow.removeButtonFound ||
+    !/Investment Analyst/i.test(queueRemovalFlow.beforeText) ||
+    /Investment Analyst/i.test(queueRemovalFlow.afterText) ||
+    !/Capital Transactions Intern/i.test(queueRemovalFlow.afterText) ||
+    queueRemovalFlow.stateAfterRemoveCount !== 1 ||
+    queueRemovalFlow.stateAfterRemoveTitles.includes("Investment Analyst")
+  ) {
+    qualityFailures.push({
+      reason:
+        "apply queue remove action did not remove the role from the candidate queue card",
+      queueRemovalFlow,
+    });
+  }
+
+  const successFactorsCommandFlow = await page.evaluate(async () => {
+    window.sffcCrmApplyChatArticle = Object.assign(
+      {},
+      window.sffcCrmApplyChatArticle || {},
+      {
+        isAdminTester: true,
+        jobsSearchNonce: "test-nonce",
+      }
+    );
+    window.__sffcSuccessFactorsProviderRequest = null;
+    const originalFetch = window.fetch;
+    window.fetch = function (url, options) {
+      const body = options && options.body;
+      const entries = {};
+      if (body && typeof body.forEach === "function") {
+        body.forEach((value, key) => {
+          entries[key] = String(value);
+        });
+      }
+      window.__sffcSuccessFactorsProviderRequest = {
+        url: String(url || ""),
+        entries,
+      };
+      return Promise.resolve(
+        new Response(
+          JSON.stringify({
+            success: true,
+            data: {
+              provider: "successfactors",
+              query: "successfactors",
+              items: [
+                {
+                  title: "Investment Analyst",
+                  company: "Commercial Bank",
+                  location: "Qatar",
+                  apply_url:
+                    "https://career2.successfactors.eu/career?company=thecommerc&career_ns=job_listing&career_job_req_id=7725",
+                  application_workspace_url:
+                    "https://career2.successfactors.eu/career?company=thecommerc&career_ns=job_application&career_job_req_id=7725",
+                  source_platform: "SAP SuccessFactors",
+                },
+                {
+                  title: "Strategy Analyst",
+                  company: "Elm",
+                  location: "Riyadh",
+                  apply_url:
+                    "https://career.elm.sa/elm/job/Riyadh-Strategy-Analyst-12345/123456/",
+                  application_workspace_url:
+                    "https://career.elm.sa/elm/job/Riyadh-Strategy-Analyst-12345/123456/",
+                  source_platform: "SAP SuccessFactors",
+                },
+                {
+                  title: "Wrong Provider Role",
+                  company: "Other",
+                  location: "Dubai",
+                  apply_url: "https://example.com/apply",
+                  application_workspace_url: "https://example.com/apply",
+                  source_platform: "Other",
+                },
+              ],
+            },
+          }),
+          { status: 200, headers: { "Content-Type": "application/json" } }
+        )
+      );
+    };
+    const root = document.querySelector("[data-sffc-apply-chat]");
+    const messages = document.querySelector("[data-sffc-apply-chat-messages]");
+    const form = document.querySelector("[data-sffc-apply-chat-composer]");
+    const input = document.querySelector("[data-sffc-apply-chat-input]");
+    root.__sffcApplyChatTest.resetCommercialApplyFlowState();
+    messages.innerHTML = "";
+    input.value = "test successfactors";
+    form.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
+    for (let index = 0; index < 30; index += 1) {
+      await new Promise((resolve) => setTimeout(resolve, 250));
+      if (
+        /SuccessFactors jobs loaded/i.test(messages.textContent || "") &&
+        /Upload the test CV first/i.test(messages.textContent || "")
+      ) {
+        break;
+      }
+    }
+    const state = root.__sffcApplyChatTest.getCommercialApplyQueueState();
+    window.fetch = originalFetch;
+    return {
+      text: messages.textContent || "",
+      request: window.__sffcSuccessFactorsProviderRequest,
+      enabled: root.__sffcApplyChatTest.isSuccessFactorsAdminTestEnabled(),
+      queueCount: state.length,
+      titles: state.map((item) => item.title),
+      providers: state.map(
+        (item) => item.autoSubmitProvider || item.auto_submit_provider || item.provider || ""
+      ),
+      successFactorsFlags: state.map((item) =>
+        root.__sffcApplyChatTest.isSuccessFactorsQueueItem(item)
+      ),
+    };
+  });
+
+  if (
+    !successFactorsCommandFlow.request ||
+    successFactorsCommandFlow.request.entries.provider !== "successfactors" ||
+    !successFactorsCommandFlow.enabled ||
+    !/SuccessFactors admin test/i.test(successFactorsCommandFlow.text) ||
+    !/Upload the test CV first/i.test(successFactorsCommandFlow.text) ||
+    successFactorsCommandFlow.queueCount !== 2 ||
+    !successFactorsCommandFlow.titles.includes("Investment Analyst") ||
+    !successFactorsCommandFlow.titles.includes("Strategy Analyst") ||
+    successFactorsCommandFlow.titles.includes("Wrong Provider Role") ||
+    !successFactorsCommandFlow.providers.every((provider) =>
+      /successfactors/i.test(provider)
+    ) ||
+    !successFactorsCommandFlow.successFactorsFlags.every(Boolean)
+  ) {
+    qualityFailures.push({
+      reason:
+        "test successfactors command did not load a SuccessFactors-only admin queue",
+      successFactorsCommandFlow,
+    });
+  }
+
   const autoApplyQueueFlow = await page.evaluate(async () => {
     const root = document.querySelector("[data-sffc-apply-chat]");
     const messages = document.querySelector("[data-sffc-apply-chat-messages]");
@@ -1254,6 +1450,41 @@ async function main() {
         name: "employer answer diverts why question",
         state: "apply_employer_question",
         input: "why are they asking this?",
+        expectedType: "SIDE_CONVERSATION",
+        expectedSlot: "employer_answer",
+      },
+      {
+        name: "successfactors password accepts password",
+        state: "successfactors_account_password",
+        input: "ValidPass123!",
+        expectedType: "PROMPT_ANSWER",
+        expectedSlot: "password",
+      },
+      {
+        name: "successfactors gender accepts answer",
+        state: "successfactors_profile_gender",
+        input: "Male",
+        expectedType: "PROMPT_ANSWER",
+        expectedSlot: "employer_answer",
+      },
+      {
+        name: "successfactors marital status accepts answer",
+        state: "successfactors_profile_marital_status",
+        input: "Single",
+        expectedType: "PROMPT_ANSWER",
+        expectedSlot: "employer_answer",
+      },
+      {
+        name: "successfactors nationality accepts answer",
+        state: "successfactors_profile_nationality",
+        input: "Moroccan",
+        expectedType: "PROMPT_ANSWER",
+        expectedSlot: "employer_answer",
+      },
+      {
+        name: "successfactors profile diverts why question",
+        state: "successfactors_profile_gender",
+        input: "why do you need gender?",
         expectedType: "SIDE_CONVERSATION",
         expectedSlot: "employer_answer",
       },

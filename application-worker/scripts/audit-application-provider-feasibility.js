@@ -88,7 +88,7 @@ const fixtures = [
   {
     provider: "workday",
     source: "Capital Group",
-    jobUrl: "https://capgroup.wd1.myworkdayjobs.com/en-US/capitalgroupcareers/job/Senior-Analyst--Executive-Office_JR7169-1",
+    jobUrl: process.env.SFFC_AUDIT_WORKDAY_URL || "https://capgroup.wd1.myworkdayjobs.com/en-US/capitalgroupcareers/job/Senior-Analyst--Executive-Office_JR7169-1",
     expected: "external_only",
   },
   {

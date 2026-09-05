@@ -11,6 +11,13 @@
     "verify:greenhouse": "node scripts/verify-greenhouse-capital-dynamics.js",
     "verify:worker:greenhouse": "node scripts/verify-worker-greenhouse-capital-dynamics.js",
     "verify:worker:workable:qiddiya": "node scripts/verify-worker-workable-qiddiya.js",
+    "inspect:workday": "node scripts/inspect-workday-application-flow.js",
+    "inspect:successfactors": "node scripts/inspect-successfactors-application-flow.js",
+    "audit:successfactors:cv-profile": "node scripts/audit-successfactors-cv-profile-parser.js",
+    "test:successfactors:create-account": "node scripts/test-successfactors-account-create.js",
+    "test:successfactors:sign-in": "node scripts/test-successfactors-sign-in.js",
+    "test:workday:consented": "node scripts/test-workday-consented-dry-run.js",
+    "test:workday:static": "node scripts/test-workday-adapter-static.js",
     "inspect:workable:qiddiya": "node scripts/inspect-workable-qiddiya-dom.js",
     "test:workable:visible": "node scripts/test-workable-visible-fill.js"
   },

@@ -40920,6 +40920,7 @@ CRITICAL INSTRUCTIONS:
                 'membershipsUrl' => home_url('/memberships/'),
                 'applyChatPricingOptions' => $this->get_apply_chat_pricing_options(),
                 'isLoggedIn' => is_user_logged_in(),
+                'isAdminTester' => current_user_can('manage_options'),
                 'currentUserFirstName' => $this->get_crm_apply_chat_current_user_first_name(),
                 'currentUserAvatarUrl' => is_user_logged_in() ? (string) get_avatar_url(get_current_user_id(), ['size' => 96]) : 'https://media.joinsenna.com/2025/05/bb-profile-avatar-buddyboss.webp',
                 'pdfScriptUrl' => 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js',
@@ -41678,18 +41679,171 @@ CRITICAL INSTRUCTIONS:
             return array_slice($items, 0, $limit);
         }
 
+        private function search_crm_apply_chat_provider_jobs($provider, $limit = 12)
+        {
+            global $wpdb;
+
+            $provider = sanitize_key((string) $provider);
+            $limit = max(1, min(30, (int) $limit));
+            if ($provider === '') {
+                return [];
+            }
+
+            $posts_table = $wpdb->posts;
+            $postmeta_table = $wpdb->postmeta;
+            $provider_like = '%' . $wpdb->esc_like($provider) . '%';
+            $url_like = $provider === 'workable'
+                ? '%' . $wpdb->esc_like('workable.com') . '%'
+                : $provider_like;
+            if ($provider === 'successfactors') {
+                $url_like = '%' . $wpdb->esc_like('successfactors') . '%';
+            }
+
+            $job_ids = $wpdb->get_col($wpdb->prepare(
+                "SELECT DISTINCT p.ID
+                 FROM {$posts_table} p
+                 LEFT JOIN {$postmeta_table} pm ON pm.post_id = p.ID
+                 WHERE p.post_type = 'jobs'
+                   AND p.post_status = 'publish'
+                   AND (
+                     (pm.meta_key IN ('_sffc_auto_submit_provider', '_source_platform') AND pm.meta_value LIKE %s)
+                     OR (pm.meta_key IN ('_application_url', 'newapplicationLink', 'applicationLink', 'sffc_application_url', '_sffc_job_application_url') AND pm.meta_value LIKE %s)
+                     OR p.post_content LIKE %s
+                   )
+                 ORDER BY p.post_date DESC
+                 LIMIT %d",
+                $provider_like,
+                $url_like,
+                $url_like,
+                $limit
+            ));
+
+            $items = [];
+            $seen = [];
+            foreach ((array) $job_ids as $job_id) {
+                $item = $this->get_crm_reddit_jobs_item((int) $job_id);
+                if (empty($item) || !is_array($item)) {
+                    continue;
+                }
+                if ($provider === 'workable') {
+                    $apply_url = (string) ($item['apply_url'] ?? '');
+                    if ($apply_url === '' || stripos($apply_url, 'workable.com') === false) {
+                        continue;
+                    }
+                    $item['auto_submit_supported'] = true;
+                    $item['auto_submit_provider'] = 'workable';
+                    if (empty($item['application_workspace_url'])) {
+                        $item['application_workspace_url'] = $apply_url;
+                    }
+                }
+                if ($provider === 'successfactors') {
+                    $apply_url = (string) ($item['apply_url'] ?? $item['application_url'] ?? $item['application_workspace_url'] ?? '');
+                    if ($apply_url === '' || !preg_match('~successfactors\.(?:com|eu)|sapsf\.com|careers\.stc\.com\.sa|afuturewithus\.com|career\.elm\.sa|jobs\.standardchartered\.com|careers\.gic\.com\.sg|jobs\.temasek\.com\.sg|adcbcareers\.com|careers\.fitch\.group|careers\.nbf\.ae|careers\.theredsea\.sa|/talentcommunity/apply/~i', $apply_url)) {
+                        continue;
+                    }
+                    $item['auto_submit_supported'] = true;
+                    $item['auto_submit_provider'] = 'successfactors';
+                    $item['source_platform'] = 'SAP SuccessFactors';
+                    if (empty($item['application_workspace_url'])) {
+                        $item['application_workspace_url'] = $apply_url;
+                    }
+                }
+                $normalized = $this->normalize_crm_apply_chat_job_search_item($item);
+                $key = 'jobs:' . $normalized['jobs_post_id'] . ':' . $normalized['wp_post_id'] . ':' . $normalized['post_id'];
+                $seen[$key] = true;
+                $items[] = $normalized;
+            }
+
+            $crm_table = $wpdb->prefix . 'sffc_crm_posts';
+            $crm_table_exists = $wpdb->get_var($wpdb->prepare('SHOW TABLES LIKE %s', $crm_table)) === $crm_table;
+            if ($crm_table_exists && count($items) < $limit) {
+                $remaining = $limit - count($items);
+                $crm_rows = $wpdb->get_results($wpdb->prepare(
+                    "SELECT *
+                     FROM {$crm_table}
+                     WHERE is_active = 1
+                       AND admin_approved = 1
+                       AND (post_status IS NULL OR post_status = 'open')
+                       AND (
+                         application_url LIKE %s
+                         OR source_platform LIKE %s
+                         OR content LIKE %s
+                         OR content_snippet LIKE %s
+                       )
+                     ORDER BY posted_at DESC, id DESC
+                     LIMIT %d",
+                    $url_like,
+                    $provider_like,
+                    $url_like,
+                    $url_like,
+                    $remaining
+                ), ARRAY_A);
+
+                foreach ((array) $crm_rows as $row) {
+                    $item = $this->build_crm_reddit_dashboard_crm_item((array) $row);
+                    if (empty($item) || !is_array($item)) {
+                        continue;
+                    }
+                    if ($provider === 'workable') {
+                        $apply_url = (string) ($item['apply_url'] ?? $item['application_url'] ?? '');
+                        if ($apply_url === '' || stripos($apply_url, 'workable.com') === false) {
+                            continue;
+                        }
+                        $item['auto_submit_supported'] = true;
+                        $item['auto_submit_provider'] = 'workable';
+                        if (empty($item['application_workspace_url'])) {
+                            $item['application_workspace_url'] = $apply_url;
+                        }
+                    }
+                    if ($provider === 'successfactors') {
+                        $apply_url = (string) ($item['apply_url'] ?? $item['application_url'] ?? $item['application_workspace_url'] ?? '');
+                        if ($apply_url === '' || !preg_match('~successfactors\.(?:com|eu)|sapsf\.com|careers\.stc\.com\.sa|afuturewithus\.com|career\.elm\.sa|jobs\.standardchartered\.com|careers\.gic\.com\.sg|jobs\.temasek\.com\.sg|adcbcareers\.com|careers\.fitch\.group|careers\.nbf\.ae|careers\.theredsea\.sa|/talentcommunity/apply/~i', $apply_url)) {
+                            continue;
+                        }
+                        $item['auto_submit_supported'] = true;
+                        $item['auto_submit_provider'] = 'successfactors';
+                        $item['source_platform'] = 'SAP SuccessFactors';
+                        if (empty($item['application_workspace_url'])) {
+                            $item['application_workspace_url'] = $apply_url;
+                        }
+                    }
+                    $normalized = $this->normalize_crm_apply_chat_job_search_item($item);
+                    $key = 'crm:' . $normalized['jobs_post_id'] . ':' . $normalized['wp_post_id'] . ':' . $normalized['post_id'];
+                    if (isset($seen[$key])) {
+                        continue;
+                    }
+                    $seen[$key] = true;
+                    $items[] = $normalized;
+                }
+            }
+
+            return $items;
+        }
+
         public function ajax_crm_apply_chat_search_jobs()
         {
             check_ajax_referer('sffc_crm_apply_chat_search_jobs', 'nonce');
 
             $raw_query = isset($_POST['query']) ? wp_unslash($_POST['query']) : '';
             $query = is_array($raw_query) ? '' : sanitize_text_field((string) $raw_query);
+            $provider = isset($_POST['provider']) ? sanitize_key(wp_unslash((string) $_POST['provider'])) : '';
             if (trim($query) === '') {
                 wp_send_json_error(['message' => __('Tell me what job to search for.', 'senna-finance')], 400);
             }
             $limit = isset($_POST['limit']) ? absint($_POST['limit']) : 10;
             if ($limit <= 0) {
                 $limit = 10;
+            }
+
+            if ($provider !== '') {
+                if (!current_user_can('manage_options')) {
+                    wp_send_json_error(['message' => __('This test search is only available to admins.', 'senna-finance')], 403);
+                }
+                wp_send_json_success([
+                    'items' => $this->search_crm_apply_chat_provider_jobs($provider, $limit),
+                    'query' => $query,
+                    'provider' => $provider,
+                ]);
             }
 
             wp_send_json_success([
@@ -41802,6 +41956,7 @@ CRITICAL INSTRUCTIONS:
                 'membershipsUrl' => home_url('/memberships/'),
                 'applyChatPricingOptions' => $this->get_apply_chat_pricing_options(),
                 'isLoggedIn' => is_user_logged_in(),
+                'isAdminTester' => current_user_can('manage_options'),
                 'currentUserFirstName' => $this->get_crm_apply_chat_current_user_first_name(),
                 'currentUserAvatarUrl' => is_user_logged_in() ? (string) get_avatar_url(get_current_user_id(), ['size' => 96]) : 'https://media.joinsenna.com/2025/05/bb-profile-avatar-buddyboss.webp',
                 'pdfScriptUrl' => 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js',
@@ -43748,6 +43903,75 @@ CRITICAL INSTRUCTIONS:
                 'verification_code' => sanitize_text_field(wp_unslash((string) ($_POST['verification_code'] ?? ''))),
             ];
 
+            $workday_consent_raw = wp_unslash((string) ($_POST['workday_consent'] ?? '{}'));
+            $workday_consent_decoded = json_decode($workday_consent_raw, true);
+            if (is_array($workday_consent_decoded)) {
+                $payload['workday_consent'] = [
+                    'scope' => sanitize_text_field((string) ($workday_consent_decoded['scope'] ?? '')),
+                    'account_route' => sanitize_key((string) ($workday_consent_decoded['account_route'] ?? '')),
+                    'create_account' => !empty($workday_consent_decoded['create_account']),
+                    'sign_in' => !empty($workday_consent_decoded['sign_in']),
+                    'final_submit' => !empty($workday_consent_decoded['final_submit']),
+                    'captured_at' => sanitize_text_field((string) ($workday_consent_decoded['captured_at'] ?? '')),
+                ];
+            }
+
+            $workday_account_raw = wp_unslash((string) ($_POST['workday_account'] ?? '{}'));
+            $workday_account_decoded = json_decode($workday_account_raw, true);
+            if (is_array($workday_account_decoded)) {
+                $payload['workday_account'] = [
+                    'account_route' => sanitize_key((string) ($workday_account_decoded['account_route'] ?? '')),
+                    'create_account' => !empty($workday_account_decoded['create_account']),
+                    'sign_in' => !empty($workday_account_decoded['sign_in']),
+                    'email' => sanitize_email((string) ($workday_account_decoded['email'] ?? '')),
+                    'password' => sanitize_text_field((string) ($workday_account_decoded['password'] ?? '')),
+                    'allow_generated_password' => !empty($workday_account_decoded['allow_generated_password']),
+                ];
+            }
+
+            $successfactors_consent_raw = wp_unslash((string) ($_POST['successfactors_consent'] ?? '{}'));
+            $successfactors_consent_decoded = json_decode($successfactors_consent_raw, true);
+            if (is_array($successfactors_consent_decoded)) {
+                $payload['successfactors_consent'] = [
+                    'scope' => sanitize_text_field((string) ($successfactors_consent_decoded['scope'] ?? '')),
+                    'account_route' => sanitize_key((string) ($successfactors_consent_decoded['account_route'] ?? '')),
+                    'create_account' => !empty($successfactors_consent_decoded['create_account']),
+                    'sign_in' => !empty($successfactors_consent_decoded['sign_in']),
+                    'final_submit' => !empty($successfactors_consent_decoded['final_submit']),
+                    'captured_at' => sanitize_text_field((string) ($successfactors_consent_decoded['captured_at'] ?? '')),
+                ];
+            }
+
+            $successfactors_account_raw = wp_unslash((string) ($_POST['successfactors_account'] ?? '{}'));
+            $successfactors_account_decoded = json_decode($successfactors_account_raw, true);
+            if (is_array($successfactors_account_decoded)) {
+                $payload['successfactors_account'] = [
+                    'account_route' => sanitize_key((string) ($successfactors_account_decoded['account_route'] ?? '')),
+                    'create_account' => !empty($successfactors_account_decoded['create_account']),
+                    'sign_in' => !empty($successfactors_account_decoded['sign_in']),
+                    'first_name' => sanitize_text_field((string) ($successfactors_account_decoded['first_name'] ?? $successfactors_account_decoded['firstName'] ?? '')),
+                    'last_name' => sanitize_text_field((string) ($successfactors_account_decoded['last_name'] ?? $successfactors_account_decoded['lastName'] ?? '')),
+                    'email' => sanitize_email((string) ($successfactors_account_decoded['email'] ?? '')),
+                    'password' => sanitize_text_field((string) ($successfactors_account_decoded['password'] ?? '')),
+                    'allow_generated_password' => !empty($successfactors_account_decoded['allow_generated_password']),
+                ];
+            }
+
+            $successfactors_profile_raw = wp_unslash((string) ($_POST['successfactors_profile'] ?? '{}'));
+            $successfactors_profile_decoded = json_decode($successfactors_profile_raw, true);
+            if (is_array($successfactors_profile_decoded)) {
+                $payload['successfactors_profile'] = [];
+                foreach ($successfactors_profile_decoded as $profile_key => $profile_value) {
+                    $clean_key = sanitize_key((string) $profile_key);
+                    if ($clean_key === '') {
+                        continue;
+                    }
+                    $payload['successfactors_profile'][$clean_key] = is_array($profile_value)
+                        ? array_map('sanitize_text_field', array_map('strval', $profile_value))
+                        : sanitize_text_field((string) $profile_value);
+                }
+            }
+
             $application_answers_raw = wp_unslash((string) ($_POST['application_answers'] ?? '{}'));
             $application_answers_decoded = json_decode($application_answers_raw, true);
             if (is_array($application_answers_decoded)) {
@@ -43836,7 +44060,7 @@ CRITICAL INSTRUCTIONS:
 
             $task = $wpdb->get_row(
                 $wpdb->prepare(
-                    "SELECT task_uuid, status, session_token, user_id, role_title, company_name, provider, last_error, submitted_at, result_payload, updated_at FROM {$table} WHERE task_uuid = %s LIMIT 1",
+                    "SELECT task_uuid, status, session_token, user_id, role_title, company_name, provider, candidate_email, last_error, submitted_at, result_payload, updated_at FROM {$table} WHERE task_uuid = %s LIMIT 1",
                     $task_uuid
                 ),
                 ARRAY_A
@@ -43859,6 +44083,15 @@ CRITICAL INSTRUCTIONS:
                 $decoded = json_decode((string) $task['result_payload'], true);
                 $result_payload = is_array($decoded) ? $decoded : [];
             }
+            $generated_account = null;
+            $generated_password = sanitize_text_field((string) ($result_payload['generated_password'] ?? ''));
+            if (sanitize_key((string) ($task['provider'] ?? '')) === 'successfactors' && $generated_password !== '') {
+                $generated_account = [
+                    'provider' => 'successfactors',
+                    'email' => sanitize_email((string) ($task['candidate_email'] ?? '')),
+                    'password' => $generated_password,
+                ];
+            }
 
             wp_send_json_success([
                 'task_uuid' => sanitize_text_field((string) ($task['task_uuid'] ?? '')),
@@ -43878,6 +44111,7 @@ CRITICAL INSTRUCTIONS:
                 'application_choice_answers_filled' => absint($result_payload['application_choice_answers_filled'] ?? 0),
                 'validation_errors' => array_map('sanitize_text_field', array_slice((array) ($result_payload['validation_errors'] ?? []), 0, 10)),
                 'missing_required_fields' => array_map('sanitize_text_field', array_slice((array) ($result_payload['missing_required_fields'] ?? []), 0, 10)),
+                'generated_account' => $generated_account,
                 'updated_at' => sanitize_text_field((string) ($task['updated_at'] ?? '')),
             ]);
         }
@@ -43935,7 +44169,7 @@ CRITICAL INSTRUCTIONS:
             ]);
 
             if ($updated === false) {
-                wp_send_json_error(['message' => __('Could not save the Greenhouse verification code.', 'senna-finance')], 500);
+                wp_send_json_error(['message' => __('Could not save the application verification code.', 'senna-finance')], 500);
             }
 
             wp_send_json_success([

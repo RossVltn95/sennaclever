@@ -15,6 +15,135 @@
   font-family: "Helvetica Neue", Arial, sans-serif;
 }
 
+.sffc-crm-apply-chat .sffc-crm-apply-chat__workable-test-card {
+  width: min(980px, 100%);
+  margin: 10px auto;
+  padding: 18px;
+  border: 1px solid #d7e1ee;
+  border-radius: 10px;
+  background: #ffffff;
+  box-shadow: 0 18px 45px rgba(15, 23, 42, 0.08);
+}
+
+.sffc-crm-apply-chat .sffc-crm-apply-chat__workable-test-head {
+  display: grid;
+  gap: 4px;
+  margin-bottom: 14px;
+}
+
+.sffc-crm-apply-chat .sffc-crm-apply-chat__workable-test-head span {
+  color: #5f6f85;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.sffc-crm-apply-chat .sffc-crm-apply-chat__workable-test-head strong {
+  color: #111827;
+  font-size: 22px;
+  font-weight: 800;
+}
+
+.sffc-crm-apply-chat .sffc-crm-apply-chat__workable-test-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px 18px;
+  padding: 14px;
+  border: 1px solid #e5eaf2;
+  border-radius: 8px;
+  background: #fbfcfe;
+}
+
+.sffc-crm-apply-chat .sffc-crm-apply-chat__workable-test-row + .sffc-crm-apply-chat__workable-test-row {
+  margin-top: 10px;
+}
+
+.sffc-crm-apply-chat .sffc-crm-apply-chat__workable-test-row strong,
+.sffc-crm-apply-chat .sffc-crm-apply-chat__workable-test-row span {
+  display: block;
+}
+
+.sffc-crm-apply-chat .sffc-crm-apply-chat__workable-test-row strong {
+  color: #111827;
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.sffc-crm-apply-chat .sffc-crm-apply-chat__workable-test-row span {
+  color: #5f6f85;
+  font-size: 13px;
+}
+
+.sffc-crm-apply-chat .sffc-crm-apply-chat__workable-test-status {
+  align-self: start;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: #fff7ed;
+  color: #9a3412;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.sffc-crm-apply-chat .sffc-crm-apply-chat__workable-test-status.is-submitted {
+  background: #ecfdf3;
+  color: #067647;
+}
+
+.sffc-crm-apply-chat .sffc-crm-apply-chat__workable-test-status.is-failed,
+.sffc-crm-apply-chat .sffc-crm-apply-chat__workable-test-status.is-review_required {
+  background: #fff1f2;
+  color: #be123c;
+}
+
+.sffc-crm-apply-chat .sffc-crm-apply-chat__workable-test-row dl {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+}
+
+.sffc-crm-apply-chat .sffc-crm-apply-chat__workable-test-row dl div {
+  padding: 10px;
+  border-radius: 8px;
+  background: #ffffff;
+  border: 1px solid #e7edf5;
+}
+
+.sffc-crm-apply-chat .sffc-crm-apply-chat__workable-test-row dt {
+  color: #6b7280;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.sffc-crm-apply-chat .sffc-crm-apply-chat__workable-test-row dd {
+  margin: 2px 0 0;
+  color: #111827;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.sffc-crm-apply-chat .sffc-crm-apply-chat__workable-test-row p {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: #334155;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+@media (max-width: 760px) {
+  .sffc-crm-apply-chat .sffc-crm-apply-chat__workable-test-card {
+    padding: 14px;
+  }
+
+  .sffc-crm-apply-chat .sffc-crm-apply-chat__workable-test-row,
+  .sffc-crm-apply-chat .sffc-crm-apply-chat__workable-test-row dl {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
 /* Current application workspace and queue polish. */
 .sffc-crm-apply-chat .sffc-crm-apply-chat__application-workspace {
   display: grid !important;
