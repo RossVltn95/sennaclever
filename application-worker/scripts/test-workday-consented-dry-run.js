@@ -85,6 +85,39 @@ async function main() {
         "Phone Number": process.env.SFFC_WORKDAY_TEST_LOCAL_PHONE || "+447552771926",
         Country: process.env.SFFC_WORKDAY_TEST_COUNTRY || "United Kingdom",
         "Family Name": "Touati",
+        "Why do you want to apply for this role at Blackstone?":
+          process.env.SFFC_WORKDAY_TEST_MOTIVATION ||
+          "I am interested in Blackstone because the role combines valuation, corporate finance and investment analysis at a global investment platform. My background includes private equity, M&A, valuation and financial analysis, and I am motivated by roles where rigorous analytical work supports investment decisions.",
+        "Are you legally authorized to work in the location in which you are applying?":
+          process.env.SFFC_WORKDAY_TEST_WORK_AUTHORIZED || "Yes",
+        "Will you require Blackstone to sponsor you to obtain, maintain, or extend your employment authorization and/or visa?":
+          process.env.SFFC_WORKDAY_TEST_REQUIRES_SPONSORSHIP || "No",
+        "In the past two years, have you donated to, or engaged in volunteer work for, a state or local political campaign in any of the 50 states or Washington D.C.?":
+          process.env.SFFC_WORKDAY_TEST_POLITICAL_SELF_STATE || "No",
+        "In the past two years, has your spouse donated to, or engaged in volunteer work for a state or local political campaign in any of the 50 states or Washington D.C.?":
+          process.env.SFFC_WORKDAY_TEST_POLITICAL_SPOUSE_STATE || "No",
+        "In the past two years, have you donated to, or engaged in volunteer work for a candidate for any federal office where such candidate held any state or local political office at the time of your contribution?":
+          process.env.SFFC_WORKDAY_TEST_POLITICAL_SELF_FEDERAL || "No",
+        "In the past two years, has your spouse donated to, or engaged in volunteer work for a candidate for any federal office where such candidate held any state or local political office at the time of your contribution?":
+          process.env.SFFC_WORKDAY_TEST_POLITICAL_SPOUSE_FEDERAL || "No",
+        "In the past two years, have you donated to, or engaged in volunteer work for any political party or political action committee?":
+          process.env.SFFC_WORKDAY_TEST_POLITICAL_SELF_PARTY || "No",
+        "In the past two years, has your spouse donated to, or engaged in volunteer work for any political party or political action committee?":
+          process.env.SFFC_WORKDAY_TEST_POLITICAL_SPOUSE_PARTY || "No",
+        "Have you ever been employed by Blackstone or any of its acquired businesses?":
+          process.env.SFFC_WORKDAY_TEST_PREVIOUS_BLACKSTONE_EMPLOYMENT || "No",
+        "Are any of your relatives or members of your household employed by Blackstone?":
+          process.env.SFFC_WORKDAY_TEST_RELATIVES_BLACKSTONE || "No",
+        "Are any of your relatives or members of your household employed by Deloitte?":
+          process.env.SFFC_WORKDAY_TEST_RELATIVES_DELOITTE || "No",
+        "To your knowledge, does your spouse, sibling, parent(s) or child currently:(a) Serve as an employee, officer, director or trustee of;(b) Have substantial interest or investment in; or, (c) Have a material business relationship with any portfolio company, competitor, service provider, supplier, client or investor of or in the Firm or one of its affiliates?":
+          process.env.SFFC_WORKDAY_TEST_FAMILY_BUSINESS_RELATIONSHIP || "No",
+        "Are you (or any of your relative*) (a) related to or affiliated with Blackstone and/or Blackstone personnel in any way, and/or (b) a Government Official*?":
+          process.env.SFFC_WORKDAY_TEST_GOVERNMENT_OFFICIAL_OR_AFFILIATED || "No",
+        "Are you currently involved in any other outside business activities (e.g. board affiliations, consulting engagements or other employment relationships)?":
+          process.env.SFFC_WORKDAY_TEST_OUTSIDE_BUSINESS_ACTIVITIES || "No",
+        "Opportunities are available in our below business groups, please select those you are most interested in applying to.":
+          process.env.SFFC_WORKDAY_TEST_BUSINESS_GROUPS || "Private Equity",
         ...(candidateAddressLine1 ? { "Address Line 1": candidateAddressLine1, Address: candidateAddressLine1 } : {}),
         ...(candidateCity ? { "City or Town": candidateCity, City: candidateCity } : {}),
         ...(candidatePostalCode ? { "Postal Code": candidatePostalCode } : {}),

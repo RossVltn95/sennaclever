@@ -1872,6 +1872,22 @@ async function waitForWorkdayApplicationContent(page) {
     .catch(() => {});
 }
 
+async function waitForWorkdayLoginContent(page) {
+  await withTimeout(waitForWorkdayShell(page), 25000, null).catch(() => {});
+  await page.waitForFunction(
+    () => {
+      const text = String(document.body?.innerText || "").replace(/\s+/g, " ").trim();
+      const fields = Array.from(document.querySelectorAll("input:not([type='hidden']), textarea, select"));
+      return fields.some((field) =>
+        /email|password|username|user/i.test(
+          `${field.name || ""} ${field.id || ""} ${field.getAttribute("autocomplete") || ""} ${field.getAttribute("aria-label") || ""}`
+        )
+      ) || /email address|password|sign in|log in|login/i.test(text);
+    },
+    { timeout: 25000 }
+  ).catch(() => {});
+}
+
 async function clickWorkdayByAutomationOrText(page, automationIds, patterns) {
   for (const automationId of automationIds || []) {
     const selector = `[data-automation-id="${String(automationId).replace(/\\/g, "\\\\").replace(/"/g, '\\"')}"]`;
@@ -1996,8 +2012,12 @@ async function getWorkdayApplyHref(page) {
 async function chooseWorkdayApplicationStartRoute(page, preferResume = true, applyUrl = "") {
   if (applyUrl) {
     const directRoute = `${applyUrl.replace(/\/$/, "")}/${preferResume ? "autofillWithResume" : "applyManually"}`;
-    await page.goto(directRoute, { waitUntil: "domcontentloaded", timeout: navigationTimeoutMs }).catch(() => {});
-    await waitForWorkdayShell(page);
+    await withTimeout(
+      page.goto(directRoute, { waitUntil: "domcontentloaded", timeout: Math.min(navigationTimeoutMs, 25000) }),
+      30000,
+      null
+    ).catch(() => {});
+    await withTimeout(waitForWorkdayShell(page), 25000, null).catch(() => {});
     return {
       attempted: true,
       clicked: true,
@@ -2011,8 +2031,12 @@ async function chooseWorkdayApplicationStartRoute(page, preferResume = true, app
   const hasStartRouteOptions = /autofillWithResume|applyManually|useMyLastApplication|Autofill with Resume|Apply Manually/i.test(buttonText);
   if (!hasStartRouteOptions && applyUrl) {
     const directRoute = `${applyUrl.replace(/\/$/, "")}/${preferResume ? "autofillWithResume" : "applyManually"}`;
-    await page.goto(directRoute, { waitUntil: "domcontentloaded", timeout: navigationTimeoutMs }).catch(() => {});
-    await waitForWorkdayShell(page);
+    await withTimeout(
+      page.goto(directRoute, { waitUntil: "domcontentloaded", timeout: Math.min(navigationTimeoutMs, 25000) }),
+      30000,
+      null
+    ).catch(() => {});
+    await withTimeout(waitForWorkdayShell(page), 25000, null).catch(() => {});
     return {
       attempted: true,
       clicked: true,
@@ -2047,8 +2071,12 @@ async function chooseWorkdayApplicationStartRoute(page, preferResume = true, app
     return link ? link.href || "" : "";
   }, routes.flatMap((route) => route.ids)).catch(() => "");
   if (href) {
-    await page.goto(href, { waitUntil: "domcontentloaded", timeout: navigationTimeoutMs }).catch(() => {});
-    await waitForWorkdayShell(page);
+    await withTimeout(
+      page.goto(href, { waitUntil: "domcontentloaded", timeout: Math.min(navigationTimeoutMs, 25000) }),
+      30000,
+      null
+    ).catch(() => {});
+    await withTimeout(waitForWorkdayShell(page), 25000, null).catch(() => {});
     return { attempted: true, clicked: true, route: routes[0]?.route || "apply_start_href", href };
   }
   return { attempted: true, clicked: false, route: "" };
@@ -2622,7 +2650,7 @@ async function createWorkdayAccountIfAllowed(page, task, preflight) {
   if (!account.create_account && account.sign_in && account.email && password) {
     result.attempted = true;
     await clickWorkdayByAutomationOrText(page, ["utilityButtonSignIn", "signInLink"], [/sign in/, /log in/, /login/]);
-    await waitForWorkdayShell(page);
+    await waitForWorkdayLoginContent(page);
     result.field_fill = {
       email: await fillWorkdayInput(page, "email", account.email),
       password: await fillWorkdayInput(page, "password", password),
@@ -2642,8 +2670,8 @@ async function createWorkdayAccountIfAllowed(page, task, preflight) {
       ["signInSubmitButton", "submitButton"],
       [/^sign in$/, /^log in$/, /^login$/]
     );
-    await waitForWorkdayShell(page);
-    const after = await getWorkdayVisibleState(page);
+    await withTimeout(waitForWorkdayShell(page), 25000, null).catch(() => {});
+    const after = await withTimeout(getWorkdayVisibleState(page), 10000, {});
     result.after_submit_state = after;
     result.verification_required = Boolean(after.has_verification || preflight.account_verification);
     if (!result.submitted_create_account) {
@@ -2805,8 +2833,12 @@ async function ensureWorkdayApplicationFlowReady(page, task, preflight) {
   }));
   debugLog(task?.task_uuid || "workday", "workday_click_apply_start");
   if (cleanText(preflight.apply_url || "")) {
-    await page.goto(preflight.apply_url, { waitUntil: "domcontentloaded", timeout: navigationTimeoutMs }).catch(() => {});
-    await waitForWorkdayShell(page);
+    await withTimeout(
+      page.goto(preflight.apply_url, { waitUntil: "domcontentloaded", timeout: Math.min(navigationTimeoutMs, 25000) }),
+      30000,
+      null
+    ).catch(() => {});
+    await withTimeout(waitForWorkdayShell(page), 25000, null).catch(() => {});
     result.opened_apply = true;
     result.opened_apply_direct = true;
     debugLog(task?.task_uuid || "workday", "workday_click_apply_result", "direct", preflight.apply_url);
@@ -2814,12 +2846,16 @@ async function ensureWorkdayApplicationFlowReady(page, task, preflight) {
     result.opened_apply = await withTimeout(clickWorkdayByAutomationOrText(page, ["adventureButton"], [/\bapply\b/]), workdayShellTimeoutMs, false);
     debugLog(task?.task_uuid || "workday", "workday_click_apply_result", result.opened_apply);
     if (result.opened_apply) {
-      await waitForWorkdayShell(page);
+      await withTimeout(waitForWorkdayShell(page), 25000, null).catch(() => {});
     }
     const applyHref = (await getWorkdayApplyHref(page)) || cleanText(preflight.apply_url || "");
     if (applyHref && page.url() !== applyHref) {
-      await page.goto(applyHref, { waitUntil: "domcontentloaded", timeout: navigationTimeoutMs }).catch(() => {});
-      await waitForWorkdayShell(page);
+      await withTimeout(
+        page.goto(applyHref, { waitUntil: "domcontentloaded", timeout: Math.min(navigationTimeoutMs, 25000) }),
+        30000,
+        null
+      ).catch(() => {});
+      await withTimeout(waitForWorkdayShell(page), 25000, null).catch(() => {});
       result.opened_apply = true;
     }
   }
@@ -2857,6 +2893,7 @@ async function ensureWorkdayApplicationFlowReady(page, task, preflight) {
     buttons: (state.buttons || []).map((button) => `${button.automation_id}:${button.text}`).slice(0, 12),
   }));
   const hasAccountUi =
+    /\/login(?:\?|$)/i.test(state.url || page.url()) ||
     state.has_create_account ||
     state.has_sign_in ||
     /create account|sign in|log in|login|password/i.test(cleanText(state.text_sample || ""));
@@ -2870,12 +2907,34 @@ async function ensureWorkdayApplicationFlowReady(page, task, preflight) {
       isWorkdayLoggedInState(state, workdayAccount) &&
       preflight.apply_url
     ) {
-      const routePath = task.__sffc_cv_path ? "autofillWithResume" : "applyManually";
-      const freshApplyHref = `${preflight.apply_url.replace(/\/$/, "")}/${routePath}`;
-      debugLog(task?.task_uuid || "workday", "workday_account_created_reload_apply_route", freshApplyHref);
-      await page.goto(freshApplyHref, { waitUntil: "domcontentloaded", timeout: navigationTimeoutMs }).catch(() => {});
-      await waitForWorkdayApplicationContent(page);
-      state = await getWorkdayVisibleState(page);
+      if (workdayAccount.sign_in && !workdayAccount.create_account) {
+        debugLog(task?.task_uuid || "workday", "workday_account_signed_in_resume_candidate_home_start");
+        const resumedAfterSignIn = await continueWorkdayDraftFromCandidateHome(page, task, preflight).catch((error) => ({
+          attempted: true,
+          clicked_continue: false,
+          reason: error?.message || String(error),
+        }));
+        result.candidate_home_resume_after_sign_in = resumedAfterSignIn;
+        state = resumedAfterSignIn.state || await withTimeout(getWorkdayVisibleState(page), 10000, {});
+        debugLog(task?.task_uuid || "workday", "workday_account_signed_in_resume_candidate_home_result", JSON.stringify({
+          clicked_continue: Boolean(resumedAfterSignIn.clicked_continue),
+          reason: resumedAfterSignIn.reason || "",
+          url: state.url || page.url(),
+          field_count: state.field_count,
+        }));
+      }
+      if (!state.field_count && !state.file_input_count && !state.upload_control_count && !state.has_verification) {
+        const routePath = task.__sffc_cv_path ? "autofillWithResume" : "applyManually";
+        const freshApplyHref = `${preflight.apply_url.replace(/\/$/, "")}/${routePath}`;
+        debugLog(task?.task_uuid || "workday", "workday_account_created_reload_apply_route", freshApplyHref);
+        await withTimeout(
+          page.goto(freshApplyHref, { waitUntil: "domcontentloaded", timeout: Math.min(navigationTimeoutMs, 25000) }),
+          30000,
+          null
+        ).catch(() => {});
+        await withTimeout(waitForWorkdayApplicationContent(page), 30000, null).catch(() => {});
+        state = await withTimeout(getWorkdayVisibleState(page), 10000, {});
+      }
     }
     if (
       result.account_flow?.last_error &&
@@ -4272,7 +4331,43 @@ async function clickWorkdayNextForStage(page, stage) {
   }, patterns.map((pattern) => pattern.source)).catch(() => false);
 }
 
-async function advanceWorkdaySteps(page, task, candidate, apiSchema = null) {
+async function ensureWorkdayPreferredLocale(page, preflight = {}) {
+  const preferredLocale = cleanText(preflight.locale || "en-US");
+  if (!preferredLocale) {
+    return false;
+  }
+  const currentUrl = page.url();
+  const localeMatch = currentUrl.match(/\/([a-z]{2}-[A-Z]{2})\//);
+  if (!localeMatch || localeMatch[1] === preferredLocale) {
+    return false;
+  }
+  const preferredUrl = currentUrl.replace(`/${localeMatch[1]}/`, `/${preferredLocale}/`);
+  await withTimeout(
+    page.goto(preferredUrl, { waitUntil: "domcontentloaded", timeout: Math.min(navigationTimeoutMs, 25000) }),
+    30000,
+    null
+  ).catch(() => {});
+  await withTimeout(waitForWorkdayShell(page), 25000, null).catch(() => {});
+  return true;
+}
+
+async function waitForWorkdayPostTransitionReady(page, stage, preflight = {}) {
+  await ensureWorkdayPreferredLocale(page, preflight).catch(() => false);
+  await withTimeout(waitForWorkdayStepTransition(page, ""), 12000, null).catch(() => {});
+  let nextState = await withTimeout(getWorkdayVisibleState(page), 10000, {});
+  let nextStepState = await withTimeout(getWorkdayStepState(page), 10000, {});
+  let nextStage = getWorkdayStageFromState(nextState, nextStepState) || stage;
+  if (isWorkdayLoadingOnlyStage(nextState)) {
+    await withTimeout(waitForWorkdayStageControls(page, nextStage), 30000, null).catch(() => {});
+    await ensureWorkdayPreferredLocale(page, preflight).catch(() => false);
+    nextState = await withTimeout(getWorkdayVisibleState(page), 10000, {});
+    nextStepState = await withTimeout(getWorkdayStepState(page), 10000, {});
+    nextStage = getWorkdayStageFromState(nextState, nextStepState) || nextStage;
+  }
+  return { state: nextState, stepState: nextStepState, stage: nextStage };
+}
+
+async function advanceWorkdaySteps(page, task, candidate, apiSchema = null, preflight = {}) {
   const states = [];
   let uploadedResume = false;
   let resumeUpload = { attempted: false, uploaded: false, confirmed: false, clicked_upload: false, state: {} };
@@ -4436,8 +4531,9 @@ async function advanceWorkdaySteps(page, task, candidate, apiSchema = null) {
       break;
     }
     await waitForWorkdayStepTransition(page, signature);
-    const nextState = await getWorkdayVisibleState(page);
-    const nextStepState = await getWorkdayStepState(page);
+    const transition = await waitForWorkdayPostTransitionReady(page, stage, preflight);
+    const nextState = transition.state;
+    const nextStepState = transition.stepState;
     const nextSignature = getWorkdayProgressSignature(nextState, nextStepState);
     stagnantIterations = nextSignature === signature || nextSignature === previousSignature ? stagnantIterations + 1 : 0;
     previousSignature = signature;
@@ -4536,7 +4632,7 @@ async function processWorkdayTask(page, task, candidate, cvPath, url) {
   const coreFields = flow.form_ready ? await fillWorkdayCoreCandidateFields(page, candidate) : {};
   debugLog(task.task_uuid || "task", "workday_advance_start", Boolean(flow.form_ready));
   const advanced = flow.form_ready
-    ? await advanceWorkdaySteps(page, task, candidate, preflight.api_schema || null)
+    ? await advanceWorkdaySteps(page, task, candidate, preflight.api_schema || null, preflight)
     : { states: [], uploaded_resume: false, application_answers: { attempted: 0, filled: 0, choice_attempted: 0, choice_filled: 0, field_diagnostics: [], items: [] } };
   debugLog(
     task.task_uuid || "task",

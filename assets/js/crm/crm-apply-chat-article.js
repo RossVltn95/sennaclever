@@ -91646,7 +91646,12 @@
     }
 
     function renderJobsWorkspaceHtml() {
-      var allItems = getJobsWorkspaceSourceItems();
+      var allItems =
+        isWorkableAdminTestEnabled() || isSuccessFactorsAdminTestEnabled()
+          ? (commercialApplyQueueCatalogState.length
+              ? commercialApplyQueueCatalogState
+              : items)
+          : getJobsWorkspaceSourceItems();
       var query = cleanMessageText(jobsWorkspaceSearchQuery || "").toLowerCase();
       var queuedKeys = {};
       var queuedItems = commercialApplyQueueItemsState.length
@@ -92420,6 +92425,48 @@
       );
     }
 
+    function showWorkableAdminTestReadyCard() {
+      commercialApplyQueueActivated = false;
+      commercialApplyQueueDetailsMode = true;
+      commercialApplyQueueInitialized = true;
+      commercialApplyQueueActiveTab = "shortlist";
+      commercialApplyQueueFilter = "all";
+      commercialApplyQueueCatalogState = [];
+      jobsWorkspaceSearchQuery = "";
+      botMessage(
+        renderCommercialApplyQueueCard(commercialApplyQueueItemsState, {
+          active: false,
+          showButton: true,
+          eyebrow: "Workable test run",
+          title: "Review these Workable jobs before Railway starts",
+          buttonLabel: "Start Workable Test",
+        }),
+        humanComposeDelay("Workable test run ready.", 700, 1400),
+        function () {
+          setPromptState(
+            "workable_test_ready",
+            {
+              yes: function (value) {
+                echoPromptChoice(value || "Start Workable Test");
+                processCommercialApplyQueueShortlist();
+              },
+              other: function (value) {
+                if (/start|submit|run|apply/i.test(cleanMessageText(value || ""))) {
+                  echoPromptChoice(value || "Start Workable Test");
+                  processCommercialApplyQueueShortlist();
+                  return;
+                }
+                focusComposer("Review the Workable test list, then start when ready");
+              },
+            },
+            "Review the Workable test list, then start when ready",
+            { provider: "workable" }
+          );
+          focusComposer("Review the Workable test list, then start when ready");
+        }
+      );
+    }
+
     function setSuccessFactorsTestReadyPrompt() {
       setPromptState(
         "successfactors_test_ready",
@@ -92585,6 +92632,10 @@
       applyOnboardingFullName = "";
       applyOnboardingPreferredEmail = "";
       applyOnboardingEmailSuggestion = "";
+      currentCvFile = null;
+      currentCvPreviewAsset = null;
+      currentCvPageCount = 0;
+      capturedCvText = "";
       commercialApplyQueueActivated = false;
       commercialApplyQueueDetailsMode = true;
       commercialApplyQueueInitialized = true;
@@ -92610,8 +92661,9 @@
               index === 0 ? "Ready" : "In Queue"
             );
           });
+          normalized = normalized.slice(0, 4);
           commercialApplyQueueItemsState = normalized;
-          rememberCommercialApplyQueueCatalogItems(normalized);
+          commercialApplyQueueCatalogState = normalized.slice(0);
           if (!normalized.length) {
             botMessage(
               "I couldn’t find Workable jobs in the current job table.",
@@ -92625,45 +92677,12 @@
           botMessage(
             "I found " +
               normalized.length +
-              " Workable jobs. I’ll collect the test details first, then show the queue before anything runs.",
+              " Workable jobs for this test. Before I show the run card, I need the candidate details the worker will use.",
             humanComposeDelay("Workable jobs loaded.", 700, 1400),
             function () {
-              ensureWorkableTestCandidateDetailsThen(
-                function () {
-                  botMessage(
-                    renderCommercialApplyQueueCard(commercialApplyQueueItemsState, {
-                      active: false,
-                      showButton: true,
-                      eyebrow: "Workable admin test",
-                      title: "Choose the jobs to submit through Railway",
-                    }),
-                    humanComposeDelay("Workable queue ready.", 700, 1400),
-                    function () {
-                      setPromptState(
-                        "workable_test_ready",
-                        {
-                          yes: function (value) {
-                            echoPromptChoice(value || "Start Auto Apply");
-                            processCommercialApplyQueueShortlist();
-                          },
-                          other: function (value) {
-                            if (/start|submit|run|apply/i.test(cleanMessageText(value || ""))) {
-                              echoPromptChoice(value || "Start Auto Apply");
-                              processCommercialApplyQueueShortlist();
-                              return;
-                            }
-                            focusComposer("Review the Workable list, then start the test");
-                          },
-                        },
-                        "Review the Workable list, then start the test",
-                        { provider: "workable" }
-                      );
-                      focusComposer("Review the Workable list, then start the test");
-                    }
-                  );
-                },
-                { startImmediately: false }
-              );
+              ensureWorkableTestCandidateDetailsThen(showWorkableAdminTestReadyCard, {
+                startImmediately: false,
+              });
             }
           );
         })
@@ -93575,7 +93594,9 @@
         "</div>" +
         (opts.showButton === false || !items.length
           ? ""
-          : '<button type="button" class="sffc-crm-apply-chat__apply-queue-primary" data-sffc-apply-chat-start-auto-apply><span aria-hidden="true">▶</span>Start Auto Apply</button>') +
+          : '<button type="button" class="sffc-crm-apply-chat__apply-queue-primary" data-sffc-apply-chat-start-auto-apply><span aria-hidden="true">▶</span>' +
+            escapeHtml(opts.buttonLabel || "Start Auto Apply") +
+            "</button>") +
         "</div>" +
         '<div class="sffc-crm-apply-chat__apply-queue-progress" aria-label="Application queue progress">' +
         '<span style="width:' +
@@ -104021,7 +104042,7 @@
           return;
         }
         clearPromptState();
-        userMessage("Start Auto Apply");
+        userMessage(isWorkableAdminTestEnabled() ? "Start Workable Test" : "Start Auto Apply");
         commercialApplyQueueItemsState = startQueueItems;
         rememberCommercialApplyQueueCatalogItems(startQueueItems);
         processCommercialApplyQueueShortlist();
@@ -104509,7 +104530,7 @@
           return;
         }
         clearPromptState();
-        userMessage("Start Auto Apply");
+        userMessage(isWorkableAdminTestEnabled() ? "Start Workable Test" : "Start Auto Apply");
         commercialApplyQueueItemsState = selectedQueueItems;
         rememberCommercialApplyQueueCatalogItems(selectedQueueItems);
         processCommercialApplyQueueShortlist();
