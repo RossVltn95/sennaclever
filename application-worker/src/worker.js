@@ -3888,6 +3888,7 @@ async function repairWorkdayVoluntaryDisclosuresPage(page, task) {
       scope_found: Boolean(result.found),
       filled: Boolean(result.filled),
       scope_text: cleanText(result.scope_text || "").slice(0, 160),
+      option_texts: result.option_texts || undefined,
       error: result.error || undefined,
       timeout: Boolean(result.timeout),
     });
@@ -3907,6 +3908,17 @@ async function selectWorkdayGenderDisclosure(page, answer) {
   const aliases = (Array.isArray(answer) ? answer : [answer]).map(cleanText).filter(Boolean);
   if (!aliases.length) {
     return { found: false, filled: false, scope_text: "" };
+  }
+  const directOpened = await openWorkdayButtonByText(page, [/gender/i, /select one|choose/i]).catch(() => false);
+  if (directOpened) {
+    const directFilled = await selectVisibleWorkdayOption(page, aliases).catch(() => false);
+    if (directFilled) {
+      return { found: true, filled: true, scope_text: "Gender prompt button" };
+    }
+    const optionTexts = await getVisibleWorkdayOptionTexts(page).catch(() => []);
+    if (optionTexts.length) {
+      return { found: true, filled: false, scope_text: "Gender prompt button", option_texts: optionTexts.slice(0, 12) };
+    }
   }
   const pointResult = await page.evaluate(() => {
     const clean = (value) => String(value || "").replace(/\s+/g, " ").trim();
@@ -3949,11 +3961,7 @@ async function selectWorkdayGenderDisclosure(page, answer) {
         y: Math.round(label.rect.bottom + 34),
       };
       const inferredElement = document.elementFromPoint(inferredSelectPoint.x, inferredSelectPoint.y);
-      if (
-        inferredElement &&
-        visible(inferredElement) &&
-        !/error[-\s]|errors found/i.test(clean(inferredElement.closest("div, fieldset, section")?.textContent || ""))
-      ) {
+      if (inferredElement && visible(inferredElement)) {
         return {
           found: true,
           scope_text: label.text,
@@ -4039,11 +4047,84 @@ async function selectWorkdayGenderDisclosure(page, answer) {
     await new Promise((resolve) => setTimeout(resolve, 600));
     filled = await selectVisibleWorkdayOption(page, aliases).catch(() => false);
   }
+  const optionTexts = filled ? [] : await getVisibleWorkdayOptionTexts(page).catch(() => []);
   return {
     found: true,
     filled: Boolean(filled),
     scope_text: pointResult.scope_text || "Gender",
+    option_texts: optionTexts.slice(0, 12),
   };
+}
+
+async function getVisibleWorkdayOptionTexts(page) {
+  return page.evaluate(() => {
+    const clean = (value) => String(value || "").replace(/\s+/g, " ").trim();
+    const visible = (element) => {
+      if (!element) return false;
+      const style = window.getComputedStyle(element);
+      const rect = element.getBoundingClientRect();
+      return style.visibility !== "hidden" && style.display !== "none" && rect.width > 0 && rect.height > 0;
+    };
+    return Array.from(
+      document.querySelectorAll("[role='option'], [data-automation-id*='promptOption'], [id*='promptOption'], [role='listbox'] *, li")
+    )
+      .filter(visible)
+      .map((element) => clean(`${element.textContent || ""} ${element.getAttribute("aria-label") || ""}`))
+      .filter((text) => !/my information|my experience|application questions|voluntary disclosures|review|completed step|current step/i.test(text))
+      .filter((text, index, list) => text && list.indexOf(text) === index)
+      .slice(0, 40);
+  });
+}
+
+async function openWorkdayButtonByText(page, patterns) {
+  const patternSources = (patterns || []).map((pattern) => pattern.source || String(pattern)).filter(Boolean);
+  if (!patternSources.length) {
+    return false;
+  }
+  const handle = await page.evaluateHandle((sources) => {
+    const clean = (value) => String(value || "").replace(/\s+/g, " ").trim();
+    const visible = (element) => {
+      if (!element) return false;
+      const style = window.getComputedStyle(element);
+      const rect = element.getBoundingClientRect();
+      return style.visibility !== "hidden" && style.display !== "none" && rect.width > 0 && rect.height > 0;
+    };
+    const regexes = sources.map((source) => new RegExp(source, "i"));
+    const controls = Array.from(document.querySelectorAll("button, [role='button'], [role='combobox'], [aria-haspopup='listbox']"))
+      .filter(visible)
+      .map((element) => ({
+        element,
+        text: clean(`${element.textContent || ""} ${element.getAttribute("aria-label") || ""}`),
+        auto: element.getAttribute("data-automation-id") || "",
+      }))
+      .filter((entry) => {
+        if (/utility|navigation|logo|backToJobPosting|pageFooter/i.test(entry.auto)) {
+          return false;
+        }
+        if (entry.text.length > 220 || /my information|my experience|application questions|voluntary disclosures|review/i.test(entry.text)) {
+          return false;
+        }
+        return regexes.every((regex) => regex.test(entry.text));
+      })
+      .sort((a, b) => a.text.length - b.text.length);
+    return controls[0]?.element || null;
+  }, patternSources);
+  const element = handle.asElement();
+  if (!element) {
+    await handle.dispose().catch(() => {});
+    return false;
+  }
+  await element.evaluate((control) => control.scrollIntoView({ block: "center", inline: "nearest" })).catch(() => {});
+  await element.click().catch(async () => {
+    const rect = await element.evaluate((control) => {
+      const box = control.getBoundingClientRect();
+      return { x: box.left + Math.max(12, box.width - 28), y: box.top + box.height / 2 };
+    });
+    await page.mouse.click(rect.x, rect.y, { delay: 80 }).catch(() => {});
+  });
+  await handle.dispose().catch(() => {});
+  await new Promise((resolve) => setTimeout(resolve, 700));
+  return true;
 }
 
 async function fillWorkdayCoreCandidateFields(page, candidate) {
@@ -4273,6 +4354,7 @@ async function selectVisibleWorkdayOption(page, aliases) {
     )
       .filter(visible)
       .map((node) => ({ node, text: clean(`${node.textContent || ""} ${node.getAttribute("aria-label") || ""}`) }))
+      .filter((entry) => !/my information|my experience|application questions|voluntary disclosures|review|completed step|current step/i.test(entry.text))
       .map((entry) => ({ ...entry, score: score(entry.text) }))
       .filter((entry) => entry.score > 0)
       .sort((a, b) => b.score - a.score);
