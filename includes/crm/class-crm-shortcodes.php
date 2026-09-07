@@ -13650,6 +13650,9 @@ CSS;
             $technical_skills = $this->normalize_crm_reddit_profile_tag_values(wp_unslash($request_data['technical_skills'] ?? []), 18);
             $qualifications = $this->normalize_crm_reddit_profile_tag_values(wp_unslash($request_data['qualifications'] ?? []), 18);
             $languages = $this->normalize_crm_reddit_profile_tag_values(wp_unslash($request_data['languages'] ?? []), 12);
+            $desired_salary = sanitize_text_field((string) wp_unslash($request_data['desired_salary'] ?? ''));
+            $notice_period = sanitize_text_field((string) wp_unslash($request_data['notice_period'] ?? ''));
+            $visa_sponsorship = sanitize_text_field((string) wp_unslash($request_data['visa_sponsorship'] ?? ''));
             $excluded_roles = $this->normalize_crm_reddit_profile_tag_values(wp_unslash($request_data['excluded_roles'] ?? []), 18);
             $excluded_locations = $this->normalize_crm_reddit_profile_tag_values(wp_unslash($request_data['excluded_locations'] ?? []), 18);
             $excluded_sectors = $this->normalize_crm_reddit_profile_tag_values(wp_unslash($request_data['excluded_sectors'] ?? []), 18);
@@ -13676,6 +13679,9 @@ CSS;
             update_user_meta($user_id, 'sffc_crm_technical_skills', $technical_skills);
             update_user_meta($user_id, 'sffc_crm_certifications', $qualifications);
             update_user_meta($user_id, 'sffc_crm_languages', $languages);
+            update_user_meta($user_id, 'sffc_crm_desired_salary', $desired_salary);
+            update_user_meta($user_id, 'sffc_crm_notice_period', $notice_period);
+            update_user_meta($user_id, 'sffc_crm_visa_sponsorship', $visa_sponsorship);
             update_user_meta($user_id, 'sffc_crm_excluded_roles', $excluded_roles);
             update_user_meta($user_id, 'sffc_crm_excluded_locations', $excluded_locations);
             update_user_meta($user_id, 'sffc_crm_excluded_sectors', $excluded_sectors);
@@ -16503,6 +16509,21 @@ CSS;
             $skills = $this->normalize_crm_reddit_profile_tag_values(get_user_meta($user_id, 'sffc_crm_technical_skills', true) ?: []);
             $qualifications = $this->normalize_crm_reddit_profile_tag_values(get_user_meta($user_id, 'sffc_crm_certifications', true) ?: []);
             $languages = $this->normalize_crm_reddit_profile_tag_values(get_user_meta($user_id, 'sffc_crm_languages', true) ?: []);
+            $desired_salary = sanitize_text_field((string) get_user_meta($user_id, 'sffc_crm_desired_salary', true));
+            $notice_period = sanitize_text_field((string) get_user_meta($user_id, 'sffc_crm_notice_period', true));
+            $visa_sponsorship = sanitize_text_field((string) get_user_meta($user_id, 'sffc_crm_visa_sponsorship', true));
+            $saved_apply_mandate = get_user_meta($user_id, 'sffc_crm_editorial_apply_for_me_mandate', true);
+            if (is_array($saved_apply_mandate)) {
+                if ($desired_salary === '') {
+                    $desired_salary = sanitize_text_field((string) ($saved_apply_mandate['compensation']['fields']['target_compensation'] ?? ''));
+                }
+                if ($notice_period === '') {
+                    $notice_period = sanitize_text_field((string) ($saved_apply_mandate['working']['fields']['notice_period'] ?? ''));
+                }
+                if ($visa_sponsorship === '') {
+                    $visa_sponsorship = sanitize_text_field((string) ($saved_apply_mandate['working']['fields']['right_to_work'] ?? ''));
+                }
+            }
             $excluded_roles = $this->normalize_crm_reddit_profile_tag_values(get_user_meta($user_id, 'sffc_crm_excluded_roles', true) ?: []);
             $excluded_locations = $this->normalize_crm_reddit_profile_tag_values(get_user_meta($user_id, 'sffc_crm_excluded_locations', true) ?: []);
             $excluded_sectors = $this->normalize_crm_reddit_profile_tag_values(get_user_meta($user_id, 'sffc_crm_excluded_sectors', true) ?: []);
@@ -16525,6 +16546,9 @@ CSS;
                 'technical_skills' => $skills,
                 'qualifications' => $qualifications,
                 'languages' => $languages,
+                'desired_salary' => $desired_salary,
+                'notice_period' => $notice_period,
+                'visa_sponsorship' => $visa_sponsorship,
                 'excluded_roles' => $excluded_roles,
                 'excluded_locations' => $excluded_locations,
                 'excluded_sectors' => $excluded_sectors,
@@ -16814,6 +16838,9 @@ CSS;
             ob_start();
             ?>
             <div class="sffc-crm-dashboard-app-profile-filter" data-dashboard-profile-filter>
+                <?php if ($mode === 'single') : ?>
+                    <input type="hidden" name="<?php echo esc_attr($field_name); ?>" value="<?php echo esc_attr($active_label !== '' ? (string) reset($selected_values) : ''); ?>" data-dashboard-profile-filter-single>
+                <?php endif; ?>
                 <button
                     type="button"
                     class="sffc-crm-dashboard-app-profile-filter-button<?php echo $active_label !== '' ? ' is-active' : ''; ?>"
@@ -18256,6 +18283,28 @@ CSS;
                             <?php echo $this->render_crm_reddit_dashboard_profile_chip_dropdown('target_sectors', __('Choose Sector', 'senna-finance'), (array) ($profile['sector_options'] ?? []), (array) ($profile['target_sectors'] ?? []), 'checkbox'); ?>
                             <?php echo $this->render_crm_reddit_dashboard_profile_chip_dropdown('target_roles', __('Add Seniority', 'senna-finance'), $profile_seniority_options, (array) ($profile['target_roles'] ?? []), 'tag'); ?>
                             <?php echo $this->render_crm_reddit_dashboard_profile_chip_dropdown('qualifications', __('Add Qualification', 'senna-finance'), $profile_qualification_options, (array) ($profile['qualifications'] ?? []), 'tag'); ?>
+                            <?php echo $this->render_crm_reddit_dashboard_profile_chip_dropdown('desired_salary', __('Desired Salary', 'senna-finance'), [
+                                'AED 18000 monthly' => __('AED 18k monthly', 'senna-finance'),
+                                'SAR 18000 monthly' => __('SAR 18k monthly', 'senna-finance'),
+                                'USD 6000 monthly' => __('USD 6k monthly', 'senna-finance'),
+                                'GBP 45000' => __('GBP 45k', 'senna-finance'),
+                            ], !empty($profile['desired_salary']) ? [(string) $profile['desired_salary']] : [], 'single'); ?>
+                            <?php echo $this->render_crm_reddit_dashboard_profile_chip_dropdown('notice_period', __('Notice Period', 'senna-finance'), [
+                                '1 month' => __('1 month', 'senna-finance'),
+                                'Immediate' => __('Immediate', 'senna-finance'),
+                                '2 months' => __('2 months', 'senna-finance'),
+                                '3 months' => __('3 months', 'senna-finance'),
+                            ], !empty($profile['notice_period']) ? [(string) $profile['notice_period']] : [], 'single'); ?>
+                            <?php echo $this->render_crm_reddit_dashboard_profile_chip_dropdown('languages', __('Languages', 'senna-finance'), [
+                                '1' => __('1 language', 'senna-finance'),
+                                '2' => __('2 languages', 'senna-finance'),
+                                '3' => __('3 languages', 'senna-finance'),
+                                '4+' => __('4+ languages', 'senna-finance'),
+                            ], (array) ($profile['languages'] ?? []), 'tag'); ?>
+                            <?php echo $this->render_crm_reddit_dashboard_profile_chip_dropdown('visa_sponsorship', __('Visa Sponsorship', 'senna-finance'), [
+                                'No' => __('No sponsorship', 'senna-finance'),
+                                'Yes' => __('Needs sponsorship', 'senna-finance'),
+                            ], !empty($profile['visa_sponsorship']) ? [(string) $profile['visa_sponsorship']] : [], 'single'); ?>
                             <?php if (!$is_public_profile) : ?>
                                 <button type="submit" class="sffc-crm-dashboard-app-profile-save sffc-crm-dashboard-app-profile-save--block"><?php esc_html_e('Save', 'senna-finance'); ?></button>
                             <?php endif; ?>
@@ -43850,6 +43899,126 @@ CRITICAL INSTRUCTIONS:
             return $dirs;
         }
 
+        private function generate_crm_workday_account_password()
+        {
+            $lower = 'abcdefghjkmnpqrstuvwxyz';
+            $upper = 'ABCDEFGHJKMNPQRSTUVWXYZ';
+            $digits = '23456789';
+            $symbols = '!#$%&*+-=?@';
+            $pool = $lower . $upper . $digits . $symbols;
+            $password = $upper[random_int(0, strlen($upper) - 1)]
+                . $lower[random_int(0, strlen($lower) - 1)]
+                . $digits[random_int(0, strlen($digits) - 1)]
+                . $symbols[random_int(0, strlen($symbols) - 1)];
+            for ($i = strlen($password); $i < 18; $i++) {
+                $password .= $pool[random_int(0, strlen($pool) - 1)];
+            }
+            $chars = str_split($password);
+            for ($i = count($chars) - 1; $i > 0; $i--) {
+                $j = random_int(0, $i);
+                $tmp = $chars[$i];
+                $chars[$i] = $chars[$j];
+                $chars[$j] = $tmp;
+            }
+            return implode('', $chars);
+        }
+
+        private function crm_workday_account_creation_confirmed($status, array $result_payload)
+        {
+            $status = sanitize_key((string) $status);
+            if ($status === 'failed') {
+                return false;
+            }
+            $workday = is_array($result_payload['workday'] ?? null) ? $result_payload['workday'] : [];
+            $flow = is_array($workday['flow'] ?? null) ? $workday['flow'] : [];
+            $account_flow = is_array($flow['account_flow'] ?? null) ? $flow['account_flow'] : [];
+            if (empty($account_flow) && is_array($flow['preapply_account_flow'] ?? null)) {
+                $account_flow = $flow['preapply_account_flow'];
+            }
+            if (!empty($account_flow)) {
+                $last_error = sanitize_text_field((string) ($account_flow['last_error'] ?? ''));
+                $verification_only_error = !empty($account_flow['verification_required'])
+                    && $last_error !== ''
+                    && stripos($last_error, 'verification') !== false;
+                return !empty($account_flow['submitted_create_account'])
+                    && empty($account_flow['account_action_blocked'])
+                    && empty($account_flow['requires_consent'])
+                    && ($last_error === '' || $verification_only_error);
+            }
+            return sanitize_key((string) ($result_payload['provider'] ?? '')) === 'workday'
+                && in_array($status, ['submitted', 'dry_run_ready', 'review_required'], true)
+                && empty($result_payload['verification_required']);
+        }
+
+        private function maybe_send_crm_workday_account_credentials_email($task_uuid, $status, array $result_payload)
+        {
+            global $wpdb;
+
+            $table = $wpdb->prefix . 'sffc_crm_application_tasks';
+            $task = $wpdb->get_row(
+                $wpdb->prepare(
+                    "SELECT id, task_uuid, user_id, provider, role_title, company_name, candidate_email, application_url, payload FROM {$table} WHERE task_uuid = %s LIMIT 1",
+                    $task_uuid
+                ),
+                ARRAY_A
+            );
+            if (!is_array($task) || sanitize_key((string) ($task['provider'] ?? '')) !== 'workday') {
+                return false;
+            }
+
+            $payload = [];
+            if (is_string($task['payload'] ?? '') && trim((string) $task['payload']) !== '') {
+                $decoded = json_decode((string) $task['payload'], true);
+                $payload = is_array($decoded) ? $decoded : [];
+            }
+            $account = is_array($payload['workday_account'] ?? null) ? $payload['workday_account'] : [];
+            if (
+                empty($account['generated_by_server'])
+                || empty($account['email_generated_password_to_user'])
+                || !empty($account['credentials_emailed_at'])
+                || empty($account['password'])
+            ) {
+                return false;
+            }
+            if (!$this->crm_workday_account_creation_confirmed($status, $result_payload)) {
+                return false;
+            }
+
+            $user = get_userdata(absint($task['user_id'] ?? 0));
+            if (!$user || !is_email((string) $user->user_email)) {
+                return false;
+            }
+
+            $candidate_email = sanitize_email((string) ($account['email'] ?? $task['candidate_email'] ?? ''));
+            $subject = __('Your Workday account details', 'senna-finance');
+            $role_title = sanitize_text_field((string) ($task['role_title'] ?? ''));
+            $company_name = sanitize_text_field((string) ($task['company_name'] ?? ''));
+            $application_url = esc_url_raw((string) ($task['application_url'] ?? ''));
+            $html = '<div style="font-family:Arial,sans-serif;color:#111827;font-size:15px;line-height:1.55;">'
+                . '<p>' . esc_html__('A Workday account was created for your application.', 'senna-finance') . '</p>'
+                . ($role_title !== '' ? '<p><strong>' . esc_html__('Role:', 'senna-finance') . '</strong> ' . esc_html($role_title) . '</p>' : '')
+                . ($company_name !== '' ? '<p><strong>' . esc_html__('Company:', 'senna-finance') . '</strong> ' . esc_html($company_name) . '</p>' : '')
+                . '<p><strong>' . esc_html__('Workday email:', 'senna-finance') . '</strong> ' . esc_html($candidate_email) . '<br>'
+                . '<strong>' . esc_html__('Temporary password:', 'senna-finance') . '</strong> ' . esc_html((string) $account['password']) . '</p>'
+                . ($application_url !== '' ? '<p><a href="' . esc_url($application_url) . '">' . esc_html__('Open the Workday application', 'senna-finance') . '</a></p>' : '')
+                . '<p>' . esc_html__('Keep these details private. You can change the password inside Workday after signing in.', 'senna-finance') . '</p>'
+                . '</div>';
+            $sent = (bool) wp_mail((string) $user->user_email, $subject, $html, ['Content-Type: text/html; charset=UTF-8']);
+            if (!$sent) {
+                return false;
+            }
+
+            $payload['workday_account']['credentials_emailed_at'] = current_time('mysql');
+            $payload['workday_account']['credentials_email_status'] = 'sent';
+            $wpdb->update($table, [
+                'payload' => wp_json_encode($payload),
+                'updated_at' => current_time('mysql'),
+            ], [
+                'id' => absint($task['id'] ?? 0),
+            ]);
+            return true;
+        }
+
         public function ajax_crm_apply_chat_queue_application_task()
         {
             check_ajax_referer('sffc_crm_apply_chat_queue_application_task', 'nonce');
@@ -43914,6 +44083,9 @@ CRITICAL INSTRUCTIONS:
                 'application_answers' => [],
                 'verification_code' => sanitize_text_field(wp_unslash((string) ($_POST['verification_code'] ?? ''))),
             ];
+            if (is_user_logged_in()) {
+                $payload['candidate_profile'] = $this->get_crm_apply_chat_profile_preferences(get_current_user_id());
+            }
 
             $workday_consent_raw = wp_unslash((string) ($_POST['workday_consent'] ?? '{}'));
             $workday_consent_decoded = json_decode($workday_consent_raw, true);
@@ -43931,13 +44103,26 @@ CRITICAL INSTRUCTIONS:
             $workday_account_raw = wp_unslash((string) ($_POST['workday_account'] ?? '{}'));
             $workday_account_decoded = json_decode($workday_account_raw, true);
             if (is_array($workday_account_decoded)) {
+                $workday_account_email_credentials = !empty($workday_account_decoded['email_generated_password_to_user']);
+                if ($workday_account_email_credentials && !is_user_logged_in()) {
+                    wp_send_json_error(['message' => __('You need to be logged in before I can email generated Workday credentials.', 'senna-finance')], 403);
+                }
+                $workday_account_password = sanitize_text_field((string) ($workday_account_decoded['password'] ?? ''));
+                $workday_account_generated_by_server = false;
+                if ($workday_account_password === '' && !empty($workday_account_decoded['create_account']) && !empty($workday_account_decoded['allow_generated_password'])) {
+                    $workday_account_password = $this->generate_crm_workday_account_password();
+                    $workday_account_generated_by_server = true;
+                }
                 $payload['workday_account'] = [
                     'account_route' => sanitize_key((string) ($workday_account_decoded['account_route'] ?? '')),
                     'create_account' => !empty($workday_account_decoded['create_account']),
                     'sign_in' => !empty($workday_account_decoded['sign_in']),
                     'email' => sanitize_email((string) ($workday_account_decoded['email'] ?? '')),
-                    'password' => sanitize_text_field((string) ($workday_account_decoded['password'] ?? '')),
+                    'password' => $workday_account_password,
                     'allow_generated_password' => !empty($workday_account_decoded['allow_generated_password']),
+                    'generated_by_server' => $workday_account_generated_by_server,
+                    'email_generated_password_to_user' => $workday_account_email_credentials,
+                    'credentials_email_status' => $workday_account_email_credentials && $workday_account_generated_by_server ? 'pending' : '',
                 ];
             }
 
@@ -44094,6 +44279,8 @@ CRITICAL INSTRUCTIONS:
                 'url',
                 'allow_final_submit',
                 'clicked_submit',
+                'reached_submit_stage',
+                'submit_blocked_by_challenge',
                 'form_opened',
                 'form_ready',
                 'submit_before_url',
@@ -44106,12 +44293,20 @@ CRITICAL INSTRUCTIONS:
                 'verification_code_used',
                 'verification_code_filled',
                 'validation_detected',
+                'challenge_detected',
+                'challenge_provider',
                 'application_answers_attempted',
                 'application_answers_filled',
                 'application_choice_answers_attempted',
                 'application_choice_answers_filled',
                 'application_field_diagnostics',
                 'application_answer_items',
+                'greenhouse_answer_plan',
+                'simple_form_answer_plan',
+                'survey_decline',
+                'workday',
+                'successfactors_entry',
+                'successfactors_account_route',
                 'successfactors_visible_fill',
                 'successfactors_step_advance',
                 'successfactors_profile_fill',
@@ -44161,7 +44356,7 @@ CRITICAL INSTRUCTIONS:
 
             $task = $wpdb->get_row(
                 $wpdb->prepare(
-                    "SELECT task_uuid, status, session_token, user_id, role_title, company_name, provider, candidate_email, last_error, submitted_at, result_payload, updated_at FROM {$table} WHERE task_uuid = %s LIMIT 1",
+                    "SELECT task_uuid, status, session_token, user_id, role_title, company_name, provider, candidate_email, last_error, submitted_at, payload, result_payload, updated_at FROM {$table} WHERE task_uuid = %s LIMIT 1",
                     $task_uuid
                 ),
                 ARRAY_A
@@ -44184,6 +44379,13 @@ CRITICAL INSTRUCTIONS:
                 $decoded = json_decode((string) $task['result_payload'], true);
                 $result_payload = is_array($decoded) ? $decoded : [];
             }
+            $task_payload = [];
+            if (is_string($task['payload'] ?? '') && trim((string) $task['payload']) !== '') {
+                $decoded_payload = json_decode((string) $task['payload'], true);
+                $task_payload = is_array($decoded_payload) ? $decoded_payload : [];
+            }
+            $workday_account = is_array($task_payload['workday_account'] ?? null) ? $task_payload['workday_account'] : [];
+            $workday_credentials_email_status = sanitize_key((string) ($workday_account['credentials_email_status'] ?? ''));
             $generated_account = null;
             $generated_password = sanitize_text_field((string) ($result_payload['generated_password'] ?? ''));
             if (sanitize_key((string) ($task['provider'] ?? '')) === 'successfactors' && $generated_password !== '') {
@@ -44205,13 +44407,23 @@ CRITICAL INSTRUCTIONS:
                 'final_url' => esc_url_raw((string) ($result_payload['final_url'] ?? '')),
                 'uploaded_resume' => !empty($result_payload['uploaded_resume']),
                 'submission_confirmed' => !empty($result_payload['submission_confirmed']),
+                'reached_submit_stage' => !empty($result_payload['reached_submit_stage']),
+                'submit_blocked_by_challenge' => !empty($result_payload['submit_blocked_by_challenge']),
                 'verification_required' => !empty($result_payload['verification_required']),
+                'challenge_detected' => !empty($result_payload['challenge_detected']),
+                'challenge_provider' => sanitize_text_field((string) ($result_payload['challenge_provider'] ?? '')),
                 'application_answers_attempted' => absint($result_payload['application_answers_attempted'] ?? 0),
                 'application_answers_filled' => absint($result_payload['application_answers_filled'] ?? 0),
                 'application_choice_answers_attempted' => absint($result_payload['application_choice_answers_attempted'] ?? 0),
                 'application_choice_answers_filled' => absint($result_payload['application_choice_answers_filled'] ?? 0),
+                'workday_account_credentials_email_status' => $workday_credentials_email_status,
                 'validation_errors' => array_map('sanitize_text_field', array_slice((array) ($result_payload['validation_errors'] ?? []), 0, 10)),
                 'missing_required_fields' => array_map('sanitize_text_field', array_slice((array) ($result_payload['missing_required_fields'] ?? []), 0, 10)),
+                'greenhouse_answer_plan' => is_array($result_payload['greenhouse_answer_plan'] ?? null) ? $this->sanitize_crm_application_task_diagnostic_value($result_payload['greenhouse_answer_plan']) : null,
+                'simple_form_answer_plan' => is_array($result_payload['simple_form_answer_plan'] ?? null) ? $this->sanitize_crm_application_task_diagnostic_value($result_payload['simple_form_answer_plan']) : null,
+                'survey_decline' => is_array($result_payload['survey_decline'] ?? null) ? $this->sanitize_crm_application_task_diagnostic_value($result_payload['survey_decline']) : null,
+                'successfactors_entry' => is_array($result_payload['successfactors_entry'] ?? null) ? $this->sanitize_crm_application_task_diagnostic_value($result_payload['successfactors_entry']) : null,
+                'successfactors_account_route' => is_array($result_payload['successfactors_account_route'] ?? null) ? $this->sanitize_crm_application_task_diagnostic_value($result_payload['successfactors_account_route']) : null,
                 'successfactors_visible_fill' => is_array($result_payload['successfactors_visible_fill'] ?? null) ? $this->sanitize_crm_application_task_diagnostic_value($result_payload['successfactors_visible_fill']) : null,
                 'successfactors_step_advance' => is_array($result_payload['successfactors_step_advance'] ?? null) ? $this->sanitize_crm_application_task_diagnostic_value($result_payload['successfactors_step_advance']) : null,
                 'successfactors_profile_fill' => is_array($result_payload['successfactors_profile_fill'] ?? null) ? $this->sanitize_crm_application_task_diagnostic_value($result_payload['successfactors_profile_fill']) : null,
@@ -44405,6 +44617,8 @@ CRITICAL INSTRUCTIONS:
             if ($updated === false) {
                 wp_send_json_error(['message' => __('Could not update application task.', 'senna-finance')], 500);
             }
+
+            $this->maybe_send_crm_workday_account_credentials_email($task_uuid, $status, $result_payload);
 
             wp_send_json_success(['status' => $status]);
         }
@@ -57320,10 +57534,30 @@ CRITICAL INSTRUCTIONS:
                 return [];
             }
 
+            $saved_apply_mandate = get_user_meta($user_id, 'sffc_crm_editorial_apply_for_me_mandate', true);
+            $desired_salary = sanitize_text_field((string) get_user_meta($user_id, 'sffc_crm_desired_salary', true));
+            $notice_period = sanitize_text_field((string) get_user_meta($user_id, 'sffc_crm_notice_period', true));
+            $visa_sponsorship = sanitize_text_field((string) get_user_meta($user_id, 'sffc_crm_visa_sponsorship', true));
+            if (is_array($saved_apply_mandate)) {
+                if ($desired_salary === '') {
+                    $desired_salary = sanitize_text_field((string) ($saved_apply_mandate['compensation']['fields']['target_compensation'] ?? ''));
+                }
+                if ($notice_period === '') {
+                    $notice_period = sanitize_text_field((string) ($saved_apply_mandate['working']['fields']['notice_period'] ?? ''));
+                }
+                if ($visa_sponsorship === '') {
+                    $visa_sponsorship = sanitize_text_field((string) ($saved_apply_mandate['working']['fields']['right_to_work'] ?? ''));
+                }
+            }
+
             return [
                 'target_roles' => $this->normalize_crm_reddit_profile_tag_values(get_user_meta($user_id, 'sffc_crm_target_roles', true) ?: []),
                 'target_locations' => $this->normalize_crm_reddit_profile_tag_values(get_user_meta($user_id, 'sffc_crm_target_locations', true) ?: []),
                 'target_sectors' => $this->normalize_crm_reddit_profile_tag_values(get_user_meta($user_id, 'sffc_crm_target_sectors', true) ?: []),
+                'languages' => $this->normalize_crm_reddit_profile_tag_values(get_user_meta($user_id, 'sffc_crm_languages', true) ?: []),
+                'desired_salary' => $desired_salary,
+                'notice_period' => $notice_period,
+                'visa_sponsorship' => $visa_sponsorship,
                 'excluded_roles' => $this->normalize_crm_reddit_profile_tag_values(get_user_meta($user_id, 'sffc_crm_excluded_roles', true) ?: []),
                 'excluded_locations' => $this->normalize_crm_reddit_profile_tag_values(get_user_meta($user_id, 'sffc_crm_excluded_locations', true) ?: []),
                 'excluded_sectors' => $this->normalize_crm_reddit_profile_tag_values(get_user_meta($user_id, 'sffc_crm_excluded_sectors', true) ?: []),
@@ -83226,6 +83460,15 @@ HTML;
                 'url' => esc_url_raw((string) ($stored_document['url'] ?? '')),
                 'uploaded' => sanitize_text_field((string) ($stored_document['uploaded'] ?? $saved_at)),
             ]);
+            if (!empty($sanitized['compensation']['fields']['target_compensation'])) {
+                update_user_meta($user_id, 'sffc_crm_desired_salary', sanitize_text_field((string) $sanitized['compensation']['fields']['target_compensation']));
+            }
+            if (!empty($sanitized['working']['fields']['notice_period'])) {
+                update_user_meta($user_id, 'sffc_crm_notice_period', sanitize_text_field((string) $sanitized['working']['fields']['notice_period']));
+            }
+            if (!empty($sanitized['working']['fields']['right_to_work'])) {
+                update_user_meta($user_id, 'sffc_crm_visa_sponsorship', sanitize_text_field((string) $sanitized['working']['fields']['right_to_work']));
+            }
 
             $target_roles = $this->split_crm_editorial_apply_for_me_text_values((string) ($sanitized['targets']['fields']['target_titles'] ?? ''));
             $target_locations = array_values(array_filter((array) ($sanitized['location']['options'] ?? [])));

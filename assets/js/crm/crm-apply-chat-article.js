@@ -19407,8 +19407,19 @@
     var commercialApplyQueueActiveTab = "shortlist";
     var commercialApplyQueueFilter = "all";
     var commercialApplyQueueBrokenLogoUrls = {};
-    var workableTestMode = false;
-    var successFactorsTestMode = false;
+	    var workableTestMode = false;
+	    var greenhouseTestMode = false;
+	    var teamtailorTestMode = false;
+	    var successFactorsTestMode = false;
+    var workdayTestMode = false;
+    var workdayTestAwaitingCv = false;
+    var workdayTestPendingDetailsCallback = null;
+    var workdayTestPendingDetailsOptions = null;
+    var workdayTestInFlight = false;
+    var simpleDropTestMode = false;
+    var simpleDropTestAwaitingCv = false;
+    var simpleDropTestPendingDetailsCallback = null;
+    var simpleDropTestPendingDetailsOptions = null;
     var workableTestAwaitingCv = false;
     var workableTestPendingDetailsCallback = null;
     var workableTestPendingDetailsOptions = null;
@@ -20048,6 +20059,20 @@
           (Array.isArray(source.target_sectors) ? source.target_sectors : [])
             .map(cleanMessageText)
             .filter(Boolean)
+        ),
+        languages: dedupeList(
+          (Array.isArray(source.languages) ? source.languages : [])
+            .map(cleanMessageText)
+            .filter(Boolean)
+        ),
+        desiredSalary: cleanMessageText(
+          source.desired_salary || source.desiredSalary || ""
+        ),
+        noticePeriod: cleanMessageText(
+          source.notice_period || source.noticePeriod || ""
+        ),
+        visaSponsorship: cleanMessageText(
+          source.visa_sponsorship || source.visaSponsorship || ""
         ),
         excludedRoles: sanitizeRoleTargetList(
           (Array.isArray(source.excluded_roles) ? source.excluded_roles : [])
@@ -35585,7 +35610,13 @@
         clean === "workable_board" ||
         clean === "workday" ||
         clean === "successfactors" ||
-        clean === "sap successfactors"
+        clean === "sap successfactors" ||
+        clean === "teamtailor" ||
+        clean === "teamtailor_rss" ||
+        clean === "simple_form" ||
+        clean === "simple-form" ||
+        clean === "basic_form" ||
+        clean === "basic-form"
       );
     }
 
@@ -35608,12 +35639,58 @@
         isWorkdayApplicationUrl(getApplicationWorkspaceUrl()) ||
         isWorkdayApplicationUrl(applicationUrl) ||
         isSuccessFactorsApplicationUrl(getApplicationWorkspaceUrl()) ||
-        isSuccessFactorsApplicationUrl(applicationUrl)
+        isSuccessFactorsApplicationUrl(applicationUrl) ||
+        isTeamtailorApplicationUrl(getApplicationWorkspaceUrl()) ||
+        isTeamtailorApplicationUrl(applicationUrl)
       );
     }
 
+    function isTeamtailorApplicationUrl(url) {
+      var host = getApplicationUrlHost(url);
+      var cleanUrl = cleanMessageText(url || "");
+      return !!(
+        (host && /teamtailor\.com$/.test(host) && /\/jobs\/\d+/i.test(cleanUrl)) ||
+        /\/jobs\/\d+[^?#]*\/applications\/new/i.test(cleanUrl)
+      );
+    }
+
+    function isKnownNonSimpleApplicationWorkerRoute(url, provider) {
+      var cleanProvider = cleanMessageText(provider || "").toLowerCase();
+      var host = getApplicationUrlHost(url);
+      if (
+        /^(greenhouse|workable|workable_board|workday|successfactors|sap successfactors|teamtailor|teamtailor_rss|oracle_cx|oracle hcm|lever|recruitee|ashby|pinpoint|bamboohr|smartrecruiters|phenom|comeet|bayt_careers|talentbrew|eightfold|avature)$/.test(cleanProvider)
+      ) {
+        return true;
+      }
+      return !!(
+        isGreenhouseApplicationUrl(url) ||
+        isWorkableApplicationUrl(url) ||
+        isWorkdayApplicationUrl(url) ||
+        isSuccessFactorsApplicationUrl(url) ||
+        /teamtailor\.com$|oraclecloud\.com$|oracle\.com$|lever\.co$|recruitee\.com$|ashbyhq\.com$|pinpointhq\.com$|bamboohr\.com$|smartrecruiters\.com$/.test(host)
+      );
+    }
+
+    function isSimpleFormApplicationWorkerUrl(url, provider) {
+      var cleanUrl = cleanMessageText(url || "");
+      var cleanProvider = cleanMessageText(provider || "").toLowerCase();
+      if (!cleanUrl || isMailtoApplicationUrl(cleanUrl) || /^javascript:/i.test(cleanUrl)) {
+        return false;
+      }
+      if (/^(simple_form|simple-form|basic_form|basic-form)$/.test(cleanProvider)) {
+        return true;
+      }
+      if (!/^(https?:\/\/|\/)/i.test(cleanUrl)) {
+        return false;
+      }
+      return !isKnownNonSimpleApplicationWorkerRoute(cleanUrl, provider);
+    }
+
     function hasApplicationWorkerSubmitCapability() {
-      return hasKnownApplicationWorkerSubmitRoute();
+      return (
+        hasKnownApplicationWorkerSubmitRoute() ||
+        isSimpleFormApplicationWorkerUrl(getApplicationWorkspaceUrl() || applicationUrl, autoSubmitProvider)
+      );
     }
 
     function hasApplicationWorkerProAccess() {
@@ -35646,7 +35723,71 @@
       );
     }
 
-    function isWorkableQueueItem(item) {
+	    function isWorkableQueueItem(item) {
+	      var provider = cleanMessageText(
+        (item &&
+          (item.autoSubmitProvider ||
+            item.auto_submit_provider ||
+            item.provider ||
+            item.sourceProvider ||
+            item.source_provider ||
+            item.sourcePlatform ||
+            item.source_platform ||
+            item.platform)) ||
+          autoSubmitProvider ||
+          ""
+      ).toLowerCase();
+      var url = cleanMessageText(
+        (item &&
+          (item.applyUrl ||
+            item.applicationUrl ||
+            item.application_url ||
+            item.applicationWorkspaceUrl ||
+            item.application_workspace_url ||
+            item.applicationEmbedUrl ||
+            item.application_embed_url ||
+            item.url ||
+            item.viewUrl)) ||
+          getApplicationWorkspaceUrl() ||
+          applicationUrl ||
+          ""
+	      );
+	      return provider === "workable" || isWorkableApplicationUrl(url);
+	    }
+
+	    function isGreenhouseQueueItem(item) {
+	      var provider = cleanMessageText(
+	        (item &&
+	          (item.autoSubmitProvider ||
+	            item.auto_submit_provider ||
+	            item.provider ||
+	            item.sourceProvider ||
+	            item.source_provider ||
+	            item.sourcePlatform ||
+	            item.source_platform ||
+	            item.platform)) ||
+	          autoSubmitProvider ||
+	          ""
+	      ).toLowerCase();
+	      var url = cleanMessageText(
+	        (item &&
+	          (item.applyUrl ||
+	            item.applicationUrl ||
+	            item.application_url ||
+	            item.applicationWorkspaceUrl ||
+	            item.application_workspace_url ||
+	            item.applicationEmbedUrl ||
+	            item.application_embed_url ||
+	            item.url ||
+	            item.viewUrl)) ||
+	          getApplicationWorkspaceUrl() ||
+	          applicationUrl ||
+	          ""
+	      );
+	      return provider === "greenhouse" || isGreenhouseApplicationUrl(url);
+	    }
+
+    function isSimpleDropQueueItem(item) {
       var provider = cleanMessageText(
         (item &&
           (item.autoSubmitProvider ||
@@ -35675,7 +35816,39 @@
           applicationUrl ||
           ""
       );
-      return provider === "workable" || isWorkableApplicationUrl(url);
+      return provider === "simple_form" || provider === "simpledrop" || isSimpleFormApplicationWorkerUrl(url, provider);
+    }
+
+    function isTeamtailorQueueItem(item) {
+      var provider = cleanMessageText(
+        (item &&
+          (item.autoSubmitProvider ||
+            item.auto_submit_provider ||
+            item.provider ||
+            item.sourceProvider ||
+            item.source_provider ||
+            item.sourcePlatform ||
+            item.source_platform ||
+            item.platform)) ||
+          ""
+      ).toLowerCase();
+      var url = cleanMessageText(
+        (item &&
+          (item.applyUrl ||
+            item.apply_url ||
+            item.applicationUrl ||
+            item.application_url ||
+            item.applicationWorkspaceUrl ||
+            item.application_workspace_url ||
+            item.url ||
+            item.viewUrl)) ||
+          ""
+      );
+      return (
+        provider === "teamtailor" ||
+        provider === "teamtailor_rss" ||
+        isTeamtailorApplicationUrl(url)
+      );
     }
 
     function isWorkdayApplicationUrl(url) {
@@ -83820,7 +83993,7 @@
         return false;
       }
       if (
-        /^(greenhouse_security_code|commercial_apply_queue_verification_code|workable_test_ready|workable_test_full_name|workable_test_email|workable_test_confirm_email|workable_test_phone|workable_test_custom_questions|successfactors_test_ready|successfactors_test_full_name|successfactors_test_email|successfactors_test_confirm_email|workday_account_route|workday_account_password|successfactors_account_route|successfactors_account_password|successfactors_profile_[a-z_]+|job_search_(?:collect_preferred_email|collect_full_name|confirm_email|check_inbox|email_received|delivery_frequency|reuse_preferred_email|signed_in)|catch_up_collect_full_name|catch_up_collect_email|catch_up_confirm_email|apply_account_email|apply_waiting_for_signup|apply_select_pricing_option|apply_confirm_preferred_email|apply_collect_preferred_email|apply_collect_full_name|apply_employer_question|apply_employer_questions_bulk)$/.test(
+	        /^(greenhouse_security_code|commercial_apply_queue_verification_code|greenhouse_test_ready|greenhouse_test_full_name|greenhouse_test_email|greenhouse_test_confirm_email|greenhouse_test_phone|teamtailor_test_ready|teamtailor_test_full_name|teamtailor_test_email|teamtailor_test_confirm_email|teamtailor_test_phone|workable_test_ready|workable_test_full_name|workable_test_email|workable_test_confirm_email|workable_test_phone|workable_test_custom_questions|successfactors_test_ready|successfactors_test_full_name|successfactors_test_email|successfactors_test_confirm_email|workday_test_ready|workday_test_full_name|workday_test_email|workday_test_confirm_email|workday_account_route|workday_account_password|successfactors_account_route|successfactors_account_password|successfactors_profile_[a-z_]+|job_search_(?:collect_preferred_email|collect_full_name|confirm_email|check_inbox|email_received|delivery_frequency|reuse_preferred_email|signed_in)|catch_up_collect_full_name|catch_up_collect_email|catch_up_confirm_email|apply_account_email|apply_waiting_for_signup|apply_select_pricing_option|apply_confirm_preferred_email|apply_collect_preferred_email|apply_collect_full_name|apply_employer_question|apply_employer_questions_bulk)$/.test(
           promptKey
         )
       ) {
@@ -83837,7 +84010,7 @@
 
     function isStrictPromptOwnedState(state) {
       var promptKey = String(state || "");
-      return /^(greenhouse_security_code|commercial_apply_queue_verification_code|workable_test_ready|workable_test_full_name|workable_test_email|workable_test_confirm_email|workable_test_phone|workable_test_custom_questions|successfactors_test_ready|successfactors_test_full_name|successfactors_test_email|successfactors_test_confirm_email|workday_account_route|workday_account_password|successfactors_account_route|successfactors_account_password|successfactors_profile_[a-z_]+|profile_review_target_role|job_search_(?:similar_roles|location|visa|other_roles|other_roles_text|target_roles_text|anything_missed|anything_missed_text|member_follow_up|matching_cv_follow_up|package_choice)|recruiter_outreach_(?:role|seniority|locations|sectors|targets|outcome)|apply_(?:role_search_type|matching_roles|cv_action_choice|cv_decision|account_check|other_roles_text|qualification_check|qualification_present|qualification_alternative|qualification_alternative_detail|work_authorization_check|cover_letter_check|tailoring_progress_check|tailored_versions|ready_to_start_auto_apply|continue_background|final_questions|final_question_text|highlight_question|highlight_detail|post_application_next)|apply_intro_(?:helpful_mode|home_query_confirm|home_query_correct|home_roles|home_sectors|home_market|application_volume|intro_volume|lane|constraints|highlight_check|highlight_detail|priority)|member_desk_refine_(?:roles|sectors|locations)|review_clarification_check|confirm_recent_role|show_issue_decision|continue_fix|consultant_route_confirm|consultant_route_clarify|direct_apply_cv_review_offer|payment_failure_detail|support_complaint_detail|different_question_detail)$/.test(
+	      return /^(greenhouse_security_code|commercial_apply_queue_verification_code|greenhouse_test_ready|greenhouse_test_full_name|greenhouse_test_email|greenhouse_test_confirm_email|greenhouse_test_phone|teamtailor_test_ready|teamtailor_test_full_name|teamtailor_test_email|teamtailor_test_confirm_email|teamtailor_test_phone|workable_test_ready|workable_test_full_name|workable_test_email|workable_test_confirm_email|workable_test_phone|workable_test_custom_questions|successfactors_test_ready|successfactors_test_full_name|successfactors_test_email|successfactors_test_confirm_email|workday_test_ready|workday_test_full_name|workday_test_email|workday_test_confirm_email|workday_account_route|workday_account_password|successfactors_account_route|successfactors_account_password|successfactors_profile_[a-z_]+|profile_review_target_role|job_search_(?:similar_roles|location|visa|other_roles|other_roles_text|target_roles_text|anything_missed|anything_missed_text|member_follow_up|matching_cv_follow_up|package_choice)|recruiter_outreach_(?:role|seniority|locations|sectors|targets|outcome)|apply_(?:role_search_type|matching_roles|cv_action_choice|cv_decision|account_check|other_roles_text|qualification_check|qualification_present|qualification_alternative|qualification_alternative_detail|work_authorization_check|cover_letter_check|tailoring_progress_check|tailored_versions|ready_to_start_auto_apply|continue_background|final_questions|final_question_text|highlight_question|highlight_detail|post_application_next)|apply_intro_(?:helpful_mode|home_query_confirm|home_query_correct|home_roles|home_sectors|home_market|application_volume|intro_volume|lane|constraints|highlight_check|highlight_detail|priority)|member_desk_refine_(?:roles|sectors|locations)|review_clarification_check|confirm_recent_role|show_issue_decision|continue_fix|consultant_route_confirm|consultant_route_clarify|direct_apply_cv_review_offer|payment_failure_detail|support_complaint_detail|different_question_detail)$/.test(
         promptKey
       );
     }
@@ -86606,7 +86779,7 @@
       preferSemanticFirst = false;
       simpleBinaryOnlyReply = false;
       operationalPromptState =
-        /^(greenhouse_security_code|commercial_apply_queue_verification_code|workable_test_ready|workable_test_full_name|workable_test_email|workable_test_confirm_email|workable_test_phone|workable_test_custom_questions|successfactors_test_ready|successfactors_test_full_name|successfactors_test_email|successfactors_test_confirm_email|workday_account_route|workday_account_password|successfactors_account_route|successfactors_account_password|successfactors_profile_[a-z_]+|job_search_(?:collect_preferred_email|collect_full_name|confirm_email|check_inbox|email_received|delivery_frequency|reuse_preferred_email|signed_in)|catch_up_collect_full_name|catch_up_collect_email|catch_up_confirm_email|apply_account_email|apply_waiting_for_signup|apply_select_pricing_option|apply_confirm_preferred_email|apply_collect_preferred_email|apply_collect_full_name|apply_employer_question|apply_employer_questions_bulk)$/.test(
+	        /^(greenhouse_security_code|commercial_apply_queue_verification_code|greenhouse_test_ready|greenhouse_test_full_name|greenhouse_test_email|greenhouse_test_confirm_email|greenhouse_test_phone|teamtailor_test_ready|teamtailor_test_full_name|teamtailor_test_email|teamtailor_test_confirm_email|teamtailor_test_phone|workable_test_ready|workable_test_full_name|workable_test_email|workable_test_confirm_email|workable_test_phone|workable_test_custom_questions|successfactors_test_ready|successfactors_test_full_name|successfactors_test_email|successfactors_test_confirm_email|workday_test_ready|workday_test_full_name|workday_test_email|workday_test_confirm_email|workday_account_route|workday_account_password|successfactors_account_route|successfactors_account_password|successfactors_profile_[a-z_]+|job_search_(?:collect_preferred_email|collect_full_name|confirm_email|check_inbox|email_received|delivery_frequency|reuse_preferred_email|signed_in)|catch_up_collect_full_name|catch_up_collect_email|catch_up_confirm_email|apply_account_email|apply_waiting_for_signup|apply_select_pricing_option|apply_confirm_preferred_email|apply_collect_preferred_email|apply_collect_full_name|apply_employer_question|apply_employer_questions_bulk)$/.test(
           promptStateValue
         );
       conversationalPromptState = isConversationalPromptState(promptStateValue);
@@ -86617,7 +86790,7 @@
       );
 
       if (
-        /^(workable_test_full_name|workable_test_email|workable_test_phone|workable_test_custom_questions|successfactors_test_full_name|successfactors_test_email)$/.test(
+	        /^(greenhouse_test_full_name|greenhouse_test_email|greenhouse_test_phone|teamtailor_test_full_name|teamtailor_test_email|teamtailor_test_phone|workable_test_full_name|workable_test_email|workable_test_phone|workable_test_custom_questions|successfactors_test_full_name|successfactors_test_email)$/.test(
           promptStateValue
         ) &&
         typeof otherHandler === "function" &&
@@ -86632,7 +86805,7 @@
       }
 
       if (
-        /^(workable_test_confirm_email|successfactors_test_confirm_email)$/.test(
+	        /^(greenhouse_test_confirm_email|teamtailor_test_confirm_email|workable_test_confirm_email|successfactors_test_confirm_email)$/.test(
           promptStateValue
         ) &&
         promptHandlers &&
@@ -86657,7 +86830,7 @@
       }
 
       if (
-        /^(workable_test_ready|successfactors_test_ready)$/.test(promptStateValue) &&
+	        /^(greenhouse_test_ready|workable_test_ready|successfactors_test_ready)$/.test(promptStateValue) &&
         promptHandlers &&
         trimmedValue
       ) {
@@ -86757,8 +86930,14 @@
       }
       if (
         (promptStateValue === "greenhouse_security_code" ||
-          promptStateValue === "commercial_apply_queue_verification_code" ||
-          promptStateValue === "workable_test_full_name" ||
+	          promptStateValue === "commercial_apply_queue_verification_code" ||
+	          promptStateValue === "greenhouse_test_full_name" ||
+	          promptStateValue === "greenhouse_test_email" ||
+	          promptStateValue === "greenhouse_test_phone" ||
+	          promptStateValue === "teamtailor_test_full_name" ||
+	          promptStateValue === "teamtailor_test_email" ||
+	          promptStateValue === "teamtailor_test_phone" ||
+	          promptStateValue === "workable_test_full_name" ||
           promptStateValue === "workable_test_email" ||
           promptStateValue === "workable_test_phone" ||
           promptStateValue === "successfactors_test_full_name" ||
@@ -86777,7 +86956,9 @@
         return true;
       }
       if (
-        promptStateValue === "workable_test_confirm_email" &&
+	        (promptStateValue === "greenhouse_test_confirm_email" ||
+	          promptStateValue === "teamtailor_test_confirm_email" ||
+	          promptStateValue === "workable_test_confirm_email") &&
         promptHandlers &&
         cleanMessageText(value || "")
       ) {
@@ -86799,7 +86980,8 @@
         return true;
       }
       if (
-        promptStateValue === "workable_test_ready" &&
+	        (promptStateValue === "greenhouse_test_ready" ||
+	          promptStateValue === "workable_test_ready") &&
         promptHandlers &&
         cleanMessageText(value || "")
       ) {
@@ -91420,6 +91602,9 @@
         seniority: cleanMessageText(source.seniority || (item && item.seniority) || ""),
         matchScore: Number(source.matchScore || (item && item.matchScore) || 0) || 0,
         applicationTaskUuid: cleanMessageText(item && item.applicationTaskUuid || ""),
+        workerStatus: cleanMessageText(item && item.workerStatus || ""),
+        workerData: item && item.workerData && typeof item.workerData === "object" ? item.workerData : null,
+        workerLastUpdated: cleanMessageText(item && item.workerLastUpdated || ""),
       };
       if (!queueItem.key) {
         queueItem.key = [queueItem.title, queueItem.company, queueItem.location]
@@ -91746,7 +91931,7 @@
 
     function renderJobsWorkspaceHtml() {
       var allItems =
-        isWorkableAdminTestEnabled() || isSuccessFactorsAdminTestEnabled()
+	        isGreenhouseAdminTestEnabled() || isTeamtailorAdminTestEnabled() || isWorkableAdminTestEnabled() || isSuccessFactorsAdminTestEnabled() || isSimpleDropAdminTestEnabled()
           ? (commercialApplyQueueCatalogState.length
               ? commercialApplyQueueCatalogState
               : commercialApplyQueueItemsState)
@@ -91927,23 +92112,328 @@
       });
     }
 
+    function getCommercialApplyQueueStatusModel(input) {
+      var item = input && typeof input === "object" ? input : {};
+      var clean = cleanMessageText(
+        (item && (item.status || item.workerStatus)) || input || "Ready"
+      );
+      var lower = clean.toLowerCase();
+      var data = item && item.workerData && typeof item.workerData === "object" ? item.workerData : {};
+      var resultPayload = data && data.result_payload && typeof data.result_payload === "object" ? data.result_payload : {};
+      var missingFields = Array.isArray(data && data.missing_required_fields)
+        ? data.missing_required_fields
+        : Array.isArray(resultPayload && resultPayload.missing_required_fields)
+        ? resultPayload.missing_required_fields
+        : [];
+      var validationErrors = Array.isArray(data && data.validation_errors)
+        ? data.validation_errors
+        : Array.isArray(resultPayload && resultPayload.validation_errors)
+        ? resultPayload.validation_errors
+        : [];
+      var provider = cleanMessageText(
+        (data && data.provider) ||
+          (resultPayload && resultPayload.provider) ||
+          getCommercialApplyQueueItemProvider(item || {}) ||
+          ""
+      );
+      var providerKey = provider.toLowerCase().replace(/[^a-z0-9]+/g, "_");
+      var isTeamtailorProvider = providerKey === "teamtailor" || providerKey === "teamtailor_rss";
+      var answerPlan =
+        (data && data.simple_form_answer_plan && typeof data.simple_form_answer_plan === "object"
+          ? data.simple_form_answer_plan
+          : resultPayload && resultPayload.simple_form_answer_plan && typeof resultPayload.simple_form_answer_plan === "object"
+          ? resultPayload.simple_form_answer_plan
+          : null) ||
+        (data && data.greenhouse_answer_plan && typeof data.greenhouse_answer_plan === "object"
+          ? data.greenhouse_answer_plan
+          : resultPayload && resultPayload.greenhouse_answer_plan && typeof resultPayload.greenhouse_answer_plan === "object"
+          ? resultPayload.greenhouse_answer_plan
+          : null);
+      var surveyDecline =
+        data && data.survey_decline && typeof data.survey_decline === "object"
+          ? data.survey_decline
+          : resultPayload && resultPayload.survey_decline && typeof resultPayload.survey_decline === "object"
+          ? resultPayload.survey_decline
+          : null;
+      var finalUrl = cleanMessageText((data && data.final_url) || (resultPayload && resultPayload.final_url) || "");
+      var answersAttempted = Number((data && data.application_answers_attempted) || (resultPayload && resultPayload.application_answers_attempted) || 0) || 0;
+      var answersFilled = Number((data && data.application_answers_filled) || (resultPayload && resultPayload.application_answers_filled) || 0) || 0;
+      var choicesAttempted = Number((data && data.application_choice_answers_attempted) || (resultPayload && resultPayload.application_choice_answers_attempted) || 0) || 0;
+      var choicesFilled = Number((data && data.application_choice_answers_filled) || (resultPayload && resultPayload.application_choice_answers_filled) || 0) || 0;
+      var claudeGenerated = Number(answerPlan && answerPlan.generated_count || 0) || 0;
+      var claudeAvailable = !!(answerPlan && answerPlan.claude_available);
+      var needsHumanCount = Array.isArray(answerPlan && answerPlan.needs_human)
+        ? answerPlan.needs_human.length
+        : 0;
+      var uploadedResume = !!(
+        (data && data.uploaded_resume) ||
+        (resultPayload && resultPayload.uploaded_resume)
+      );
+      var formOpened = !!(
+        (data && data.form_opened) ||
+        (resultPayload && resultPayload.form_opened)
+      );
+      var formReady = !!(
+        (data && data.form_ready) ||
+        (resultPayload && resultPayload.form_ready)
+      );
+      var reachedSubmitStage = !!(
+        (data && data.reached_submit_stage) ||
+        (resultPayload && resultPayload.reached_submit_stage)
+      );
+      var submissionConfirmed = !!(
+        (data && data.submission_confirmed) ||
+        (resultPayload && resultPayload.submission_confirmed)
+      );
+      var workdayPayload = resultPayload && resultPayload.workday && typeof resultPayload.workday === "object"
+        ? resultPayload.workday
+        : {};
+      var workdayFlow = workdayPayload && workdayPayload.flow && typeof workdayPayload.flow === "object"
+        ? workdayPayload.flow
+        : {};
+      var accountFlow = workdayFlow.account_flow || workdayFlow.preapply_account_flow || {};
+      var accountCreated = !!(
+        accountFlow &&
+        accountFlow.submitted_create_account &&
+        !accountFlow.account_action_blocked
+      );
+      var credentialsEmailStatus = cleanMessageText(
+        (data && data.workday_account_credentials_email_status) ||
+          (resultPayload && resultPayload.workday_account_credentials_email_status) ||
+          ""
+      );
+      var status = {
+        raw: clean,
+        key: lower.replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "") || "ready",
+        label: clean,
+        tone: "neutral",
+        summary: "Ready to process when you start the application queue.",
+        provider: provider,
+        workerData: data,
+        missingFields: missingFields.map(function (field) {
+          return cleanMessageText(field || "");
+        }).filter(Boolean).slice(0, 5),
+        validationErrors: validationErrors.map(function (field) {
+          return cleanMessageText(field || "");
+        }).filter(Boolean).slice(0, 5),
+        milestones: [],
+      };
+
+      if (/^ready$/.test(lower)) {
+        status.label = "Ready";
+        status.tone = "success";
+        status.summary = "This role is ready to enter the auto-apply queue.";
+      } else if (/^(in queue|queued)$/.test(lower)) {
+        status.label = "Queued";
+        status.tone = "waiting";
+        status.summary = "Waiting for the worker to pick up this application.";
+      } else if (/^(preparing|tailoring cv|checking form|reviewing form|running|retrying)$/.test(lower)) {
+        status.label = lower === "checking form" ? "Opening form" : lower === "reviewing form" ? "Checking form" : clean;
+        status.tone = "working";
+        status.summary = isTeamtailorProvider
+          ? "The Teamtailor worker is opening the form, uploading the CV, and checking the employer questions."
+          : "The worker is opening the employer form and preparing the application.";
+      } else if (lower === "needs verification" || lower === "verify email" || lower === "verification_required") {
+        status.label = "Verify email";
+        status.tone = "blocked";
+        status.summary = accountCreated
+          ? "The Workday account has been created. Paste the employer verification code so the worker can continue."
+          : "The employer has asked for an email verification code before the worker can continue.";
+      } else if (lower === "dry_run_ready" || lower === "ready to submit") {
+        status.label = "Ready to submit";
+        status.tone = "success";
+        status.summary = isTeamtailorProvider
+          ? "The Teamtailor form is complete, the CV is uploaded, and final submit is waiting for the live-submit setting."
+          : "The worker reached a submit-ready state. Final submit is waiting for the live-submit setting.";
+      } else if (lower === "submitted" || submissionConfirmed) {
+        status.label = "Submitted";
+        status.tone = "success";
+        status.summary = isTeamtailorProvider && surveyDecline && surveyDecline.clicked
+          ? "Teamtailor confirmed the application and the optional survey was declined."
+          : isTeamtailorProvider && /\/surveys(?:[/?#]|$)/i.test(finalUrl)
+          ? "Teamtailor accepted the application and opened its optional post-application survey."
+          : "The employer returned a submission confirmation.";
+      } else if (
+        lower === "review_required" ||
+        lower === "review required" ||
+        lower === "referred" ||
+        lower === "manual review" ||
+        lower === "draft prepared" ||
+        lower === "needs answers" ||
+        lower === "needs answer"
+      ) {
+        if (status.missingFields.length) {
+          status.label = "Needs answers";
+          status.tone = "blocked";
+          status.summary = isTeamtailorProvider
+            ? "The Teamtailor form has required employer questions that still need an answer before submission."
+            : "The application draft has required employer questions that need answers before submission.";
+        } else if (lower === "needs answers" || lower === "needs answer") {
+          status.label = "Needs answers";
+          status.tone = "blocked";
+          status.summary = "The application draft needs one or more employer answers before submission.";
+        } else if (uploadedResume || accountCreated || workdayFlow.form_ready || formReady || formOpened) {
+          status.label = "Draft prepared";
+          status.tone = "review";
+          status.summary = isTeamtailorProvider
+            ? "The Teamtailor worker prepared the form, but it needs review before final submission."
+            : "The worker made progress and saved or prepared the application, but it needs review before final submission.";
+        } else {
+          status.label = "Manual review";
+          status.tone = "review";
+          status.summary = "The worker could not safely complete this route automatically.";
+        }
+      } else if (lower === "failed") {
+        status.label = "Manual review";
+        status.tone = "review";
+        status.summary = "The automatic route stopped and should be handled manually or retried.";
+      }
+
+      status.milestones = isTeamtailorProvider
+        ? [
+        {
+          key: "form",
+          label: "Teamtailor form",
+          state: formOpened || formReady || uploadedResume || reachedSubmitStage ? "done" : /running|opening|checking/i.test(status.label) ? "active" : "pending",
+          detail: formReady ? "Loaded" : formOpened ? "Opened" : "Opening",
+        },
+        {
+          key: "cv",
+          label: "CV",
+          state: uploadedResume ? "done" : /running|opening|checking/i.test(status.label) ? "active" : "pending",
+          detail: uploadedResume ? "Uploaded" : "Upload queued",
+        },
+        {
+          key: "answers",
+          label: "Answers",
+          state: status.missingFields.length ? "blocked" : answersAttempted > 0 && answersFilled >= answersAttempted ? "done" : answersFilled > 0 ? "active" : "pending",
+          detail: answersAttempted ? String(answersFilled) + "/" + String(answersAttempted) : "Checking",
+        },
+        {
+          key: "choices",
+          label: "Choices",
+          state: status.missingFields.length ? "blocked" : choicesAttempted > 0 && choicesFilled >= choicesAttempted ? "done" : choicesFilled > 0 ? "active" : "pending",
+          detail: choicesAttempted ? String(choicesFilled) + "/" + String(choicesAttempted) : "Checked",
+        },
+        {
+          key: "claude",
+          label: "Claude answers",
+          state: claudeGenerated > 0 ? "done" : claudeAvailable ? "active" : "pending",
+          detail: claudeGenerated > 0 ? String(claudeGenerated) + " generated" : claudeAvailable ? "Available" : "Rules only",
+          hidden: !answerPlan,
+        },
+        {
+          key: "submit",
+          label: "Submit",
+          state: /submitted/i.test(status.label)
+            ? "done"
+            : /ready to submit/i.test(status.label)
+            ? "active"
+            : /needs answers|manual review|draft prepared/i.test(status.label)
+            ? "blocked"
+            : "pending",
+          detail: /submitted/i.test(status.label) ? "Confirmed" : /ready to submit/i.test(status.label) ? "Ready" : "Pending",
+        },
+        {
+          key: "survey",
+          label: "Optional survey",
+          state: surveyDecline && surveyDecline.clicked ? "done" : /\/surveys(?:[/?#]|$)/i.test(finalUrl) ? "active" : "pending",
+          detail: surveyDecline && surveyDecline.clicked ? "Declined" : /\/surveys(?:[/?#]|$)/i.test(finalUrl) ? "Open" : "Not reached",
+          hidden: !(/submitted/i.test(status.label) || /\/surveys(?:[/?#]|$)/i.test(finalUrl) || surveyDecline),
+        },
+      ]
+        : [
+        {
+          key: "account",
+          label: provider === "workday" ? "Workday account" : "Account",
+          state: accountCreated || !/workday/i.test(provider) ? "done" : /verify|account|queued|ready/i.test(status.label) ? "active" : "pending",
+          detail: accountCreated
+            ? "Created"
+            : provider === "workday"
+            ? "Create or sign in"
+            : "Not required",
+        },
+        {
+          key: "credentials",
+          label: "Login details",
+          state: credentialsEmailStatus === "sent" ? "done" : accountCreated ? "active" : "pending",
+          detail: credentialsEmailStatus === "sent" ? "Emailed" : accountCreated ? "Email pending" : "Waiting",
+          hidden: provider !== "workday",
+        },
+        {
+          key: "verification",
+          label: "Verification",
+          state: /verify email/i.test(status.label) ? "blocked" : accountCreated || uploadedResume ? "done" : "pending",
+          detail: /verify email/i.test(status.label) ? "Code needed" : "Clear",
+          hidden: provider !== "workday",
+        },
+        {
+          key: "application",
+          label: "Application",
+          state: formOpened || formReady || uploadedResume || reachedSubmitStage ? "done" : /running|opening|checking/i.test(status.label) ? "active" : "pending",
+          detail: formOpened || formReady || uploadedResume || reachedSubmitStage ? "Started" : "Opening",
+          hidden: provider !== "workday",
+        },
+        {
+          key: "cv",
+          label: "CV",
+          state: uploadedResume ? "done" : /running|opening|checking/i.test(status.label) ? "active" : "pending",
+          detail: uploadedResume ? "Uploaded" : "Upload queued",
+        },
+        {
+          key: "profile",
+          label: "Profile",
+          state: Number((data && data.application_answers_filled) || (resultPayload && resultPayload.application_answers_filled) || 0) > 0 || uploadedResume
+            ? "done"
+            : /running|opening|checking/i.test(status.label)
+            ? "active"
+            : "pending",
+          detail: "Basic fields",
+        },
+        {
+          key: "questions",
+          label: "Questions",
+          state: status.missingFields.length ? "blocked" : reachedSubmitStage || /ready to submit|submitted/i.test(status.label) ? "done" : "pending",
+          detail: status.missingFields.length ? String(status.missingFields.length) + " needed" : "Checked",
+        },
+        {
+          key: "submit",
+          label: "Submit",
+          state: /submitted/i.test(status.label)
+            ? "done"
+            : /ready to submit/i.test(status.label)
+            ? "active"
+            : /needs answers|verify email|manual review|draft prepared/i.test(status.label)
+            ? "blocked"
+            : "pending",
+          detail: /submitted/i.test(status.label) ? "Confirmed" : /ready to submit/i.test(status.label) ? "Ready" : "Pending",
+        },
+      ].filter(function (milestone) {
+        return !milestone.hidden;
+      });
+      return status;
+    }
+
     function renderCommercialApplyQueueStatus(status) {
-      var clean = cleanMessageText(status || "Ready");
-      var slug = clean.toLowerCase().replace(/[^a-z0-9]+/g, "-");
-      var completed = /^(submitted|complete|completed)$/i.test(clean);
-      var working = /^(preparing|tailoring cv|checking form|reviewing form|queued|running|needs verification|needs salary answer)$/i.test(clean);
-      var referred = /^referred$/i.test(clean);
+      var model = getCommercialApplyQueueStatusModel(status);
+      var completed = model.tone === "success";
+      var working = model.tone === "working" || model.tone === "waiting";
+      var referred = model.tone === "review" || model.tone === "blocked";
       return (
         '<span class="sffc-crm-apply-chat__apply-queue-status is-' +
-        escapeHtml(slug) +
+        escapeHtml(model.key) +
+        ' is-tone-' +
+        escapeHtml(model.tone) +
         '">' +
         '<i class="sffc-crm-apply-chat__apply-queue-status-mark' +
         (completed ? " is-complete" : working ? " is-working" : referred ? " is-referred" : "") +
         '" aria-hidden="true"></i>' +
-        escapeHtml(clean) +
+        escapeHtml(model.label) +
         "</span>" +
-        (referred
-          ? '<button type="button" class="sffc-crm-apply-chat__apply-queue-status-info" data-sffc-apply-chat-status-info="referred"><span aria-hidden="true">i</span>More info</button>'
+        (model.tone === "review" || model.tone === "blocked"
+          ? '<button type="button" class="sffc-crm-apply-chat__apply-queue-status-info" data-sffc-apply-chat-status-info="' +
+            escapeHtml(model.label) +
+            '"><span aria-hidden="true">i</span>Details</button>'
           : "")
       );
     }
@@ -92094,7 +92584,8 @@
         isGreenhouseApplicationUrl(url) ||
         isWorkableApplicationUrl(url) ||
         isWorkdayApplicationUrl(url) ||
-        isSuccessFactorsApplicationUrl(url)
+        isSuccessFactorsApplicationUrl(url) ||
+        isTeamtailorApplicationUrl(url)
       );
     }
 
@@ -92108,7 +92599,7 @@
         clean === "review_required" ||
         clean === "dry_run_ready"
       ) {
-        return "Referred";
+        return clean === "dry_run_ready" ? "Ready to submit" : "Review required";
       }
       if (clean === "verification_required") {
         return "Needs verification";
@@ -92120,15 +92611,21 @@
       return ["Preparing", "Tailoring CV", "Reviewing form"][phaseIndex] || "";
     }
 
-    function updateCommercialQueueItemStatus(itemIndex, status, title) {
+    function updateCommercialQueueItemStatus(itemIndex, status, title, workerData) {
       commercialApplyQueueActivated = true;
       commercialApplyQueueItemsState = commercialApplyQueueItemsState.map(function (item, index) {
         if (index !== itemIndex) {
           return item;
         }
-        return Object.assign({}, item, {
+        var next = Object.assign({}, item, {
           status: status,
+          workerStatus: status,
         });
+        if (workerData && typeof workerData === "object") {
+          next.workerData = workerData;
+          next.workerLastUpdated = new Date().toISOString();
+        }
+        return next;
       });
       if (!refreshCommercialApplyQueueCardStatus({
         active: true,
@@ -92150,15 +92647,35 @@
       syncJobsWorkspaceState();
     }
 
-    function isWorkableAdminTestEnabled() {
-      var config = getConfig();
-      return !!(
-        workableTestMode &&
-        (config.isAdminTester === true ||
-          config.isAdminTester === "1" ||
-          config.isAdminTester === 1)
-      );
-    }
+	    function isWorkableAdminTestEnabled() {
+	      var config = getConfig();
+	      return !!(
+	        workableTestMode &&
+	        (config.isAdminTester === true ||
+	          config.isAdminTester === "1" ||
+	          config.isAdminTester === 1)
+	      );
+	    }
+
+	    function isGreenhouseAdminTestEnabled() {
+	      var config = getConfig();
+	      return !!(
+	        greenhouseTestMode &&
+	        (config.isAdminTester === true ||
+	          config.isAdminTester === "1" ||
+	          config.isAdminTester === 1)
+	      );
+	    }
+
+	    function isTeamtailorAdminTestEnabled() {
+	      var config = getConfig();
+	      return !!(
+	        teamtailorTestMode &&
+	        (config.isAdminTester === true ||
+	          config.isAdminTester === "1" ||
+	          config.isAdminTester === 1)
+	      );
+	    }
 
     function isSuccessFactorsAdminTestEnabled() {
       var config = getConfig();
@@ -92170,7 +92687,39 @@
       );
     }
 
-    function getActiveAdminProviderTestLabel() {
+    function isWorkdayAdminTestEnabled() {
+      var config = getConfig();
+      return !!(
+        workdayTestMode &&
+        (config.isAdminTester === true ||
+          config.isAdminTester === "1" ||
+          config.isAdminTester === 1)
+      );
+    }
+
+    function isSimpleDropAdminTestEnabled() {
+      var config = getConfig();
+      return !!(
+        simpleDropTestMode &&
+        (config.isAdminTester === true ||
+          config.isAdminTester === "1" ||
+          config.isAdminTester === 1)
+      );
+    }
+
+	    function getActiveAdminProviderTestLabel() {
+	      if (isGreenhouseAdminTestEnabled()) {
+	        return "Greenhouse";
+	      }
+	      if (isTeamtailorAdminTestEnabled()) {
+	        return "Teamtailor";
+	      }
+	      if (isSimpleDropAdminTestEnabled()) {
+	        return "SimpleDrop";
+	      }
+      if (isWorkdayAdminTestEnabled()) {
+        return "Workday";
+      }
       if (isSuccessFactorsAdminTestEnabled()) {
         return "SuccessFactors";
       }
@@ -92278,12 +92827,92 @@
       };
     }
 
+    function getSimpleDropTestFixtures() {
+      return [
+        {
+          title: "Executive Secretary / Receptionist",
+          company: "ApTrack sample",
+          location: "Dubai, United Arab Emirates",
+          applyUrl: "https://www.aptrack.co/uap/AAAGPwAPRMMCGBMX/",
+          applicationWorkspaceUrl: "https://www.aptrack.co/uap/AAAGPwAPRMMCGBMX/",
+          provider: "simple_form",
+          autoSubmitProvider: "simple_form",
+          autoSubmitSupported: true,
+          status: "Ready",
+        },
+        {
+          title: "Investment Analyst - MENA",
+          company: "ClickUp Forms sample",
+          location: "London, United Kingdom",
+          applyUrl: "https://forms.clickup.com/608818/f/jjhj-48936/343PJHCYEM8UBIDP7F",
+          applicationWorkspaceUrl: "https://forms.clickup.com/608818/f/jjhj-48936/343PJHCYEM8UBIDP7F",
+          provider: "simple_form",
+          autoSubmitProvider: "simple_form",
+          autoSubmitSupported: true,
+          status: "Ready",
+        },
+        {
+          title: "Compliance Analyst",
+          company: "Zoho Forms sample",
+          location: "London, United Kingdom",
+          applyUrl: "https://forms.zohopublic.com/GMEFORMS/form/ComplianceAnalystContract/formperma/8MiDV3lWrLK6h6zOMWDEyyCq_JEEPYQlgitvA6zu5RU",
+          applicationWorkspaceUrl: "https://forms.zohopublic.com/GMEFORMS/form/ComplianceAnalystContract/formperma/8MiDV3lWrLK6h6zOMWDEyyCq_JEEPYQlgitvA6zu5RU",
+          provider: "simple_form",
+          autoSubmitProvider: "simple_form",
+          autoSubmitSupported: true,
+          status: "Ready",
+        },
+      ];
+    }
+
+    function getSimpleDropTestApplicationAnswers(queueItem) {
+      var item = queueItem || {};
+      var phone = cleanMessageText(workableTestCandidatePhone || "");
+      var location = cleanMessageText(item.location || roleLocation || "London, United Kingdom");
+      var title = cleanMessageText(item.title || roleTitle || "");
+      var noSponsorship = "I am a citizen/permanent resident and do not require visa sponsorship.";
+      return {
+        address: location,
+        location: location,
+        "current location": location,
+        city: location,
+        country: location,
+        phone: phone,
+        mobile: phone,
+        telephone: phone,
+        "phone number": phone,
+        "Select the position you are applying for": title,
+        position: title,
+        role: title,
+        "Work Authorization & Visa Status": noSponsorship,
+        "work authorization": noSponsorship,
+        "work authorisation": noSponsorship,
+        "visa sponsorship": noSponsorship,
+        "How did you first find out about this job?": "Linkedin",
+        "how did you hear about us": "Linkedin",
+        source: "Linkedin",
+        "please specify": "N/A",
+        "additional notes": "N/A",
+        remarks: "N/A",
+      };
+    }
+
     function renderProviderTestResultCard(results, providerLabel) {
       var label = cleanMessageText(providerLabel || "Provider");
       var rows = (Array.isArray(results) ? results : []).map(function (entry) {
         var item = entry && entry.item ? entry.item : {};
         var data = entry && entry.data ? entry.data : {};
-        var status = cleanMessageText((data && data.status) || "failed");
+        var payload = data && data.result_payload && typeof data.result_payload === "object" ? data.result_payload : {};
+        var status = cleanMessageText((data && data.status) || payload.status || "failed");
+        var clickedSubmit = Boolean(data.clicked_submit || payload.clicked_submit);
+        var uploadedResume = Boolean(data.uploaded_resume || payload.uploaded_resume);
+        var reachedSubmitStage = Boolean(data.reached_submit_stage || payload.reached_submit_stage);
+        var challengeDetected = Boolean(data.challenge_detected || payload.challenge_detected);
+        var submitBlockedByChallenge = Boolean(data.submit_blocked_by_challenge || payload.submit_blocked_by_challenge);
+        var displayStatus =
+          status === "review_required" && (reachedSubmitStage || (clickedSubmit && uploadedResume)) && (challengeDetected || submitBlockedByChallenge)
+            ? "reached submit"
+            : status;
         var error = cleanMessageText((data && data.last_error) || "");
         var missing = Array.isArray(data && data.missing_required_fields)
           ? data.missing_required_fields.map(cleanMessageText).filter(Boolean)
@@ -92291,10 +92920,83 @@
         var validation = Array.isArray(data && data.validation_errors)
           ? data.validation_errors.map(cleanMessageText).filter(Boolean)
           : [];
+        var diagnostics = Array.isArray(data && data.application_field_diagnostics)
+          ? data.application_field_diagnostics
+          : Array.isArray(payload.application_field_diagnostics)
+            ? payload.application_field_diagnostics
+            : [];
+        var answerItems = Array.isArray(data && data.application_answer_items)
+          ? data.application_answer_items
+          : Array.isArray(payload.application_answer_items)
+            ? payload.application_answer_items
+            : [];
+        var visibleButtons = Array.isArray(data && data.visible_buttons)
+          ? data.visible_buttons
+          : Array.isArray(payload.visible_buttons)
+            ? payload.visible_buttons
+            : Array.isArray(payload.browser_diagnostics && payload.browser_diagnostics.visible_buttons)
+              ? payload.browser_diagnostics.visible_buttons
+              : [];
+        var failedFields = diagnostics
+          .filter(function (field) {
+            if (!field || field.answer_present === false) {
+              return false;
+            }
+            return !field.control_found || (!field.value_present && !field.selected_text && !field.hidden_value_present);
+          })
+          .map(function (field) {
+            return cleanMessageText(
+              field.label || (Array.isArray(field.field_names) ? field.field_names.join("/") : "")
+            );
+          })
+          .filter(Boolean);
+        answerItems.forEach(function (field) {
+          var label = cleanMessageText(
+            field && (field.label || (Array.isArray(field.field_names) ? field.field_names.join("/") : ""))
+          );
+          if (label && field && field.answer_present === false && failedFields.indexOf(label) === -1) {
+            failedFields.push(label);
+          }
+        });
         var attempted = Number(data.application_answers_attempted || 0);
         var filled = Number(data.application_answers_filled || 0);
         var choiceAttempted = Number(data.application_choice_answers_attempted || 0);
         var choiceFilled = Number(data.application_choice_answers_filled || 0);
+        var simpleFlow = cleanMessageText(
+          data.simple_form_flow_type ||
+            payload.simple_form_flow_type ||
+            ""
+        );
+        var simpleSteps = Array.isArray(data.simple_form_steps)
+          ? data.simple_form_steps
+          : Array.isArray(payload.simple_form_steps)
+            ? payload.simple_form_steps
+            : [];
+        var simpleSchema =
+          (data.browser_diagnostics &&
+            data.browser_diagnostics.simple_form &&
+            data.browser_diagnostics.simple_form.after) ||
+          (payload.browser_diagnostics &&
+            payload.browser_diagnostics.simple_form &&
+            payload.browser_diagnostics.simple_form.after) ||
+          {};
+        var simpleQuestions = Array.isArray(simpleSchema.questions)
+          ? simpleSchema.questions
+          : [];
+        var simpleQuestionLabels = simpleQuestions
+          .map(function (question) {
+            var label = cleanMessageText(
+              question && (question.label || question.name || question.question || "")
+            );
+            var type = cleanMessageText(question && (question.type || ""));
+            var required = question && (question.required === true || question.required === "true" || question.required === 1);
+            if (!label) {
+              return "";
+            }
+            return label + (type ? " [" + type + "]" : "") + (required ? " *" : "");
+          })
+          .filter(Boolean)
+          .slice(0, 12);
         return (
           '<article class="sffc-crm-apply-chat__workable-test-row">' +
           '<div><strong>' +
@@ -92303,9 +93005,9 @@
           escapeHtml(item.company || data.company_name || "Company pending") +
           "</span></div>" +
           '<span class="sffc-crm-apply-chat__workable-test-status is-' +
-          escapeHtml(status.replace(/[^a-z0-9_-]/gi, "-").toLowerCase()) +
+          escapeHtml(displayStatus.replace(/[^a-z0-9_-]/gi, "-").toLowerCase()) +
           '">' +
-          escapeHtml(status || "unknown") +
+          escapeHtml(displayStatus || "unknown") +
           "</span>" +
           '<dl><div><dt>Resume</dt><dd>' +
           escapeHtml(data.uploaded_resume ? "uploaded" : "not confirmed") +
@@ -92314,11 +93016,33 @@
           "</dd></div><div><dt>Choice answers</dt><dd>" +
           escapeHtml(String(choiceFilled) + "/" + String(choiceAttempted)) +
           "</dd></div></dl>" +
+          (reachedSubmitStage || submitBlockedByChallenge
+            ? '<p><b>Submit stage:</b> Form filled and final submit clicked.' +
+              (challengeDetected || submitBlockedByChallenge
+                ? " Workable/Cloudflare asked for browser verification before the final application POST was sent."
+                : "") +
+              "</p>"
+            : "") +
+          (simpleFlow
+            ? '<p><b>Simple form:</b> ' +
+              escapeHtml(simpleFlow) +
+              (simpleSteps.length ? " · " + escapeHtml(String(simpleSteps.length)) + " step(s)" : "") +
+              "</p>"
+            : "") +
+          (simpleQuestionLabels.length
+            ? '<p><b>Detected questions:</b> ' + escapeHtml(simpleQuestionLabels.join("; ")) + "</p>"
+            : "") +
           (missing.length
             ? '<p><b>Missing required:</b> ' + escapeHtml(missing.slice(0, 8).join("; ")) + "</p>"
             : "") +
           (validation.length
             ? '<p><b>Validation:</b> ' + escapeHtml(validation.slice(0, 8).join("; ")) + "</p>"
+            : "") +
+          (failedFields.length
+            ? '<p><b>Failed fields:</b> ' + escapeHtml(failedFields.slice(0, 8).join("; ")) + "</p>"
+            : "") +
+          (visibleButtons.length
+            ? '<p><b>Visible buttons:</b> ' + escapeHtml(visibleButtons.slice(0, 10).map(cleanMessageText).filter(Boolean).join("; ")) + "</p>"
             : "") +
           (error ? '<p><b>Worker error:</b> ' + escapeHtml(error) + "</p>" : "") +
           (data.final_url
@@ -92343,12 +93067,32 @@
       return renderProviderTestResultCard(results, "Workable");
     }
 
-    function showWorkableTestSummary() {
-      botMessage(
-        renderWorkableTestResultCard(workableTestResults),
+	    function showWorkableTestSummary() {
+	      botMessage(
+	        renderWorkableTestResultCard(workableTestResults),
         humanComposeDelay("Workable test result.", 700, 1400),
         function () {
           focusComposer("Run another test or search another role");
+        }
+	      );
+	    }
+
+	    function showGreenhouseTestSummary() {
+	      botMessage(
+	        renderProviderTestResultCard(workableTestResults, "Greenhouse"),
+	        humanComposeDelay("Greenhouse test result.", 700, 1400),
+	        function () {
+	          focusComposer("Run another Greenhouse test or search another role");
+	        }
+	      );
+	    }
+
+    function showSimpleDropTestSummary() {
+      botMessage(
+        renderProviderTestResultCard(workableTestResults, "SimpleDrop"),
+        humanComposeDelay("SimpleDrop test result.", 700, 1400),
+        function () {
+          focusComposer("Run another SimpleDrop test or search another role");
         }
       );
     }
@@ -92363,15 +93107,16 @@
       );
     }
 
-    function ensureWorkableTestCandidateDetailsThen(callback, options) {
+	    function ensureWorkableTestCandidateDetailsThen(callback, options) {
       var detailOptions = options || {};
       var shouldStartImmediately = detailOptions.startImmediately !== false;
       if (!isWorkableAdminTestEnabled()) {
         if (typeof callback === "function") {
           callback();
-        }
-        return;
-      }
+	    }
+
+	        return;
+	      }
       if (!currentCvFile) {
         workableTestAwaitingCv = true;
         workableTestPendingDetailsCallback =
@@ -92526,13 +93271,309 @@
             callback();
           }
         }
+	      );
+	    }
+
+	    function ensureGreenhouseTestCandidateDetailsThen(callback, options) {
+	      var detailOptions = options || {};
+	      var shouldStartImmediately = detailOptions.startImmediately !== false;
+	      if (!isGreenhouseAdminTestEnabled()) {
+	        if (typeof callback === "function") {
+	          callback();
+	        }
+	        return;
+	      }
+	      if (!currentCvFile) {
+	        workableTestAwaitingCv = true;
+	        workableTestPendingDetailsCallback =
+	          typeof callback === "function" ? callback : null;
+	        workableTestPendingDetailsOptions = detailOptions;
+	        botMessage(
+	          shouldStartImmediately
+	            ? "Upload the test CV first, then start the Greenhouse test again."
+	            : "Upload the test CV first. I’ll use it for the Greenhouse submission test.",
+	          humanComposeDelay("Upload the Greenhouse test CV first.", 700, 1400),
+	          function () {
+	            focusComposer("Upload the test CV");
+	            if (uploadButton) {
+	              uploadButton.hidden = false;
+	            }
+	          }
+	        );
+	        return;
+	      }
+	      if (!cleanMessageText(applyOnboardingFullName || "")) {
+	        botMessage(
+	          "Firstly, can I get the candidate full name for this Greenhouse test?",
+	          humanComposeDelay("Need candidate name.", 700, 1400),
+	          function () {
+	            setPromptState(
+	              "greenhouse_test_full_name",
+	              {
+	                other: function (value) {
+	                  applyOnboardingFullName = cleanMessageText(value || "");
+	                  clearPromptState();
+	                  echoPromptChoice(value);
+	                  ensureGreenhouseTestCandidateDetailsThen(callback, detailOptions);
+	                },
+	              },
+	              "Type the candidate full name",
+	              { provider: "greenhouse" }
+	            );
+	            focusComposer("Type the candidate full name");
+	          }
+	        );
+	        return;
+	      }
+	      if (!cleanMessageText(applyOnboardingPreferredEmail || "")) {
+	        botMessage(
+	          "What email should I use for the Greenhouse test application?",
+	          humanComposeDelay("Need candidate email.", 700, 1400),
+	          function () {
+	            setPromptState(
+	              "greenhouse_test_email",
+	              {
+	                other: function (value) {
+	                  var email = extractEmailCandidate(value || "");
+	                  if (!email) {
+	                    botMessage(
+	                      "Send the email address on its own so I can use it for the test.",
+	                      humanComposeDelay("Need a valid email.", 700, 1400),
+	                      function () {
+	                        focusComposer("Type the candidate email");
+	                      }
+	                    );
+	                    return;
+	                  }
+	                  applyOnboardingEmailSuggestion = email;
+	                  clearPromptState();
+	                  echoPromptChoice(value);
+	                  botMessage(
+	                    "Just double-checking - is that " + escapeHtml(email) + "?",
+	                    humanComposeDelay("Confirm email.", 700, 1400),
+	                    function () {
+	                      setPromptState(
+	                        "greenhouse_test_confirm_email",
+	                        {
+	                          yes: function (reply) {
+	                            applyOnboardingPreferredEmail = applyOnboardingEmailSuggestion;
+	                            clearPromptState();
+	                            echoPromptChoice(reply || "yes");
+	                            ensureGreenhouseTestCandidateDetailsThen(callback, detailOptions);
+	                          },
+	                          no: function (reply) {
+	                            applyOnboardingEmailSuggestion = "";
+	                            clearPromptState();
+	                            echoPromptChoice(reply || "no");
+	                            ensureGreenhouseTestCandidateDetailsThen(callback, detailOptions);
+	                          },
+	                          other: function (reply) {
+	                            var replacement = extractEmailCandidate(reply || "");
+	                            if (replacement) {
+	                              applyOnboardingPreferredEmail = replacement;
+	                              clearPromptState();
+	                              echoPromptChoice(reply);
+	                              ensureGreenhouseTestCandidateDetailsThen(callback, detailOptions);
+	                              return;
+	                            }
+	                            focusComposer("Confirm yes, or send the correct email");
+	                          },
+	                        },
+	                        "Confirm the candidate email",
+	                        { provider: "greenhouse" }
+	                      );
+	                      focusComposer("Confirm the candidate email");
+	                    }
+	                  );
+	                },
+	              },
+	              "Type the candidate email",
+	              { provider: "greenhouse" }
+	            );
+	            focusComposer("Type the candidate email");
+	          }
+	        );
+	        return;
+	      }
+	      if (!cleanMessageText(workableTestCandidatePhone || "")) {
+	        botMessage(
+	          "What phone number should I use for the Greenhouse test application?",
+	          humanComposeDelay("Need candidate phone.", 700, 1400),
+	          function () {
+	            setPromptState(
+	              "greenhouse_test_phone",
+	              {
+	                other: function (value) {
+	                  workableTestCandidatePhone = cleanMessageText(value || "");
+	                  clearPromptState();
+	                  echoPromptChoice(value);
+	                  ensureGreenhouseTestCandidateDetailsThen(callback, detailOptions);
+	                },
+	              },
+	              "Type the candidate phone number",
+	              { provider: "greenhouse" }
+	            );
+	            focusComposer("Type the candidate phone number");
+	          }
+	        );
+	        return;
+	      }
+	      botMessage(
+	        shouldStartImmediately
+	          ? "Great. I’ve got the test details and I’m starting the Greenhouse worker run now."
+	          : "Great. I’ve got the CV, name, email and phone. Review the Greenhouse jobs, then start the test.",
+	        humanComposeDelay(
+	          shouldStartImmediately
+	            ? "Starting Greenhouse worker."
+	            : "Greenhouse test details ready.",
+	          700,
+	          1400
+	        ),
+	        function () {
+	          workableTestAwaitingCv = false;
+	          workableTestPendingDetailsCallback = null;
+	          workableTestPendingDetailsOptions = null;
+	          if (typeof callback === "function") {
+	            callback();
+	          }
+	        }
+	      );
+	    }
+
+	    function ensureSimpleDropTestCandidateDetailsThen(callback, options) {
+      var detailOptions = options || {};
+      var shouldStartImmediately = detailOptions.startImmediately !== false;
+      if (!isSimpleDropAdminTestEnabled()) {
+        if (typeof callback === "function") {
+          callback();
+        }
+        return;
+      }
+      if (!currentCvFile) {
+        simpleDropTestAwaitingCv = true;
+        simpleDropTestPendingDetailsCallback =
+          typeof callback === "function" ? callback : null;
+        simpleDropTestPendingDetailsOptions = detailOptions;
+        botMessage(
+          shouldStartImmediately
+            ? "Upload the test CV first, then start the SimpleDrop test again."
+            : "Upload the test CV first. I’ll use it for the SimpleDrop form test.",
+          humanComposeDelay("Upload the SimpleDrop test CV first.", 700, 1400),
+          function () {
+            focusComposer("Upload the test CV");
+            if (uploadButton) {
+              uploadButton.hidden = false;
+            }
+          }
+        );
+        return;
+      }
+      if (!cleanMessageText(applyOnboardingFullName || "")) {
+        botMessage(
+          "What candidate full name should I use for the SimpleDrop test?",
+          humanComposeDelay("Need candidate name.", 700, 1400),
+          function () {
+            setPromptState(
+              "simpledrop_test_full_name",
+              {
+                other: function (value) {
+                  applyOnboardingFullName = cleanMessageText(value || "");
+                  clearPromptState();
+                  echoPromptChoice(value);
+                  ensureSimpleDropTestCandidateDetailsThen(callback, detailOptions);
+                },
+              },
+              "Type the candidate full name",
+              { provider: "simple_form" }
+            );
+            focusComposer("Type the candidate full name");
+          }
+        );
+        return;
+      }
+      if (!cleanMessageText(applyOnboardingPreferredEmail || "")) {
+        botMessage(
+          "What email should I use for the SimpleDrop test application?",
+          humanComposeDelay("Need candidate email.", 700, 1400),
+          function () {
+            setPromptState(
+              "simpledrop_test_email",
+              {
+                other: function (value) {
+                  var email = extractEmailCandidate(value || "");
+                  if (!email) {
+                    botMessage(
+                      "Send the email address on its own so I can use it for the test.",
+                      humanComposeDelay("Need a valid email.", 700, 1400),
+                      function () {
+                        focusComposer("Type the candidate email");
+                      }
+                    );
+                    return;
+                  }
+                  applyOnboardingPreferredEmail = email;
+                  clearPromptState();
+                  echoPromptChoice(value);
+                  ensureSimpleDropTestCandidateDetailsThen(callback, detailOptions);
+                },
+              },
+              "Type the candidate email",
+              { provider: "simple_form" }
+            );
+            focusComposer("Type the candidate email");
+          }
+        );
+        return;
+      }
+      if (!cleanMessageText(workableTestCandidatePhone || "")) {
+        botMessage(
+          "What phone number should I use for the SimpleDrop test application?",
+          humanComposeDelay("Need candidate phone.", 700, 1400),
+          function () {
+            setPromptState(
+              "simpledrop_test_phone",
+              {
+                other: function (value) {
+                  workableTestCandidatePhone = cleanMessageText(value || "");
+                  clearPromptState();
+                  echoPromptChoice(value);
+                  ensureSimpleDropTestCandidateDetailsThen(callback, detailOptions);
+                },
+              },
+              "Type the candidate phone number",
+              { provider: "simple_form" }
+            );
+            focusComposer("Type the candidate phone number");
+          }
+        );
+        return;
+      }
+      botMessage(
+        shouldStartImmediately
+          ? "Great. I’ve got the test details and I’m starting the SimpleDrop worker run now."
+          : "Great. I’ve got the CV, name, email and phone. Choose a SimpleDrop sample to test.",
+        humanComposeDelay(
+          shouldStartImmediately
+            ? "Starting SimpleDrop worker."
+            : "SimpleDrop test details ready.",
+          700,
+          1400
+        ),
+        function () {
+          simpleDropTestAwaitingCv = false;
+          simpleDropTestPendingDetailsCallback = null;
+          simpleDropTestPendingDetailsOptions = null;
+          if (typeof callback === "function") {
+            callback();
+          }
+        }
       );
     }
 
-    function showWorkableAdminTestReadyCard() {
-      commercialApplyQueueActivated = false;
-      commercialApplyQueueDetailsMode = true;
-      commercialApplyQueueInitialized = true;
+	    function showWorkableAdminTestReadyCard() {
+	      commercialApplyQueueActivated = false;
+	      commercialApplyQueueDetailsMode = true;
+	      commercialApplyQueueInitialized = true;
       commercialApplyQueueActiveTab = "shortlist";
       commercialApplyQueueFilter = "all";
       commercialApplyQueueCatalogState = [];
@@ -92554,11 +93595,200 @@
               },
             },
             "Click Test beside one Workable job",
-            { provider: "workable" }
+	            { provider: "workable" }
+	          );
+	          focusComposer("Click Test beside one Workable job");
+	        }
+	      );
+	    }
+
+	    function showGreenhouseAdminTestReadyCard() {
+	      commercialApplyQueueActivated = false;
+	      commercialApplyQueueDetailsMode = true;
+	      commercialApplyQueueInitialized = true;
+	      commercialApplyQueueActiveTab = "shortlist";
+	      commercialApplyQueueFilter = "all";
+	      commercialApplyQueueCatalogState = [];
+	      jobsWorkspaceSearchQuery = "";
+	      botMessage(
+	        renderCommercialApplyQueueCard(commercialApplyQueueItemsState, {
+	          active: false,
+	          showButton: false,
+	          eyebrow: "Greenhouse test run",
+	          title: "Choose one Greenhouse job to test",
+	        }),
+	        humanComposeDelay("Greenhouse test run ready.", 700, 1400),
+	        function () {
+	          setPromptState(
+	            "greenhouse_test_ready",
+	            {
+	              other: function () {
+	                focusComposer("Click Test beside one Greenhouse job");
+	              },
+	            },
+	            "Click Test beside one Greenhouse job",
+	            { provider: "greenhouse" }
+	          );
+	          focusComposer("Click Test beside one Greenhouse job");
+	        }
+	      );
+	    }
+
+	    function showTeamtailorAdminTestReadyCard() {
+	      commercialApplyQueueActivated = false;
+	      commercialApplyQueueDetailsMode = true;
+	      commercialApplyQueueInitialized = true;
+	      commercialApplyQueueActiveTab = "shortlist";
+	      commercialApplyQueueFilter = "all";
+	      commercialApplyQueueCatalogState = [];
+	      jobsWorkspaceSearchQuery = "";
+	      botMessage(
+	        renderCommercialApplyQueueCard(commercialApplyQueueItemsState, {
+	          active: false,
+	          showButton: false,
+	          eyebrow: "Teamtailor test run",
+	          title: "Choose one Teamtailor job to test",
+	        }),
+	        humanComposeDelay("Teamtailor test run ready.", 700, 1400),
+	        function () {
+	          setPromptState(
+	            "teamtailor_test_ready",
+	            {
+	              other: function () {
+	                focusComposer("Click Test beside one Teamtailor job");
+	              },
+	            },
+	            "Click Test beside one Teamtailor job",
+	            { provider: "teamtailor" }
+	          );
+	          focusComposer("Click Test beside one Teamtailor job");
+	        }
+	      );
+	    }
+
+	    function showTeamtailorTestSummary() {
+	      botMessage(
+	        renderProviderTestResultCard(workableTestResults, "Teamtailor"),
+	        humanComposeDelay("Teamtailor test result.", 700, 1400),
+	        function () {
+	          focusComposer("Run another test or search another role");
+	        }
+	      );
+	    }
+
+	    function showSimpleDropAdminTestReadyCard() {
+      commercialApplyQueueActivated = false;
+      commercialApplyQueueDetailsMode = true;
+      commercialApplyQueueInitialized = true;
+      commercialApplyQueueActiveTab = "shortlist";
+      commercialApplyQueueFilter = "all";
+      commercialApplyQueueCatalogState = commercialApplyQueueItemsState.slice(0);
+      jobsWorkspaceSearchQuery = "";
+      botMessage(
+        renderCommercialApplyQueueCard(commercialApplyQueueItemsState, {
+          active: false,
+          showButton: false,
+          eyebrow: "SimpleDrop test run",
+          title: "Choose one simple form sample to test",
+        }),
+        humanComposeDelay("SimpleDrop test run ready.", 700, 1400),
+        function () {
+          setPromptState(
+            "simpledrop_test_ready",
+            {
+              other: function () {
+                focusComposer("Click Test beside one SimpleDrop sample");
+              },
+            },
+            "Click Test beside one SimpleDrop sample",
+            { provider: "simple_form" }
           );
-          focusComposer("Click Test beside one Workable job");
+          focusComposer("Click Test beside one SimpleDrop sample");
         }
       );
+    }
+
+    function runSimpleDropSingleJobTest(index, button) {
+      var itemIndex = Number(index);
+      var item = commercialApplyQueueItemsState[itemIndex] || null;
+      if (workableTestInFlight) {
+        botMessage(
+          "One SimpleDrop test is already running. Wait for that result before starting another one.",
+          humanComposeDelay("SimpleDrop test already running.", 700, 1400),
+          function () {
+            focusComposer("Wait for the current SimpleDrop test result");
+          }
+        );
+        return;
+      }
+      if (!item || !isSimpleDropQueueItem(item)) {
+        botMessage(
+          "That SimpleDrop sample is no longer available. Type test simpledrop to reload it.",
+          humanComposeDelay("SimpleDrop sample missing.", 700, 1400),
+          function () {
+            focusComposer("Type test simpledrop to reload");
+          }
+        );
+        return;
+      }
+      if (
+        !currentCvFile ||
+        !cleanMessageText(applyOnboardingFullName || "") ||
+        !cleanMessageText(applyOnboardingPreferredEmail || "") ||
+        !cleanMessageText(workableTestCandidatePhone || "")
+      ) {
+        ensureSimpleDropTestCandidateDetailsThen(showSimpleDropAdminTestReadyCard, {
+          startImmediately: false,
+        });
+        return;
+      }
+	      workableTestResults = [];
+	      simpleDropTestMode = true;
+	      workableTestMode = false;
+	      greenhouseTestMode = false;
+	      teamtailorTestMode = false;
+	      successFactorsTestMode = false;
+      workdayTestMode = false;
+      workableTestInFlight = true;
+      commercialApplyQueueActivated = true;
+      commercialApplyQueueDetailsMode = true;
+      commercialApplyQueueInitialized = true;
+      clearPromptState();
+      if (button) {
+        button.disabled = true;
+        button.innerHTML = '<span aria-hidden="true">▶</span>Testing';
+      }
+      userMessage("Test " + cleanMessageText(item.title || "SimpleDrop sample"));
+      updateCommercialQueueItemStatus(
+        itemIndex,
+        "Checking form",
+        "SimpleDrop test is running"
+      );
+      queueCommercialApplyQueueWorkerTask(itemIndex)
+        .catch(function (error) {
+          updateCommercialQueueItemStatus(
+            itemIndex,
+            "Referred",
+            "SimpleDrop test finished"
+          );
+          workableTestResults.push({
+            item: item,
+            data: {
+              status: "failed",
+              last_error:
+                cleanMessageText((error && error.message) || "") ||
+                "The chat could not queue or poll this SimpleDrop worker task.",
+            },
+          });
+        })
+        .then(function () {
+          workableTestInFlight = false;
+          if (button) {
+            button.disabled = false;
+            button.innerHTML = '<span aria-hidden="true">▶</span>Test';
+          }
+          showSimpleDropTestSummary();
+        });
     }
 
     function runWorkableSingleJobTest(index, button) {
@@ -92595,9 +93825,12 @@
         });
         return;
       }
-      workableTestResults = [];
-      workableTestMode = true;
-      successFactorsTestMode = false;
+	      workableTestResults = [];
+	      workableTestMode = true;
+	      greenhouseTestMode = false;
+	      teamtailorTestMode = false;
+	      successFactorsTestMode = false;
+	      workdayTestMode = false;
       workableTestInFlight = true;
       commercialApplyQueueActivated = true;
       commercialApplyQueueDetailsMode = true;
@@ -92636,11 +93869,177 @@
             button.disabled = false;
             button.innerHTML = '<span aria-hidden="true">▶</span>Test';
           }
-          showWorkableTestSummary();
-        });
-    }
+	          showWorkableTestSummary();
+	        });
+	    }
 
-    function setSuccessFactorsTestReadyPrompt() {
+	    function runGreenhouseSingleJobTest(index, button) {
+	      var itemIndex = Number(index);
+	      var item = commercialApplyQueueItemsState[itemIndex] || null;
+	      if (workableTestInFlight) {
+	        botMessage(
+	          "One Greenhouse test is already running. Wait for that result before starting another one.",
+	          humanComposeDelay("Greenhouse test already running.", 700, 1400),
+	          function () {
+	            focusComposer("Wait for the current Greenhouse test result");
+	          }
+	        );
+	        return;
+	      }
+	      if (!item || !isGreenhouseQueueItem(item)) {
+	        botMessage(
+	          "That Greenhouse test job is no longer available. Type test greenhouse to reload the list.",
+	          humanComposeDelay("Greenhouse test job missing.", 700, 1400),
+	          function () {
+	            focusComposer("Type test greenhouse to reload");
+	          }
+	        );
+	        return;
+	      }
+	      if (
+	        !currentCvFile ||
+	        !cleanMessageText(applyOnboardingFullName || "") ||
+	        !cleanMessageText(applyOnboardingPreferredEmail || "") ||
+	        !cleanMessageText(workableTestCandidatePhone || "")
+	      ) {
+	        ensureGreenhouseTestCandidateDetailsThen(showGreenhouseAdminTestReadyCard, {
+	          startImmediately: false,
+	        });
+	        return;
+	      }
+	      workableTestResults = [];
+	      workableTestMode = false;
+	      greenhouseTestMode = true;
+	      teamtailorTestMode = false;
+	      successFactorsTestMode = false;
+	      workdayTestMode = false;
+	      simpleDropTestMode = false;
+	      workableTestInFlight = true;
+	      commercialApplyQueueActivated = true;
+	      commercialApplyQueueDetailsMode = true;
+	      commercialApplyQueueInitialized = true;
+	      clearPromptState();
+	      if (button) {
+	        button.disabled = true;
+	        button.innerHTML = '<span aria-hidden="true">▶</span>Testing';
+	      }
+	      userMessage("Test " + cleanMessageText(item.title || "Greenhouse job"));
+	      updateCommercialQueueItemStatus(
+	        itemIndex,
+	        "Checking form",
+	        "Greenhouse test is running"
+	      );
+	      queueCommercialApplyQueueWorkerTask(itemIndex)
+	        .catch(function (error) {
+	          updateCommercialQueueItemStatus(
+	            itemIndex,
+	            "Referred",
+	            "Greenhouse test finished"
+	          );
+	          workableTestResults.push({
+	            item: item,
+	            data: {
+	              status: "failed",
+	              last_error:
+	                cleanMessageText((error && error.message) || "") ||
+	                "The chat could not queue or poll this Greenhouse worker task.",
+	            },
+	          });
+	        })
+	        .then(function () {
+	          workableTestInFlight = false;
+	          if (button) {
+	            button.disabled = false;
+	            button.innerHTML = '<span aria-hidden="true">▶</span>Test';
+	          }
+	          showGreenhouseTestSummary();
+	        });
+	    }
+
+	    function runTeamtailorSingleJobTest(index, button) {
+	      var itemIndex = Number(index);
+	      var item = commercialApplyQueueItemsState[itemIndex] || null;
+	      if (workableTestInFlight) {
+	        botMessage(
+	          "One Teamtailor test is already running. Wait for that result before starting another one.",
+	          humanComposeDelay("Teamtailor test already running.", 700, 1400),
+	          function () {
+	            focusComposer("Wait for the current Teamtailor test result");
+	          }
+	        );
+	        return;
+	      }
+	      if (!item || !isTeamtailorQueueItem(item)) {
+	        botMessage(
+	          "That Teamtailor test job is no longer available. Type test teamtailor to reload the list.",
+	          humanComposeDelay("Teamtailor test job missing.", 700, 1400),
+	          function () {
+	            focusComposer("Type test teamtailor to reload");
+	          }
+	        );
+	        return;
+	      }
+	      if (
+	        !currentCvFile ||
+	        !cleanMessageText(applyOnboardingFullName || "") ||
+	        !cleanMessageText(applyOnboardingPreferredEmail || "") ||
+	        !cleanMessageText(workableTestCandidatePhone || "")
+	      ) {
+	        ensureTeamtailorTestCandidateDetailsThen(showTeamtailorAdminTestReadyCard, {
+	          startImmediately: false,
+	        });
+	        return;
+	      }
+	      workableTestResults = [];
+	      workableTestMode = false;
+	      greenhouseTestMode = false;
+	      teamtailorTestMode = true;
+	      successFactorsTestMode = false;
+	      workdayTestMode = false;
+	      simpleDropTestMode = false;
+	      workableTestInFlight = true;
+	      commercialApplyQueueActivated = true;
+	      commercialApplyQueueDetailsMode = true;
+	      commercialApplyQueueInitialized = true;
+	      clearPromptState();
+	      if (button) {
+	        button.disabled = true;
+	        button.innerHTML = '<span aria-hidden="true">▶</span>Testing';
+	      }
+	      userMessage("Test " + cleanMessageText(item.title || "Teamtailor job"));
+	      updateCommercialQueueItemStatus(
+	        itemIndex,
+	        "Checking form",
+	        "Teamtailor test is running"
+	      );
+	      queueCommercialApplyQueueWorkerTask(itemIndex)
+	        .catch(function (error) {
+	          updateCommercialQueueItemStatus(
+	            itemIndex,
+	            "Referred",
+	            "Teamtailor test finished"
+	          );
+	          workableTestResults.push({
+	            item: item,
+	            data: {
+	              status: "failed",
+	              last_error:
+	                cleanMessageText((error && error.message) || "") ||
+	                "The chat could not queue or poll this Teamtailor worker task.",
+	            },
+	          });
+	        })
+	        .then(function () {
+	          workableTestInFlight = false;
+	          if (button) {
+	            button.disabled = false;
+	            button.innerHTML = '<span aria-hidden="true">▶</span>Test';
+	          }
+	          showTeamtailorTestSummary();
+	        });
+	    }
+
+	    function setSuccessFactorsTestReadyPrompt() {
       setPromptState(
         "successfactors_test_ready",
         {
@@ -92798,7 +94197,7 @@
       return typeof Blob === "undefined" || file instanceof Blob;
     }
 
-    function queueWorkableAdminTestApplicationTask(queueItem) {
+	    function queueWorkableAdminTestApplicationTask(queueItem) {
       var config = getConfig();
       var item = queueItem || {};
       var formData = new FormData();
@@ -92880,6 +94279,273 @@
             throw new Error(
               (payload && payload.data && payload.data.message) ||
                 "I could not queue that Workable test job."
+            );
+          }
+          return payload.data || {};
+	        });
+	    }
+
+	    function queueGreenhouseAdminTestApplicationTask(queueItem) {
+	      var config = getConfig();
+	      var item = queueItem || {};
+	      var formData = new FormData();
+	      var itemJobsPostId = cleanMessageText(
+	        item.jobsPostId || item.jobs_post_id || item.wpPostId || item.wp_post_id || ""
+	      );
+	      var itemPostId = cleanMessageText(item.postId || item.post_id || item.id || "");
+	      var itemApplicationUrl = cleanMessageText(
+	        item.applyUrl ||
+	          item.applicationUrl ||
+	          item.application_url ||
+	          item.applicationWorkspaceUrl ||
+	          item.application_workspace_url ||
+	          ""
+	      );
+	      var itemWorkspaceUrl = cleanMessageText(
+	        item.applicationWorkspaceUrl ||
+	          item.application_workspace_url ||
+	          item.applicationEmbedUrl ||
+	          item.application_embed_url ||
+	          itemApplicationUrl
+	      );
+	      var candidatePhone = cleanMessageText(workableTestCandidatePhone || "");
+	      if (!candidatePhone && capturedCvText) {
+	        candidatePhone = cleanMessageText(findCvPhone(capturedCvText) || "");
+	      }
+
+	      formData.append("action", "sffc_crm_apply_chat_queue_application_task");
+	      formData.append(
+	        "nonce",
+	        config.applicationTaskNonce ||
+	          config.autoSubmitSchemaNonce ||
+	          config.nonce ||
+	          ""
+	      );
+	      formData.append("session_token", ensureApplyChatSessionToken());
+	      formData.append("post_id", itemPostId || postId || "");
+	      formData.append(
+	        "crm_post_id",
+	        cleanMessageText(root.getAttribute("data-crm-post-id") || "")
+	      );
+	      formData.append("jobs_post_id", itemJobsPostId || jobsPostId || "");
+	      formData.append("role_title", cleanMessageText(item.title || roleTitle || ""));
+	      formData.append("company_name", cleanMessageText(item.company || roleCompany || ""));
+	      formData.append("candidate_name", cleanMessageText(applyOnboardingFullName || ""));
+	      formData.append("candidate_email", cleanMessageText(applyOnboardingPreferredEmail || ""));
+	      formData.append("candidate_phone", candidatePhone);
+	      formData.append("provider", "greenhouse");
+	      formData.append("application_url", itemApplicationUrl);
+	      formData.append("application_workspace_url", itemWorkspaceUrl || itemApplicationUrl);
+	      formData.append("role_url", cleanMessageText(item.viewUrl || item.url || roleUrl || ""));
+	      formData.append("page_url", window.location.href || "");
+	      formData.append("cv_text", cleanMessageText(capturedCvText || ""));
+	      formData.append("cover_letter_requested", "0");
+	      formData.append(
+	        "application_answers",
+	        JSON.stringify(
+	          Object.assign(
+	            {},
+	            getWorkableTestApplicationAnswers(item),
+	            applicationAnswerDraft || {}
+	          )
+	        )
+	      );
+	      formData.append("verification_code", cleanMessageText(applicationVerificationCode || ""));
+	      formData.append("consent", "admin_clicked_greenhouse_test_worker");
+	      if (canAppendUploadedCvFile(currentCvFile)) {
+	        formData.append("cv_file", currentCvFile, currentCvFile.name);
+	      }
+
+	      return window
+	        .fetch(config.ajaxUrl || "/wp-admin/admin-ajax.php", {
+	          method: "POST",
+	          credentials: "same-origin",
+	          body: formData,
+	        })
+	        .then(parseAjaxJson)
+	        .then(function (payload) {
+	          if (!payload || !payload.success) {
+	            throw new Error(
+	              (payload && payload.data && payload.data.message) ||
+	                "I could not queue that Greenhouse test job."
+	            );
+	          }
+	          return payload.data || {};
+	        });
+	    }
+
+	    function queueTeamtailorAdminTestApplicationTask(queueItem) {
+	      var config = getConfig();
+	      var item = queueItem || {};
+	      var formData = new FormData();
+	      var itemJobsPostId = cleanMessageText(
+	        item.jobsPostId || item.jobs_post_id || item.wpPostId || item.wp_post_id || ""
+	      );
+	      var itemPostId = cleanMessageText(item.postId || item.post_id || item.id || "");
+	      var itemApplicationUrl = cleanMessageText(
+	        item.applyUrl ||
+	          item.applicationUrl ||
+	          item.application_url ||
+	          item.applicationWorkspaceUrl ||
+	          item.application_workspace_url ||
+	          ""
+	      );
+	      var itemWorkspaceUrl = cleanMessageText(
+	        item.applicationWorkspaceUrl ||
+	          item.application_workspace_url ||
+	          item.applicationEmbedUrl ||
+	          item.application_embed_url ||
+	          itemApplicationUrl
+	      );
+	      var candidatePhone = cleanMessageText(workableTestCandidatePhone || "");
+	      if (!candidatePhone && capturedCvText) {
+	        candidatePhone = cleanMessageText(findCvPhone(capturedCvText) || "");
+	      }
+
+	      formData.append("action", "sffc_crm_apply_chat_queue_application_task");
+	      formData.append(
+	        "nonce",
+	        config.applicationTaskNonce ||
+	          config.autoSubmitSchemaNonce ||
+	          config.nonce ||
+	          ""
+	      );
+	      formData.append("session_token", ensureApplyChatSessionToken());
+	      formData.append("post_id", itemPostId || postId || "");
+	      formData.append(
+	        "crm_post_id",
+	        cleanMessageText(root.getAttribute("data-crm-post-id") || "")
+	      );
+	      formData.append("jobs_post_id", itemJobsPostId || jobsPostId || "");
+	      formData.append("role_title", cleanMessageText(item.title || roleTitle || ""));
+	      formData.append("company_name", cleanMessageText(item.company || roleCompany || ""));
+	      formData.append("candidate_name", cleanMessageText(applyOnboardingFullName || ""));
+	      formData.append("candidate_email", cleanMessageText(applyOnboardingPreferredEmail || ""));
+	      formData.append("candidate_phone", candidatePhone);
+	      formData.append("provider", "teamtailor");
+	      formData.append("application_url", itemApplicationUrl);
+	      formData.append("application_workspace_url", itemWorkspaceUrl || itemApplicationUrl);
+	      formData.append("role_url", cleanMessageText(item.viewUrl || item.url || roleUrl || ""));
+	      formData.append("page_url", window.location.href || "");
+	      formData.append("cv_text", cleanMessageText(capturedCvText || ""));
+	      formData.append("cover_letter_requested", "0");
+	      formData.append(
+	        "application_answers",
+	        JSON.stringify(
+	          Object.assign(
+	            {},
+	            getWorkableTestApplicationAnswers(item),
+	            applicationAnswerDraft || {}
+	          )
+	        )
+	      );
+	      formData.append("verification_code", cleanMessageText(applicationVerificationCode || ""));
+	      formData.append("consent", "admin_clicked_teamtailor_test_worker");
+	      if (canAppendUploadedCvFile(currentCvFile)) {
+	        formData.append("cv_file", currentCvFile, currentCvFile.name);
+	      }
+
+	      return window
+	        .fetch(config.ajaxUrl || "/wp-admin/admin-ajax.php", {
+	          method: "POST",
+	          credentials: "same-origin",
+	          body: formData,
+	        })
+	        .then(parseAjaxJson)
+	        .then(function (payload) {
+	          if (!payload || !payload.success) {
+	            throw new Error(
+	              (payload && payload.data && payload.data.message) ||
+	                "I could not queue that Teamtailor test job."
+	            );
+	          }
+	          return payload.data || {};
+	        });
+	    }
+
+	    function queueSimpleDropAdminTestApplicationTask(queueItem) {
+      var config = getConfig();
+      var item = queueItem || {};
+      var formData = new FormData();
+      var itemJobsPostId = cleanMessageText(
+        item.jobsPostId || item.jobs_post_id || item.wpPostId || item.wp_post_id || ""
+      );
+      var itemPostId = cleanMessageText(item.postId || item.post_id || item.id || "");
+      var itemApplicationUrl = cleanMessageText(
+        item.applyUrl ||
+          item.apply_url ||
+          item.applicationUrl ||
+          item.application_url ||
+          item.applicationWorkspaceUrl ||
+          item.application_workspace_url ||
+          ""
+      );
+      var itemWorkspaceUrl = cleanMessageText(
+        item.applicationWorkspaceUrl ||
+          item.application_workspace_url ||
+          item.applicationEmbedUrl ||
+          item.application_embed_url ||
+          itemApplicationUrl
+      );
+      var candidatePhone = cleanMessageText(workableTestCandidatePhone || "");
+      if (!candidatePhone && capturedCvText) {
+        candidatePhone = cleanMessageText(findCvPhone(capturedCvText) || "");
+      }
+
+      formData.append("action", "sffc_crm_apply_chat_queue_application_task");
+      formData.append(
+        "nonce",
+        config.applicationTaskNonce ||
+          config.autoSubmitSchemaNonce ||
+          config.nonce ||
+          ""
+      );
+      formData.append("session_token", ensureApplyChatSessionToken());
+      formData.append("post_id", itemPostId || postId || "");
+      formData.append(
+        "crm_post_id",
+        cleanMessageText(root.getAttribute("data-crm-post-id") || "")
+      );
+      formData.append("jobs_post_id", itemJobsPostId || jobsPostId || "");
+      formData.append("role_title", cleanMessageText(item.title || roleTitle || ""));
+      formData.append("company_name", cleanMessageText(item.company || roleCompany || ""));
+      formData.append("candidate_name", cleanMessageText(applyOnboardingFullName || ""));
+      formData.append("candidate_email", cleanMessageText(applyOnboardingPreferredEmail || ""));
+      formData.append("candidate_phone", candidatePhone);
+      formData.append("provider", "simple_form");
+      formData.append("application_url", itemApplicationUrl);
+      formData.append("application_workspace_url", itemWorkspaceUrl || itemApplicationUrl);
+      formData.append("role_url", cleanMessageText(item.viewUrl || item.url || roleUrl || ""));
+      formData.append("page_url", window.location.href || "");
+      formData.append("cv_text", cleanMessageText(capturedCvText || ""));
+      formData.append("cover_letter_requested", "0");
+      formData.append(
+        "application_answers",
+        JSON.stringify(
+          Object.assign(
+            {},
+            getSimpleDropTestApplicationAnswers(item),
+            applicationAnswerDraft || {}
+          )
+        )
+      );
+      formData.append("consent", "admin_clicked_simpledrop_test_worker");
+      if (canAppendUploadedCvFile(currentCvFile)) {
+        formData.append("cv_file", currentCvFile, currentCvFile.name);
+      }
+
+      return window
+        .fetch(config.ajaxUrl || "/wp-admin/admin-ajax.php", {
+          method: "POST",
+          credentials: "same-origin",
+          body: formData,
+        })
+        .then(parseAjaxJson)
+        .then(function (payload) {
+          if (!payload || !payload.success) {
+            throw new Error(
+              (payload && payload.data && payload.data.message) ||
+                "I could not queue that SimpleDrop test job."
             );
           }
           return payload.data || {};
@@ -93167,6 +94833,383 @@
       }, currentAttempt < 4 ? 5000 : 10000);
     }
 
+    function renderWorkdayTestJobPicker(jobs) {
+      var rows = (jobs || []).slice(0, 4).map(function (job, index) {
+        var title = cleanMessageText(job.title || "Untitled role");
+        var company = cleanMessageText(job.company || "Company");
+        var location = cleanMessageText(job.location || "");
+        var host = getApplicationUrlHost(
+          job.applyUrl ||
+            job.applicationUrl ||
+            job.application_url ||
+            job.applicationWorkspaceUrl ||
+            job.application_workspace_url ||
+            ""
+        );
+        return (
+          '<div class="sffc-crm-apply-chat__sf-test-row">' +
+          '<div class="sffc-crm-apply-chat__sf-test-main">' +
+          '<strong>' + escapeHtml(title) + "</strong>" +
+          '<span>' + escapeHtml([company, location].filter(Boolean).join(" · ")) + "</span>" +
+          (host ? '<small>' + escapeHtml(host) + "</small>" : "") +
+          "</div>" +
+          '<button type="button" class="sffc-crm-apply-chat__sf-test-button" data-sffc-workday-test-job="' +
+          String(index) +
+          '">Test</button>' +
+          "</div>"
+        );
+      }).join("");
+      return (
+        '<section class="sffc-crm-apply-chat__sf-test-card" data-sffc-workday-test-card>' +
+        '<div class="sffc-crm-apply-chat__sf-test-head">' +
+        '<span>Workday Test</span>' +
+        "<h3>Choose one Workday job to test</h3>" +
+        "<p>Using " +
+        escapeHtml(cleanMessageText(applyOnboardingFullName || "the candidate")) +
+        " · " +
+        escapeHtml(cleanMessageText(applyOnboardingPreferredEmail || "")) +
+        "</p>" +
+        "</div>" +
+        '<div class="sffc-crm-apply-chat__sf-test-list">' +
+        rows +
+        "</div>" +
+        "</section>"
+      );
+    }
+
+    function showWorkdayTestJobPicker() {
+      var jobs = commercialApplyQueueItemsState.slice(0, 4);
+      if (!jobs.length) {
+        botMessage(
+          "I couldn’t find Workday jobs in the current job table.",
+          humanComposeDelay("No Workday jobs found.", 700, 1400),
+          function () {
+            focusComposer("Check the feed, then type test workday again");
+          }
+        );
+        return;
+      }
+      botMessage(
+        renderWorkdayTestJobPicker(jobs),
+        humanComposeDelay("Workday test jobs ready.", 700, 1400),
+        function () {
+          setPromptState(
+            "workday_test_ready",
+            {
+              other: function () {
+                focusComposer("Click Test beside a Workday job");
+              },
+            },
+            "Click Test beside a Workday job",
+            { provider: "workday" }
+          );
+          focusComposer("Click Test beside a Workday job");
+        }
+      );
+    }
+
+    function loadWorkdayTestJobsThen(callback) {
+      fetchActualJobPosts("workday", 8, "workday")
+        .then(function (items) {
+          var workdayItems = (items || []).filter(function (item) {
+            return isWorkdayQueueItem(item || {});
+          });
+          var normalized = workdayItems.map(function (item, index) {
+            return normalizeCommercialApplyQueueItem(
+              Object.assign({}, item, {
+                autoSubmitSupported: true,
+                auto_submit_supported: "1",
+                autoSubmitProvider: "workday",
+                auto_submit_provider: "workday",
+                provider: "workday",
+                status: index === 0 ? "Ready" : "In Queue",
+              }),
+              index === 0 ? "Ready" : "In Queue"
+            );
+          }).slice(0, 4);
+          commercialApplyQueueItemsState = normalized;
+          commercialApplyQueueCatalogState = normalized.slice(0);
+          if (typeof callback === "function") {
+            callback(normalized);
+          }
+        })
+        .catch(function () {
+          botMessage(
+            "I could not load the Workday test jobs from WordPress just now.",
+            humanComposeDelay("Workday test load failed.", 700, 1400),
+            function () {
+              focusComposer("Try test workday again");
+            }
+          );
+        });
+    }
+
+    function queueWorkdayAdminTestApplicationTask(queueItem) {
+      var item = queueItem || {};
+      var formData = new FormData();
+      var itemJobsPostId = cleanMessageText(
+        item.jobsPostId || item.jobs_post_id || item.wpPostId || item.wp_post_id || ""
+      );
+      var itemPostId = cleanMessageText(item.postId || item.post_id || item.id || "");
+      var itemApplicationUrl = cleanMessageText(
+        item.applyUrl ||
+          item.applicationUrl ||
+          item.application_url ||
+          item.applicationWorkspaceUrl ||
+          item.application_workspace_url ||
+          ""
+      );
+      var itemWorkspaceUrl = cleanMessageText(
+        item.applicationWorkspaceUrl ||
+          item.application_workspace_url ||
+          item.applicationEmbedUrl ||
+          item.application_embed_url ||
+          itemApplicationUrl
+      );
+      var candidatePhone = capturedCvText ? cleanMessageText(findCvPhone(capturedCvText) || "") : "";
+
+      formData.append("action", "sffc_crm_apply_chat_queue_application_task");
+      formData.append(
+        "nonce",
+        getConfig().applicationTaskNonce ||
+          getConfig().autoSubmitSchemaNonce ||
+          getConfig().nonce ||
+          ""
+      );
+      formData.append("session_token", ensureApplyChatSessionToken());
+      formData.append("post_id", itemPostId || postId || "");
+      formData.append("crm_post_id", cleanMessageText(root.getAttribute("data-crm-post-id") || ""));
+      formData.append("jobs_post_id", itemJobsPostId || jobsPostId || "");
+      formData.append("role_title", cleanMessageText(item.title || roleTitle || ""));
+      formData.append("company_name", cleanMessageText(item.company || roleCompany || ""));
+      formData.append("candidate_name", cleanMessageText(applyOnboardingFullName || ""));
+      formData.append("candidate_email", cleanMessageText(applyOnboardingPreferredEmail || ""));
+      formData.append("candidate_phone", candidatePhone);
+      formData.append("provider", "workday");
+      formData.append("application_url", itemApplicationUrl);
+      formData.append("application_workspace_url", itemWorkspaceUrl || itemApplicationUrl);
+      formData.append("role_url", cleanMessageText(item.viewUrl || item.url || roleUrl || ""));
+      formData.append("page_url", window.location.href || "");
+      formData.append("cv_text", cleanMessageText(capturedCvText || ""));
+      formData.append("cover_letter_requested", "0");
+      formData.append("application_answers", JSON.stringify(applicationAnswerDraft || {}));
+      formData.append("consent", "admin_clicked_workday_test_worker");
+      formData.append(
+        "workday_consent",
+        JSON.stringify({
+          scope: "admin_clicked_workday_test_worker",
+          account_route: "create",
+          create_account: true,
+          sign_in: false,
+          final_submit: true,
+          captured_at: new Date().toISOString(),
+        })
+      );
+      formData.append(
+        "workday_account",
+        JSON.stringify({
+          account_route: "create",
+          create_account: true,
+          sign_in: false,
+          email: cleanMessageText(applyOnboardingPreferredEmail || ""),
+          password: "",
+          allow_generated_password: true,
+          email_generated_password_to_user: true,
+        })
+      );
+      if (canAppendUploadedCvFile(currentCvFile)) {
+        formData.append("cv_file", currentCvFile, currentCvFile.name);
+      }
+
+      return window
+        .fetch(getConfig().ajaxUrl || "/wp-admin/admin-ajax.php", {
+          method: "POST",
+          credentials: "same-origin",
+          body: formData,
+        })
+        .then(parseAjaxJson)
+        .then(function (payload) {
+          if (!payload || !payload.success) {
+            throw new Error(
+              (payload && payload.data && payload.data.message) ||
+                "I could not queue that Workday test job."
+            );
+          }
+          return payload.data || {};
+        });
+    }
+
+    function runWorkdaySingleJobTest(index, button) {
+      var itemIndex = Number(index);
+      var item = commercialApplyQueueItemsState[itemIndex] || null;
+      if (workdayTestInFlight) {
+        botMessage(
+          "One Workday test is already running. Wait for that result before starting another one.",
+          humanComposeDelay("Workday test already running.", 700, 1400),
+          function () {
+            focusComposer("Wait for the current Workday test result");
+          }
+        );
+        return;
+      }
+      if (!item || !isWorkdayQueueItem(item)) {
+        botMessage(
+          "That Workday test job is no longer available. Type test workday to reload the list.",
+          humanComposeDelay("Workday test job missing.", 700, 1400),
+          function () {
+            focusComposer("Type test workday to reload");
+          }
+        );
+        return;
+      }
+      if (!currentCvFile || !cleanMessageText(applyOnboardingFullName || "") || !cleanMessageText(applyOnboardingPreferredEmail || "")) {
+        ensureWorkdayTestCandidateDetailsThen(showWorkdayTestJobPicker, {
+          setupOnly: true,
+        });
+        return;
+      }
+      workdayAccountPreference = "create";
+      workdayAccountPassword = "";
+      workdayTestInFlight = true;
+      commercialApplyQueueActivated = true;
+      commercialApplyQueueDetailsMode = true;
+      commercialApplyQueueInitialized = true;
+      clearPromptState();
+      if (button) {
+        button.disabled = true;
+        button.textContent = "Testing";
+      }
+      userMessage("Test " + cleanMessageText(item.title || "Workday job"));
+      updateCommercialQueueItemStatus(
+        itemIndex,
+        "Checking form",
+        "Workday test is running"
+      );
+      botMessage(
+        "I’m sending this Workday test job to Railway now. If the account is created, the generated password will be emailed to the logged-in user separately.",
+        humanComposeDelay("Queueing Workday test.", 700, 1400)
+      );
+      queueCommercialApplyQueueWorkerTask(itemIndex)
+        .then(function (data) {
+          workdayTestInFlight = false;
+          if (button) {
+            button.disabled = false;
+            button.textContent = "Test";
+          }
+          botMessage(
+            renderProviderTestResultCard(workableTestResults, "Workday"),
+            humanComposeDelay("Workday test result.", 700, 1400),
+            function () {
+              focusComposer("Click another Test button or inspect Railway");
+            }
+          );
+          return data;
+        })
+        .catch(function (error) {
+          var message =
+            cleanMessageText((error && error.message) || "") ||
+            "I could not queue that Workday test job.";
+          workdayTestInFlight = false;
+          if (button) {
+            button.disabled = false;
+            button.textContent = "Test";
+          }
+          botMessage(
+            message,
+            humanComposeDelay(message, 900, 1800),
+            function () {
+              focusComposer("Try the same job again or pick another one");
+            }
+          );
+        });
+    }
+
+    function pollWorkdayAdminTestTask(taskId, item, button, attempt) {
+      var currentAttempt = Number(attempt || 0);
+      if (!taskId || currentAttempt > 60) {
+        workdayTestInFlight = false;
+        if (button) {
+          button.disabled = false;
+          button.textContent = "Check status";
+        }
+        botMessage(
+          "The Workday test is still not returning a final status. Task ID: " + taskId + ".",
+          humanComposeDelay("Workday test status timed out.", 900, 1800),
+          function () {
+            focusComposer("Check Railway for task " + taskId);
+          }
+        );
+        return;
+      }
+      window.setTimeout(function () {
+        fetchCommercialApplyQueueWorkerTaskStatus(taskId)
+          .then(function (data) {
+            var status = cleanMessageText((data && data.status) || "");
+            var cleanStatus = status.toLowerCase();
+            if (cleanStatus === "queued" || cleanStatus === "processing") {
+              if (button) {
+                button.textContent = cleanStatus === "queued" ? "Queued" : "Running";
+              }
+              pollWorkdayAdminTestTask(taskId, item, button, currentAttempt + 1);
+              return;
+            }
+            workdayTestInFlight = false;
+            if (button) {
+              button.disabled = false;
+              button.textContent =
+                cleanStatus === "submitted"
+                  ? "Submitted"
+                  : cleanStatus === "verification_required"
+                    ? "Verify"
+                    : "Review";
+            }
+            var role = cleanMessageText((data && data.role_title) || (item && item.title) || "this role");
+            var lastError = cleanMessageText((data && data.last_error) || "");
+            var diagnostics = [
+              "answers " + String((data && data.application_answers_filled) || 0) + "/" + String((data && data.application_answers_attempted) || 0),
+              "choices " + String((data && data.application_choice_answers_filled) || 0) + "/" + String((data && data.application_choice_answers_attempted) || 0),
+              "resume " + ((data && data.uploaded_resume) ? "uploaded" : "not uploaded"),
+            ];
+            var credentialsNote = cleanStatus === "submitted" || cleanStatus === "dry_run_ready" || cleanStatus === "review_required"
+              ? " If a new Workday account was confirmed, the generated password has been emailed to the logged-in user."
+              : "";
+            var message =
+              "Workday test finished with status " +
+              (status || "unknown") +
+              " for " +
+              role +
+              ". " +
+              diagnostics.join("; ") +
+              (lastError ? ". " + lastError : ".") +
+              credentialsNote;
+            botMessage(
+              message,
+              humanComposeDelay(message, 900, 1800),
+              function () {
+                focusComposer("Click another Test button or inspect Railway task " + taskId);
+              }
+            );
+          })
+          .catch(function (error) {
+            workdayTestInFlight = false;
+            if (button) {
+              button.disabled = false;
+              button.textContent = "Check status";
+            }
+            var message =
+              cleanMessageText((error && error.message) || "") ||
+              "I could not read the Workday test status.";
+            botMessage(
+              message,
+              humanComposeDelay(message, 900, 1800),
+              function () {
+                focusComposer("Check Railway for task " + taskId);
+              }
+            );
+          });
+      }, currentAttempt < 4 ? 5000 : 10000);
+    }
+
     function ensureSuccessFactorsTestCandidateDetailsThen(callback, options) {
       var setupOnly = !!(options && options.setupOnly);
       if (!isSuccessFactorsAdminTestEnabled()) {
@@ -93294,12 +95337,157 @@
       );
     }
 
-    function startWorkableAdminTestFlow() {
-      if (!isWorkableAdminTestEnabled() && !(getConfig().isAdminTester === true || getConfig().isAdminTester === "1" || getConfig().isAdminTester === 1)) {
-        return false;
+    function ensureWorkdayTestCandidateDetailsThen(callback, options) {
+      var setupOnly = !!(options && options.setupOnly);
+      if (!isWorkdayAdminTestEnabled()) {
+        if (typeof callback === "function") {
+          callback();
+        }
+        return;
       }
-      workableTestMode = true;
-      successFactorsTestMode = false;
+      if (!cleanMessageText(applyOnboardingFullName || "")) {
+        botMessage(
+          "Firstly, can I get the candidate full name for this Workday test?",
+          humanComposeDelay("Need candidate name.", 700, 1400),
+          function () {
+            setPromptState(
+              "workday_test_full_name",
+              {
+                other: function (value) {
+                  applyOnboardingFullName = cleanMessageText(value || "");
+                  clearPromptState();
+                  echoPromptChoice(value);
+                  ensureWorkdayTestCandidateDetailsThen(callback, options);
+                },
+              },
+              "Type the candidate full name",
+              { provider: "workday" }
+            );
+            focusComposer("Type the candidate full name");
+          }
+        );
+        return;
+      }
+      if (!cleanMessageText(applyOnboardingPreferredEmail || "")) {
+        botMessage(
+          "What email should I use for the Workday account and application?",
+          humanComposeDelay("Need candidate email.", 700, 1400),
+          function () {
+            setPromptState(
+              "workday_test_email",
+              {
+                other: function (value) {
+                  var email = extractEmailCandidate(value || "");
+                  if (!email) {
+                    botMessage(
+                      "Send the email address on its own so I can use it for the Workday test.",
+                      humanComposeDelay("Need a valid email.", 700, 1400),
+                      function () {
+                        focusComposer("Type the candidate email");
+                      }
+                    );
+                    return;
+                  }
+                  applyOnboardingEmailSuggestion = email;
+                  clearPromptState();
+                  echoPromptChoice(value);
+                  botMessage(
+                    "Just double-checking - is that " + escapeHtml(email) + "?",
+                    humanComposeDelay("Confirm email.", 700, 1400),
+                    function () {
+                      setPromptState(
+                        "workday_test_confirm_email",
+                        {
+                          yes: function (reply) {
+                            applyOnboardingPreferredEmail = applyOnboardingEmailSuggestion;
+                            clearPromptState();
+                            echoPromptChoice(reply || "yes");
+                            ensureWorkdayTestCandidateDetailsThen(callback, options);
+                          },
+                          no: function (reply) {
+                            applyOnboardingEmailSuggestion = "";
+                            clearPromptState();
+                            echoPromptChoice(reply || "no");
+                            ensureWorkdayTestCandidateDetailsThen(callback, options);
+                          },
+                          other: function (reply) {
+                            var replacement = extractEmailCandidate(reply || "");
+                            if (replacement) {
+                              applyOnboardingPreferredEmail = replacement;
+                              clearPromptState();
+                              echoPromptChoice(reply);
+                              ensureWorkdayTestCandidateDetailsThen(callback, options);
+                              return;
+                            }
+                            focusComposer("Confirm yes, or send the correct email");
+                          },
+                        },
+                        "Confirm the candidate email",
+                        { provider: "workday" }
+                      );
+                      focusComposer("Confirm the candidate email");
+                    }
+                  );
+                },
+              },
+              "Type the candidate email",
+              { provider: "workday" }
+            );
+            focusComposer("Type the candidate email");
+          }
+        );
+        return;
+      }
+      if (!currentCvFile) {
+        workdayTestAwaitingCv = true;
+        workdayTestPendingDetailsCallback =
+          typeof callback === "function" ? callback : null;
+        workdayTestPendingDetailsOptions = options || {};
+        botMessage(
+          "Upload the test CV now. I’ll use that CV for the Workday account creation and application run.",
+          humanComposeDelay("Upload the Workday test CV.", 700, 1400),
+          function () {
+            focusComposer("Upload the test CV");
+            if (uploadButton) {
+              uploadButton.hidden = false;
+            }
+          }
+        );
+        return;
+      }
+      botMessage(
+        setupOnly
+          ? "Great. I’ve got the CV, name and email for this Workday test. The account password will be generated by the server and emailed to the logged-in user after Workday confirms account creation."
+          : "Great. I’ve got the test details and I’m starting the Workday worker run now.",
+        humanComposeDelay(setupOnly ? "Workday test details ready." : "Starting Workday worker.", 700, 1400),
+        function () {
+          workdayTestAwaitingCv = false;
+          workdayTestPendingDetailsCallback = null;
+          workdayTestPendingDetailsOptions = null;
+          if (typeof callback === "function") {
+            callback();
+          }
+        }
+      );
+    }
+
+	    function startWorkableAdminTestFlow() {
+	      if (!isWorkableAdminTestEnabled() && !(getConfig().isAdminTester === true || getConfig().isAdminTester === "1" || getConfig().isAdminTester === 1)) {
+	        return false;
+	      }
+	      workableTestMode = true;
+	      greenhouseTestMode = false;
+	      teamtailorTestMode = false;
+	      successFactorsTestMode = false;
+      workdayTestMode = false;
+      simpleDropTestMode = false;
+      workdayTestAwaitingCv = false;
+      workdayTestPendingDetailsCallback = null;
+      workdayTestPendingDetailsOptions = null;
+      workdayTestInFlight = false;
+      simpleDropTestAwaitingCv = false;
+      simpleDropTestPendingDetailsCallback = null;
+      simpleDropTestPendingDetailsOptions = null;
       workableTestAwaitingCv = false;
       workableTestPendingDetailsCallback = null;
       workableTestPendingDetailsOptions = null;
@@ -93393,6 +95581,254 @@
             }
           );
         });
+	      return true;
+	    }
+
+	    function startGreenhouseAdminTestFlow() {
+	      if (!isGreenhouseAdminTestEnabled() && !(getConfig().isAdminTester === true || getConfig().isAdminTester === "1" || getConfig().isAdminTester === 1)) {
+	        return false;
+	      }
+	      workableTestMode = false;
+	      greenhouseTestMode = true;
+	      teamtailorTestMode = false;
+	      successFactorsTestMode = false;
+	      workdayTestMode = false;
+	      simpleDropTestMode = false;
+	      workdayTestAwaitingCv = false;
+	      workdayTestPendingDetailsCallback = null;
+	      workdayTestPendingDetailsOptions = null;
+	      workdayTestInFlight = false;
+	      simpleDropTestAwaitingCv = false;
+	      simpleDropTestPendingDetailsCallback = null;
+	      simpleDropTestPendingDetailsOptions = null;
+	      workableTestAwaitingCv = false;
+	      workableTestPendingDetailsCallback = null;
+	      workableTestPendingDetailsOptions = null;
+	      workableTestResults = [];
+	      workableTestAdminAnswers = {};
+	      workableTestCandidatePhone = "";
+	      workableTestInFlight = false;
+	      applyOnboardingFullName = "";
+	      applyOnboardingPreferredEmail = "";
+	      applyOnboardingEmailSuggestion = "";
+	      currentCvFile = null;
+	      currentCvPreviewAsset = null;
+	      currentCvPageCount = 0;
+	      capturedCvText = "";
+	      commercialApplyQueueActivated = false;
+	      commercialApplyQueueDetailsMode = true;
+	      commercialApplyQueueInitialized = true;
+	      commercialApplyQueueActiveTab = "shortlist";
+	      commercialApplyQueueFilter = "all";
+	      jobsWorkspaceSearchQuery = "";
+	      botMessage(
+	        "I’m loading current Greenhouse jobs for an admin submission test.",
+	        humanComposeDelay("Loading Greenhouse jobs.", 700, 1400)
+	      );
+	      fetchActualJobPosts("greenhouse", 12, "greenhouse")
+	        .then(function (items) {
+	          var greenhouseItems = (items || []).filter(function (item) {
+	            return isGreenhouseQueueItem(item || {});
+	          });
+	          var normalized = greenhouseItems.map(function (item, index) {
+	            return normalizeCommercialApplyQueueItem(
+	              Object.assign({}, item, {
+	                autoSubmitSupported: true,
+	                auto_submit_supported: "1",
+	                autoSubmitProvider: "greenhouse",
+	                auto_submit_provider: "greenhouse",
+	                provider: "greenhouse",
+	                status: index === 0 ? "Ready" : "In Queue",
+	              }),
+	              index === 0 ? "Ready" : "In Queue"
+	            );
+	          }).slice(0, 4);
+	          commercialApplyQueueItemsState = normalized;
+	          commercialApplyQueueCatalogState = normalized.slice(0);
+	          if (!normalized.length) {
+	            botMessage(
+	              "I couldn’t find Greenhouse jobs in the current job table.",
+	              humanComposeDelay("No Greenhouse jobs found.", 700, 1400),
+	              function () {
+	                focusComposer("Check the feed, then type test greenhouse again");
+	              }
+	            );
+	            return;
+	          }
+	          botMessage(
+	            "I found " +
+	              normalized.length +
+	              " Greenhouse jobs for this test. I’ll collect the CV, name, email and phone first, then show the jobs.",
+	            humanComposeDelay("Greenhouse jobs loaded.", 700, 1400),
+	            function () {
+	              ensureGreenhouseTestCandidateDetailsThen(showGreenhouseAdminTestReadyCard, {
+	                startImmediately: false,
+	              });
+	            }
+	          );
+	        })
+	        .catch(function () {
+	          botMessage(
+	            "I could not load the Greenhouse test jobs from WordPress just now.",
+	            humanComposeDelay("Greenhouse test load failed.", 700, 1400),
+	            function () {
+	              focusComposer("Try test greenhouse again");
+	            }
+	          );
+	        });
+	      return true;
+	    }
+
+	    function startTeamtailorAdminTestFlow() {
+	      if (!isTeamtailorAdminTestEnabled() && !(getConfig().isAdminTester === true || getConfig().isAdminTester === "1" || getConfig().isAdminTester === 1)) {
+	        return false;
+	      }
+	      workableTestMode = false;
+	      greenhouseTestMode = false;
+	      teamtailorTestMode = true;
+	      successFactorsTestMode = false;
+	      workdayTestMode = false;
+	      simpleDropTestMode = false;
+	      workdayTestAwaitingCv = false;
+	      workdayTestPendingDetailsCallback = null;
+	      workdayTestPendingDetailsOptions = null;
+	      workdayTestInFlight = false;
+	      simpleDropTestAwaitingCv = false;
+	      simpleDropTestPendingDetailsCallback = null;
+	      simpleDropTestPendingDetailsOptions = null;
+	      workableTestAwaitingCv = false;
+	      workableTestPendingDetailsCallback = null;
+	      workableTestPendingDetailsOptions = null;
+	      workableTestResults = [];
+	      workableTestAdminAnswers = {};
+	      workableTestCandidatePhone = "";
+	      workableTestInFlight = false;
+	      applyOnboardingFullName = "";
+	      applyOnboardingPreferredEmail = "";
+	      applyOnboardingEmailSuggestion = "";
+	      currentCvFile = null;
+	      currentCvPreviewAsset = null;
+	      currentCvPageCount = 0;
+	      capturedCvText = "";
+	      commercialApplyQueueActivated = false;
+	      commercialApplyQueueDetailsMode = true;
+	      commercialApplyQueueInitialized = true;
+	      commercialApplyQueueActiveTab = "shortlist";
+	      commercialApplyQueueFilter = "all";
+	      jobsWorkspaceSearchQuery = "";
+	      botMessage(
+	        "I’m loading current Teamtailor jobs for an admin submission test.",
+	        humanComposeDelay("Loading Teamtailor jobs.", 700, 1400)
+	      );
+	      fetchActualJobPosts("teamtailor", 12, "teamtailor")
+	        .then(function (items) {
+	          var teamtailorItems = (items || []).filter(function (item) {
+	            return isTeamtailorQueueItem(item || {});
+	          });
+	          var normalized = teamtailorItems.map(function (item, index) {
+	            return normalizeCommercialApplyQueueItem(
+	              Object.assign({}, item, {
+	                autoSubmitSupported: true,
+	                auto_submit_supported: "1",
+	                autoSubmitProvider: "teamtailor",
+	                auto_submit_provider: "teamtailor",
+	                provider: "teamtailor",
+	                status: index === 0 ? "Ready" : "In Queue",
+	              }),
+	              index === 0 ? "Ready" : "In Queue"
+	            );
+	          }).slice(0, 4);
+	          commercialApplyQueueItemsState = normalized;
+	          commercialApplyQueueCatalogState = normalized.slice(0);
+	          if (!normalized.length) {
+	            botMessage(
+	              "I couldn’t find Teamtailor jobs in the current job table.",
+	              humanComposeDelay("No Teamtailor jobs found.", 700, 1400),
+	              function () {
+	                focusComposer("Check the feed, then type test teamtailor again");
+	              }
+	            );
+	            return;
+	          }
+	          botMessage(
+	            "I found " +
+	              normalized.length +
+	              " Teamtailor jobs for this test. I’ll collect the CV, name, email and phone first, then show the jobs.",
+	            humanComposeDelay("Teamtailor jobs loaded.", 700, 1400),
+	            function () {
+	              ensureTeamtailorTestCandidateDetailsThen(showTeamtailorAdminTestReadyCard, {
+	                startImmediately: false,
+	              });
+	            }
+	          );
+	        })
+	        .catch(function () {
+	          botMessage(
+	            "I could not load the Teamtailor test jobs from WordPress just now.",
+	            humanComposeDelay("Teamtailor test load failed.", 700, 1400),
+	            function () {
+	              focusComposer("Try test teamtailor again");
+	            }
+	          );
+	        });
+	      return true;
+	    }
+
+	    function startSimpleDropAdminTestFlow() {
+      if (!(getConfig().isAdminTester === true || getConfig().isAdminTester === "1" || getConfig().isAdminTester === 1)) {
+        return false;
+      }
+	      workableTestMode = false;
+	      greenhouseTestMode = false;
+	      teamtailorTestMode = false;
+	      successFactorsTestMode = false;
+      workdayTestMode = false;
+      simpleDropTestMode = true;
+      workdayTestAwaitingCv = false;
+      workdayTestPendingDetailsCallback = null;
+      workdayTestPendingDetailsOptions = null;
+      workdayTestInFlight = false;
+      simpleDropTestAwaitingCv = false;
+      simpleDropTestPendingDetailsCallback = null;
+      simpleDropTestPendingDetailsOptions = null;
+      workableTestAwaitingCv = false;
+      workableTestPendingDetailsCallback = null;
+      workableTestPendingDetailsOptions = null;
+      workableTestResults = [];
+      workableTestAdminAnswers = {};
+      workableTestCandidatePhone = "";
+      workableTestInFlight = false;
+      applyOnboardingFullName = "";
+      applyOnboardingPreferredEmail = "";
+      applyOnboardingEmailSuggestion = "";
+      currentCvFile = null;
+      currentCvPreviewAsset = null;
+      currentCvPageCount = 0;
+      capturedCvText = "";
+      commercialApplyQueueActivated = false;
+      commercialApplyQueueDetailsMode = true;
+      commercialApplyQueueInitialized = true;
+      commercialApplyQueueActiveTab = "shortlist";
+      commercialApplyQueueFilter = "all";
+      jobsWorkspaceSearchQuery = "";
+      commercialApplyQueueItemsState = getSimpleDropTestFixtures().map(function (item, index) {
+        return normalizeCommercialApplyQueueItem(
+          Object.assign({}, item, {
+            status: index === 0 ? "Ready" : "In Queue",
+          }),
+          index === 0 ? "Ready" : "In Queue"
+        );
+      });
+      commercialApplyQueueCatalogState = commercialApplyQueueItemsState.slice(0);
+      botMessage(
+        "I’ve loaded three SimpleDrop samples: a flat form, a custom-dropdown form, and a multi-step form with verification. I’ll collect the CV, name, email and phone, then show the Test buttons.",
+        humanComposeDelay("SimpleDrop samples loaded.", 700, 1400),
+        function () {
+          ensureSimpleDropTestCandidateDetailsThen(showSimpleDropAdminTestReadyCard, {
+            startImmediately: false,
+          });
+        }
+      );
       return true;
     }
 
@@ -93400,8 +95836,19 @@
       if (!isSuccessFactorsAdminTestEnabled() && !(getConfig().isAdminTester === true || getConfig().isAdminTester === "1" || getConfig().isAdminTester === 1)) {
         return false;
       }
-      workableTestMode = false;
-      successFactorsTestMode = true;
+	      workableTestMode = false;
+	      greenhouseTestMode = false;
+	      teamtailorTestMode = false;
+	      successFactorsTestMode = true;
+      workdayTestMode = false;
+      simpleDropTestMode = false;
+      workdayTestAwaitingCv = false;
+      workdayTestPendingDetailsCallback = null;
+      workdayTestPendingDetailsOptions = null;
+      workdayTestInFlight = false;
+      simpleDropTestAwaitingCv = false;
+      simpleDropTestPendingDetailsCallback = null;
+      simpleDropTestPendingDetailsOptions = null;
       workableTestAwaitingCv = false;
       workableTestPendingDetailsCallback = null;
       workableTestPendingDetailsOptions = null;
@@ -93437,9 +95884,83 @@
       return true;
     }
 
-    function finishCommercialApplyQueueProcessing() {
+    function startWorkdayAdminTestFlow() {
+      if (!isWorkdayAdminTestEnabled() && !(getConfig().isAdminTester === true || getConfig().isAdminTester === "1" || getConfig().isAdminTester === 1)) {
+        return false;
+      }
+	      workableTestMode = false;
+	      greenhouseTestMode = false;
+	      teamtailorTestMode = false;
+	      successFactorsTestMode = false;
+      workdayTestMode = true;
+      simpleDropTestMode = false;
+      workableTestAwaitingCv = false;
+      workableTestPendingDetailsCallback = null;
+      workableTestPendingDetailsOptions = null;
+      workableTestResults = [];
+      workableTestAdminAnswers = {};
+      workableTestCandidatePhone = "";
+      workdayTestAwaitingCv = false;
+      workdayTestPendingDetailsCallback = null;
+      workdayTestPendingDetailsOptions = null;
+      workdayTestInFlight = false;
+      simpleDropTestAwaitingCv = false;
+      simpleDropTestPendingDetailsCallback = null;
+      simpleDropTestPendingDetailsOptions = null;
+      workdayAccountPreference = "create";
+      workdayAccountPassword = "";
+      applyOnboardingFullName = "";
+      applyOnboardingPreferredEmail = "";
+      applyOnboardingEmailSuggestion = "";
+      currentCvFile = null;
+      currentCvPreviewAsset = null;
+      currentCvPageCount = 0;
+      capturedCvText = "";
+      commercialApplyQueueActivated = false;
+      commercialApplyQueueDetailsMode = false;
+      commercialApplyQueueInitialized = false;
+      commercialApplyQueueActiveTab = "shortlist";
+      commercialApplyQueueFilter = "all";
+      commercialApplyQueueItemsState = [];
+      commercialApplyQueueCatalogState = [];
+      jobsWorkspaceSearchQuery = "";
+      botMessage(
+        "Let’s run a focused Workday account-creation test. I’ll collect the full name, email and CV, then show Workday jobs with Test buttons.",
+        humanComposeDelay("Starting Workday test setup.", 700, 1400),
+        function () {
+          ensureWorkdayTestCandidateDetailsThen(function () {
+            loadWorkdayTestJobsThen(showWorkdayTestJobPicker);
+          }, { setupOnly: true });
+        }
+      );
+      return true;
+    }
+
+	    function finishCommercialApplyQueueProcessing() {
+	      if (isGreenhouseAdminTestEnabled()) {
+	        showGreenhouseTestSummary();
+	        return;
+	      }
+	      if (isTeamtailorAdminTestEnabled()) {
+	        showTeamtailorTestSummary();
+	        return;
+	      }
+	      if (isWorkdayAdminTestEnabled()) {
+        botMessage(
+          renderProviderTestResultCard(workableTestResults, "Workday"),
+          humanComposeDelay("Workday test result.", 700, 1400),
+          function () {
+            focusComposer("Run another test or search another role");
+          }
+        );
+        return;
+      }
       if (isSuccessFactorsAdminTestEnabled()) {
         showSuccessFactorsTestSummary();
+        return;
+      }
+      if (isSimpleDropAdminTestEnabled()) {
+        showSimpleDropTestSummary();
         return;
       }
       if (isWorkableAdminTestEnabled()) {
@@ -93510,7 +96031,17 @@
     }
 
     function ensureWorkdayAccountChoiceThenQueue(queueItem, startQueueCallback) {
-      if (!isWorkdayQueueItem(queueItem || {}) || workdayAccountPreference) {
+      if (!isWorkdayQueueItem(queueItem || {})) {
+        startQueueCallback();
+        return;
+      }
+      if (!workdayAccountPreference) {
+        workdayAccountPreference = "create";
+        workdayAccountPassword = "";
+        startQueueCallback();
+        return;
+      }
+      if (workdayAccountPreference) {
         startQueueCallback();
         return;
       }
@@ -93662,9 +96193,19 @@
 
     function queueCommercialApplyQueueWorkerTask(itemIndex) {
       var item = commercialApplyQueueItemsState[itemIndex] || {};
-      var queueTask =
-        isWorkableAdminTestEnabled() && isWorkableQueueItem(item)
-          ? queueWorkableAdminTestApplicationTask
+	      var queueTask =
+	        isGreenhouseAdminTestEnabled() && isGreenhouseQueueItem(item)
+	          ? queueGreenhouseAdminTestApplicationTask
+	        : isTeamtailorAdminTestEnabled() && isTeamtailorQueueItem(item)
+	          ? queueTeamtailorAdminTestApplicationTask
+	        : isWorkableAdminTestEnabled() && isWorkableQueueItem(item)
+	          ? queueWorkableAdminTestApplicationTask
+          : isSimpleDropAdminTestEnabled() && isSimpleDropQueueItem(item)
+            ? queueSimpleDropAdminTestApplicationTask
+          : isSuccessFactorsAdminTestEnabled() && isSuccessFactorsQueueItem(item)
+            ? queueSuccessFactorsAdminTestApplicationTask
+          : isWorkdayAdminTestEnabled() && isWorkdayQueueItem(item)
+            ? queueWorkdayAdminTestApplicationTask
           : getBrowserApplicationQueueTask();
       updateCommercialQueueItemStatus(
         itemIndex,
@@ -93685,8 +96226,17 @@
         });
       }).then(function (data) {
         var taskUuid = cleanMessageText((data && data.task_uuid) || "");
-        if (taskUuid && isWorkableAdminTestEnabled() && isWorkableQueueItem(item)) {
-          window.__sffcWorkableLastTaskUuid = taskUuid;
+	        if (taskUuid && isGreenhouseAdminTestEnabled() && isGreenhouseQueueItem(item)) {
+	          window.__sffcGreenhouseLastTaskUuid = taskUuid;
+	        }
+	        if (taskUuid && isWorkableAdminTestEnabled() && isWorkableQueueItem(item)) {
+	          window.__sffcWorkableLastTaskUuid = taskUuid;
+	        }
+        if (taskUuid && isTeamtailorAdminTestEnabled() && isTeamtailorQueueItem(item)) {
+          window.__sffcTeamtailorLastTaskUuid = taskUuid;
+        }
+        if (taskUuid && isWorkdayAdminTestEnabled() && isWorkdayQueueItem(item)) {
+          window.__sffcWorkdayLastTaskUuid = taskUuid;
         }
         commercialApplyQueueItemsState = commercialApplyQueueItemsState.map(function (candidate, index) {
           if (index !== itemIndex) {
@@ -93715,8 +96265,8 @@
           });
         }
         if (!taskUuid) {
-          if (isWorkableAdminTestEnabled() || isSuccessFactorsAdminTestEnabled()) {
-            workableTestResults.push({
+	          if (isGreenhouseAdminTestEnabled() || isTeamtailorAdminTestEnabled() || isWorkableAdminTestEnabled() || isSuccessFactorsAdminTestEnabled() || isWorkdayAdminTestEnabled() || isSimpleDropAdminTestEnabled()) {
+	            workableTestResults.push({
               item: item,
               data: { status: "failed", last_error: "WordPress did not return a worker task ID." },
             });
@@ -93758,8 +96308,8 @@
               return result;
             });
           }
-          if (isWorkableAdminTestEnabled() || isSuccessFactorsAdminTestEnabled()) {
-            workableTestResults.push({
+	          if (isGreenhouseAdminTestEnabled() || isTeamtailorAdminTestEnabled() || isWorkableAdminTestEnabled() || isSuccessFactorsAdminTestEnabled() || isWorkdayAdminTestEnabled() || isSimpleDropAdminTestEnabled()) {
+	            workableTestResults.push({
               item: item,
               data: result || data || { status: "failed" },
             });
@@ -93837,8 +96387,9 @@
       if (!taskUuid || currentAttempt > 60) {
         updateCommercialQueueItemStatus(
           itemIndex,
-          "Referred",
-          "Emily is reviewing the next role"
+          "Review required",
+          "Emily is reviewing the next role",
+          { status: "failed", last_error: "The worker did not return a final status before the polling window ended." }
         );
         return Promise.resolve({ status: "failed" });
       }
@@ -93853,7 +96404,8 @@
                 updateCommercialQueueItemStatus(
                   itemIndex,
                   "Queued",
-                  "Emily is waiting for the worker"
+                  "Emily is waiting for the worker",
+                  data
                 );
                 pollCommercialApplyQueueWorkerTask(taskUuid, itemIndex, currentAttempt + 1).then(resolve);
                 return;
@@ -93862,7 +96414,8 @@
                 updateCommercialQueueItemStatus(
                   itemIndex,
                   "Running",
-                  "Emily is working through this list"
+                  "Emily is working through this list",
+                  data
                 );
                 pollCommercialApplyQueueWorkerTask(taskUuid, itemIndex, currentAttempt + 1).then(resolve);
                 return;
@@ -93875,7 +96428,8 @@
                 updateCommercialQueueItemStatus(
                   itemIndex,
                   "Needs verification",
-                  "Emily needs the verification code"
+                  "Emily needs the verification code",
+                  data
                 );
                 askCommercialApplyQueueVerificationCode(taskUuid, itemIndex, data).then(resolve);
                 return;
@@ -93886,7 +96440,8 @@
                   terminalStatus,
                   itemIndex + 1 < commercialApplyQueueItemsState.length
                     ? "Emily is reviewing the next role"
-                    : "Emily is finishing the shortlist"
+                    : "Emily is finishing the shortlist",
+                  data
                 );
                 resolve(data || { status: cleanStatus });
                 return;
@@ -93894,7 +96449,8 @@
               updateCommercialQueueItemStatus(
                 itemIndex,
                 "Running",
-                "Emily is working through this list"
+                "Emily is working through this list",
+                data
               );
               pollCommercialApplyQueueWorkerTask(taskUuid, itemIndex, currentAttempt + 1).then(resolve);
             })
@@ -94011,7 +96567,7 @@
                 ? "Emily is reviewing the next role"
                 : "Emily is finishing the shortlist"
             );
-            if (isWorkableAdminTestEnabled() || isSuccessFactorsAdminTestEnabled()) {
+            if (isWorkableAdminTestEnabled() || isGreenhouseAdminTestEnabled() || isTeamtailorAdminTestEnabled() || isSuccessFactorsAdminTestEnabled() || isWorkdayAdminTestEnabled() || isSimpleDropAdminTestEnabled()) {
               workableTestResults.push({
                 item: item,
                 data: {
@@ -94047,6 +96603,16 @@
         return;
       }
       if (
+        isTeamtailorAdminTestEnabled() &&
+        (!currentCvFile ||
+          !cleanMessageText(applyOnboardingFullName || "") ||
+          !cleanMessageText(applyOnboardingPreferredEmail || "") ||
+          !cleanMessageText(workableTestCandidatePhone || ""))
+      ) {
+        ensureTeamtailorTestCandidateDetailsThen(processCommercialApplyQueueShortlist);
+        return;
+      }
+      if (
         isSuccessFactorsAdminTestEnabled() &&
         (!currentCvFile ||
           !cleanMessageText(applyOnboardingFullName || "") ||
@@ -94055,10 +96621,29 @@
         ensureSuccessFactorsTestCandidateDetailsThen(processCommercialApplyQueueShortlist);
         return;
       }
+      if (
+        isWorkdayAdminTestEnabled() &&
+        (!currentCvFile ||
+          !cleanMessageText(applyOnboardingFullName || "") ||
+          !cleanMessageText(applyOnboardingPreferredEmail || ""))
+      ) {
+        ensureWorkdayTestCandidateDetailsThen(processCommercialApplyQueueShortlist);
+        return;
+      }
+      if (
+        isSimpleDropAdminTestEnabled() &&
+        (!currentCvFile ||
+          !cleanMessageText(applyOnboardingFullName || "") ||
+          !cleanMessageText(applyOnboardingPreferredEmail || "") ||
+          !cleanMessageText(workableTestCandidatePhone || ""))
+      ) {
+        ensureSimpleDropTestCandidateDetailsThen(processCommercialApplyQueueShortlist);
+        return;
+      }
       commercialApplyQueueActivated = true;
       commercialApplyQueueDetailsMode = true;
       commercialApplyQueueInitialized = true;
-      if (isWorkableAdminTestEnabled() || isSuccessFactorsAdminTestEnabled()) {
+      if (isWorkableAdminTestEnabled() || isGreenhouseAdminTestEnabled() || isTeamtailorAdminTestEnabled() || isSuccessFactorsAdminTestEnabled() || isSimpleDropAdminTestEnabled()) {
         workableTestResults = [];
       }
       commercialApplyQueueItemsState = items.map(function (item) {
@@ -94123,6 +96708,172 @@
       }
     }
 
+	    function ensureTeamtailorTestCandidateDetailsThen(callback, options) {
+	      var detailOptions = options || {};
+	      var shouldStartImmediately = detailOptions.startImmediately !== false;
+	      if (!isTeamtailorAdminTestEnabled()) {
+	        if (typeof callback === "function") {
+	          callback();
+	        }
+	        return;
+	      }
+	      if (!currentCvFile) {
+	        workableTestAwaitingCv = true;
+	        workableTestPendingDetailsCallback =
+	          typeof callback === "function" ? callback : null;
+	        workableTestPendingDetailsOptions = detailOptions;
+	        botMessage(
+	          shouldStartImmediately
+	            ? "Upload the test CV first, then start the Teamtailor test again."
+	            : "Upload the test CV first. I’ll use it for the Teamtailor submission test.",
+	          humanComposeDelay("Upload the Teamtailor test CV first.", 700, 1400),
+	          function () {
+	            focusComposer("Upload the test CV");
+	            if (uploadButton) {
+	              uploadButton.hidden = false;
+	            }
+	          }
+	        );
+	        return;
+	      }
+	      if (!cleanMessageText(applyOnboardingFullName || "")) {
+	        botMessage(
+	          "Firstly, can I get the candidate full name for this Teamtailor test?",
+	          humanComposeDelay("Need candidate name.", 700, 1400),
+	          function () {
+	            setPromptState(
+	              "teamtailor_test_full_name",
+	              {
+	                other: function (value) {
+	                  applyOnboardingFullName = cleanMessageText(value || "");
+	                  clearPromptState();
+	                  echoPromptChoice(value);
+	                  ensureTeamtailorTestCandidateDetailsThen(callback, detailOptions);
+	                },
+	              },
+	              "Type the candidate full name",
+	              { provider: "teamtailor" }
+	            );
+	            focusComposer("Type the candidate full name");
+	          }
+	        );
+	        return;
+	      }
+	      if (!cleanMessageText(applyOnboardingPreferredEmail || "")) {
+	        botMessage(
+	          "What email should I use for the Teamtailor test application?",
+	          humanComposeDelay("Need candidate email.", 700, 1400),
+	          function () {
+	            setPromptState(
+	              "teamtailor_test_email",
+	              {
+	                other: function (value) {
+	                  var email = extractEmailCandidate(value || "");
+	                  if (!email) {
+	                    botMessage(
+	                      "Send the email address on its own so I can use it for the test.",
+	                      humanComposeDelay("Need a valid email.", 700, 1400),
+	                      function () {
+	                        focusComposer("Type the candidate email");
+	                      }
+	                    );
+	                    return;
+	                  }
+	                  applyOnboardingEmailSuggestion = email;
+	                  clearPromptState();
+	                  echoPromptChoice(value);
+	                  botMessage(
+	                    "Just double-checking - is that " + escapeHtml(email) + "?",
+	                    humanComposeDelay("Confirm email.", 700, 1400),
+	                    function () {
+	                      setPromptState(
+	                        "teamtailor_test_confirm_email",
+	                        {
+	                          yes: function (reply) {
+	                            applyOnboardingPreferredEmail = applyOnboardingEmailSuggestion;
+	                            clearPromptState();
+	                            echoPromptChoice(reply || "yes");
+	                            ensureTeamtailorTestCandidateDetailsThen(callback, detailOptions);
+	                          },
+	                          no: function (reply) {
+	                            applyOnboardingEmailSuggestion = "";
+	                            clearPromptState();
+	                            echoPromptChoice(reply || "no");
+	                            ensureTeamtailorTestCandidateDetailsThen(callback, detailOptions);
+	                          },
+	                          other: function (reply) {
+	                            var replacement = extractEmailCandidate(reply || "");
+	                            if (replacement) {
+	                              applyOnboardingPreferredEmail = replacement;
+	                              clearPromptState();
+	                              echoPromptChoice(reply);
+	                              ensureTeamtailorTestCandidateDetailsThen(callback, detailOptions);
+	                              return;
+	                            }
+	                            focusComposer("Confirm yes, or send the correct email");
+	                          },
+	                        },
+	                        "Confirm the candidate email",
+	                        { provider: "teamtailor" }
+	                      );
+	                      focusComposer("Confirm the candidate email");
+	                    }
+	                  );
+	                },
+	              },
+	              "Type the candidate email",
+	              { provider: "teamtailor" }
+	            );
+	            focusComposer("Type the candidate email");
+	          }
+	        );
+	        return;
+	      }
+	      if (!cleanMessageText(workableTestCandidatePhone || "")) {
+	        botMessage(
+	          "What phone number should I use for the Teamtailor test application?",
+	          humanComposeDelay("Need candidate phone.", 700, 1400),
+	          function () {
+	            setPromptState(
+	              "teamtailor_test_phone",
+	              {
+	                other: function (value) {
+	                  workableTestCandidatePhone = cleanMessageText(value || "");
+	                  clearPromptState();
+	                  echoPromptChoice(value);
+	                  ensureTeamtailorTestCandidateDetailsThen(callback, detailOptions);
+	                },
+	              },
+	              "Type the candidate phone number",
+	              { provider: "teamtailor" }
+	            );
+	            focusComposer("Type the candidate phone number");
+	          }
+	        );
+	        return;
+	      }
+	      botMessage(
+	        shouldStartImmediately
+	          ? "Great. I’ve got the test details and I’m starting the Teamtailor worker run now."
+	          : "Great. I’ve got the CV, name, email and phone. Review the Teamtailor jobs, then start the test.",
+	        humanComposeDelay(
+	          shouldStartImmediately
+	            ? "Starting Teamtailor worker."
+	            : "Teamtailor test details ready.",
+	          700,
+	          1400
+	        ),
+	        function () {
+	          workableTestAwaitingCv = false;
+	          workableTestPendingDetailsCallback = null;
+	          workableTestPendingDetailsOptions = null;
+	          if (typeof callback === "function") {
+	            callback();
+	          }
+	        }
+	      );
+	    }
+
     function showCommercialManualSubmissionDelayAndContinue() {
       continueCommercialQueueAfterManualSubmissionReferral();
     }
@@ -94169,10 +96920,16 @@
     function getCommercialApplyQueueProgress(items, isActive) {
       var queueItems = items || [];
       var completedCount = queueItems.filter(function (item) {
-        return /^(submitted|complete|completed|referred|skipped)$/i.test(cleanMessageText(item.status || ""));
+        var model = getCommercialApplyQueueStatusModel(item);
+        return (
+          model.tone === "success" ||
+          model.tone === "review" ||
+          /^skipped$/i.test(cleanMessageText(item.status || ""))
+        );
       }).length;
       var workingCount = queueItems.filter(function (item) {
-        return /^(preparing|tailoring cv|checking form|reviewing form|queued|running|needs verification|needs salary answer)$/i.test(cleanMessageText(item.status || ""));
+        var model = getCommercialApplyQueueStatusModel(item);
+        return model.tone === "working" || model.tone === "waiting";
       }).length;
       var progress = queueItems.length
         ? Math.max(
@@ -94192,9 +96949,8 @@
         if (item && item.hidden) {
           return false;
         }
-        return /^(ready|preparing|tailoring cv|checking form|reviewing form|queued|running|needs verification|needs salary answer)$/i.test(
-          cleanMessageText(item.status || "")
-        );
+        var model = getCommercialApplyQueueStatusModel(item);
+        return model.tone === "working" || model.tone === "waiting" || model.tone === "blocked";
       });
       return activeItemIndex < 0 ? 0 : activeItemIndex;
     }
@@ -94210,6 +96966,9 @@
       var activeItemIndex = getCommercialApplyQueueActiveIndex(queueItems);
       var currentScrollTop = messages ? messages.scrollTop : 0;
       if (!card) {
+        return false;
+      }
+      if (card.querySelector(".sffc-crm-apply-chat__apply-queue-live-panel")) {
         return false;
       }
       card.classList.toggle("is-active", !!opts.active);
@@ -94252,9 +97011,7 @@
         row.classList.toggle("is-primary", index === activeItemIndex);
         row.classList.toggle(
           "is-working",
-          /^(preparing|tailoring cv|checking form|reviewing form|queued|running)$/i.test(
-            cleanMessageText(item.status || "")
-          )
+          getCommercialApplyQueueStatusModel(item).tone === "working"
         );
         if (statusCell) {
           statusCell.innerHTML = renderCommercialApplyQueueStatus(item.status || "In Queue");
@@ -94465,17 +97222,173 @@
           "</span>"
         );
       }
+      function renderActiveQueueTaskPanel() {
+        var activeItem = items[activeItemIndex] || items[0] || {};
+        var model = getCommercialApplyQueueStatusModel(activeItem);
+        var providerLabel = model.provider
+          ? getAutoSubmitProviderLabel(model.provider) || model.provider
+          : getCommercialApplyQueueItemProvider(activeItem);
+        var doneItems = [];
+        var needsItems = [];
+        var lastError = cleanMessageText(
+          (model && model.workerData && model.workerData.last_error) ||
+            (model &&
+              model.workerData &&
+              model.workerData.result_payload &&
+              model.workerData.result_payload.last_error) ||
+            ""
+        );
+
+        model.milestones.forEach(function (milestone) {
+          if (milestone.state === "done") {
+            doneItems.push(milestone.label + (milestone.detail ? ": " + milestone.detail : ""));
+          }
+        });
+        if (
+          model.provider &&
+          /^(teamtailor|teamtailor_rss)$/i.test(model.provider) &&
+          model.workerData
+        ) {
+          var teamtailorPayload = model.workerData.result_payload && typeof model.workerData.result_payload === "object"
+            ? model.workerData.result_payload
+            : model.workerData;
+          var teamtailorPlan = teamtailorPayload.simple_form_answer_plan && typeof teamtailorPayload.simple_form_answer_plan === "object"
+            ? teamtailorPayload.simple_form_answer_plan
+            : null;
+          var teamtailorGeneratedCount = Number(teamtailorPlan && teamtailorPlan.generated_count || 0) || 0;
+          if (teamtailorGeneratedCount > 0) {
+            doneItems.push("Generated answers: " + String(teamtailorGeneratedCount));
+          }
+          if (teamtailorPayload.survey_decline && teamtailorPayload.survey_decline.clicked) {
+            doneItems.push("Optional survey: Declined");
+          }
+        }
+        if (model.missingFields.length) {
+          needsItems = model.missingFields.slice(0, 4);
+        } else if (model.validationErrors.length) {
+          needsItems = model.validationErrors.slice(0, 4);
+        } else if (
+          model.provider &&
+          /^(teamtailor|teamtailor_rss)$/i.test(model.provider) &&
+          model.workerData
+        ) {
+          var attentionPayload = model.workerData.result_payload && typeof model.workerData.result_payload === "object"
+            ? model.workerData.result_payload
+            : model.workerData;
+          var attentionPlan = attentionPayload.simple_form_answer_plan && typeof attentionPayload.simple_form_answer_plan === "object"
+            ? attentionPayload.simple_form_answer_plan
+            : null;
+          var attentionNeedsHuman = Array.isArray(attentionPlan && attentionPlan.needs_human)
+            ? attentionPlan.needs_human
+            : [];
+          if (attentionNeedsHuman.length && model.tone !== "success") {
+            needsItems = attentionNeedsHuman.slice(0, 3).map(function (item) {
+              return cleanMessageText((item && (item.label || item.reason)) || "Human answer needed");
+            });
+          }
+        } else if (model.tone === "blocked") {
+          needsItems = ["Email verification code"];
+        } else if (model.tone === "review") {
+          needsItems = ["Manual review before final submission"];
+        }
+
+        return (
+          '<div class="sffc-crm-apply-chat__apply-queue-live-panel is-tone-' +
+          escapeHtml(model.tone) +
+          '">' +
+          '<div class="sffc-crm-apply-chat__apply-queue-live-top">' +
+          '<div class="sffc-crm-apply-chat__apply-queue-live-main">' +
+          '<span class="sffc-crm-apply-chat__apply-queue-live-kicker">Current application</span>' +
+          '<strong>' +
+          escapeHtml(activeItem.title || "Selected role") +
+          "</strong>" +
+          '<small>' +
+          escapeHtml(
+            [activeItem.company || "", activeItem.location || "", providerLabel || ""]
+              .filter(Boolean)
+              .join(" · ")
+          ) +
+          "</small>" +
+          "</div>" +
+          '<div class="sffc-crm-apply-chat__apply-queue-live-status">' +
+          renderCommercialApplyQueueStatus(activeItem) +
+          (activeItem.workerLastUpdated
+            ? '<span>Updated just now</span>'
+            : "") +
+          "</div>" +
+          "</div>" +
+          '<p class="sffc-crm-apply-chat__apply-queue-live-summary">' +
+          escapeHtml(model.summary) +
+          "</p>" +
+          '<div class="sffc-crm-apply-chat__apply-queue-milestones">' +
+          model.milestones.map(function (milestone) {
+            return (
+              '<span class="sffc-crm-apply-chat__apply-queue-milestone is-' +
+              escapeHtml(milestone.state || "pending") +
+              '">' +
+              '<i aria-hidden="true"></i>' +
+              '<strong>' +
+              escapeHtml(milestone.label) +
+              "</strong>" +
+              '<small>' +
+              escapeHtml(milestone.detail || "") +
+              "</small>" +
+              "</span>"
+            );
+          }).join("") +
+          "</div>" +
+          '<div class="sffc-crm-apply-chat__apply-queue-evidence">' +
+          '<div class="sffc-crm-apply-chat__apply-queue-evidence-block">' +
+          "<strong>Completed</strong>" +
+          (doneItems.length
+            ? "<ul>" +
+              doneItems.slice(0, 5).map(function (item) {
+                return "<li>" + escapeHtml(item) + "</li>";
+              }).join("") +
+              "</ul>"
+            : "<p>Nothing confirmed yet.</p>") +
+          "</div>" +
+          '<div class="sffc-crm-apply-chat__apply-queue-evidence-block">' +
+          "<strong>Needs attention</strong>" +
+          (needsItems.length
+            ? "<ul>" +
+              needsItems.map(function (item) {
+                return "<li>" + escapeHtml(item) + "</li>";
+              }).join("") +
+              "</ul>"
+            : "<p>No blocker detected.</p>") +
+          "</div>" +
+          "</div>" +
+          (lastError && needsItems.length
+            ? '<p class="sffc-crm-apply-chat__apply-queue-note">' +
+              escapeHtml(lastError) +
+              "</p>"
+            : "") +
+          "</div>"
+        );
+      }
       function renderQueueMaterials(item, itemIndex) {
         var title = cleanMessageText((item && item.title) || "this role");
         var status = cleanMessageText((item && item.status) || "");
         var isTesting =
           /^(checking form|running|queued|retrying|needs answer)$/i.test(status);
-        var disableTestButton = workableTestInFlight || isTesting;
-        if (isWorkableAdminTestEnabled() && itemIndex > -1) {
+        var disableTestButton = workableTestInFlight || workdayTestInFlight || isTesting;
+        if ((isSuccessFactorsAdminTestEnabled() || isWorkdayAdminTestEnabled() || isGreenhouseAdminTestEnabled() || isTeamtailorAdminTestEnabled() || isWorkableAdminTestEnabled() || isSimpleDropAdminTestEnabled()) && itemIndex > -1) {
           return (
             '<button type="button" class="sffc-crm-apply-chat__apply-queue-test' +
             (isTesting ? " is-testing" : "") +
-            '" data-sffc-workable-test-job="' +
+            '" ' +
+            (isSimpleDropAdminTestEnabled()
+              ? 'data-sffc-simpledrop-test-job="'
+              : isSuccessFactorsAdminTestEnabled()
+                ? 'data-sffc-successfactors-test-job="'
+              : isWorkdayAdminTestEnabled()
+                ? 'data-sffc-workday-test-job="'
+              : isGreenhouseAdminTestEnabled()
+                ? 'data-sffc-greenhouse-test-job="'
+	                : isTeamtailorAdminTestEnabled()
+	                  ? 'data-sffc-teamtailor-test-job="'
+	              : 'data-sffc-workable-test-job="') +
             escapeHtml(String(itemIndex)) +
             '"' +
             (disableTestButton ? " disabled" : "") +
@@ -94560,11 +97473,12 @@
         "</div>" +
         "</div>" +
         "</div>" +
+        (opts.active && items.length ? renderActiveQueueTaskPanel() : "") +
         '<div class="sffc-crm-apply-chat__apply-queue-list">' +
         '<div class="sffc-crm-apply-chat__apply-queue-row sffc-crm-apply-chat__apply-queue-row--head">' +
         renderQueueAction(null, false, true) +
         '<span>Role</span><span>Company</span><span>Location</span><span>Status</span><span>' +
-        escapeHtml(isWorkableAdminTestEnabled() ? "Test" : "Tailored Materials") +
+	        escapeHtml(isSuccessFactorsAdminTestEnabled() || isWorkdayAdminTestEnabled() || isGreenhouseAdminTestEnabled() || isTeamtailorAdminTestEnabled() || isWorkableAdminTestEnabled() || isSimpleDropAdminTestEnabled() ? "Test" : "Tailored Materials") +
         "</span>" +
         "</div>" +
         (visibleItems.length
@@ -98182,6 +101096,13 @@
           /^workable$/i.test(cleanMessageText(itemProvider)) ||
           /(?:^|\.)workable\.com/i.test(itemApplicationUrl) ||
           /(?:^|\.)workable\.com/i.test(itemWorkspaceUrl);
+        var teamtailorDetected =
+          /^(teamtailor|teamtailor_rss)$/i.test(cleanMessageText(itemProvider)) ||
+          isTeamtailorApplicationUrl(itemApplicationUrl) ||
+          isTeamtailorApplicationUrl(itemWorkspaceUrl);
+        var simpleFormDetected =
+          !teamtailorDetected &&
+          isSimpleFormApplicationWorkerUrl(itemWorkspaceUrl || itemApplicationUrl, itemProvider);
         var resolvedApplicationAnswers = applicationAnswerDraft || {};
         var successFactorsProfilePayload = successFactorsDetected
           ? getSuccessFactorsProfilePayload()
@@ -98198,6 +101119,14 @@
             applicationAnswerDraft || {}
           );
         }
+        if (teamtailorDetected && isTeamtailorAdminTestEnabled()) {
+          itemProvider = "teamtailor";
+          resolvedApplicationAnswers = Object.assign(
+            {},
+            getWorkableTestApplicationAnswers(item),
+            applicationAnswerDraft || {}
+          );
+        }
         if (workdayDetected && !cleanMessageText(itemProvider || "")) {
           itemProvider = "workday";
         }
@@ -98206,6 +101135,12 @@
         }
         if (workableDetected && !cleanMessageText(itemProvider || "")) {
           itemProvider = "workable";
+        }
+        if (teamtailorDetected && !cleanMessageText(itemProvider || "")) {
+          itemProvider = "teamtailor";
+        }
+        if (simpleFormDetected && !cleanMessageText(itemProvider || "")) {
+          itemProvider = "simple_form";
         }
         formData.append("action", "sffc_crm_apply_chat_queue_application_task");
         formData.append(
@@ -98265,7 +101200,8 @@
               sign_in: workdayUsesExistingAccount,
               email: cleanMessageText(applyOnboardingPreferredEmail || ""),
               password: cleanMessageText(workdayAccountPassword || ""),
-              allow_generated_password: !workdayUsesExistingAccount
+              allow_generated_password: !workdayUsesExistingAccount,
+              email_generated_password_to_user: !workdayUsesExistingAccount
             })
           );
         }
@@ -98387,6 +101323,13 @@
         var provider = cleanMessageText((account && account.provider) || "");
         var email = cleanMessageText((account && account.email) || "");
         var password = cleanMessageText((account && account.password) || "");
+        var taskProvider = cleanMessageText((data && data.provider) || "");
+        var workdayEmailStatus = cleanMessageText(
+          (data && data.workday_account_credentials_email_status) || ""
+        );
+        if (taskProvider === "workday" && workdayEmailStatus === "sent") {
+          return " Workday login details have been emailed to your Senna account email.";
+        }
         if (!password || provider !== "successfactors") {
           return "";
         }
@@ -98409,11 +101352,11 @@
               if (status === "queued" || status === "processing") {
                 if (commercialApplyQueueDetailsMode) {
                   commercialApplyQueueActivated = true;
-                  setCommercialApplyQueueStatuses(
-                    commercialApplyQueueItemsState.map(function (item, index) {
-                      return index === 0 ? "Preparing" : "In Queue";
-                    }),
-                    { queuedLabel: "In Queue" }
+                  updateCommercialQueueItemStatus(
+                    0,
+                    status === "queued" ? "Queued" : "Running",
+                    status === "queued" ? "Emily is waiting for the worker" : "Emily is working through this application",
+                    data
                   );
                 }
                 pollBrowserApplicationTask(taskUuid, currentAttempt + 1);
@@ -98421,11 +101364,11 @@
               }
               if (status === "submitted") {
                 if (commercialApplyQueueDetailsMode) {
-                  setCommercialApplyQueueStatuses(
-                    commercialApplyQueueItemsState.map(function (item, index) {
-                      return index === 0 ? "Submitted" : "In Queue";
-                    }),
-                    { queuedLabel: "In Queue" }
+                  updateCommercialQueueItemStatus(
+                    0,
+                    "Submitted",
+                    "Emily is finishing the shortlist",
+                    data
                   );
                 }
                 var submittedAccountMessage = getBrowserApplicationGeneratedAccountMessage(data);
@@ -98443,11 +101386,11 @@
               }
               if (status === "dry_run_ready") {
                 if (commercialApplyQueueDetailsMode) {
-                  setCommercialApplyQueueStatuses(
-                    commercialApplyQueueItemsState.map(function (item, index) {
-                      return index === 0 ? "Reviewing form" : "In Queue";
-                    }),
-                    { queuedLabel: "In Queue" }
+                  updateCommercialQueueItemStatus(
+                    0,
+                    "Ready to submit",
+                    "Emily checked the employer form",
+                    data
                   );
                 }
                 var dryRunAccountMessage = getBrowserApplicationGeneratedAccountMessage(data);
@@ -98463,11 +101406,11 @@
               }
               if (status === "verification_required") {
                 if (commercialApplyQueueDetailsMode) {
-                  setCommercialApplyQueueStatuses(
-                    commercialApplyQueueItemsState.map(function (item, index) {
-                      return index === 0 ? "Needs verification" : "In Queue";
-                    }),
-                    { queuedLabel: "In Queue" }
+                  updateCommercialQueueItemStatus(
+                    0,
+                    "Needs verification",
+                    "Emily needs the verification code",
+                    data
                   );
                 }
                 var verificationProvider = cleanMessageText((data && data.provider) || "");
@@ -98554,11 +101497,11 @@
               }
               if (status === "review_required") {
                 if (commercialApplyQueueDetailsMode) {
-                  setCommercialApplyQueueStatuses(
-                    commercialApplyQueueItemsState.map(function (item, index) {
-                      return index === 0 ? "Referred" : "In Queue";
-                    }),
-                    { queuedLabel: "In Queue" }
+                  updateCommercialQueueItemStatus(
+                    0,
+                    "Review required",
+                    "Emily needs a manual review",
+                    data
                   );
                 }
                 if (commercialApplyQueueDetailsMode) {
@@ -98591,11 +101534,11 @@
               }
               if (status === "failed") {
                 if (commercialApplyQueueDetailsMode) {
-                  setCommercialApplyQueueStatuses(
-                    commercialApplyQueueItemsState.map(function (item, index) {
-                      return index === 0 ? "Referred" : "In Queue";
-                    }),
-                    { queuedLabel: "In Queue" }
+                  updateCommercialQueueItemStatus(
+                    0,
+                    "Referred",
+                    "Emily is reviewing the next role",
+                    data
                   );
                 }
                 var errorMessage = cleanMessageText((data && data.last_error) || "");
@@ -98780,13 +101723,234 @@
         return cleanAnswer;
       }
 
+      function getGreenhouseProfilePreferenceValue(names) {
+        var profile = loggedInProfilePreferences || {};
+        for (var index = 0; index < names.length; index += 1) {
+          var value = profile[names[index]];
+          if (Array.isArray(value)) {
+            value = value[0] || "";
+          }
+          value = cleanMessageText(value || "");
+          if (value) {
+            return value;
+          }
+        }
+        return "";
+      }
+
+      function inferGreenhouseDefaultSalary() {
+        var explicit = getGreenhouseProfilePreferenceValue(["desiredSalary"]);
+        var haystack = cleanMessageText(
+          [
+            explicit,
+            roleTitle,
+            roleCompany,
+            root.getAttribute("data-role-location") || "",
+            (conversationFacts.targetLocations || []).join(" "),
+            ((loggedInProfilePreferences || {}).targetLocations || []).join(" ")
+          ].join(" ")
+        ).toLowerCase();
+        if (explicit) {
+          return explicit;
+        }
+        if (/\b(?:usd|united states|usa|new york|san francisco|dollar|\$)\b/.test(haystack)) {
+          return "USD 6000 monthly";
+        }
+        if (/\b(?:gbp|united kingdom|uk|london|pound|£)\b/.test(haystack)) {
+          return "GBP 45000";
+        }
+        if (/\b(?:sar|saudi|riyadh|jeddah|ksa)\b/.test(haystack)) {
+          return "SAR 18000 monthly";
+        }
+        return "AED 18000 monthly";
+      }
+
+      function inferGreenhouseLanguageCount() {
+        var profileLanguages = (loggedInProfilePreferences || {}).languages || [];
+        var cvText = cleanMessageText(capturedCvText || "");
+        var languageNames = [
+          "arabic",
+          "english",
+          "french",
+          "spanish",
+          "german",
+          "italian",
+          "hindi",
+          "urdu",
+          "mandarin",
+          "chinese",
+          "portuguese",
+          "russian",
+          "turkish"
+        ];
+        var seen = {};
+        languageNames.forEach(function (language) {
+          if (new RegExp("\\b" + language + "\\b", "i").test(cvText)) {
+            seen[language] = true;
+          }
+        });
+        if (Object.keys(seen).length > 0) {
+          return String(Object.keys(seen).length);
+        }
+        if (profileLanguages.length) {
+          return cleanMessageText(profileLanguages[0] || "");
+        }
+        return "2";
+      }
+
+      function greenhouseQuestionRequiresHumanDocument(question) {
+        var label = cleanGreenhouseAnswerText((question && question.label) || "");
+        var fieldName = cleanMessageText(getGreenhouseQuestionFieldName(question) || "");
+        var field = getGreenhouseQuestionField(question);
+        var fieldType = cleanMessageText((field && field.type) || "");
+        var haystack = label + " " + fieldName + " " + fieldType;
+        if (/\b(?:resume|curriculum|cv)\b|cover[_\s-]*letter/i.test(haystack)) {
+          return false;
+        }
+        return /transcript|certificate|certification|license|licence|portfolio|writing sample|upload|attachment|document/i.test(
+          haystack
+        );
+      }
+
+      function inferGreenhouseCvGpa() {
+        var match = cleanMessageText(capturedCvText || "").match(
+          /\b(?:gpa|grade point average)\s*[:\-]?\s*([0-4](?:\.\d{1,2})?)(?:\s*\/\s*4(?:\.0)?)?/i
+        );
+        return match && match[1] ? match[1] : "";
+      }
+
+      function greenhouseQuestionCanBeResolvedByWorker(question) {
+        var label = cleanGreenhouseAnswerText((question && question.label) || "");
+        var choices = getApplicationQuestionChoices(question);
+        var haystack = (label + " " + getGreenhouseQuestionFieldName(question) + " " + choices.join(" ")).toLowerCase();
+        if (greenhouseQuestionRequiresHumanDocument(question)) {
+          return false;
+        }
+        if (getGreenhouseDefaultAnswerForQuestion(question)) {
+          return true;
+        }
+        if (/\bgpa\b|grade point average/.test(haystack)) {
+          return !!inferGreenhouseCvGpa();
+        }
+        if (/transcript|certificate|certification|license|licence|upload|attachment|document/.test(haystack)) {
+          return false;
+        }
+        return /why are you interested|what.*inspired|describe a situation|what.*ambition mean|how would you contribute|ai-assisted|ai tool|security control|approach securing|track record|shown initiative|shown commercial acumen|complex data problem|long-term career|excites you|curious|industry.*currently|current industry|current company|current position|location preference|office location/i.test(label);
+      }
+
+      function greenhouseChoiceOrText(value, choices, patterns) {
+        var cleanValue = cleanMessageText(value || "");
+        var selected;
+        if (!choices || !choices.length) {
+          return cleanValue;
+        }
+        selected = choices.find(function (choice) {
+          return (patterns || []).some(function (pattern) {
+            return pattern.test(cleanMessageText(choice || ""));
+          });
+        });
+        return selected || normalizeApplicationChoiceAnswer(cleanValue, choices);
+      }
+
+      function getGreenhouseDefaultAnswerForQuestion(question) {
+        var label = cleanGreenhouseAnswerText((question && question.label) || "");
+        var fieldName = cleanMessageText(getGreenhouseQuestionFieldName(question) || "");
+        var choices = getApplicationQuestionChoices(question);
+        var haystack = (label + " " + fieldName + " " + choices.join(" ")).toLowerCase();
+        var visaProfile = getGreenhouseProfilePreferenceValue(["visaSponsorship"]);
+        var noticeProfile = getGreenhouseProfilePreferenceValue(["noticePeriod"]);
+        var needsVisa = /yes|need|require|sponsor/i.test(visaProfile);
+
+        if (/salary|compensation|base pay|pay expectation|expected pay/.test(haystack)) {
+          return greenhouseChoiceOrText(inferGreenhouseDefaultSalary(), choices, [/aed.*18|sar.*18|usd.*6|gbp.*45/i]);
+        }
+        if (/notice period|available to start|start date|earliest start/.test(haystack)) {
+          return greenhouseChoiceOrText(noticeProfile || "1 month", choices, [/1\s*month|one\s*month|30\s*days/i]);
+        }
+        if (/privacy|privacy notice|privacy polic|consent|acknowledge|declaration|accurate|true|terms|data use|data processing|gdpr|confirm|certify|understand/.test(haystack)) {
+          return greenhouseChoiceOrText("Yes", choices, [/^yes$/i, /agree|accept|confirm|acknowledge/i]);
+        }
+        if (/gender|sex\b|ethnic|ethnicity|race|diversity|demographic/.test(haystack)) {
+          return greenhouseChoiceOrText("Prefer not to answer", choices, [/prefer.*not|decline|undisclosed|not.*say|not.*answer/i]);
+        }
+        if (/lgbtq|lgbt|disability|disabled|veteran|parent|care.?taker|caretaker/.test(haystack)) {
+          return greenhouseChoiceOrText("No", choices, [/^no$/i, /not applicable|none/i]);
+        }
+        if (/language|fluen/.test(haystack)) {
+          return greenhouseChoiceOrText(inferGreenhouseLanguageCount(), choices, [/\b2\b|2-4|two/i, /^1\b/i, /^3\b/i, /^4\b/i]);
+        }
+        if (/local to|currently located|commut/.test(haystack)) {
+          return greenhouseChoiceOrText("Yes", choices, [/^yes$/i]);
+        }
+        if (/right to work|legal(?:ly)? authorized to work|authori[sz]ed to work|eligible to work|legal right to work|valid right to work|work lawfully/.test(haystack)) {
+          return greenhouseChoiceOrText("Yes", choices, [/^yes$/i]);
+        }
+        if (/visa|sponsor|sponsorship|work authori/.test(haystack)) {
+          return greenhouseChoiceOrText(needsVisa ? "Yes" : "No", choices, needsVisa ? [/^yes$/i] : [/^no$/i]);
+        }
+        if (/highest.*education|education.*level|degree|qualification/.test(haystack)) {
+          return greenhouseChoiceOrText("Degree level", choices, [/degree|bachelor/i]);
+        }
+        if (/4[\s-]*day.*office|office.*4[\s-]*day|four\s+days.*office/.test(haystack)) {
+          return greenhouseChoiceOrText("Yes", choices, [/^yes$/i]);
+        }
+        if (/days.*office|office.*days|work from the office|hybrid/.test(haystack)) {
+          return greenhouseChoiceOrText("5", choices, [/^5\b|five/i]);
+        }
+        if (/how did you hear|how did you learn|where did you hear|source|referred/.test(haystack)) {
+          return greenhouseChoiceOrText("LinkedIn", choices, [/linkedin/i, /job board/i, /other/i]);
+        }
+        if (/previously worked|previously applied|former employee|current or former employee|retained as a consultant|interviewed.*last\s+12|outstanding offers|relatives|family|relationship|outside business|non.?compete|non.?solicitation|military|served in the military/.test(haystack)) {
+          return greenhouseChoiceOrText("No", choices, [/^no$/i]);
+        }
+        if (/at least 18|18 years old/.test(haystack)) {
+          return greenhouseChoiceOrText("Yes", choices, [/^yes$/i]);
+        }
+        if (/willing to relocate|able to work in the specified job location/.test(haystack)) {
+          return greenhouseChoiceOrText("Yes", choices, [/^yes$/i]);
+        }
+        if (/when are you able to start|earliest possible start/.test(haystack)) {
+          return greenhouseChoiceOrText(noticeProfile || "1 month", choices, [/1\s*month|one\s*month|30\s*days/i]);
+        }
+        return "";
+      }
+
+      function applyGreenhouseDefaultAnswers(schema) {
+        getApplicationWorkspaceQuestions(schema).forEach(function (question) {
+          var key = getApplicationQuestionKey(question);
+          var choices = getApplicationQuestionChoices(question);
+          var answer;
+          if (!question || !question.required || !key || isGreenhouseCoveredQuestion(question)) {
+            return;
+          }
+          if (cleanMessageText(applicationAnswerDraft[key] || "")) {
+            return;
+          }
+          answer = normalizeApplicationChoiceAnswer(
+            getGreenhouseDefaultAnswerForQuestion(question),
+            choices
+          );
+          if (
+            answer &&
+            (!choices.length ||
+              choices.some(function (choice) {
+                return cleanMessageText(choice).toLowerCase() === answer.toLowerCase();
+              }))
+          ) {
+            applicationAnswerDraft[key] = answer;
+          }
+        });
+      }
+
       function getApplicationUnansweredRequiredQuestions(schema) {
+        applyGreenhouseDefaultAnswers(schema);
         return getApplicationWorkspaceQuestions(schema).filter(function (question) {
           var key = getApplicationQuestionKey(question);
           return (
             question &&
             question.required &&
             !isGreenhouseCoveredQuestion(question) &&
+            !greenhouseQuestionCanBeResolvedByWorker(question) &&
             key &&
             !cleanMessageText(applicationAnswerDraft[key] || "")
           );
@@ -103861,9 +107025,16 @@
       jobSearchCvEnrichmentReady = false;
       followUpState = getEmptyFollowUpState();
       currentUploadToken += 1;
-      resetApplyIntroState();
-      workableTestMode = false;
-      successFactorsTestMode = false;
+	      resetApplyIntroState();
+	      workableTestMode = false;
+	      greenhouseTestMode = false;
+	      teamtailorTestMode = false;
+	      successFactorsTestMode = false;
+      workdayTestMode = false;
+      workdayTestAwaitingCv = false;
+      workdayTestPendingDetailsCallback = null;
+      workdayTestPendingDetailsOptions = null;
+      workdayTestInFlight = false;
       workableTestAwaitingCv = false;
       workableTestPendingDetailsCallback = null;
       workableTestPendingDetailsOptions = null;
@@ -103988,8 +107159,22 @@
           capturedCvText = cleanMessageText(text || "");
         },
         setCurrentCvFileForTest: function (name) {
+          var fileName = cleanMessageText(name || "test-cv.pdf");
+          if (typeof File !== "undefined") {
+            currentCvFile = new File(["test cv"], fileName, {
+              type: "application/pdf",
+            });
+            return;
+          }
+          if (typeof Blob !== "undefined") {
+            currentCvFile = new Blob(["test cv"], {
+              type: "application/pdf",
+            });
+            currentCvFile.name = fileName;
+            return;
+          }
           currentCvFile = {
-            name: cleanMessageText(name || "test-cv.pdf"),
+            name: fileName,
             size: 1024,
             type: "application/pdf",
           };
@@ -104192,9 +107377,20 @@
           workdayAccountPassword = "";
           successFactorsAccountPreference = "";
           successFactorsAccountPassword = "";
-          successFactorsProfileDraft = {};
-          workableTestMode = false;
-          successFactorsTestMode = false;
+	          successFactorsProfileDraft = {};
+	          workableTestMode = false;
+	          greenhouseTestMode = false;
+	          teamtailorTestMode = false;
+	          successFactorsTestMode = false;
+          workdayTestMode = false;
+          simpleDropTestMode = false;
+          workdayTestAwaitingCv = false;
+          workdayTestPendingDetailsCallback = null;
+          workdayTestPendingDetailsOptions = null;
+          workdayTestInFlight = false;
+          simpleDropTestAwaitingCv = false;
+          simpleDropTestPendingDetailsCallback = null;
+          simpleDropTestPendingDetailsOptions = null;
           workableTestAwaitingCv = false;
           workableTestPendingDetailsCallback = null;
           workableTestPendingDetailsOptions = null;
@@ -104225,10 +107421,55 @@
         isSuccessFactorsAdminTestEnabled: function () {
           return isSuccessFactorsAdminTestEnabled();
         },
-        startWorkableAdminTestFlow: function () {
-          return startWorkableAdminTestFlow();
+        startWorkdayAdminTestFlow: function () {
+          return startWorkdayAdminTestFlow();
         },
-        continueWorkableAdminTestAfterCvForTest: function () {
+        continueWorkdayAdminTestAfterCvForTest: function () {
+          var callback = workdayTestPendingDetailsCallback || showWorkdayTestJobPicker;
+          var options = workdayTestPendingDetailsOptions || { setupOnly: true };
+          workdayTestAwaitingCv = false;
+          workdayTestPendingDetailsCallback = null;
+          workdayTestPendingDetailsOptions = null;
+          ensureWorkdayTestCandidateDetailsThen(callback, options);
+          return true;
+        },
+        isWorkdayAdminTestEnabled: function () {
+          return isWorkdayAdminTestEnabled();
+        },
+	        startWorkableAdminTestFlow: function () {
+	          return startWorkableAdminTestFlow();
+	        },
+	        startGreenhouseAdminTestFlow: function () {
+	          return startGreenhouseAdminTestFlow();
+	        },
+	        continueGreenhouseAdminTestAfterCvForTest: function () {
+	          var callback = workableTestPendingDetailsCallback || showGreenhouseAdminTestReadyCard;
+	          var options = workableTestPendingDetailsOptions || { startImmediately: false };
+	          workableTestAwaitingCv = false;
+	          workableTestPendingDetailsCallback = null;
+	          workableTestPendingDetailsOptions = null;
+	          ensureGreenhouseTestCandidateDetailsThen(callback, options);
+	          return true;
+	        },
+	        isGreenhouseAdminTestEnabled: function () {
+	          return isGreenhouseAdminTestEnabled();
+	        },
+	        startTeamtailorAdminTestFlow: function () {
+	          return startTeamtailorAdminTestFlow();
+	        },
+	        continueTeamtailorAdminTestAfterCvForTest: function () {
+	          var callback = workableTestPendingDetailsCallback || showTeamtailorAdminTestReadyCard;
+	          var options = workableTestPendingDetailsOptions || { startImmediately: false };
+	          workableTestAwaitingCv = false;
+	          workableTestPendingDetailsCallback = null;
+	          workableTestPendingDetailsOptions = null;
+	          ensureTeamtailorTestCandidateDetailsThen(callback, options);
+	          return true;
+	        },
+	        isTeamtailorAdminTestEnabled: function () {
+	          return isTeamtailorAdminTestEnabled();
+	        },
+	        continueWorkableAdminTestAfterCvForTest: function () {
           var callback = workableTestPendingDetailsCallback || showWorkableAdminTestReadyCard;
           var options = workableTestPendingDetailsOptions || { startImmediately: false };
           workableTestAwaitingCv = false;
@@ -104239,6 +107480,12 @@
         },
         isWorkableAdminTestEnabled: function () {
           return isWorkableAdminTestEnabled();
+        },
+        startSimpleDropAdminTestFlow: function () {
+          return startSimpleDropAdminTestFlow();
+        },
+        isSimpleDropAdminTestEnabled: function () {
+          return isSimpleDropAdminTestEnabled();
         },
       };
     }
@@ -104867,9 +108114,21 @@
       var successFactorsTestJob = event.target.closest(
         "[data-sffc-successfactors-test-job]"
       );
-      var workableTestJob = event.target.closest(
-        "[data-sffc-workable-test-job]"
+      var workdayTestJob = event.target.closest(
+        "[data-sffc-workday-test-job]"
       );
+	      var simpleDropTestJob = event.target.closest(
+	        "[data-sffc-simpledrop-test-job]"
+	      );
+	      var greenhouseTestJob = event.target.closest(
+	        "[data-sffc-greenhouse-test-job]"
+	      );
+	      var teamtailorTestJob = event.target.closest(
+	        "[data-sffc-teamtailor-test-job]"
+	      );
+	      var workableTestJob = event.target.closest(
+	        "[data-sffc-workable-test-job]"
+	      );
       if (earlyUploadCvCta) {
         event.preventDefault();
         if (fileInput) {
@@ -105002,7 +108261,21 @@
           return;
         }
         clearPromptState();
-        userMessage(isWorkableAdminTestEnabled() ? "Start Workable Test" : "Start Auto Apply");
+	        userMessage(
+	          isGreenhouseAdminTestEnabled()
+	            ? "Start Greenhouse Test"
+	            : isTeamtailorAdminTestEnabled()
+	              ? "Start Teamtailor Test"
+	            : isWorkdayAdminTestEnabled()
+	            ? "Start Workday Test"
+            : isSuccessFactorsAdminTestEnabled()
+              ? "Start SuccessFactors Test"
+              : isSimpleDropAdminTestEnabled()
+                ? "Start SimpleDrop Test"
+                : isWorkableAdminTestEnabled()
+                  ? "Start Workable Test"
+                  : "Start Auto Apply"
+        );
         commercialApplyQueueItemsState = startQueueItems;
         rememberCommercialApplyQueueCatalogItems(startQueueItems);
         processCommercialApplyQueueShortlist();
@@ -105053,7 +108326,39 @@
         );
         return;
       }
-      if (workableTestJob) {
+      if (workdayTestJob) {
+        event.preventDefault();
+        runWorkdaySingleJobTest(
+          workdayTestJob.getAttribute("data-sffc-workday-test-job"),
+          workdayTestJob
+        );
+        return;
+      }
+	      if (simpleDropTestJob) {
+	        event.preventDefault();
+	        runSimpleDropSingleJobTest(
+	          simpleDropTestJob.getAttribute("data-sffc-simpledrop-test-job"),
+	          simpleDropTestJob
+	        );
+	        return;
+	      }
+	      if (greenhouseTestJob) {
+	        event.preventDefault();
+	        runGreenhouseSingleJobTest(
+	          greenhouseTestJob.getAttribute("data-sffc-greenhouse-test-job"),
+	          greenhouseTestJob
+	        );
+	        return;
+	      }
+	      if (teamtailorTestJob) {
+	        event.preventDefault();
+	        runTeamtailorSingleJobTest(
+	          teamtailorTestJob.getAttribute("data-sffc-teamtailor-test-job"),
+	          teamtailorTestJob
+	        );
+	        return;
+	      }
+	      if (workableTestJob) {
         event.preventDefault();
         runWorkableSingleJobTest(
           workableTestJob.getAttribute("data-sffc-workable-test-job"),
@@ -105216,6 +108521,14 @@
         var ensureApplicationAnswers =
           root.__sffcEnsureApplicationWorkerAnswersThenQueue ||
           window.__sffcEnsureApplicationWorkerAnswersThenQueue;
+        var activeQueueItems = commercialApplyQueueItemsState.length
+          ? commercialApplyQueueItemsState
+          : ensureCommercialApplyQueueFromLoadedJobs();
+        var activeQueueIndex = getCommercialApplyQueueActiveIndex(activeQueueItems);
+        var activeQueueItem =
+          activeQueueItems[activeQueueIndex] ||
+          activeQueueItems[0] ||
+          getCommercialApplyQueueMainItem();
         if (typeof queueApplicationTask !== "function") {
           botMessage(
             "I could not start the application worker from this chat session. Refresh the page and try again.",
@@ -105243,9 +108556,10 @@
               return;
             }
             ensureApplicationAnswers(function () {
-              ensureWorkdayAccountChoiceThenQueue({}, function () {
-                ensureSuccessFactorsAccountChoiceThenQueue({}, function () {
-                  queueApplicationTask()
+              ensureWorkdayAccountChoiceThenQueue(activeQueueItem, function () {
+                ensureSuccessFactorsProfileThenQueue(activeQueueItem, function () {
+                  ensureSuccessFactorsAccountChoiceThenQueue(activeQueueItem, function () {
+                    queueApplicationTask(activeQueueItem)
                     .then(function (data) {
                       var taskId = cleanMessageText((data && data.task_uuid) || "");
                       var reply = taskId
@@ -105275,6 +108589,7 @@
                         }
                       );
                     });
+                  });
                 });
               });
             });
@@ -105506,7 +108821,21 @@
           return;
         }
         clearPromptState();
-        userMessage(isWorkableAdminTestEnabled() ? "Start Workable Test" : "Start Auto Apply");
+        userMessage(
+          isGreenhouseAdminTestEnabled()
+            ? "Start Greenhouse Test"
+            : isTeamtailorAdminTestEnabled()
+              ? "Start Teamtailor Test"
+            : isWorkdayAdminTestEnabled()
+            ? "Start Workday Test"
+            : isSuccessFactorsAdminTestEnabled()
+              ? "Start SuccessFactors Test"
+              : isSimpleDropAdminTestEnabled()
+                ? "Start SimpleDrop Test"
+                : isWorkableAdminTestEnabled()
+                  ? "Start Workable Test"
+                  : "Start Auto Apply"
+        );
         commercialApplyQueueItemsState = selectedQueueItems;
         rememberCommercialApplyQueueCatalogItems(selectedQueueItems);
         processCommercialApplyQueueShortlist();
@@ -105862,6 +109191,37 @@
           });
         return;
       }
+      if (isWorkdayAdminTestEnabled()) {
+        uploadButton.hidden = true;
+        input.disabled = false;
+        parseCvFile(file)
+          .then(function (text) {
+            if (uploadToken !== currentUploadToken || currentCvFile !== file) {
+              return;
+            }
+            capturedCvText = cleanMessageText(text || "");
+            syncCvMatchesWorkspaceState();
+          })
+          .catch(function () {})
+          .then(function () {
+            if (uploadToken !== currentUploadToken || currentCvFile !== file) {
+              return;
+            }
+            workdayTestAwaitingCv = false;
+            workdayTestPendingDetailsCallback = null;
+            workdayTestPendingDetailsOptions = null;
+            botMessage(
+              "Okay, I have the Workday test CV now.",
+              humanComposeDelay("CV captured for Workday test.", 700, 1400),
+              function () {
+                ensureWorkdayTestCandidateDetailsThen(function () {
+                  loadWorkdayTestJobsThen(showWorkdayTestJobPicker);
+                }, { setupOnly: true });
+              }
+            );
+          });
+        return;
+      }
       saveLoggedInResumeUpload(file);
       uploadButton.hidden = true;
       input.disabled = true;
@@ -105905,9 +109265,9 @@
         ],
       });
 
-      if (workableTestAwaitingCv && isWorkableAdminTestEnabled()) {
-        var workableCvCallback = workableTestPendingDetailsCallback;
-        var workableCvOptions = workableTestPendingDetailsOptions || {
+	      if (workableTestAwaitingCv && isWorkableAdminTestEnabled()) {
+	        var workableCvCallback = workableTestPendingDetailsCallback;
+	        var workableCvOptions = workableTestPendingDetailsOptions || {
           startImmediately: false,
         };
         workableTestAwaitingCv = false;
@@ -105923,6 +109283,102 @@
             ensureWorkableTestCandidateDetailsThen(
               workableCvCallback,
               workableCvOptions
+            );
+          }
+        );
+	        return;
+	      }
+
+	      if (workableTestAwaitingCv && isGreenhouseAdminTestEnabled()) {
+	        var greenhouseCvCallback = workableTestPendingDetailsCallback;
+	        var greenhouseCvOptions = workableTestPendingDetailsOptions || {
+	          startImmediately: false,
+	        };
+	        workableTestAwaitingCv = false;
+	        workableTestPendingDetailsCallback = null;
+	        workableTestPendingDetailsOptions = null;
+	        commercialApplyQueueInitialized = true;
+	        commercialApplyQueueDetailsMode = true;
+	        input.disabled = false;
+	        botMessage(
+	          "Okay, I have the Greenhouse test CV now.",
+	          humanComposeDelay("Greenhouse test CV uploaded.", 700, 1400),
+	          function () {
+	            ensureGreenhouseTestCandidateDetailsThen(
+	              greenhouseCvCallback,
+	              greenhouseCvOptions
+	            );
+	          }
+	        );
+	        return;
+	      }
+
+	      if (workableTestAwaitingCv && isTeamtailorAdminTestEnabled()) {
+	        var teamtailorCvCallback = workableTestPendingDetailsCallback;
+	        var teamtailorCvOptions = workableTestPendingDetailsOptions || {
+	          startImmediately: false,
+	        };
+	        workableTestAwaitingCv = false;
+	        workableTestPendingDetailsCallback = null;
+	        workableTestPendingDetailsOptions = null;
+	        commercialApplyQueueInitialized = true;
+	        commercialApplyQueueDetailsMode = true;
+	        input.disabled = false;
+	        botMessage(
+	          "Okay, I have the Teamtailor test CV now.",
+	          humanComposeDelay("Teamtailor test CV uploaded.", 700, 1400),
+	          function () {
+	            ensureTeamtailorTestCandidateDetailsThen(
+	              teamtailorCvCallback,
+	              teamtailorCvOptions
+	            );
+	          }
+	        );
+	        return;
+	      }
+
+	      if (simpleDropTestAwaitingCv && isSimpleDropAdminTestEnabled()) {
+        var simpleDropCvCallback = simpleDropTestPendingDetailsCallback;
+        var simpleDropCvOptions = simpleDropTestPendingDetailsOptions || {
+          startImmediately: false,
+        };
+        simpleDropTestAwaitingCv = false;
+        simpleDropTestPendingDetailsCallback = null;
+        simpleDropTestPendingDetailsOptions = null;
+        commercialApplyQueueInitialized = true;
+        commercialApplyQueueDetailsMode = true;
+        input.disabled = false;
+        botMessage(
+          "Okay, I have the SimpleDrop test CV now.",
+          humanComposeDelay("SimpleDrop test CV uploaded.", 700, 1400),
+          function () {
+            ensureSimpleDropTestCandidateDetailsThen(
+              simpleDropCvCallback,
+              simpleDropCvOptions
+            );
+          }
+        );
+        return;
+      }
+
+      if (workdayTestAwaitingCv && isWorkdayAdminTestEnabled()) {
+        var workdayCvCallback = workdayTestPendingDetailsCallback;
+        var workdayCvOptions = workdayTestPendingDetailsOptions || {
+          setupOnly: true,
+        };
+        workdayTestAwaitingCv = false;
+        workdayTestPendingDetailsCallback = null;
+        workdayTestPendingDetailsOptions = null;
+        commercialApplyQueueInitialized = true;
+        commercialApplyQueueDetailsMode = false;
+        input.disabled = false;
+        botMessage(
+          "Okay, I have the Workday test CV now.",
+          humanComposeDelay("Workday test CV uploaded.", 700, 1400),
+          function () {
+            ensureWorkdayTestCandidateDetailsThen(
+              workdayCvCallback,
+              workdayCvOptions
             );
           }
         );
@@ -106539,9 +109995,24 @@
         mergeConversationFacts(value);
         armResponseWatchdog(promptState, step);
 
-        if (/^test\s+workable$/i.test(cleanMessageText(value || ""))) {
+        if (/^test\s+simpledrop$/i.test(cleanMessageText(value || ""))) {
           clearResponseWatchdog();
-          if (startWorkableAdminTestFlow()) {
+          if (startSimpleDropAdminTestFlow()) {
+            return;
+          }
+          botMessage(
+            "That SimpleDrop test command is only available to admins.",
+            humanComposeDelay("Admin-only test command.", 700, 1400),
+            function () {
+              focusComposer(getComposerPlaceholder("reply"));
+            }
+          );
+          return;
+        }
+
+	        if (/^test\s+workable$/i.test(cleanMessageText(value || ""))) {
+	          clearResponseWatchdog();
+	          if (startWorkableAdminTestFlow()) {
             return;
           }
           botMessage(
@@ -106551,16 +110022,61 @@
               focusComposer(getComposerPlaceholder("reply"));
             }
           );
-          return;
-        }
+	          return;
+	        }
 
-        if (/^test\s+successfactors$/i.test(cleanMessageText(value || ""))) {
+	        if (/^test\s+greenhouse$/i.test(cleanMessageText(value || ""))) {
+	          clearResponseWatchdog();
+	          if (startGreenhouseAdminTestFlow()) {
+	            return;
+	          }
+	          botMessage(
+	            "That Greenhouse test command is only available to admins.",
+	            humanComposeDelay("Admin-only test command.", 700, 1400),
+	            function () {
+	              focusComposer(getComposerPlaceholder("reply"));
+	            }
+	          );
+	          return;
+	        }
+
+	        if (/^test\s+teamtailor$/i.test(cleanMessageText(value || ""))) {
+	          clearResponseWatchdog();
+	          if (startTeamtailorAdminTestFlow()) {
+	            return;
+	          }
+	          botMessage(
+	            "That Teamtailor test command is only available to admins.",
+	            humanComposeDelay("Admin-only test command.", 700, 1400),
+	            function () {
+	              focusComposer(getComposerPlaceholder("reply"));
+	            }
+	          );
+	          return;
+	        }
+
+	        if (/^test\s+successfactors$/i.test(cleanMessageText(value || ""))) {
           clearResponseWatchdog();
           if (startSuccessFactorsAdminTestFlow()) {
             return;
           }
           botMessage(
             "That SuccessFactors test command is only available to admins.",
+            humanComposeDelay("Admin-only test command.", 700, 1400),
+            function () {
+              focusComposer(getComposerPlaceholder("reply"));
+            }
+          );
+          return;
+        }
+
+        if (/^test\s+workday$/i.test(cleanMessageText(value || ""))) {
+          clearResponseWatchdog();
+          if (startWorkdayAdminTestFlow()) {
+            return;
+          }
+          botMessage(
+            "That Workday test command is only available to admins.",
             humanComposeDelay("Admin-only test command.", 700, 1400),
             function () {
               focusComposer(getComposerPlaceholder("reply"));
