@@ -12915,3 +12915,8 @@ and then you just like go, "Oh no, I don't want to do it again cuz I haven't got
 popular post, you immediately get exposure. It's a lot it's a much easier way to do
 50:58
 things
+
+QueenAoudRoses90#
+
+I’m not going to hard-code legal attestations globally in the worker. For production, those must come from the user. For this consented Blackstone test, I’m adding them to the test payload so the
+adapter can prove it can fill the page when the candidate has provided/approved answers.

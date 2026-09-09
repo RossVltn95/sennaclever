@@ -13,6 +13,7 @@ RUN apt-get update \
     fonts-liberation \
     gnupg \
     wget \
+    xvfb \
   && mkdir -p /etc/apt/keyrings \
   && wget -q -O - https://dl.google.com/linux/linux_signing_key.pub \
     | gpg --dearmor -o /etc/apt/keyrings/google-linux.gpg \

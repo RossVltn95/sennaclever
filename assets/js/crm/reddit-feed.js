@@ -4111,6 +4111,7 @@
     var value = option ? option.getAttribute("data-value") || "" : "";
     var label = option ? option.getAttribute("data-label") || value : value;
     var fieldContainer;
+    var singleInput;
     var checkbox;
 
     if (!filter || !form || !fieldName || !value) {
@@ -4125,6 +4126,16 @@
         checkbox.checked = true;
         checkbox.dispatchEvent(new Event("change", { bubbles: true }));
       }
+    } else if (mode === "single") {
+      singleInput = filter.querySelector("[data-dashboard-profile-filter-single]");
+      if (!singleInput) {
+        singleInput = document.createElement("input");
+        singleInput.type = "hidden";
+        singleInput.name = fieldName;
+        singleInput.setAttribute("data-dashboard-profile-filter-single", "");
+        filter.insertBefore(singleInput, filter.firstChild);
+      }
+      singleInput.value = value;
     } else {
       fieldContainer = form.querySelector(
         '[data-profile-tags][data-field="' + fieldName + '"]'
@@ -4222,6 +4233,15 @@
       .forEach(function (input) {
         body.append("target_sectors[]", input.value || "");
       });
+
+    ["desired_salary", "notice_period", "visa_sponsorship"].forEach(function (
+      fieldName
+    ) {
+      var input = form.querySelector('input[name="' + fieldName + '"]');
+      if (input) {
+        body.append(fieldName, input.value || "");
+      }
+    });
 
     [
       "target_roles",

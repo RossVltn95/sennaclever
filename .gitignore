@@ -8,5 +8,9 @@ application-worker/.cache/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+*.zip
+reports/*.html
+reports/*.json
+reports/tailored-cv-rewrite-samples/
 .idea/
 .vscode/

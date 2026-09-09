@@ -800,12 +800,16 @@ class SFFC_CRM_Shortcodes
         add_action('wp_ajax_nopriv_sffc_crm_apply_chat_application_task_status', [$this, 'ajax_crm_apply_chat_application_task_status']);
         add_action('wp_ajax_sffc_crm_apply_chat_application_task_verification_code', [$this, 'ajax_crm_apply_chat_application_task_verification_code']);
         add_action('wp_ajax_nopriv_sffc_crm_apply_chat_application_task_verification_code', [$this, 'ajax_crm_apply_chat_application_task_verification_code']);
+        add_action('wp_ajax_sffc_crm_apply_chat_queue_application_preview', [$this, 'ajax_crm_apply_chat_queue_application_preview']);
+        add_action('wp_ajax_nopriv_sffc_crm_apply_chat_queue_application_preview', [$this, 'ajax_crm_apply_chat_queue_application_preview']);
         add_action('wp_ajax_sffc_crm_application_worker_claim', [$this, 'ajax_crm_application_worker_claim']);
         add_action('wp_ajax_nopriv_sffc_crm_application_worker_claim', [$this, 'ajax_crm_application_worker_claim']);
         add_action('wp_ajax_sffc_crm_application_worker_get_task', [$this, 'ajax_crm_application_worker_get_task']);
         add_action('wp_ajax_nopriv_sffc_crm_application_worker_get_task', [$this, 'ajax_crm_application_worker_get_task']);
         add_action('wp_ajax_sffc_crm_application_worker_complete', [$this, 'ajax_crm_application_worker_complete']);
         add_action('wp_ajax_nopriv_sffc_crm_application_worker_complete', [$this, 'ajax_crm_application_worker_complete']);
+        add_action('wp_ajax_sffc_crm_application_worker_upload_screenshot', [$this, 'ajax_crm_application_worker_upload_screenshot']);
+        add_action('wp_ajax_nopriv_sffc_crm_application_worker_upload_screenshot', [$this, 'ajax_crm_application_worker_upload_screenshot']);
         add_action('wp_ajax_sffc_crm_apply_chat_send_catch_up_invite', [$this, 'ajax_crm_apply_chat_send_catch_up_invite']);
         add_action('wp_ajax_nopriv_sffc_crm_apply_chat_send_catch_up_invite', [$this, 'ajax_crm_apply_chat_send_catch_up_invite']);
         add_action('wp_ajax_sffc_crm_apply_chat_search_jobs', [$this, 'ajax_crm_apply_chat_search_jobs']);
@@ -40972,6 +40976,7 @@ CRITICAL INSTRUCTIONS:
                 'autoApplyContactNonce' => wp_create_nonce('sffc_crm_apply_chat_capture_auto_apply_contact'),
                 'autoSubmitSchemaNonce' => wp_create_nonce('sffc_crm_apply_chat_get_auto_submit_schema'),
                 'applicationTaskNonce' => wp_create_nonce('sffc_crm_apply_chat_queue_application_task'),
+                'applicationPreviewQueueNonce' => wp_create_nonce('sffc_crm_apply_chat_queue_application_preview'),
                 'catchUpInviteNonce' => wp_create_nonce('sffc_crm_apply_chat_send_catch_up_invite'),
                 'jobsSearchNonce' => wp_create_nonce('sffc_crm_apply_chat_search_jobs'),
                 'prefillNonce' => wp_create_nonce('sffc_sync_signup_prefill'),
@@ -42008,6 +42013,7 @@ CRITICAL INSTRUCTIONS:
                 'autoApplyContactNonce' => wp_create_nonce('sffc_crm_apply_chat_capture_auto_apply_contact'),
                 'autoSubmitSchemaNonce' => wp_create_nonce('sffc_crm_apply_chat_get_auto_submit_schema'),
                 'applicationTaskNonce' => wp_create_nonce('sffc_crm_apply_chat_queue_application_task'),
+                'applicationPreviewQueueNonce' => wp_create_nonce('sffc_crm_apply_chat_queue_application_preview'),
                 'catchUpInviteNonce' => wp_create_nonce('sffc_crm_apply_chat_send_catch_up_invite'),
                 'jobsSearchNonce' => wp_create_nonce('sffc_crm_apply_chat_search_jobs'),
                 'prefillNonce' => wp_create_nonce('sffc_sync_signup_prefill'),
@@ -44241,6 +44247,76 @@ CRITICAL INSTRUCTIONS:
             ]);
         }
 
+        public function ajax_crm_apply_chat_queue_application_preview()
+        {
+            check_ajax_referer('sffc_crm_apply_chat_queue_application_preview', 'nonce');
+
+            global $wpdb;
+
+            $this->maybe_create_crm_application_tasks_table();
+            $table = $wpdb->prefix . 'sffc_crm_application_tasks';
+            $table_exists = $wpdb->get_var($wpdb->prepare('SHOW TABLES LIKE %s', $table)) === $table;
+            if (!$table_exists) {
+                wp_send_json_error(['message' => __('The application preview queue is not available yet.', 'senna-finance')], 500);
+            }
+
+            $application_url = esc_url_raw(wp_unslash((string) ($_POST['application_url'] ?? '')));
+            if ($application_url === '' || !preg_match('/^https?:\/\//i', $application_url)) {
+                wp_send_json_error(['message' => __('I need a valid employer application URL before I can preview it.', 'senna-finance')], 422);
+            }
+
+            $session_token = sanitize_text_field(wp_unslash((string) ($_POST['session_token'] ?? '')));
+            $role_title = sanitize_text_field(wp_unslash((string) ($_POST['role_title'] ?? '')));
+            $company_name = sanitize_text_field(wp_unslash((string) ($_POST['company_name'] ?? '')));
+            $provider = sanitize_key((string) wp_unslash($_POST['provider'] ?? ''));
+            $jobs_post_id = absint($_POST['jobs_post_id'] ?? 0);
+            $crm_post_id = absint($_POST['crm_post_id'] ?? 0);
+            $page_url = esc_url_raw(wp_unslash((string) ($_POST['page_url'] ?? '')));
+            $conversation_id = $this->find_or_create_crm_apply_chat_conversation($session_token, $crm_post_id ?: $jobs_post_id, $role_title, $page_url);
+            $task_uuid = wp_generate_uuid4();
+            $payload = [
+                'source' => 'application_preview',
+                'page_url' => $page_url,
+                'role_url' => esc_url_raw(wp_unslash((string) ($_POST['role_url'] ?? ''))),
+                'preview_width' => 1366,
+                'preview_height' => 1100,
+            ];
+
+            $inserted = $wpdb->insert($table, [
+                'task_uuid' => $task_uuid,
+                'status' => 'queued',
+                'provider' => $provider ?: 'application_preview',
+                'session_token' => $session_token,
+                'conversation_id' => $conversation_id > 0 ? $conversation_id : null,
+                'user_id' => get_current_user_id(),
+                'wp_post_id' => $jobs_post_id,
+                'crm_post_id' => $crm_post_id,
+                'role_title' => $role_title,
+                'company_name' => $company_name,
+                'application_url' => $application_url,
+                'application_workspace_url' => $application_url,
+                'candidate_name' => '',
+                'candidate_email' => '',
+                'candidate_phone' => '',
+                'cv_file_name' => '',
+                'cv_file_url' => '',
+                'cv_text' => '',
+                'cover_letter_requested' => 0,
+                'payload' => wp_json_encode($payload),
+                'created_at' => current_time('mysql'),
+                'updated_at' => current_time('mysql'),
+            ]);
+
+            if (!$inserted) {
+                wp_send_json_error(['message' => __('I could not queue this employer preview just now.', 'senna-finance')], 500);
+            }
+
+            wp_send_json_success([
+                'task_uuid' => $task_uuid,
+                'status' => 'queued',
+            ]);
+        }
+
         private function sanitize_crm_application_task_diagnostic_value($value, $depth = 0)
         {
             if ($depth > 4) {
@@ -44276,6 +44352,7 @@ CRITICAL INSTRUCTIONS:
         {
             $allowed_keys = [
                 'provider',
+                'source_provider',
                 'url',
                 'allow_final_submit',
                 'clicked_submit',
@@ -44286,7 +44363,9 @@ CRITICAL INSTRUCTIONS:
                 'submit_before_url',
                 'submit_after_url',
                 'final_url',
+                'screenshot_url',
                 'page_title',
+                'captured_at',
                 'uploaded_resume',
                 'submission_confirmed',
                 'verification_required',
@@ -44330,7 +44409,11 @@ CRITICAL INSTRUCTIONS:
                     $clean[$key] = esc_url_raw((string) $payload[$key]);
                     continue;
                 }
-                if (in_array($key, ['provider', 'status'], true)) {
+                if ($key === 'screenshot_url') {
+                    $clean[$key] = esc_url_raw((string) $payload[$key]);
+                    continue;
+                }
+                if (in_array($key, ['provider', 'source_provider', 'status'], true)) {
                     $clean[$key] = sanitize_key((string) $payload[$key]);
                     continue;
                 }
@@ -44356,7 +44439,7 @@ CRITICAL INSTRUCTIONS:
 
             $task = $wpdb->get_row(
                 $wpdb->prepare(
-                    "SELECT task_uuid, status, session_token, user_id, role_title, company_name, provider, candidate_email, last_error, submitted_at, payload, result_payload, updated_at FROM {$table} WHERE task_uuid = %s LIMIT 1",
+                    "SELECT task_uuid, status, session_token, user_id, role_title, company_name, provider, candidate_email, last_error, evidence_url, screenshot_url, submitted_at, payload, result_payload, updated_at FROM {$table} WHERE task_uuid = %s LIMIT 1",
                     $task_uuid
                 ),
                 ARRAY_A
@@ -44405,6 +44488,8 @@ CRITICAL INSTRUCTIONS:
                 'last_error' => sanitize_textarea_field((string) ($task['last_error'] ?? '')),
                 'submitted_at' => sanitize_text_field((string) ($task['submitted_at'] ?? '')),
                 'final_url' => esc_url_raw((string) ($result_payload['final_url'] ?? '')),
+                'evidence_url' => esc_url_raw((string) ($task['evidence_url'] ?? '')),
+                'screenshot_url' => esc_url_raw((string) ($task['screenshot_url'] ?? ($result_payload['screenshot_url'] ?? ''))),
                 'uploaded_resume' => !empty($result_payload['uploaded_resume']),
                 'submission_confirmed' => !empty($result_payload['submission_confirmed']),
                 'reached_submit_stage' => !empty($result_payload['reached_submit_stage']),
@@ -44592,7 +44677,7 @@ CRITICAL INSTRUCTIONS:
             $table = $wpdb->prefix . 'sffc_crm_application_tasks';
             $task_uuid = sanitize_text_field(wp_unslash((string) ($_POST['task_uuid'] ?? '')));
             $status = sanitize_key((string) wp_unslash($_POST['status'] ?? ''));
-            if (!in_array($status, ['submitted', 'failed', 'review_required', 'verification_required', 'dry_run_ready'], true)) {
+            if (!in_array($status, ['submitted', 'failed', 'review_required', 'verification_required', 'dry_run_ready', 'preview_ready'], true)) {
                 wp_send_json_error(['message' => __('Invalid task status.', 'senna-finance')], 422);
             }
             if ($task_uuid === '') {
@@ -44621,6 +44706,66 @@ CRITICAL INSTRUCTIONS:
             $this->maybe_send_crm_workday_account_credentials_email($task_uuid, $status, $result_payload);
 
             wp_send_json_success(['status' => $status]);
+        }
+
+        public function ajax_crm_application_worker_upload_screenshot()
+        {
+            if (!$this->verify_crm_application_worker_token()) {
+                wp_send_json_error(['message' => __('Invalid worker token.', 'senna-finance')], 403);
+            }
+
+            if (empty($_FILES['screenshot']) || !is_array($_FILES['screenshot'])) {
+                wp_send_json_error(['message' => __('Missing screenshot upload.', 'senna-finance')], 422);
+            }
+
+            $task_uuid = sanitize_text_field(wp_unslash((string) ($_POST['task_uuid'] ?? '')));
+            $role_title = sanitize_file_name(wp_unslash((string) ($_POST['role_title'] ?? 'application-preview')));
+            $file = $_FILES['screenshot'];
+            if (!empty($file['error'])) {
+                wp_send_json_error(['message' => __('Screenshot upload failed before WordPress could save it.', 'senna-finance')], 422);
+            }
+
+            $tmp_name = (string) ($file['tmp_name'] ?? '');
+            $image_info = $tmp_name !== '' ? @getimagesize($tmp_name) : false;
+            if (!$image_info || ($image_info['mime'] ?? '') !== 'image/png') {
+                wp_send_json_error(['message' => __('The screenshot must be a PNG image.', 'senna-finance')], 422);
+            }
+
+            require_once ABSPATH . 'wp-admin/includes/file.php';
+            require_once ABSPATH . 'wp-admin/includes/media.php';
+            require_once ABSPATH . 'wp-admin/includes/image.php';
+
+            $safe_task = $task_uuid !== '' ? sanitize_file_name($task_uuid) : wp_generate_uuid4();
+            $file['name'] = 'application-preview-' . $safe_task . '-' . substr($role_title ?: 'role', 0, 60) . '.png';
+
+            $upload = wp_handle_sideload($file, ['test_form' => false]);
+            if (!is_array($upload) || !empty($upload['error']) || empty($upload['file'])) {
+                wp_send_json_error([
+                    'message' => sanitize_text_field((string) ($upload['error'] ?? __('WordPress could not save the screenshot.', 'senna-finance'))),
+                ], 500);
+            }
+
+            $attachment_id = wp_insert_attachment([
+                'post_mime_type' => 'image/png',
+                'post_title' => sanitize_text_field('Application preview ' . ($role_title ?: $safe_task)),
+                'post_content' => '',
+                'post_status' => 'inherit',
+            ], $upload['file']);
+
+            if (is_wp_error($attachment_id) || !$attachment_id) {
+                wp_send_json_error(['message' => __('WordPress could not create the screenshot attachment.', 'senna-finance')], 500);
+            }
+
+            $metadata = wp_generate_attachment_metadata($attachment_id, $upload['file']);
+            if (is_array($metadata)) {
+                wp_update_attachment_metadata($attachment_id, $metadata);
+            }
+
+            $url = wp_get_attachment_url($attachment_id);
+            wp_send_json_success([
+                'attachment_id' => absint($attachment_id),
+                'screenshot_url' => esc_url_raw((string) $url),
+            ]);
         }
 
         public function ajax_crm_apply_chat_capture_auto_apply_contact()

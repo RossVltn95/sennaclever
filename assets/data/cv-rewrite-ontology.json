@@ -1,0 +1,584 @@
+{
+  "generatedAt": "2026-09-08T16:32:58.701Z",
+  "source": {
+    "cvDir": "/Users/ropafadzoyasheushe/Downloads/CVs",
+    "filesParsed": 171,
+    "bulletsSeen": 734,
+    "strongBullets": 256
+  },
+  "domains": [
+    {
+      "key": "general",
+      "count": 320
+    },
+    {
+      "key": "operations",
+      "count": 184
+    },
+    {
+      "key": "investment",
+      "count": 142
+    },
+    {
+      "key": "technology",
+      "count": 105
+    },
+    {
+      "key": "business_development",
+      "count": 102
+    }
+  ],
+  "weakOpeners": [
+    {
+      "key": "facilitated",
+      "count": 9
+    },
+    {
+      "key": "assisted in",
+      "count": 2
+    },
+    {
+      "key": "handled",
+      "count": 2
+    },
+    {
+      "key": "collaborated on",
+      "count": 1
+    },
+    {
+      "key": "participated in",
+      "count": 1
+    },
+    {
+      "key": "provided support",
+      "count": 1
+    },
+    {
+      "key": "assisted",
+      "count": 1
+    }
+  ],
+  "weakLanguage": [
+    {
+      "key": "missing_outcome_signal",
+      "count": 586
+    },
+    {
+      "key": "vague_quantity",
+      "count": 75
+    },
+    {
+      "key": "filler_language",
+      "count": 38
+    },
+    {
+      "key": "weak_opening_verb",
+      "count": 32
+    },
+    {
+      "key": "first_person_language",
+      "count": 31
+    },
+    {
+      "key": "generic_responsibility",
+      "count": 5
+    },
+    {
+      "key": "buzzword_overload",
+      "count": 3
+    }
+  ],
+  "sentenceArchetypes": [
+    {
+      "key": "Financial Record Accuracy: Achieved [METRIC]% accuracy in financial records by reconciling VAT data for Q1 [METRIC], ensuring precise VAT submissions and aiding in streamlined audit processes.",
+      "count": 2
+    },
+    {
+      "key": "Created a [METRIC]-pager for the client containing a company profile and summary of the auction process.",
+      "count": 2
+    },
+    {
+      "key": "Managed day-to-day sales, purchases, and expense tracking for retail operations in Global Village, Dubai.",
+      "count": 2
+    },
+    {
+      "key": "Managed accounting transactions with precision and efficiency.",
+      "count": 2
+    },
+    {
+      "key": "Effectively managed accounts operations for various companies in compliance with UAE VAT regulations, leading a team of six accounts executives.",
+      "count": 2
+    },
+    {
+      "key": "Developed comprehensive budgetary controls and monitored performance via MIS systems, leading to a [METRIC]% increase in profitability.",
+      "count": 1
+    },
+    {
+      "key": "Developed economic and financial indicators for top-down macroeconomic strategies [STAKEHOLDER] member, prepared monthly memo for top-down macroeconomic analysis. Anticipated the 1MDB crisis and the plunge of MYR in [METRIC], six months beforehand Quant, AmInvestment [STAKEHOLDER], Kuala Lumpur, MY",
+      "count": 1
+    },
+    {
+      "key": "Managed and lead teams of [METRIC] for shifts to run smoothly and close on time",
+      "count": 1
+    },
+    {
+      "key": "Shaped and monitored the [STAKEHOLDER] Services team and Payments team’s KPIs and SLAs on a monthly basis Payments Specialist – MENA and Mauritius (Oct18 to Jan21)",
+      "count": 1
+    },
+    {
+      "key": "Developed new business opportunities through partnership building and restructuring business models.",
+      "count": 1
+    },
+    {
+      "key": "Strengthened relationships with developed [STAKEHOLDER] and maximized deal sizes through cross-selling opportunities, such as bonds, funds, and venture capital.",
+      "count": 1
+    },
+    {
+      "key": "Led and contributed to pitches, presentations, and other opportunities for assigned teams in collaboration with local IR firms.",
+      "count": 1
+    },
+    {
+      "key": "Managed samples, orders, invoices, and supported European sales recruitment Assisted in financial [STAKEHOLDER] and helped close the European office for the parent company.",
+      "count": 1
+    },
+    {
+      "key": "Planned and executed PR activities for IT industry projects and government events.",
+      "count": 1
+    },
+    {
+      "key": "Team Leadership: Managed a team of [METRIC] executives, driving business growth across various locations including LFR, LLR, and GT stores.",
+      "count": 1
+    },
+    {
+      "key": "Business Process Oversight: Managed the entire business process for company outlets and franchise stores, ensuring seamless operations and compliance with corporate standards.",
+      "count": 1
+    },
+    {
+      "key": "Business Process Audits: Managed comprehensive business process audits for Vodafone company outlets and franchise stores, ensuring compliance and operational efficiency.",
+      "count": 1
+    },
+    {
+      "key": "Prepared and analyzed financial statements(Income Statements, Balance Sheet, and Cash Flow Statements) for both profit and nonprofit organizations..",
+      "count": 1
+    },
+    {
+      "key": "Executed the recording of all daily accounting transactions including sales, purchases, receipts, payments, and journal entries.",
+      "count": 1
+    },
+    {
+      "key": "Built lasting relationships with all [STAKEHOLDER] to deal with any of their queries in less than [METRIC]-hours.",
+      "count": 1
+    },
+    {
+      "key": "Deal Flow: Sourced and qualified +[METRIC] deep-tech start-ups across [METRIC] key verticals: (i) Artificial Intelligence, (ii)",
+      "count": 1
+    },
+    {
+      "key": "Due Diligence: Led comprehensive due diligence on [METRIC]+ potential investments, encompassing financial modeling, valuation assessments, market-fit evaluations, and risk analysis to inform data-driven decision-making for early-stage deals.",
+      "count": 1
+    },
+    {
+      "key": "Sales pipeline: Built a sales pipeline of +[METRIC] leads including [STAKEHOLDER] and top managers in the smart city sector.",
+      "count": 1
+    },
+    {
+      "key": "Product development: Developed the Glass2Less technology for Glassomer: a fully recyclable mechanical filter ([METRIC] nm precision) made of 3D printed glass, capable of measuring pollutants levels in liquids and gasses.",
+      "count": 1
+    },
+    {
+      "key": "Financial analysis: Executed comprehensive business analyses, uncovering key insights for financial and e-commerce growth.",
+      "count": 1
+    },
+    {
+      "key": "Managed corporate capital and financial strategy, maintaining healthy financial course for long-term company stability.",
+      "count": 1
+    },
+    {
+      "key": "Developed a refined database of [STAKEHOLDER] for the use of the Ministry.",
+      "count": 1
+    },
+    {
+      "key": "Conducted research, analyzed trade finance operations, and identified inefficiencies, saving a combined [METRIC] man-hours monthly.",
+      "count": 1
+    },
+    {
+      "key": "Improved operational efficiency using internal data, resulting in reduced working hours year over year.",
+      "count": 1
+    },
+    {
+      "key": "Analyzed and tracked various trade finance data to identify client behaviors and retention trends across regions.",
+      "count": 1
+    },
+    {
+      "key": "Developed and presented a marketing strategy project for an entrepreneur opening a new primary school in Nice, France.",
+      "count": 1
+    },
+    {
+      "key": "Performed in-depth financial and operational due diligence on client companies (Analysed healthcare market trends, competition, and potential strategic partners using information obtained from multiple data sources)",
+      "count": 1
+    },
+    {
+      "key": "Managed the event Electrip with [METRIC] co-workers organized in March to promote e-Golf cars through a Sponsorship with Volkswagen",
+      "count": 1
+    },
+    {
+      "key": "Update tracking data and manage the billing platform for streamlined invoicing and payments Prepare and issue invoices for [STAKEHOLDER] based on inputs, and process vendor payments after verification.",
+      "count": 1
+    },
+    {
+      "key": "Managed the complete accounting cycle for Accounts Payable and Receivables using Zoho Books and Tally ERP.",
+      "count": 1
+    },
+    {
+      "key": "Maintained SaaS spreadsheets with tracking data and managed the billing platform for efficient invoicing.",
+      "count": 1
+    },
+    {
+      "key": "Managed accounting for invoices, receipts, payments, and month-end closing activities using Xero Accounting.",
+      "count": 1
+    },
+    {
+      "key": "Led multiple teams in performing comprehensive external audits for high-profile [STAKEHOLDER] in the manufacturing, hospitality, and real estate sectors, ensuring compliance with IFRS, IAS, and US GAAP.",
+      "count": 1
+    },
+    {
+      "key": "Reviewed and validated the work of junior staff to ensure quality and accuracy, prior to submission for manager or partner review. Delivered targeted training to enhance their auditing skills, deepen their knowledge base, and foster professional development and efficiency",
+      "count": 1
+    },
+    {
+      "key": "Independently managed accounting functions for private [STAKEHOLDER], from transaction recording to comprehensive financial statement preparation in accordance with IFRS and GAAP, coordinating with external auditors for seamless audits.",
+      "count": 1
+    },
+    {
+      "key": "Goods and Services Tax and Value Added Tax (VAT): Managed and executed GST implementation projects for [STAKEHOLDER] across various industries, ensuring compliance with tax regulations and deadlines.",
+      "count": 1
+    },
+    {
+      "key": "Created material presentations by preparing reports including Three-statement and [TOOL] Models and Company Profile for investors x Demonstrated job rotation as a development associate by attending FOODEX Japan [METRIC] and Gulfood Dubai [METRIC] to accommodate new [STAKEHOLDER]",
+      "count": 1
+    },
+    {
+      "key": "Developed close attention to detail through assessing large amounts of public opinion, current events, and traditional media and apply understanding to create engaging articles x Exhibited key written communication skills through using MLA writing, editing and proofreading to produce weekly articles",
+      "count": 1
+    },
+    {
+      "key": "Process Improvement: Streamlined data [STAKEHOLDER] and digitised data collection processes at Grey Matter, reducing data entry time by [METRIC] hours and significantly enhancing data quality and analytical accuracy.",
+      "count": 1
+    },
+    {
+      "key": "Interpreted, transformed and analysed data to produce comprehensive performance reports using [TOOL] (DAX and Power Query) and [TOOL], delivering actionable insights for supporting the Crisis Intervention Team.",
+      "count": 1
+    },
+    {
+      "key": "Analysed complex datasets recorded by frontliners to extract common themes and topics, creating reports that provided actionable insights to the Marketing team for targeted campaigns.",
+      "count": 1
+    },
+    {
+      "key": "Managed [METRIC]+ Suppliers on daily basis for Saree category, added new products and managed stock as per demand.",
+      "count": 1
+    },
+    {
+      "key": "Managed custodian tasks for portfolios held in our custody, including providing trade instructions to sub-custodians.",
+      "count": 1
+    },
+    {
+      "key": "Operated the kiosk and managed payments for purchases.",
+      "count": 1
+    },
+    {
+      "key": "As team leader and Chief Technical Executive, developed both backend and frontend using [TOOL], CSS, and HTML.",
+      "count": 1
+    },
+    {
+      "key": "Developed a comprehensive financial analysis and ESG scoring tool that retrieves real-time data and analyzes news sentiment to predict company ESG scores using machine learning Calculated technical analysis indicators and provided a portfolio creation option, all",
+      "count": 1
+    },
+    {
+      "key": "Proven track record in partnering with senior executives & business development heads to project future revenues, assess business closures, that led to a $[METRIC] Million pipeline, enhancing organizational growth and financial stability.",
+      "count": 1
+    },
+    {
+      "key": "Partnered with CXOs to secure $[METRIC] million API contract, managed client proposal process, & achieved the facility’s inaugural independent business deal valued at $[METRIC] million.",
+      "count": 1
+    },
+    {
+      "key": "Monitored Inventory Transactions: Monitored inventory transactions and reconciled inventory accounts to the general ledger, ensuring accuracy and alignment with financial records.",
+      "count": 1
+    },
+    {
+      "key": "Performed Reconciliations: Executed reconciliations for bank accounts, Head Oﬃce accounts, general ledgers, Debtors, and Creditors accounts, ensuring alignment with financial records.",
+      "count": 1
+    },
+    {
+      "key": "Performed Payroll and MIS Activities: Set up staﬀ salary details in HR system (Greytip) and Tally ERP [METRIC] accounting system, ensuring accurate payroll processing. Monitored staﬀ attendance and reconciled with shift rosters and leave records as required, ensuring accurate payroll calculations.",
+      "count": 1
+    },
+    {
+      "key": "Payment Processing and Financial [STAKEHOLDER]: Processed supplier payments and prepared cheques in a timely manner, contributing to eﬀective cash flow [STAKEHOLDER]. Managed accounts payable and receivables, maintaining records and ensuring timely payments and collections.",
+      "count": 1
+    },
+    {
+      "key": "Payment Processing and Documentation: Prepared payment vouchers and processed transactions by meticulously checking supporting documents and bills, facilitating timely and accurate payments through cheques and cash. Entered transaction details into the accounting system, maintaining comprehensive financial records.",
+      "count": 1
+    },
+    {
+      "key": "Managed financial departments with responsibility for payroll, Accounts Payable and receivable.",
+      "count": 1
+    },
+    {
+      "key": "Built rapport with highly affluent individuals. Drove sales into the business. Having business to business and business to customers relations. Investment for the company in the Spot markets[METRIC] also into luxury cars Duty Manager and Conflict [STAKEHOLDER]",
+      "count": 1
+    },
+    {
+      "key": "Monitored the position through the life of the investment (quarterly results update and press releases).",
+      "count": 1
+    },
+    {
+      "key": "Prepared acquisition financing pitches for the Bank’s corporate [STAKEHOLDER] including internal coordination with other business lines (ECM, DCM, M&A...)",
+      "count": 1
+    },
+    {
+      "key": "Led and supervised diverse audit engagements in Uruguay, and participated in regional audits across Latin America, including Argentina and Mexico, ensuring compliance with audit methodologies and industry standards.",
+      "count": 1
+    },
+    {
+      "key": "Evaluated inherent risks, control environments, and residual risks across various business operations, contributing to the overall risk [STAKEHOLDER] framework.",
+      "count": 1
+    },
+    {
+      "key": "Developed a machine learning pipeline in RandomForestRegressor (including data extracting, feature engineering, and hyperparameter tunning) to predict flow rates based on acceleration data, achieving an accuracy of over [METRIC]%.",
+      "count": 1
+    },
+    {
+      "key": "Analysed the seasonal patterns in the data and performed data preprocessing to ensure it was ready for scientific analysis Designed and built a Deep Learning model combining CNN, LSTM, and Attention mechanisms for prediction, achieving an F1-score of [METRIC].",
+      "count": 1
+    },
+    {
+      "key": "Developed an RNN model for classification and an LSTM model for regression, achieving an accuracy of over [METRIC]%, to estimate the campaign performance regarding customer demographics and sales distribution.",
+      "count": 1
+    },
+    {
+      "key": "Analysed and ensured data stationarity through tests (e.g., AutoCorrelation Function) to confirm time series readiness for AR modeling.",
+      "count": 1
+    },
+    {
+      "key": "Created the company’s strategy for the years [METRIC],[METRIC] that targets increasing market share Mapped the market opportunity by analyzing market insights that led to 500K new customers.",
+      "count": 1
+    },
+    {
+      "key": "Produced high-impact advertising content, including [METRIC] TVCs, and coordinated media buying, resulting in a [METRIC]% increasein consumer engagement.",
+      "count": 1
+    },
+    {
+      "key": "Led comprehensive rebranding of MTN mobile cash to comply with updated group standards; executed TVC, BTL, andchannel branding strategies, resulting in a [METRIC]% boost in customer acquisition and retention.",
+      "count": 1
+    },
+    {
+      "key": "Prepared marketing and valuation materials (including [TOOL], trading multiples and precedent transactions) for pitches in various sectors (e.g. biotechnology, software, and AI)",
+      "count": 1
+    },
+    {
+      "key": "Managed capital calls, distributions, share movements, incoming and outgoing cash of target investments Collaborated with client relationship managers to onboard new funds and supported UHNW [STAKEHOLDER] with in-house fund solutions.",
+      "count": 1
+    },
+    {
+      "key": "Estate and Alternative Investments; Thesis: Should selling volatility derivatives coupled with a volatility managed strategy be adopted by long term investors? Extracurricular Activities: Member of SEFA (Study Association for Economics and Business)",
+      "count": 1
+    },
+    {
+      "key": "Financial Oversight (Nomentia): Managed global vendor pay runs, collaborating with Accounts Payable and other departments to ensure seamless financial transactions Regulatory Compliance: Ensured adherence to financial regulations, mitigating legal and financial risks",
+      "count": 1
+    },
+    {
+      "key": "Process Optimization ([TOOL]/PowerBI): Identified and implemented streamlined financial procedures using tools like [TOOL] and PowerBI for enhanced efficiency Bank Reconciliation & Payments: Managed accurate bank reconciliations and timely invoice settlements, ensuring financial",
+      "count": 1
+    },
+    {
+      "key": "Managed end-to-end accounting operations and invoicing processes using Gamma software, ensuring financial accuracy and timely reporting.",
+      "count": 1
+    },
+    {
+      "key": "Participated in a [METRIC]-month Erasmus program. Gained international academic experience and developed cross-cultural communication skills.",
+      "count": 1
+    },
+    {
+      "key": "People [STAKEHOLDER] – managed team of [METRIC], involved in hiring, structured learning path, operations coach for the team.",
+      "count": 1
+    },
+    {
+      "key": "Managed comprehensive accounting activities for US operations, ensuring accurate financial records and compliance with accounting standards.",
+      "count": 1
+    }
+  ],
+  "rewriteFamilies": [
+    {
+      "key": "financial_modelling",
+      "triggers": [
+        "model",
+        "modelling",
+        "modeling",
+        "valuation",
+        "dcf",
+        "lbo",
+        "forecast",
+        "sensitivity"
+      ],
+      "pattern": "[ACTION] [MODEL/ANALYSIS] for [TRANSACTION/COMPANY/PORTFOLIO], supporting [DECISION].",
+      "evidenceRequired": [
+        "model_or_analysis"
+      ]
+    },
+    {
+      "key": "due_diligence",
+      "triggers": [
+        "due diligence",
+        "diligence",
+        "risk analysis",
+        "market-fit",
+        "assessment"
+      ],
+      "pattern": "[ACTION] due diligence across [TARGET/SCOPE], identifying [FINDINGS/RISKS].",
+      "evidenceRequired": [
+        "diligence_activity"
+      ]
+    },
+    {
+      "key": "transactions",
+      "triggers": [
+        "deal",
+        "transaction",
+        "investment",
+        "acquisition",
+        "m&a",
+        "ipo",
+        "structuring",
+        "negotiation"
+      ],
+      "pattern": "[ACTION] transaction execution across [SCOPE], preserving any stated deal values and outcomes.",
+      "evidenceRequired": [
+        "transaction_reference"
+      ]
+    },
+    {
+      "key": "business_development",
+      "triggers": [
+        "pipeline",
+        "leads",
+        "prospect",
+        "client",
+        "sales",
+        "commercial",
+        "partnership"
+      ],
+      "pattern": "[ACTION] commercial pipeline across [MARKET/CLIENTS], supporting growth and stakeholder engagement.",
+      "evidenceRequired": [
+        "commercial_activity"
+      ]
+    },
+    {
+      "key": "operations",
+      "triggers": [
+        "automation",
+        "workflow",
+        "process",
+        "reconciliation",
+        "controls",
+        "compliance"
+      ],
+      "pattern": "[ACTION] operational workflows across [PROCESS/SCOPE], improving control, accuracy, or efficiency where evidenced.",
+      "evidenceRequired": [
+        "process_activity"
+      ]
+    }
+  ],
+  "safetyRules": [
+    "Never add a metric that is not present in the source bullet.",
+    "Do not upgrade to Led/Oversaw/Directed unless ownership is explicit or strongly implied.",
+    "Preserve named tools, markets, sectors, stakeholders, and transaction values from the source.",
+    "If outcome is missing, only add generic support language when the source already implies decision, growth, control, or efficiency.",
+    "Prefer pattern abstraction over copying sentence text from source CVs.",
+    "Remove filler words only when the sentence keeps the same factual meaning.",
+    "Flag vague quantities for user confirmation instead of inventing exact counts.",
+    "Treat generic soft skills as evidence gaps unless they are tied to a concrete action or result."
+  ],
+  "weakLanguageRules": [
+    {
+      "key": "weak_opening_verb",
+      "examples": [
+        "helped",
+        "assisted",
+        "worked on",
+        "participated in",
+        "handled"
+      ],
+      "rewriteAction": "replace_with_evidence_safe_action"
+    },
+    {
+      "key": "passive_voice",
+      "examples": [
+        "was assigned",
+        "was asked",
+        "was given responsibility"
+      ],
+      "rewriteAction": "convert_to_active_voice_without_ownership_inflation"
+    },
+    {
+      "key": "vague_quantity",
+      "examples": [
+        "various",
+        "several",
+        "multiple",
+        "many"
+      ],
+      "rewriteAction": "flag_for_quantification_or_preserve_as_multiple"
+    },
+    {
+      "key": "filler_language",
+      "examples": [
+        "successfully",
+        "effectively",
+        "proactively",
+        "strong",
+        "excellent"
+      ],
+      "rewriteAction": "remove_or_replace_with_specific_evidence"
+    },
+    {
+      "key": "buzzword_overload",
+      "examples": [
+        "synergies",
+        "best-in-class",
+        "cutting-edge",
+        "results-driven"
+      ],
+      "rewriteAction": "replace_with_concrete_business_language"
+    },
+    {
+      "key": "generic_responsibility",
+      "examples": [
+        "responsible for",
+        "duties included",
+        "exposure to",
+        "familiar with"
+      ],
+      "rewriteAction": "replace_with_specific_action_or_preserve_as_gap"
+    },
+    {
+      "key": "unsupported_soft_skill",
+      "examples": [
+        "strong communication skills",
+        "excellent leadership skills"
+      ],
+      "rewriteAction": "tie_to_concrete_evidence_or_remove"
+    },
+    {
+      "key": "first_person_language",
+      "examples": [
+        "I managed",
+        "my responsibilities",
+        "we delivered"
+      ],
+      "rewriteAction": "convert_to_cv_style_action_language"
+    }
+  ]
+}

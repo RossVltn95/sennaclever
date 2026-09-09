@@ -68,7 +68,7 @@ class SFFC_Workday_Job_Fetcher_V2
             'base_url' => 'https://cibc.wd3.myworkdayjobs.com',
             'endpoint' => '/wday/cxs/cibc/search/jobs',
             'careers_path' => '/en-US/search',
-            'filters' => ['Country' => '29247e57dbaf46fb855b224e03170bc7'],
+            'filters' => ['Country' => ['29247e57dbaf46fb855b224e03170bc7']],
             'status' => 'new'
         ],
         'statestreet' => [
@@ -284,7 +284,7 @@ class SFFC_Workday_Job_Fetcher_V2
             'base_url' => 'https://pru.wd5.myworkdayjobs.com',
             'endpoint' => '/wday/cxs/pru/PGIM_Careers/jobs',
             'careers_path' => '/en-US/PGIM_Careers',
-            'filters' => ['locationCountry' => '29247e57dbaf46fb855b224e03170bc7'],
+            'filters' => ['locationCountry' => ['29247e57dbaf46fb855b224e03170bc7']],
             'status' => 'working',
             'job_count' => 87
         ],

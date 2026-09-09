@@ -147,6 +147,96 @@ function getBrowserLaunchSettings(task, url = "") {
   };
 }
 
+function sendJson(response, statusCode, payload) {
+  response.writeHead(statusCode, { "content-type": "application/json" });
+  response.end(JSON.stringify(payload));
+}
+
+async function captureApplicationPreviewScreenshot(url, options = {}) {
+  const cleanUrl = cleanText(url || "");
+  const provider = cleanText(options.provider || "");
+  const width = Math.max(960, Math.min(1600, Number(options.width || 1366) || 1366));
+  const height = Math.max(720, Math.min(1400, Number(options.height || 1100) || 1100));
+  if (!/^https?:\/\//i.test(cleanUrl)) {
+    throw new Error("Only http and https application preview URLs are supported.");
+  }
+  const executablePath = getBrowserExecutablePath();
+  const browser = await puppeteer.launch({
+    ...getBrowserLaunchSettings({ provider }, cleanUrl),
+    executablePath: executablePath || undefined,
+    timeout: browserLaunchTimeoutMs,
+  });
+  try {
+    const page = await browser.newPage();
+    await page.setViewport({ width, height, deviceScaleFactor: 1 });
+    await page.goto(cleanUrl, {
+      waitUntil: "networkidle2",
+      timeout: Number(options.timeout_ms || 45000) || 45000,
+    }).catch(async (error) => {
+      await page.goto(cleanUrl, {
+        waitUntil: "domcontentloaded",
+        timeout: Number(options.timeout_ms || 45000) || 45000,
+      }).catch(() => {
+        throw error;
+      });
+    });
+    await new Promise((resolve) =>
+      setTimeout(resolve, Math.max(500, Math.min(4000, Number(options.settle_ms || 1600) || 1600)))
+    );
+    const pageTitle = cleanText(await page.title().catch(() => ""));
+    const finalUrl = cleanText(page.url());
+    const buffer = await page.screenshot({
+      type: "png",
+      fullPage: false,
+      captureBeyondViewport: false,
+    });
+    return {
+      ok: true,
+      page_title: pageTitle,
+      final_url: finalUrl,
+      screenshot: buffer,
+      captured_at: new Date().toISOString(),
+    };
+  } finally {
+    await browser.close().catch(() => {});
+  }
+}
+
+async function processApplicationPreviewTask(task) {
+  const payload = getTaskPayload(task);
+  const url = cleanText(
+    task.application_workspace_url ||
+      task.application_url ||
+      payload.application_url ||
+      payload.role_url ||
+      ""
+  );
+  const provider = cleanText(task.provider || payload.provider || "application_preview");
+  const result = await captureApplicationPreviewScreenshot(url, {
+    provider,
+    width: payload.preview_width || 1366,
+    height: payload.preview_height || 1100,
+    timeout_ms: payload.preview_timeout_ms || 45000,
+    settle_ms: payload.preview_settle_ms || 1800,
+  });
+  const screenshotUrl = await uploadApplicationPreviewScreenshot(task, result.screenshot);
+  return {
+    provider: "application_preview",
+    source_provider: provider,
+    url,
+    final_url: result.final_url,
+    page_title: result.page_title,
+    screenshot_url: screenshotUrl,
+    captured_at: result.captured_at,
+    uploaded_resume: false,
+    clicked_submit: false,
+    form_opened: false,
+    form_ready: false,
+    last_error: screenshotUrl ? "" : "The worker captured the page but did not receive a media URL.",
+    status: screenshotUrl ? "preview_ready" : "review_required",
+  };
+}
+
 async function configurePageForProvider(page, task, url = "") {
   const isWorkable = isWorkableApplication(task, url);
   const isTeamtailor = isTeamtailorApplication(task, url);
@@ -288,6 +378,33 @@ async function completeTask(taskUuid, status, result) {
     screenshot_url: result.screenshot_url || "",
     result_payload: result,
   });
+}
+
+async function uploadApplicationPreviewScreenshot(task, screenshotBuffer) {
+  if (!screenshotBuffer || !screenshotBuffer.length) {
+    return "";
+  }
+  const fileName = `application-preview-${cleanText(task.task_uuid || Date.now())}.png`;
+  const body = new FormData();
+  body.append("action", "sffc_crm_application_worker_upload_screenshot");
+  body.append("worker_token", workerToken);
+  body.append("task_uuid", task.task_uuid || "");
+  body.append("role_title", task.role_title || "application-preview");
+  body.append("screenshot", new Blob([screenshotBuffer], { type: "image/png" }), fileName);
+
+  const response = await fetch(ajaxUrl, {
+    method: "POST",
+    body,
+  });
+  const payload = await response.json().catch(() => null);
+  if (!response.ok || !payload || !payload.success) {
+    const message =
+      payload && payload.data && payload.data.message
+        ? payload.data.message
+        : `WordPress screenshot upload failed with ${response.status}`;
+    throw new Error(message);
+  }
+  return cleanText(payload.data && payload.data.screenshot_url);
 }
 
 async function getTaskUpdate(taskUuid) {
@@ -30530,6 +30647,11 @@ async function processSimpleFormTask(page, task, candidate, cvPath, url) {
 
 async function processTask(task) {
   const url = task.application_workspace_url || task.application_url;
+  const payload = getTaskPayload(task);
+  if (payload.source === "application_preview" || task.provider === "application_preview") {
+    debugLog(task.task_uuid || "application_preview", "preview_adapter_start", url);
+    return await processApplicationPreviewTask(task);
+  }
   const verificationCode = getVerificationCode(task);
   const candidate = {
     name: task.candidate_name || "",
@@ -30541,7 +30663,6 @@ async function processTask(task) {
   candidate.firstName = firstName;
   candidate.lastName = lastName;
   const cvPath = await downloadFile(task.cv_file_url, task.cv_file_name);
-  const payload = getTaskPayload(task);
   const photoPath = await downloadFile(
     task.photo_file_url || payload.photo_file_url || task.candidate_photo_url || payload.candidate_photo_url,
     task.photo_file_name || payload.photo_file_name || task.candidate_photo_name || payload.candidate_photo_name || "candidate-photo.jpg"
@@ -31843,25 +31964,22 @@ function startHealthServer() {
   if (!healthPort) {
     return;
   }
-  const server = http.createServer((request, response) => {
-    if (request.url === "/health" || request.url === "/") {
-      response.writeHead(200, { "content-type": "application/json" });
-      response.end(
-        JSON.stringify({
-          ok: true,
-          worker_id: workerId,
-          last_heartbeat: lastHeartbeat,
-          last_task_status: lastTaskStatus,
-          allow_final_submit: allowFinalSubmit,
-          allow_workday_account_creation: allowWorkdayAccountCreation,
-          allow_successfactors_account_creation: allowSuccessFactorsAccountCreation,
-          intercept_final_submit: interceptFinalSubmit,
-        })
-      );
+  const server = http.createServer(async (request, response) => {
+    const url = new URL(request.url || "/", "http://localhost");
+    if (url.pathname === "/health" || url.pathname === "/") {
+      sendJson(response, 200, {
+        ok: true,
+        worker_id: workerId,
+        last_heartbeat: lastHeartbeat,
+        last_task_status: lastTaskStatus,
+        allow_final_submit: allowFinalSubmit,
+        allow_workday_account_creation: allowWorkdayAccountCreation,
+        allow_successfactors_account_creation: allowSuccessFactorsAccountCreation,
+        intercept_final_submit: interceptFinalSubmit,
+      });
       return;
     }
-    response.writeHead(404, { "content-type": "application/json" });
-    response.end(JSON.stringify({ ok: false }));
+    sendJson(response, 404, { ok: false });
   });
   server.listen(healthPort, () => {
     console.log(`SFFC application worker health server listening on ${healthPort}`);
@@ -31891,6 +32009,7 @@ export {
   extractCvDateRanges,
   extractWorkdayEducationEntriesFromCv,
   buildSuccessFactorsApplicationUrlCandidates,
+  captureApplicationPreviewScreenshot,
   getSuccessFactorsVisibleState,
   isSuccessFactorsApplicationFormState,
   isSuccessFactorsClosedJobState,

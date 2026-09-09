@@ -21,6 +21,8 @@ Use the same token in WordPress, preferably in `wp-config.php`:
 define('SFFC_APPLICATION_WORKER_TOKEN', 'replace-with-wordpress-token');
 ```
 
+The worker polls WordPress for queued tasks and posts results back through the same authenticated AJAX adapter. Screenshot previews are uploaded as WordPress media attachments, so the Senna R2 plugin can offload them and return the configured public media URL.
+
 Set `SFFC_WORKER_ALLOW_FINAL_SUBMIT=1` only when the service is ready to make real submissions. With the default `0`, the worker fills the form, uploads the CV where possible, captures evidence, and reports `dry_run_ready`.
 
 Workday has a separate safety switch because many tenants require a candidate account before the application form is available. Keep `SFFC_WORKER_ALLOW_WORKDAY_ACCOUNT_CREATION=0` for dry runs. Set it to `1` only after the candidate has explicitly consented to creating or using a tenant-specific Workday account. Final application submission is still controlled separately by `SFFC_WORKER_ALLOW_FINAL_SUBMIT`.
