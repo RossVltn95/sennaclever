@@ -18974,7 +18974,7 @@ Be EXTREMELY strict on functional area mismatches. Equity derivatives analyst â‰
                 'price_amount' => !empty($plan['price_amount']) ? floatval($plan['price_amount']) : 0,
                 'price_currency' => !empty($plan['price_currency']) ? $plan['price_currency'] : get_option('currency_detector_base_currency', 'USD'),
                 'billing_cycle' => !empty($plan['billing_cycle']) ? $plan['billing_cycle'] : '',
-                'shortcode' => !empty($plan['shortcode']) ? wp_unslash($plan['shortcode']) : '',
+                'shortcode' => !empty($plan['shortcode']) ? $this->normalize_krevitz_checkout_shortcode($plan['shortcode']) : '',
                 'url' => !empty($plan['mp_url']) ? $plan['mp_url'] : '',
                 'featured' => !empty($plan['featured_signup']),
             ];
@@ -18994,7 +18994,7 @@ Be EXTREMELY strict on functional area mismatches. Equity derivatives analyst â‰
                     'price_amount' => !empty($plan['annual_price_amount']) ? floatval($plan['annual_price_amount']) : $entry['price_amount'],
                     'price_currency' => $entry['price_currency'],
                     'billing_cycle' => !empty($plan['annual_billing_cycle']) ? $plan['annual_billing_cycle'] : (!empty($plan['billing_cycle']) ? $plan['billing_cycle'] : 'per year'),
-                    'shortcode' => !empty($plan['annual_shortcode']) ? wp_unslash($plan['annual_shortcode']) : $entry['shortcode'],
+                    'shortcode' => !empty($plan['annual_shortcode']) ? $this->normalize_krevitz_checkout_shortcode($plan['annual_shortcode']) : $entry['shortcode'],
                     'url' => !empty($plan['annual_mp_url']) ? $plan['annual_mp_url'] : $entry['url'],
                     'featured' => !empty($plan['featured_signup']),
                     'badge' => 'Yearly',
@@ -19188,7 +19188,7 @@ Be EXTREMELY strict on functional area mismatches. Equity derivatives analyst â‰
     }
 
     /**
-     * Render MemberPress form from shortcode
+     * Render subscription checkout form from shortcode
      */
     public function render_membership_form()
     {
@@ -19208,7 +19208,7 @@ Be EXTREMELY strict on functional area mismatches. Equity derivatives analyst â‰
         }
 
         // Remove escaped slashes that may be added during POST transmission
-        $shortcode = stripslashes($shortcode);
+        $shortcode = $this->normalize_krevitz_checkout_shortcode($shortcode);
 
         // Validate shortcode format
         if (!preg_match('/^\[[\w\-_]+/', $shortcode)) {
@@ -19223,7 +19223,7 @@ Be EXTREMELY strict on functional area mismatches. Equity derivatives analyst â‰
         // So we check if it actually rendered something different
         if (empty($html) || $html === $shortcode) {
             wp_send_json_error([
-                'message' => 'Failed to render membership form. Please ensure MemberPress is active and the shortcode is correct.',
+                'message' => 'Failed to render subscription form. Please ensure Krevitz Subscriptions is active and the shortcode is correct.',
                 'debug' => 'render_failed',
                 'shortcode' => $shortcode,
                 'html_length' => strlen($html)
@@ -21494,22 +21494,62 @@ Be EXTREMELY strict on functional area mismatches. Equity derivatives analyst â‰
         }
 
         $shortcode = stripslashes((string) $shortcode);
+        if (preg_match('/\[krevitz_checkout[^\]]*\bplan=[\'"]?(\d+)[\'"]?/i', $shortcode, $matches)) {
+            return absint($matches[1]);
+        }
         if (preg_match('/\[mepr-membership-registration-form[^\]]*\bid=[\'"]?(\d+)[\'"]?/i', $shortcode, $matches)) {
+            return absint($matches[1]);
+        }
+        if (preg_match('/\[mepr[-_]membership[-_]registration[-_]form[^\]]*\bid=[\'"]?(\d+)[\'"]?/i', $shortcode, $matches)) {
+            return absint($matches[1]);
+        }
+        if (preg_match('/\[mepr[-_]membership[-_]link[^\]]*\bid=[\'"]?(\d+)[\'"]?/i', $shortcode, $matches)) {
             return absint($matches[1]);
         }
 
         return 0;
     }
 
+    private function normalize_krevitz_checkout_shortcode($shortcode)
+    {
+        $shortcode = trim(stripslashes((string) $shortcode));
+        if ($shortcode === '') {
+            return '';
+        }
+        if (preg_match('/^\[krevitz_checkout[^\]]*\]$/i', $shortcode)) {
+            return $shortcode;
+        }
+
+        $plan_id = $this->extract_memberpress_product_id_from_shortcode($shortcode);
+        return $plan_id > 0 ? '[krevitz_checkout plan="' . $plan_id . '"]' : $shortcode;
+    }
+
     private function get_active_memberpress_product_ids($user_id)
     {
         $user_id = absint($user_id);
-        if (!$user_id || !class_exists('MeprUser')) {
+        if (!$user_id) {
             return [];
         }
 
         $product_ids = [];
+        if (class_exists('Krevitz_Subs_DB')) {
+            global $wpdb;
+            $krevitz_table = Krevitz_Subs_DB::subscriptions_table();
+            $krevitz_plan_ids = $wpdb->get_col($wpdb->prepare(
+                "SELECT DISTINCT plan_id FROM {$krevitz_table} WHERE user_id = %d AND status IN ('active', 'trialing', 'past_due', 'cancel_pending')",
+                $user_id
+            ));
+            if (is_array($krevitz_plan_ids)) {
+                foreach ($krevitz_plan_ids as $plan_id) {
+                    $product_ids[] = (int) $plan_id;
+                }
+            }
+        }
+
         try {
+            if (!class_exists('MeprUser')) {
+                return array_values(array_unique(array_filter(array_map('absint', $product_ids))));
+            }
             $mepr_user = new MeprUser($user_id);
             $active_products = $mepr_user->active_product_subscriptions('products');
             if (is_array($active_products)) {
@@ -21542,7 +21582,16 @@ Be EXTREMELY strict on functional area mismatches. Equity derivatives analyst â‰
     private function get_memberpress_product_price_amount($product_id)
     {
         $product_id = absint($product_id);
-        if (!$product_id || !class_exists('MeprProduct')) {
+        if (!$product_id) {
+            return 0.0;
+        }
+
+        if (class_exists('Krevitz_Subs_Plans') && get_post_type($product_id) === Krevitz_Subs_Plans::POST_TYPE) {
+            $meta = Krevitz_Subs_Plans::get_plan_meta($product_id);
+            return isset($meta['price']) ? (float) $meta['price'] : 0.0;
+        }
+
+        if (!class_exists('MeprProduct')) {
             return 0.0;
         }
 

@@ -168,16 +168,16 @@ class SFFC_CRM_Signup_Form_Settings
             [$this, 'render_checkbox_field'],
             'sffc-signup-form-settings',
             'sffc_signup_form_membership',
-            ['label_for' => 'sffc_signup_is_paid', 'description' => 'Enable this to redirect users to MemberPress for payment instead of free signup']
+            ['label_for' => 'sffc_signup_is_paid', 'description' => 'Enable this to redirect users to Krevitz Subscriptions checkout instead of free signup']
         );
 
         add_settings_field(
             'sffc_signup_memberpress_form_id',
-            __('MemberPress Form ID', 'senna-finance'),
+            __('Krevitz Plan ID', 'senna-finance'),
             [$this, 'render_text_field'],
             'sffc-signup-form-settings',
             'sffc_signup_form_membership',
-            ['label_for' => 'sffc_signup_memberpress_form_id', 'default' => '234380', 'description' => 'The membership ID from MemberPress']
+            ['label_for' => 'sffc_signup_memberpress_form_id', 'default' => '234380', 'description' => 'The plan ID from Krevitz Subscriptions']
         );
 
         add_settings_field(
@@ -200,11 +200,11 @@ class SFFC_CRM_Signup_Form_Settings
 
         add_settings_field(
             'sffc_signup_memberpress_page_url',
-            __('MemberPress Registration Page URL', 'senna-finance'),
+            __('Krevitz Checkout Page URL', 'senna-finance'),
             [$this, 'render_text_field'],
             'sffc-signup-form-settings',
             'sffc_signup_form_membership',
-            ['label_for' => 'sffc_signup_memberpress_page_url', 'default' => '/register/', 'description' => 'The URL of your MemberPress registration page (e.g., /register/ or /membership/)']
+            ['label_for' => 'sffc_signup_memberpress_page_url', 'default' => '/memberships/', 'description' => 'The URL of your Krevitz checkout or pricing page']
         );
     }
 
@@ -216,7 +216,7 @@ class SFFC_CRM_Signup_Form_Settings
         $base_currency = get_option('currency_detector_base_currency', 'USD');
         ?>
         <p style="margin-top: 0;">
-            <?php esc_html_e('Configure paid membership settings. When enabled, users will be redirected to MemberPress for payment after entering their basic information.', 'senna-finance'); ?>
+            <?php esc_html_e('Configure paid membership settings. When enabled, users will be redirected to Krevitz Subscriptions checkout after entering their basic information.', 'senna-finance'); ?>
         </p>
         <p style="margin-top: 10px; padding: 10px; background: #e7f3ff; border-left: 4px solid #0073aa;">
             <strong><?php esc_html_e('Currency Detection:', 'senna-finance'); ?></strong>

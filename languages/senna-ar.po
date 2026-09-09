@@ -1,0 +1,470 @@
+# Copyright (C) 2026 MENA Careers
+# This file is distributed under the GPL v2 or later.
+msgid ""
+msgstr ""
+"Project-Id-Version: MENA Careers 11.14.1\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/senna-careers\n"
+"Last-Translator: Automatically generated\n"
+"Language-Team: none\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"POT-Creation-Date: 2026-09-09T08:09:17+00:00\n"
+"PO-Revision-Date: 2026-09-09T08:09:17+00:00\n"
+"X-Generator: WP-CLI 2.12.0\n"
+"X-Domain: senna\n"
+"Language: ar\n"
+
+#. Plugin Name of the plugin
+#. Author of the plugin
+#: skill-farm-finance-career.php
+msgid "MENA Careers"
+msgstr "سنّا كاريرز"
+
+#. Plugin URI of the plugin
+#: skill-farm-finance-career.php
+msgid "https://joinsenna.com/careers"
+msgstr ""
+
+#. Description of the plugin
+#: skill-farm-finance-career.php
+msgid ""
+"AI-powered career intelligence platform featuring MENA Careers, your "
+"intelligent career advisor. Comprehensive job board, application audit, CV "
+"tailoring, and strategic career tools."
+msgstr ""
+
+#. Author URI of the plugin
+#: skill-farm-finance-career.php
+msgid "https://joinsenna.com"
+msgstr ""
+
+#: admin/partials/error-prevention-settings.php:44
+msgid "Error Prevention Engine"
+msgstr "محرك منع الأخطاء"
+
+#: admin/partials/error-prevention-settings.php:47
+msgid ""
+"The Error Prevention Engine automatically detects and fixes common database "
+"and PHP errors before they cause 500 errors."
+msgstr ""
+
+#: admin/partials/error-prevention-settings.php:52
+msgid "Engine Status"
+msgstr "حالة المحرك"
+
+#: admin/partials/error-prevention-settings.php:56
+msgid "Current Mode"
+msgstr "الوضع الحالي"
+
+#: admin/partials/error-prevention-settings.php:61
+msgid "Automatic Protection Active"
+msgstr "الحماية التلقائية نشطة"
+
+#: admin/partials/error-prevention-settings.php:61
+msgid "Manual Mode Only"
+msgstr "الوضع اليدوي فقط"
+
+#: admin/partials/error-prevention-settings.php:65
+msgid "Prevented Errors"
+msgstr "الأخطاء التي تم منعها"
+
+#: admin/partials/error-prevention-settings.php:70
+msgid "errors blocked in the last hour"
+msgstr ""
+
+#: admin/partials/error-prevention-settings.php:74
+msgid "Last Manual Scan"
+msgstr "آخر فحص يدوي"
+
+#: admin/partials/error-prevention-settings.php:86
+msgid "Never"
+msgstr "أبداً"
+
+#: admin/partials/error-prevention-settings.php:95
+msgid "Manual Scan"
+msgstr "فحص يدوي"
+
+#: admin/partials/error-prevention-settings.php:96
+msgid ""
+"Run a manual scan to check for potential database errors and fix them "
+"immediately."
+msgstr ""
+
+#: admin/partials/error-prevention-settings.php:104
+msgid "Run Error Scan Now"
+msgstr "تشغيل فحص الأخطاء الآن"
+
+#: admin/partials/error-prevention-settings.php:113
+msgid "Scan Results"
+msgstr "نتائج الفحص"
+
+#: admin/partials/error-prevention-settings.php:118
+msgid "No errors found! Your database is clean."
+msgstr "لم يتم العثور على أخطاء. قاعدة البيانات سليمة."
+
+#: admin/partials/error-prevention-settings.php:123
+#, php-format
+msgid "Found %d potential issues:"
+msgstr ""
+
+#: admin/partials/error-prevention-settings.php:143
+msgid "Scanned:"
+msgstr ""
+
+#: admin/partials/error-prevention-settings.php:154
+msgid "Settings"
+msgstr "الإعدادات"
+
+#: admin/partials/error-prevention-settings.php:161
+msgid "Protection Mode"
+msgstr "وضع الحماية"
+
+#: admin/partials/error-prevention-settings.php:167
+msgid "Automatic"
+msgstr "تلقائي"
+
+#: admin/partials/error-prevention-settings.php:168
+msgid "Continuously monitor and fix errors in real-time"
+msgstr ""
+
+#: admin/partials/error-prevention-settings.php:174
+msgid "Manual Only"
+msgstr "يدوي فقط"
+
+#: admin/partials/error-prevention-settings.php:175
+msgid "Only scan when manually triggered"
+msgstr ""
+
+#: admin/partials/error-prevention-settings.php:182
+msgid "Error Logging"
+msgstr "تسجيل الأخطاء"
+
+#: admin/partials/error-prevention-settings.php:187
+msgid "Enable verbose logging (for debugging)"
+msgstr ""
+
+#: admin/partials/error-prevention-settings.php:193
+msgid "Save Settings"
+msgstr "حفظ الإعدادات"
+
+#: admin/partials/error-prevention-settings.php:200
+msgid "Recently Prevented Errors"
+msgstr "الأخطاء التي تم منعها مؤخراً"
+
+#: admin/partials/error-prevention-settings.php:205
+msgid "Time"
+msgstr "الوقت"
+
+#: admin/partials/error-prevention-settings.php:206
+msgid "Error Type"
+msgstr "نوع الخطأ"
+
+#: admin/partials/error-prevention-settings.php:207
+msgid "Description"
+msgstr "الوصف"
+
+#: admin/partials/error-prevention-settings.php:208
+msgid "Query Fragment"
+msgstr "جزء الاستعلام"
+
+#: admin/partials/error-prevention-settings.php:230
+msgid "Clear Error Logs"
+msgstr "مسح سجلات الأخطاء"
+
+#: includes/class-autofill-loader.php:262
+msgid "Upload failed. Please try again."
+msgstr ""
+
+#: includes/class-autofill-loader.php:263
+msgid "Failed to parse CV. Please try manual entry."
+msgstr ""
+
+#: includes/class-autofill-loader.php:264
+msgid "Network error. Please check your connection."
+msgstr ""
+
+#: includes/class-autofill-loader.php:265
+msgid "CV uploaded and parsed successfully!"
+msgstr ""
+
+#: includes/class-autofill-loader.php:345
+msgid "AutoFill Settings"
+msgstr ""
+
+#: includes/class-autofill-loader.php:346
+msgid "AutoFill"
+msgstr ""
+
+#: includes/class-autofill-loader.php:360
+msgid "senna AutoFill Settings"
+msgstr ""
+
+#: includes/class-autofill-loader.php:364
+msgid "General"
+msgstr ""
+
+#: includes/class-autofill-loader.php:365
+msgid "Platforms"
+msgstr ""
+
+#: includes/class-autofill-loader.php:366
+msgid "Tokens"
+msgstr ""
+
+#: includes/class-autofill-loader.php:367
+msgid "Error Logs"
+msgstr ""
+
+#: includes/class-autofill-loader.php:377
+msgid "OpenAI API Key"
+msgstr ""
+
+#: includes/class-autofill-loader.php:383
+msgid "Enter your OpenAI API key for AI-powered CV parsing"
+msgstr ""
+
+#: includes/class-autofill-loader.php:389
+msgid "Max File Size (MB)"
+msgstr ""
+
+#: includes/class-autofill-loader.php:395
+msgid "Maximum CV file size in megabytes"
+msgstr ""
+
+#: includes/class-autofill-loader.php:430
+msgid "Supported Platforms"
+msgstr ""
+
+#: includes/class-autofill-loader.php:434
+msgid "Platform"
+msgstr ""
+
+#: includes/class-autofill-loader.php:435
+msgid "URL Pattern"
+msgstr ""
+
+#: includes/class-autofill-loader.php:436
+msgid "Priority"
+msgstr ""
+
+#: includes/class-autofill-loader.php:437
+msgid "Success Rate"
+msgstr ""
+
+#: includes/class-autofill-loader.php:438
+msgid "Status"
+msgstr "الحالة"
+
+#: includes/class-autofill-loader.php:468
+msgid "Active Tokens"
+msgstr ""
+
+#: includes/class-autofill-loader.php:473
+#: includes/class-autofill-loader.php:578
+msgid "Generate New Token"
+msgstr ""
+
+#: includes/class-autofill-loader.php:487
+msgid "Error Statistics (Last 7 Days)"
+msgstr ""
+
+#: includes/class-autofill-loader.php:491
+msgid "Error Code"
+msgstr ""
+
+#: includes/class-autofill-loader.php:492
+msgid "Type"
+msgstr "النوع"
+
+#: includes/class-autofill-loader.php:493
+msgid "Count"
+msgstr ""
+
+#: includes/class-autofill-loader.php:494
+msgid "Recovered"
+msgstr ""
+
+#: includes/class-autofill-loader.php:495
+msgid "Recovery Rate"
+msgstr ""
+
+#: includes/class-autofill-loader.php:521
+msgid "Upload CV"
+msgstr ""
+
+#: includes/class-autofill-loader.php:529
+msgid "Upload Your CV"
+msgstr ""
+
+#: includes/class-autofill-loader.php:554
+msgid "Please log in to access AutoFill settings."
+msgstr ""
+
+#: includes/class-autofill-loader.php:560
+msgid "AutoFill Extension Settings"
+msgstr ""
+
+#: includes/class-autofill-loader.php:563
+msgid "Chrome Extension"
+msgstr ""
+
+#: includes/class-autofill-loader.php:564
+msgid ""
+"Install the senna AutoFill extension to automatically fill job applications."
+msgstr ""
+
+#: includes/class-autofill-loader.php:568
+msgid "Checking extension status..."
+msgstr ""
+
+#: includes/class-autofill-loader.php:573
+msgid "Access Token"
+msgstr ""
+
+#: includes/class-autofill-loader.php:583
+msgid "Setup Instructions"
+msgstr ""
+
+#: includes/class-autofill-loader.php:585
+msgid "Install the Chrome extension"
+msgstr ""
+
+#: includes/class-autofill-loader.php:586
+msgid "Generate an access token above"
+msgstr ""
+
+#: includes/class-autofill-loader.php:587
+msgid "Enter the token in the extension"
+msgstr ""
+
+#: includes/class-autofill-loader.php:588
+msgid "Start applying with AutoFill!"
+msgstr ""
+
+#: includes/class-career-opportunities-simple.php:1767
+#: includes/class-career-opportunities-simple.php:1769
+#: skill-farm-finance-career.php:4176 skill-farm-finance-career.php:4178
+msgid "Live Expert Conversations"
+msgstr ""
+
+#: includes/class-career-opportunities-simple.php:1770
+#: skill-farm-finance-career.php:4179
+msgid "Live Expert Conversation"
+msgstr ""
+
+#: includes/class-career-opportunities-simple.php:1799
+#: includes/class-career-opportunities-simple.php:1801
+#: includes/class-career-opportunities-simple.php:1836
+#: includes/class-career-opportunities-simple.php:1932
+#: skill-farm-finance-career.php:4201 skill-farm-finance-career.php:4203
+msgid "Live Expert Messages"
+msgstr ""
+
+#: includes/class-career-opportunities-simple.php:1802
+#: skill-farm-finance-career.php:4204
+msgid "Live Expert Message"
+msgstr ""
+
+#: includes/class-career-opportunities-simple.php:1903
+msgid "Post type is required."
+msgstr ""
+
+#: includes/class-career-opportunities-simple.php:1946
+#, php-format
+msgid "Post type \"%s\" does not exist and could not be registered."
+msgstr ""
+
+#: includes/class-career-opportunities-simple.php:1951
+#, php-format
+msgid "Post type \"%s\" does not exist."
+msgstr ""
+
+#: includes/class-career-opportunities-simple.php:1997
+msgid "Failed to insert post into database."
+msgstr ""
+
+#: includes/class-career-opportunities-simple.php:2001
+#, php-format
+msgid "Database error: %s"
+msgstr ""
+
+#: includes/class-career-opportunities-simple.php:2057
+#, php-format
+msgid "Guest %d"
+msgstr ""
+
+#: includes/class-career-opportunities-simple.php:2082
+#, php-format
+msgid "Live Expert Conversation %s"
+msgstr ""
+
+#: includes/class-career-opportunities-simple.php:2089
+msgid "Unable to create conversation."
+msgstr ""
+
+#: includes/class-career-opportunities-simple.php:2120
+msgid "Missing session identifier for live expert chat."
+msgstr ""
+
+#: includes/class-career-opportunities-simple.php:2221
+#: includes/class-career-opportunities-simple.php:2323
+msgid "Invalid request. Please refresh and try again."
+msgstr ""
+
+#: includes/class-career-opportunities-simple.php:2230
+msgid "You must be logged in as an expert to reply."
+msgstr ""
+
+#: includes/class-career-opportunities-simple.php:2234
+msgid "Missing session identifier."
+msgstr ""
+
+#: includes/class-career-opportunities-simple.php:2238
+msgid "Please enter a message before sending."
+msgstr ""
+
+#: includes/class-career-opportunities-simple.php:2256
+msgid "Live Expert"
+msgstr ""
+
+#: includes/class-career-opportunities-simple.php:2259
+msgid "System"
+msgstr ""
+
+#: includes/class-career-opportunities-simple.php:2280
+msgid "Unable to send message. Please try again."
+msgstr ""
+
+#: includes/class-career-opportunities-simple.php:2359
+msgid "Expert access required."
+msgstr ""
+
+#: includes/class-career-opportunities-simple.php:2374
+msgid "No live expert conversations yet."
+msgstr ""
+
+#: includes/class-career-opportunities-simple.php:2379
+#: includes/class-career-opportunities-simple.php:2405
+msgid "Guest"
+msgstr ""
+
+#: includes/class-career-opportunities-simple.php:2416
+msgid "Your reply"
+msgstr ""
+
+#: includes/class-career-opportunities-simple.php:2421
+msgid "Type your reply to the participant…"
+msgstr ""
+
+#: includes/class-career-opportunities-simple.php:2425
+msgid "Send Reply"
+msgstr ""
+
+#: includes/class-career-opportunities-simple.php:2426
+msgid "Sending..."
+msgstr ""
+
+#: includes/class-career-opportunities-simple.php:2431
+msgid "Typing..."
+msgstr ""

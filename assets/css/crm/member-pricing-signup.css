@@ -16,8 +16,8 @@
   display: none !important;
 }
 
-/* MemberPress init decoy: visually hidden but still present in the live DOM so
-   MemberPress can find and initialise its signup form markup on page load. */
+/* Checkout init decoy: visually hidden but still present in the live DOM so
+   checkout providers can initialise signup form markup on page load. */
 .sffc-mepr-init-decoy {
   position: absolute;
   width: 1px;

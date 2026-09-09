@@ -2174,8 +2174,8 @@ body.sffc-job-plan-modal-open {
     font-size: 0.8rem;
 }
 
-/* MemberPress init decoy — visually hidden but live in the DOM so MemberPress
-   can find name="mepr_signup_form" / .mp_wrapper during its page-load scan. */
+/* Checkout init decoy: visually hidden but live in the DOM for providers that
+   initialise form markup during their page-load scan. */
 .sffc-mepr-init-decoy {
     position: absolute;
     width: 1px;

@@ -580,7 +580,7 @@ class SFFC_Professional_Profile_Manager
                 'tagline' => __('Full access to career tools and networking.', 'senna-finance'),
                 'audience' => __('For professionals serious about career advancement.', 'senna-finance'),
                 'slug' => 'career',
-                'mp_url' => 'https://joinsenna.com/memberships/career/',
+                'mp_url' => 'https://joinsenna.com/memberships/#career',
                 'features' => array(
                     __('Unlimited introduction requests', 'senna-finance'),
                     __('Priority visibility to recruiters', 'senna-finance'),
@@ -588,7 +588,7 @@ class SFFC_Professional_Profile_Manager
                     __('Deal intelligence alerts', 'senna-finance'),
                     __('Exclusive PE events access', 'senna-finance')
                 ),
-                'shortcode' => '[mepr-membership-registration-form id="102"]'
+                'shortcode' => '[krevitz_checkout plan="102"]'
             ),
             array(
                 'name' => __('Elite', 'senna-finance'),
@@ -599,7 +599,7 @@ class SFFC_Professional_Profile_Manager
                 'tagline' => __('Premium access with executive coaching.', 'senna-finance'),
                 'audience' => __('For leaders who want the complete package.', 'senna-finance'),
                 'slug' => 'elite',
-                'mp_url' => 'https://joinsenna.com/memberships/elite/',
+                'mp_url' => 'https://joinsenna.com/memberships/#elite',
                 'features' => array(
                     __('Everything in Executive', 'senna-finance'),
                     __('Monthly 1:1 executive coaching', 'senna-finance'),
@@ -607,7 +607,7 @@ class SFFC_Professional_Profile_Manager
                     __('Priority support', 'senna-finance'),
                     __('Unlimited interview practice', 'senna-finance')
                 ),
-                'shortcode' => '[mepr-membership-registration-form id="103"]'
+                'shortcode' => '[krevitz_checkout plan="103"]'
             )
         );
     }

@@ -63,7 +63,12 @@ class SFFC_Plugin_Initialization_Fix
      */
     public function load_textdomain()
     {
-        load_plugin_textdomain('senna-finance', false, dirname(plugin_basename(SFFC_PLUGIN_FILE)) . '/languages');
+        $languages_path = dirname(plugin_basename(SFFC_PLUGIN_FILE)) . '/languages';
+        load_plugin_textdomain('senna-finance', false, $languages_path);
+        load_plugin_textdomain('senna-careers', false, $languages_path);
+        load_plugin_textdomain('senna-finance-career', false, $languages_path);
+        load_plugin_textdomain('sffc', false, $languages_path);
+        load_plugin_textdomain('senna', false, $languages_path);
     }
 
     /**

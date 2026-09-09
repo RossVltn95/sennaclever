@@ -7,7 +7,7 @@
  * Version: 11.14.1
  * Author: MENA Careers
  * Author URI: https://joinsenna.com
- * Text Domain: senna-careers
+ * Text Domain: senna-finance
  * Domain Path: /languages
  * Requires at least: 5.8
  * Requires PHP: 7.4
@@ -1925,7 +1925,7 @@ class Senna_Careers
         <hr style="margin: 40px 0;" />
         <div class="wrap">
             <h2><?php esc_html_e('Membership Plans', 'senna-finance'); ?></h2>
-            <p class="description"><?php esc_html_e('Configure the plans that drive the pricing experience. Assign each plan to a signup option; the signup screen shows the annual version only when an annual MemberPress shortcode is present.', 'senna-finance'); ?></p>
+            <p class="description"><?php esc_html_e('Configure the plans that drive the pricing experience. Assign each plan to a signup option; the signup screen shows the annual version only when an annual Krevitz checkout shortcode is present.', 'senna-finance'); ?></p>
             <form method="post">
                 <?php wp_nonce_field('sffc_plan_manager', 'sffc_plan_nonce'); ?>
                 <table class="widefat fixed striped" style="margin-top: 20px;">
@@ -2073,24 +2073,24 @@ class Senna_Careers
                                     <p><strong><?php esc_html_e('Power of now', 'senna-finance'); ?></strong><br><input type="text" name="sffc_plan[now_title][]" value="<?php echo esc_attr($plan['now_title']); ?>" class="regular-text" placeholder="<?php esc_attr_e('Power of now title', 'senna-finance'); ?>"><br><textarea name="sffc_plan[now_copy][]" rows="3" class="large-text" placeholder="<?php esc_attr_e('Power of now copy', 'senna-finance'); ?>"><?php echo esc_textarea($plan['now_copy']); ?></textarea></p>
                                 </td>
                                 <td>
-                                    <p><label><strong><?php esc_html_e('MemberPress URL', 'senna-finance'); ?></strong><br><input type="url" name="sffc_plan[mp_url][]" value="<?php echo esc_attr($plan['mp_url']); ?>" class="regular-text" placeholder="https://example.com#anchor"></label></p>
-                                    <p><label><strong><?php esc_html_e('MemberPress shortcode', 'senna-finance'); ?></strong><br><input type="text" name="sffc_plan[shortcode][]" value="<?php echo esc_attr($plan['shortcode']); ?>" class="regular-text" placeholder="[mepr-membership-registration-form id=&quot;123&quot;]"></label></p>
-                                    <p><label><strong><?php esc_html_e('Annual MemberPress URL', 'senna-finance'); ?></strong><br><input type="url" name="sffc_plan[annual_mp_url][]" value="<?php echo esc_attr($plan['annual_mp_url'] ?? ''); ?>" class="regular-text" placeholder="https://example.com#annual"></label></p>
-                                    <p><label><strong><?php esc_html_e('Annual MemberPress shortcode', 'senna-finance'); ?></strong><br><input type="text" name="sffc_plan[annual_shortcode][]" value="<?php echo esc_attr($plan['annual_shortcode'] ?? ''); ?>" class="regular-text" placeholder="[mepr-membership-registration-form id=&quot;456&quot;]"></label></p>
+                                    <p><label><strong><?php esc_html_e('Krevitz checkout URL', 'senna-finance'); ?></strong><br><input type="url" name="sffc_plan[mp_url][]" value="<?php echo esc_attr($plan['mp_url']); ?>" class="regular-text" placeholder="https://joinsenna.com/memberships/#allinclusive"></label></p>
+                                    <p><label><strong><?php esc_html_e('Krevitz checkout shortcode', 'senna-finance'); ?></strong><br><input type="text" name="sffc_plan[shortcode][]" value="<?php echo esc_attr($plan['shortcode']); ?>" class="regular-text" placeholder="[krevitz_checkout plan=&quot;123&quot;]"></label></p>
+                                    <p><label><strong><?php esc_html_e('Annual Krevitz checkout URL', 'senna-finance'); ?></strong><br><input type="url" name="sffc_plan[annual_mp_url][]" value="<?php echo esc_attr($plan['annual_mp_url'] ?? ''); ?>" class="regular-text" placeholder="https://joinsenna.com/memberships/#annual"></label></p>
+                                    <p><label><strong><?php esc_html_e('Annual Krevitz checkout shortcode', 'senna-finance'); ?></strong><br><input type="text" name="sffc_plan[annual_shortcode][]" value="<?php echo esc_attr($plan['annual_shortcode'] ?? ''); ?>" class="regular-text" placeholder="[krevitz_checkout plan=&quot;456&quot;]"></label></p>
                                     <?php
-                                    $detected_memberpress_product_id = !empty($plan['memberpress_product_id'])
+                                    $detected_krevitz_plan_id = !empty($plan['memberpress_product_id'])
                                         ? (int) $plan['memberpress_product_id']
                                         : $this->extract_memberpress_product_id_from_shortcode($plan['shortcode']);
                                     ?>
                                     <p class="description">
                                         <?php
-                                        if ($detected_memberpress_product_id) {
+                                        if ($detected_krevitz_plan_id) {
                                             printf(
-                                                esc_html__('Detected MemberPress product ID: %d', 'senna-finance'),
-                                                $detected_memberpress_product_id
+                                                esc_html__('Detected Krevitz plan ID: %d', 'senna-finance'),
+                                                $detected_krevitz_plan_id
                                             );
                                         } else {
-                                            esc_html_e('No MemberPress product ID detected yet. Add a valid MemberPress registration shortcode.', 'senna-finance');
+                                            esc_html_e('No Krevitz plan ID detected yet. Add a valid Krevitz checkout shortcode.', 'senna-finance');
                                         }
                                         ?>
                                     </p>
@@ -2189,10 +2189,10 @@ class Senna_Careers
                         '<p><strong><?php echo esc_js(__('Power of now', 'senna-finance')); ?></strong><br><input type="text" name="sffc_plan[now_title][]" class="regular-text" placeholder="<?php echo esc_js(__('Power of now title', 'senna-finance')); ?>"><br><textarea name="sffc_plan[now_copy][]" rows="3" class="large-text" placeholder="<?php echo esc_js(__('Power of now copy', 'senna-finance')); ?>"></textarea></p>' +
                         '</td>' +
                         '<td>' +
-                        '<p><label><strong><?php echo esc_js(__('MemberPress URL', 'senna-finance')); ?></strong><br><input type="url" name="sffc_plan[mp_url][]" class="regular-text" placeholder="https://example.com#anchor"></label></p>' +
-                        '<p><label><strong><?php echo esc_js(__('MemberPress shortcode', 'senna-finance')); ?></strong><br><input type="text" name="sffc_plan[shortcode][]" class="regular-text" placeholder="[mepr-membership-registration-form id=&quot;123&quot;]"></label></p>' +
-                        '<p><label><strong><?php echo esc_js(__('Annual MemberPress URL', 'senna-finance')); ?></strong><br><input type="url" name="sffc_plan[annual_mp_url][]" class="regular-text" placeholder="https://example.com#annual"></label></p>' +
-                        '<p><label><strong><?php echo esc_js(__('Annual MemberPress shortcode', 'senna-finance')); ?></strong><br><input type="text" name="sffc_plan[annual_shortcode][]" class="regular-text" placeholder="[mepr-membership-registration-form id=&quot;456&quot;]"></label></p>' +
+                        '<p><label><strong><?php echo esc_js(__('Krevitz checkout URL', 'senna-finance')); ?></strong><br><input type="url" name="sffc_plan[mp_url][]" class="regular-text" placeholder="https://joinsenna.com/memberships/#allinclusive"></label></p>' +
+                        '<p><label><strong><?php echo esc_js(__('Krevitz checkout shortcode', 'senna-finance')); ?></strong><br><input type="text" name="sffc_plan[shortcode][]" class="regular-text" placeholder="[krevitz_checkout plan=&quot;123&quot;]"></label></p>' +
+                        '<p><label><strong><?php echo esc_js(__('Annual Krevitz checkout URL', 'senna-finance')); ?></strong><br><input type="url" name="sffc_plan[annual_mp_url][]" class="regular-text" placeholder="https://joinsenna.com/memberships/#annual"></label></p>' +
+                        '<p><label><strong><?php echo esc_js(__('Annual Krevitz checkout shortcode', 'senna-finance')); ?></strong><br><input type="text" name="sffc_plan[annual_shortcode][]" class="regular-text" placeholder="[krevitz_checkout plan=&quot;456&quot;]"></label></p>' +
                         '<p><label><strong><?php echo esc_js(__('Other plans label', 'senna-finance')); ?></strong><br><input type="text" name="sffc_plan[other_plans_label][]" class="regular-text" placeholder="<?php echo esc_js(__('Other plans', 'senna-finance')); ?>"></label></p>' +
                         '<p><label><strong><?php echo esc_js(__('Back from form label', 'senna-finance')); ?></strong><br><input type="text" name="sffc_plan[back_label][]" class="regular-text" placeholder="<?php echo esc_js(__('Back to plans', 'senna-finance')); ?>"></label></p>' +
                         '</td>' +
@@ -2412,7 +2412,12 @@ class Senna_Careers
     {
         // Defer textdomain loading to avoid "too early" warning
         if (did_action('init')) {
-            load_plugin_textdomain('senna-finance', false, dirname(plugin_basename(__FILE__)) . '/languages');
+            $languages_path = dirname(plugin_basename(__FILE__)) . '/languages';
+            load_plugin_textdomain('senna-finance', false, $languages_path);
+            load_plugin_textdomain('senna-careers', false, $languages_path);
+            load_plugin_textdomain('senna-finance-career', false, $languages_path);
+            load_plugin_textdomain('sffc', false, $languages_path);
+            load_plugin_textdomain('senna', false, $languages_path);
         }
 
         // Initialize other components that don't need immediate loading
@@ -3892,11 +3897,32 @@ class Senna_Careers
         }
 
         $shortcode = stripslashes((string) $shortcode);
-            if (preg_match('/\[mepr[-_]membership[-_]registration[-_]form[^\]]*\bid=[\'"]?(\d+)[\'"]?/i', $shortcode, $matches)) {
-                return absint($matches[1]);
-            }
+        if (preg_match('/\[krevitz_checkout[^\]]*\bplan=[\'"]?(\d+)[\'"]?/i', $shortcode, $matches)) {
+            return absint($matches[1]);
+        }
+        if (preg_match('/\[mepr[-_]membership[-_]registration[-_]form[^\]]*\bid=[\'"]?(\d+)[\'"]?/i', $shortcode, $matches)) {
+            return absint($matches[1]);
+        }
+        if (preg_match('/\[mepr[-_]membership[-_]link[^\]]*\bid=[\'"]?(\d+)[\'"]?/i', $shortcode, $matches)) {
+            return absint($matches[1]);
+        }
 
         return 0;
+    }
+
+    private function normalize_krevitz_checkout_shortcode($shortcode)
+    {
+        $shortcode = trim(stripslashes((string) $shortcode));
+        if ($shortcode === '') {
+            return '';
+        }
+
+        if (preg_match('/^\[krevitz_checkout[^\]]*\]$/i', $shortcode)) {
+            return $shortcode;
+        }
+
+        $plan_id = $this->extract_memberpress_product_id_from_shortcode($shortcode);
+        return $plan_id > 0 ? '[krevitz_checkout plan="' . $plan_id . '"]' : $shortcode;
     }
 
     private function sanitize_plan_rows($raw_rows)
@@ -3960,9 +3986,9 @@ class Senna_Careers
 
             $slug = sanitize_title($name);
 
-            $shortcode = isset($shortcodes[$i]) ? wp_unslash(sanitize_text_field($shortcodes[$i])) : '';
+            $shortcode = isset($shortcodes[$i]) ? $this->normalize_krevitz_checkout_shortcode(sanitize_text_field($shortcodes[$i])) : '';
             $memberpress_product_id = $this->extract_memberpress_product_id_from_shortcode($shortcode);
-            $annual_shortcode = isset($annual_shortcodes[$i]) ? wp_unslash(sanitize_text_field($annual_shortcodes[$i])) : '';
+            $annual_shortcode = isset($annual_shortcodes[$i]) ? $this->normalize_krevitz_checkout_shortcode(sanitize_text_field($annual_shortcodes[$i])) : '';
             $annual_memberpress_product_id = $this->extract_memberpress_product_id_from_shortcode($annual_shortcode);
             $signup_path_raw = strtolower(trim((string) ($signup_paths[$i] ?? 'platform')));
             $signup_path = 'platform';
@@ -4120,6 +4146,10 @@ class Senna_Careers
             $plan['featured_signup'] = !empty($plan['featured_signup']) ? 1 : 0;
             $plan['is_annual'] = !empty($plan['is_annual']) ? 1 : 0;
             $plan['recruiter_contact_pricing'] = !empty($plan['recruiter_contact_pricing']) ? 1 : 0;
+            $plan['shortcode'] = $this->normalize_krevitz_checkout_shortcode($plan['shortcode'] ?? '');
+            $plan['annual_shortcode'] = $this->normalize_krevitz_checkout_shortcode($plan['annual_shortcode'] ?? '');
+            $plan['memberpress_product_id'] = $this->extract_memberpress_product_id_from_shortcode($plan['shortcode']);
+            $plan['annual_memberpress_product_id'] = $this->extract_memberpress_product_id_from_shortcode($plan['annual_shortcode']);
 
             $plans[$index] = $plan;
         }

@@ -66,6 +66,26 @@ function sffc_render_job_apply($args)
         $has_membership = $mp_integration->has_insider_access($user_id) || $mp_integration->has_premium_access($user_id);
     }
 
+    $normalize_krevitz_checkout_shortcode = static function ($shortcode) {
+        $shortcode = trim((string) $shortcode);
+        if ($shortcode === '') {
+            return '';
+        }
+
+        if (preg_match('/\[krevitz_checkout\b[^\]]*\bplan\s*=\s*["\']?(\d+)["\']?/i', $shortcode)) {
+            return $shortcode;
+        }
+
+        if (
+            preg_match('/\[mepr[_-]membership[_-]registration[_-]form\b[^\]]*\bid\s*=\s*["\']?(\d+)["\']?/i', $shortcode, $matches)
+            || preg_match('/\[mepr[_-]membership[_-]link\b[^\]]*\bid\s*=\s*["\']?(\d+)["\']?/i', $shortcode, $matches)
+        ) {
+            return sprintf('[krevitz_checkout plan="%d"]', (int) $matches[1]);
+        }
+
+        return $shortcode;
+    };
+
     $membership_plans = [];
     if (class_exists('SFFC_PE_News_Dashboard')) {
         $dashboard_instance = SFFC_PE_News_Dashboard::get_instance();
@@ -98,7 +118,7 @@ function sffc_render_job_apply($args)
                     'tagline' => sanitize_text_field($plan['tagline'] ?? ''),
                     'audience' => sanitize_text_field($plan['audience'] ?? ''),
                     'mp_url' => esc_url_raw($plan['mp_url'] ?? ''),
-                    'shortcode' => isset($plan['shortcode']) ? wp_kses_post($plan['shortcode']) : '',
+                    'shortcode' => isset($plan['shortcode']) ? wp_kses_post($normalize_krevitz_checkout_shortcode($plan['shortcode'])) : '',
                     'features' => $features,
                 ];
             }
@@ -776,28 +796,27 @@ function sffc_render_job_apply($args)
 
             <?php
             /*
-         * MemberPress init decoy.
+         * Checkout init decoy.
          *
-         * MemberPress bootstraps its checkout JS on page load by scanning the live DOM
-         * for forms with name="mepr_signup_form" / class="mp_wrapper". Every plan form
-         * above lives inside a `hidden` div, which the browser excludes from that scan,
-         * so the form outputs unstyled HTML with no JS events.
+         * Some checkout providers bootstrap JS on page load by scanning the live DOM.
+         * Every plan form above lives inside a `hidden` div, which the browser excludes
+         * from that scan, so the form can output unstyled HTML with no JS events.
          *
          * Rendering one shortcode here — outside any `hidden` container — forces
-         * MemberPress to register its scripts and initialise its handlers. The decoy is
-         * made visually invisible via CSS (.sffc-mepr-init-decoy) using position/clip so
-         * the browser still treats it as a live, rendered node.
+         * checkout scripts to register and initialise their handlers. The decoy is made
+         * visually invisible via CSS (.sffc-mepr-init-decoy) using position/clip so the
+         * browser still treats it as a live, rendered node.
          */
-            $mepr_decoy_plan = null;
+            $checkout_decoy_plan = null;
             foreach ($membership_plans as $_mp) {
                 if (! empty($_mp['shortcode'])) {
-                    $mepr_decoy_plan = $_mp;
+                    $checkout_decoy_plan = $_mp;
                     break;
                 }
             }
-            if ($mepr_decoy_plan) : ?>
+            if ($checkout_decoy_plan) : ?>
                 <div class="sffc-mepr-init-decoy" aria-hidden="true" tabindex="-1">
-                    <?php echo do_shortcode($mepr_decoy_plan['shortcode']); ?>
+                    <?php echo do_shortcode($checkout_decoy_plan['shortcode']); ?>
                 </div>
             <?php endif; ?>
 

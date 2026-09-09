@@ -13370,7 +13370,7 @@
             // Show State 3
             $('.sffc-crm-auth-membership-form').show();
 
-            // Inject MemberPress shortcode
+            // Inject subscription checkout shortcode
             var $container = $('#crm-memberpress-form-container');
             $container.html('<div class="sffc-crm-loading">Loading form...</div>');
 

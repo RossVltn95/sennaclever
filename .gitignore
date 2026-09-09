@@ -9,6 +9,7 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 *.zip
+reports/
 reports/*.html
 reports/*.json
 reports/tailored-cv-rewrite-samples/

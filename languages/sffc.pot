@@ -1,0 +1,406 @@
+# Copyright (C) 2026 MENA Careers
+# This file is distributed under the GPL v2 or later.
+msgid ""
+msgstr ""
+"Project-Id-Version: MENA Careers 11.14.1\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/senna-careers\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"POT-Creation-Date: 2026-09-09T08:09:17+00:00\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"X-Generator: WP-CLI 2.12.0\n"
+"X-Domain: sffc\n"
+
+#. Plugin Name of the plugin
+#. Author of the plugin
+#: skill-farm-finance-career.php
+msgid "MENA Careers"
+msgstr ""
+
+#. Plugin URI of the plugin
+#: skill-farm-finance-career.php
+msgid "https://joinsenna.com/careers"
+msgstr ""
+
+#. Description of the plugin
+#: skill-farm-finance-career.php
+msgid "AI-powered career intelligence platform featuring MENA Careers, your intelligent career advisor. Comprehensive job board, application audit, CV tailoring, and strategic career tools."
+msgstr ""
+
+#. Author URI of the plugin
+#: skill-farm-finance-career.php
+msgid "https://joinsenna.com"
+msgstr ""
+
+#: admin/class-intelligence-settings.php:50
+#: admin/class-intelligence-settings.php:51
+msgid "Intelligence Settings"
+msgstr ""
+
+#: admin/class-intelligence-settings.php:81
+msgid "API Keys"
+msgstr ""
+
+#: admin/class-intelligence-settings.php:89
+msgid "Anthropic API Key"
+msgstr ""
+
+#: admin/class-intelligence-settings.php:95
+msgid "Required for Claude AI extraction and web search. Get your key at <a href=\"https://console.anthropic.com/\" target=\"_blank\">console.anthropic.com</a>"
+msgstr ""
+
+#: admin/class-intelligence-settings.php:102
+msgid "Alpha Vantage API Key"
+msgstr ""
+
+#: admin/class-intelligence-settings.php:108
+msgid "For stock data and company fundamentals. Free tier: 500 requests/day. Get your key at <a href=\"https://www.alphavantage.com/support/#api-key\" target=\"_blank\">alphavantage.co</a>"
+msgstr ""
+
+#: admin/class-intelligence-settings.php:115
+msgid "Finnhub API Key"
+msgstr ""
+
+#: admin/class-intelligence-settings.php:121
+msgid "For IPO calendar and market news. Free tier available. Get your key at <a href=\"https://finnhub.io/\" target=\"_blank\">finnhub.io</a>"
+msgstr ""
+
+#: admin/class-intelligence-settings.php:128
+msgid "Free Data Sources (No API Key Required)"
+msgstr ""
+
+#: admin/class-intelligence-settings.php:138
+msgid "Configure API keys for external data sources. These are used to enrich articles with company information, market data, and financial metrics."
+msgstr ""
+
+#: admin/class-intelligence-settings.php:147
+msgid "The following free data sources are used automatically without API keys:"
+msgstr ""
+
+#: admin/class-intelligence-settings.php:151
+msgid "Source"
+msgstr ""
+
+#: admin/class-intelligence-settings.php:152
+msgid "Data Provided"
+msgstr ""
+
+#: admin/class-intelligence-settings.php:153
+#: admin/partials/feed-scheduler-admin.php:25
+#: admin/partials/feed-scheduler-admin.php:246
+msgid "Status"
+msgstr ""
+
+#: admin/class-intelligence-settings.php:159
+msgid "Company profiles, founding date, HQ, industry"
+msgstr ""
+
+#: admin/class-intelligence-settings.php:160
+#: admin/class-intelligence-settings.php:165
+#: admin/class-intelligence-settings.php:170
+msgid "Active"
+msgstr ""
+
+#: admin/class-intelligence-settings.php:164
+msgid "US public company filings, financials"
+msgstr ""
+
+#: admin/class-intelligence-settings.php:169
+msgid "Company descriptions, history"
+msgstr ""
+
+#: admin/class-intelligence-settings.php:197
+msgid "Current:"
+msgstr ""
+
+#: admin/class-intelligence-settings.php:217
+msgid "Settings Saved"
+msgstr ""
+
+#: admin/class-intelligence-settings.php:232
+#: admin/partials/feed-scheduler-admin.php:223
+#: admin/partials/feed-scheduler-admin.php:346
+msgid "Save Settings"
+msgstr ""
+
+#: admin/class-intelligence-settings.php:238
+msgid "Test Data Enrichment"
+msgstr ""
+
+#: admin/class-intelligence-settings.php:239
+msgid "Test the enrichment pipeline with a sample article."
+msgstr ""
+
+#: admin/class-intelligence-settings.php:243
+msgid "Post ID:"
+msgstr ""
+
+#: admin/class-intelligence-settings.php:246
+msgid "Test Enrichment"
+msgstr ""
+
+#: admin/class-intelligence-settings.php:250
+msgid "Result:"
+msgstr ""
+
+#: admin/partials/feed-scheduler-admin.php:14
+msgid "Feed Scheduler"
+msgstr ""
+
+#: admin/partials/feed-scheduler-admin.php:15
+msgid "Automatically fetch jobs from selected feeds on a schedule."
+msgstr ""
+
+#: admin/partials/feed-scheduler-admin.php:29
+msgid "Scheduler Status"
+msgstr ""
+
+#: admin/partials/feed-scheduler-admin.php:33
+msgid "Enabled"
+msgstr ""
+
+#: admin/partials/feed-scheduler-admin.php:36
+msgid "Disabled"
+msgstr ""
+
+#: admin/partials/feed-scheduler-admin.php:41
+msgid "Next Scheduled Run"
+msgstr ""
+
+#: admin/partials/feed-scheduler-admin.php:45
+#, php-format
+msgid "in %s"
+msgstr ""
+
+#: admin/partials/feed-scheduler-admin.php:47
+msgid "No scheduled runs"
+msgstr ""
+
+#: admin/partials/feed-scheduler-admin.php:52
+msgid "Total Available Feeds"
+msgstr ""
+
+#: admin/partials/feed-scheduler-admin.php:62
+msgid "Selected Feeds"
+msgstr ""
+
+#: admin/partials/feed-scheduler-admin.php:73
+msgid "Scheduler Settings"
+msgstr ""
+
+#: admin/partials/feed-scheduler-admin.php:78
+msgid "Enable Scheduler"
+msgstr ""
+
+#: admin/partials/feed-scheduler-admin.php:83
+msgid "Enable automatic feed fetching"
+msgstr ""
+
+#: admin/partials/feed-scheduler-admin.php:90
+msgid "Frequency"
+msgstr ""
+
+#: admin/partials/feed-scheduler-admin.php:95
+msgid "Every 30 minutes"
+msgstr ""
+
+#: admin/partials/feed-scheduler-admin.php:98
+msgid "Hourly"
+msgstr ""
+
+#: admin/partials/feed-scheduler-admin.php:101
+msgid "Every 3 hours"
+msgstr ""
+
+#: admin/partials/feed-scheduler-admin.php:104
+msgid "Every 6 hours"
+msgstr ""
+
+#: admin/partials/feed-scheduler-admin.php:107
+msgid "Every 12 hours"
+msgstr ""
+
+#: admin/partials/feed-scheduler-admin.php:110
+msgid "Daily"
+msgstr ""
+
+#: admin/partials/feed-scheduler-admin.php:113
+msgid "Every 3 days"
+msgstr ""
+
+#: admin/partials/feed-scheduler-admin.php:116
+msgid "Weekly"
+msgstr ""
+
+#: admin/partials/feed-scheduler-admin.php:124
+msgid "Max Jobs Per Feed"
+msgstr ""
+
+#: admin/partials/feed-scheduler-admin.php:131
+msgid "Maximum number of jobs to fetch from each feed per run."
+msgstr ""
+
+#: admin/partials/feed-scheduler-admin.php:138
+msgid "Save Jobs"
+msgstr ""
+
+#: admin/partials/feed-scheduler-admin.php:143
+msgid "Save fetched jobs to database"
+msgstr ""
+
+#: admin/partials/feed-scheduler-admin.php:150
+msgid "Email Notifications"
+msgstr ""
+
+#: admin/partials/feed-scheduler-admin.php:155
+msgid "Send email notifications after each run"
+msgstr ""
+
+#: admin/partials/feed-scheduler-admin.php:160
+msgid "Email address"
+msgstr ""
+
+#: admin/partials/feed-scheduler-admin.php:166
+msgid "Select Feeds"
+msgstr ""
+
+#: admin/partials/feed-scheduler-admin.php:168
+msgid "Select which feeds to include in scheduled fetching."
+msgstr ""
+
+#: admin/partials/feed-scheduler-admin.php:174
+msgid "Workday Feeds"
+msgstr ""
+
+#: admin/partials/feed-scheduler-admin.php:178
+msgid "Select All Workday Feeds"
+msgstr ""
+
+#: admin/partials/feed-scheduler-admin.php:198
+msgid "XML/RSS/API Feeds"
+msgstr ""
+
+#: admin/partials/feed-scheduler-admin.php:202
+msgid "Select All XML Feeds"
+msgstr ""
+
+#: admin/partials/feed-scheduler-admin.php:226
+#: admin/partials/feed-scheduler-admin.php:382
+msgid "Run Now"
+msgstr ""
+
+#: admin/partials/feed-scheduler-admin.php:229
+msgid "Clear History"
+msgstr ""
+
+#: admin/partials/feed-scheduler-admin.php:235
+msgid "Recent Fetch History"
+msgstr ""
+
+#: admin/partials/feed-scheduler-admin.php:240
+msgid "Date/Time"
+msgstr ""
+
+#: admin/partials/feed-scheduler-admin.php:241
+msgid "Type"
+msgstr ""
+
+#: admin/partials/feed-scheduler-admin.php:242
+msgid "Feeds"
+msgstr ""
+
+#: admin/partials/feed-scheduler-admin.php:243
+msgid "Fetched"
+msgstr ""
+
+#: admin/partials/feed-scheduler-admin.php:244
+msgid "Saved"
+msgstr ""
+
+#: admin/partials/feed-scheduler-admin.php:245
+msgid "Time"
+msgstr ""
+
+#: admin/partials/feed-scheduler-admin.php:260
+msgid "Success"
+msgstr ""
+
+#: admin/partials/feed-scheduler-admin.php:262
+msgid "Partial"
+msgstr ""
+
+#: admin/partials/feed-scheduler-admin.php:264
+msgid "Failed"
+msgstr ""
+
+#: admin/partials/feed-scheduler-admin.php:279
+msgid "No fetch history available yet."
+msgstr ""
+
+#: admin/partials/feed-scheduler-admin.php:329
+msgid "Saving..."
+msgstr ""
+
+#: admin/partials/feed-scheduler-admin.php:343
+msgid "Error saving settings"
+msgstr ""
+
+#: admin/partials/feed-scheduler-admin.php:353
+msgid "Are you sure you want to run the scheduler now? This may take several minutes."
+msgstr ""
+
+#: admin/partials/feed-scheduler-admin.php:358
+msgid "Running..."
+msgstr ""
+
+#: admin/partials/feed-scheduler-admin.php:370
+msgid "Scheduler executed successfully!"
+msgstr ""
+
+#: admin/partials/feed-scheduler-admin.php:371
+msgid "Fetched:"
+msgstr ""
+
+#: admin/partials/feed-scheduler-admin.php:371
+#: admin/partials/feed-scheduler-admin.php:372
+msgid "jobs"
+msgstr ""
+
+#: admin/partials/feed-scheduler-admin.php:372
+msgid "Saved:"
+msgstr ""
+
+#: admin/partials/feed-scheduler-admin.php:379
+msgid "Error running scheduler"
+msgstr ""
+
+#: admin/partials/feed-scheduler-admin.php:389
+msgid "Are you sure you want to clear the fetch history?"
+msgstr ""
+
+#: includes/class-intelligence-brief-ajax.php:111
+msgid "Generating Intelligence Brief..."
+msgstr ""
+
+#: includes/class-intelligence-brief-ajax.php:112
+msgid "Gathering data from sources..."
+msgstr ""
+
+#: includes/class-intelligence-brief-ajax.php:113
+msgid "Preparing download..."
+msgstr ""
+
+#: includes/class-intelligence-brief-ajax.php:114
+msgid "An error occurred. Please try again."
+msgstr ""
+
+#: includes/class-intelligence-brief-ajax.php:115
+msgid "Unable to gather enough data for a complete brief."
+msgstr ""
+
+#: includes/class-memberpress-campaigns-init.php:301
+msgid "MemberPress Campaigns requires MemberPress to be installed and activated."
+msgstr ""

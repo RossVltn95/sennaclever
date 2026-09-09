@@ -3438,9 +3438,9 @@ class SFFC_PE_News_Dashboard
                 'audience' => sanitize_text_field($plan['audience'] ?? ''),
                 'slug' => sanitize_title($plan['slug'] ?? $plan['name']),
                 'mp_url' => esc_url_raw($plan['mp_url'] ?? ''),
-                'shortcode' => isset($plan['shortcode']) ? wp_kses_post($plan['shortcode']) : '',
+                'shortcode' => isset($plan['shortcode']) ? wp_kses_post($this->normalize_krevitz_checkout_shortcode($plan['shortcode'])) : '',
                 'annual_mp_url' => esc_url_raw($plan['annual_mp_url'] ?? ''),
-                'annual_shortcode' => isset($plan['annual_shortcode']) ? wp_kses_post($plan['annual_shortcode']) : '',
+                'annual_shortcode' => isset($plan['annual_shortcode']) ? wp_kses_post($this->normalize_krevitz_checkout_shortcode($plan['annual_shortcode'])) : '',
                 'features' => array(),
                 'featured_signup' => !empty($plan['featured_signup']) ? 1 : 0,
                 'is_annual' => !empty($plan['is_annual']) ? 1 : 0,
@@ -3748,13 +3748,13 @@ class SFFC_PE_News_Dashboard
                 'tagline' => __('Premium analysis and investment intelligence without career add-ons.', 'senna-finance'),
                 'audience' => __('For professionals who come for the content, not the coaching.', 'senna-finance'),
                 'slug' => 'insights',
-                'mp_url' => 'https://joinsenna.com/memberships/insights/',
+                'mp_url' => 'https://joinsenna.com/memberships/#insights',
                 'features' => array(
                     __('Daily expert-curated insights across PE, HF, and AM.', 'senna-finance'),
                     __('Deal flow coverage, trend breakdowns, and templates for analysis.', 'senna-finance'),
                     __('Real-time alerts plus full access to the insights archive.', 'senna-finance')
                 ),
-                'shortcode' => '[mepr-membership-registration-form id="101"]'
+                'shortcode' => '[krevitz_checkout plan="101"]'
             ),
             array(
                 'name' => __('Career Membership', 'senna-finance'),
@@ -3766,13 +3766,13 @@ class SFFC_PE_News_Dashboard
                 'tagline' => __('All the tools to break into or advance in private equity.', 'senna-finance'),
                 'audience' => __('For professionals who want the career advantage, not just the news.', 'senna-finance'),
                 'slug' => 'career',
-                'mp_url' => 'https://joinsenna.com/memberships/career/',
+                'mp_url' => 'https://joinsenna.com/memberships/#career',
                 'features' => array(
                     __('Smart CV analysis with tailored guidance.', 'senna-finance'),
                     __('Personalised job matching & AI interview preparation.', 'senna-finance'),
                     __('Skill-gap detection plus premium templates and guides.', 'senna-finance')
                 ),
-                'shortcode' => '[mepr-membership-registration-form id="102"]'
+                'shortcode' => '[krevitz_checkout plan="102"]'
             ),
             array(
                 'name' => __('Elite Membership', 'senna-finance'),
@@ -3784,15 +3784,49 @@ class SFFC_PE_News_Dashboard
                 'tagline' => __('Insights + career tools + expert coaching in one membership.', 'senna-finance'),
                 'audience' => __('For leaders who want everything: research, career acceleration, and coaching.', 'senna-finance'),
                 'slug' => 'elite',
-                'mp_url' => 'https://joinsenna.com/memberships/elite/',
+                'mp_url' => 'https://joinsenna.com/memberships/#elite',
                 'features' => array(
                     __('Includes Insights + Career benefits.', 'senna-finance'),
                     __('Monthly 1:1 executive coaching and recruiter outreach.', 'senna-finance'),
                     __('Priority support, unlimited interview practice, and roadmap planning.', 'senna-finance')
                 ),
-                'shortcode' => '[mepr-membership-registration-form id="103"]'
+                'shortcode' => '[krevitz_checkout plan="103"]'
             )
         );
+    }
+
+    private function extract_subscription_plan_id_from_shortcode($shortcode)
+    {
+        $shortcode = trim(stripslashes((string) $shortcode));
+        if ($shortcode === '') {
+            return 0;
+        }
+
+        if (preg_match('/\[krevitz_checkout[^\]]*\bplan=[\'"]?(\d+)[\'"]?/i', $shortcode, $matches)) {
+            return absint($matches[1]);
+        }
+        if (preg_match('/\[mepr[-_]membership[-_]registration[-_]form[^\]]*\bid=[\'"]?(\d+)[\'"]?/i', $shortcode, $matches)) {
+            return absint($matches[1]);
+        }
+        if (preg_match('/\[mepr[-_]membership[-_]link[^\]]*\bid=[\'"]?(\d+)[\'"]?/i', $shortcode, $matches)) {
+            return absint($matches[1]);
+        }
+
+        return 0;
+    }
+
+    private function normalize_krevitz_checkout_shortcode($shortcode)
+    {
+        $shortcode = trim(stripslashes((string) $shortcode));
+        if ($shortcode === '') {
+            return '';
+        }
+        if (preg_match('/^\[krevitz_checkout[^\]]*\]$/i', $shortcode)) {
+            return $shortcode;
+        }
+
+        $plan_id = $this->extract_subscription_plan_id_from_shortcode($shortcode);
+        return $plan_id > 0 ? '[krevitz_checkout plan="' . $plan_id . '"]' : $shortcode;
     }
 
     /**

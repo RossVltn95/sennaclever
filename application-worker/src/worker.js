@@ -4039,7 +4039,13 @@ function getCandidateProfileAnswers(task) {
 
 function getCvText(task) {
   const payload = getTaskPayload(task);
-  return String(task?.cv_text || payload.cv_text || payload.cvText || task?.__sffc_cv_text || "")
+  const cvMode = cleanText(payload.cv_mode || task?.cv_mode || "").toLowerCase();
+  const tailoredText = String(payload.tailored_cv_text || task?.tailored_cv_text || "").trim();
+  return String(
+    cvMode === "tailored" && tailoredText
+      ? tailoredText
+      : task?.cv_text || payload.cv_text || payload.cvText || task?.__sffc_cv_text || ""
+  )
     .replace(/[^\S\r\n]+/g, " ")
     .replace(/\n{3,}/g, "\n\n")
     .trim();

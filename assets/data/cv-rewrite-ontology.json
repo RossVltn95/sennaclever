@@ -1,41 +1,41 @@
 {
-  "generatedAt": "2026-09-08T16:32:58.701Z",
+  "generatedAt": "2026-09-09T11:03:37.069Z",
   "source": {
     "cvDir": "/Users/ropafadzoyasheushe/Downloads/CVs",
-    "filesParsed": 171,
-    "bulletsSeen": 734,
-    "strongBullets": 256
+    "filesParsed": 180,
+    "bulletsSeen": 787,
+    "strongBullets": 271
   },
   "domains": [
     {
       "key": "general",
-      "count": 320
+      "count": 351
     },
     {
       "key": "operations",
-      "count": 184
+      "count": 195
     },
     {
       "key": "investment",
-      "count": 142
+      "count": 151
     },
     {
       "key": "technology",
-      "count": 105
+      "count": 109
     },
     {
       "key": "business_development",
-      "count": 102
+      "count": 108
     }
   ],
   "weakOpeners": [
     {
       "key": "facilitated",
-      "count": 9
+      "count": 10
     },
     {
       "key": "assisted in",
-      "count": 2
+      "count": 4
     },
     {
       "key": "handled",
@@ -61,23 +61,23 @@
   "weakLanguage": [
     {
       "key": "missing_outcome_signal",
-      "count": 586
+      "count": 632
     },
     {
       "key": "vague_quantity",
-      "count": 75
+      "count": 78
     },
     {
       "key": "filler_language",
-      "count": 38
+      "count": 41
     },
     {
       "key": "weak_opening_verb",
-      "count": 32
+      "count": 37
     },
     {
       "key": "first_person_language",
-      "count": 31
+      "count": 32
     },
     {
       "key": "generic_responsibility",

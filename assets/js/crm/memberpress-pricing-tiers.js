@@ -59,7 +59,7 @@
     if (copy) {
       copy.textContent =
         button.getAttribute("data-plan-tagline") ||
-        "Complete your secure MemberPress checkout below.";
+        "Complete your secure checkout below.";
     }
     if (price) {
       price.textContent = button.getAttribute("data-plan-price") || "";

@@ -776,6 +776,8 @@ class SFFC_CRM_Shortcodes
         add_action('wp_ajax_nopriv_sffc_crm_apply_chat_analyze_cv', [$this, 'ajax_crm_apply_chat_analyze_cv']);
         add_action('wp_ajax_sffc_crm_apply_chat_check_account_email', [$this, 'ajax_crm_apply_chat_check_account_email']);
         add_action('wp_ajax_nopriv_sffc_crm_apply_chat_check_account_email', [$this, 'ajax_crm_apply_chat_check_account_email']);
+        add_action('wp_ajax_sffc_crm_apply_chat_service_signup_email', [$this, 'ajax_crm_apply_chat_service_signup_email']);
+        add_action('wp_ajax_nopriv_sffc_crm_apply_chat_service_signup_email', [$this, 'ajax_crm_apply_chat_service_signup_email']);
         add_action('wp_ajax_sffc_crm_apply_chat_request_human_followup', [$this, 'ajax_crm_apply_chat_request_human_followup']);
         add_action('wp_ajax_nopriv_sffc_crm_apply_chat_request_human_followup', [$this, 'ajax_crm_apply_chat_request_human_followup']);
         add_action('wp_ajax_sffc_crm_apply_chat_boot_session', [$this, 'ajax_crm_apply_chat_boot_session']);
@@ -5620,13 +5622,13 @@ class SFFC_CRM_Shortcodes
                                 </button>
                             </div>
 
-                            <!-- State 3: MemberPress Form -->
+                            <!-- State 3: Subscription checkout form -->
                             <div class="sffc-crm-auth-membership-form" style="display: none;">
                                 <button type="button" class="sffc-crm-auth-back-btn" id="crm-auth-back-to-plans">
                                     ← Back to plans
                                 </button>
                                 <div id="crm-memberpress-form-container">
-                                    <!-- MemberPress form injected here by JavaScript -->
+                                    <!-- Subscription checkout form injected here by JavaScript -->
                                 </div>
                             </div>
                         </div>
@@ -12735,7 +12737,7 @@ CSS;
                     'price_amount' => 49.99,
                     'price_currency' => 'GBP',
                     'membership_id' => 253079,
-                    'shortcode' => '[mepr_membership_registration_form id="253079"]',
+                    'shortcode' => '[krevitz_checkout plan="253079"]',
                     'recommended' => true,
                     'benefits' => [
                         __('Full CV and LinkedIn recruiter-style review', 'senna-finance'),
@@ -12750,7 +12752,7 @@ CSS;
                     'price_amount' => 29.99,
                     'price_currency' => 'GBP',
                     'membership_id' => 253078,
-                    'shortcode' => '[mepr_membership_registration_form id="253078"]',
+                    'shortcode' => '[krevitz_checkout plan="253078"]',
                     'benefits' => [
                         __('CV vs job description comparison', 'senna-finance'),
                         __('ATS missing keywords, strengths, and weak evidence', 'senna-finance'),
@@ -12764,7 +12766,7 @@ CSS;
                     'price_amount' => 19.99,
                     'price_currency' => 'GBP',
                     'membership_id' => 253081,
-                    'shortcode' => '[mepr_membership_link id="253081"]',
+                    'shortcode' => '[krevitz_checkout plan="253081"]',
                     'benefits' => [
                         __('Headline, About section, and experience positioning', 'senna-finance'),
                         __('Missing recruiter signals and keyword guidance', 'senna-finance'),
@@ -15733,20 +15735,7 @@ CSS;
 
         private function get_crm_reddit_membership_url()
         {
-            $default_url = home_url('/memberships/');
-
-            try {
-                if (class_exists('SFFC_CRM_MemberPress_Integration')) {
-                    $integration = SFFC_CRM_MemberPress_Integration::get_instance();
-                    if ($integration && method_exists($integration, 'get_upgrade_url')) {
-                        return (string) $integration->get_upgrade_url('pro');
-                    }
-                }
-            } catch (\Throwable $throwable) {
-                error_log('SFFC Reddit Feed membership URL error: ' . $throwable->getMessage());
-            }
-
-            return (string) apply_filters('sffc_gap_analyzer_membership_url', $default_url);
+            return (string) apply_filters('sffc_gap_analyzer_membership_url', $this->get_canonical_membership_url());
         }
 
         private function get_crm_reddit_upgrade_capture_material_preview_items(array $context)
@@ -20216,7 +20205,7 @@ Return ONLY this JSON structure:
                     <div class="sffc-crm-reddit-panel-head">
                         <div>
                             <h3><?php esc_html_e('Membership', 'senna-finance'); ?></h3>
-                            <p><?php esc_html_e('Detected from your current MemberPress subscription and kept aligned with the same upgrade logic used across MENA Careers.', 'senna-finance'); ?></p>
+                            <p><?php esc_html_e('Detected from your current subscription and kept aligned with the same upgrade logic used across MENA Careers.', 'senna-finance'); ?></p>
                         </div>
                     </div>
                     <div class="sffc-crm-reddit-account-membership-card">
@@ -23341,7 +23330,7 @@ Return ONLY this JSON structure:
             }
 
             /**
-             * Allows additional paid MemberPress products to unlock the editorial community.
+             * Allows additional paid subscription products to unlock the editorial community.
              *
              * @param int[] $product_ids
              */
@@ -40969,6 +40958,7 @@ CRITICAL INSTRUCTIONS:
                 'accountNonce' => wp_create_nonce('sffc_crm_reddit_account'),
                 'resumeUploadNonce' => wp_create_nonce('sffc_cv_upload'),
                 'accountLookupNonce' => wp_create_nonce('sffc_crm_apply_chat_check_account_email'),
+                'serviceSignupEmailNonce' => wp_create_nonce('sffc_crm_apply_chat_service_signup_email'),
                 'requestHumanNonce' => wp_create_nonce('sffc_crm_apply_chat_request_human_followup'),
                 'chatSessionNonce' => wp_create_nonce('sffc_crm_apply_chat_session'),
                 'memoryNonce' => wp_create_nonce('sffc_crm_apply_chat_memory'),
@@ -40979,11 +40969,14 @@ CRITICAL INSTRUCTIONS:
                 'applicationPreviewQueueNonce' => wp_create_nonce('sffc_crm_apply_chat_queue_application_preview'),
                 'catchUpInviteNonce' => wp_create_nonce('sffc_crm_apply_chat_send_catch_up_invite'),
                 'jobsSearchNonce' => wp_create_nonce('sffc_crm_apply_chat_search_jobs'),
+                'emilyDecisionEngineEnabled' => (bool) apply_filters('sffc_crm_apply_chat_decision_engine_enabled', true),
+                'emilyDecisionEngineShadowMode' => (bool) apply_filters('sffc_crm_apply_chat_decision_engine_shadow_mode', false),
+                'emilyDecisionConfidenceThreshold' => (float) apply_filters('sffc_crm_apply_chat_decision_confidence_threshold', 0.6),
                 'prefillNonce' => wp_create_nonce('sffc_sync_signup_prefill'),
                 'currencyNonce' => wp_create_nonce('sffc_member_basic_signup_currency'),
                 'membershipPanelNonce' => wp_create_nonce('sffc_apply_chat_membership_panel'),
                 'signupUrl' => home_url('/get-started/'),
-                'membershipsUrl' => home_url('/memberships/'),
+                'membershipsUrl' => $this->get_canonical_membership_url(),
                 'applyChatPricingOptions' => $this->get_apply_chat_pricing_options(),
                 'isLoggedIn' => is_user_logged_in(),
                 'isAdminTester' => current_user_can('manage_options'),
@@ -42006,6 +41999,7 @@ CRITICAL INSTRUCTIONS:
                 'accountNonce' => wp_create_nonce('sffc_crm_reddit_account'),
                 'resumeUploadNonce' => wp_create_nonce('sffc_cv_upload'),
                 'accountLookupNonce' => wp_create_nonce('sffc_crm_apply_chat_check_account_email'),
+                'serviceSignupEmailNonce' => wp_create_nonce('sffc_crm_apply_chat_service_signup_email'),
                 'requestHumanNonce' => wp_create_nonce('sffc_crm_apply_chat_request_human_followup'),
                 'chatSessionNonce' => wp_create_nonce('sffc_crm_apply_chat_session'),
                 'memoryNonce' => wp_create_nonce('sffc_crm_apply_chat_memory'),
@@ -42016,11 +42010,14 @@ CRITICAL INSTRUCTIONS:
                 'applicationPreviewQueueNonce' => wp_create_nonce('sffc_crm_apply_chat_queue_application_preview'),
                 'catchUpInviteNonce' => wp_create_nonce('sffc_crm_apply_chat_send_catch_up_invite'),
                 'jobsSearchNonce' => wp_create_nonce('sffc_crm_apply_chat_search_jobs'),
+                'emilyDecisionEngineEnabled' => (bool) apply_filters('sffc_crm_apply_chat_decision_engine_enabled', true),
+                'emilyDecisionEngineShadowMode' => (bool) apply_filters('sffc_crm_apply_chat_decision_engine_shadow_mode', false),
+                'emilyDecisionConfidenceThreshold' => (float) apply_filters('sffc_crm_apply_chat_decision_confidence_threshold', 0.6),
                 'prefillNonce' => wp_create_nonce('sffc_sync_signup_prefill'),
                 'currencyNonce' => wp_create_nonce('sffc_member_basic_signup_currency'),
                 'membershipPanelNonce' => wp_create_nonce('sffc_apply_chat_membership_panel'),
                 'signupUrl' => home_url('/get-started/'),
-                'membershipsUrl' => home_url('/memberships/'),
+                'membershipsUrl' => $this->get_canonical_membership_url(),
                 'applyChatPricingOptions' => $this->get_apply_chat_pricing_options(),
                 'isLoggedIn' => is_user_logged_in(),
                 'isAdminTester' => current_user_can('manage_options'),
@@ -44075,6 +44072,11 @@ CRITICAL INSTRUCTIONS:
             $company_name = sanitize_text_field(wp_unslash((string) ($_POST['company_name'] ?? '')));
             $candidate_phone = sanitize_text_field(wp_unslash((string) ($_POST['candidate_phone'] ?? '')));
             $cv_text = sanitize_textarea_field(wp_unslash((string) ($_POST['cv_text'] ?? '')));
+            $cv_mode = sanitize_key((string) wp_unslash($_POST['cv_mode'] ?? 'original'));
+            if (!in_array($cv_mode, ['original', 'tailored'], true)) {
+                $cv_mode = 'original';
+            }
+            $tailored_cv_text = sanitize_textarea_field(wp_unslash((string) ($_POST['tailored_cv_text'] ?? '')));
             $cover_letter_requested = rest_sanitize_boolean(wp_unslash((string) ($_POST['cover_letter_requested'] ?? '0')));
             $page_url = esc_url_raw(wp_unslash((string) ($_POST['page_url'] ?? '')));
             $conversation_id = $this->find_or_create_crm_apply_chat_conversation($session_token, $crm_post_id ?: $jobs_post_id, $role_title, $page_url);
@@ -44088,7 +44090,14 @@ CRITICAL INSTRUCTIONS:
                 'application_schema' => [],
                 'application_answers' => [],
                 'verification_code' => sanitize_text_field(wp_unslash((string) ($_POST['verification_code'] ?? ''))),
+                'cv_mode' => $cv_mode,
+                'tailored_cv_text' => $tailored_cv_text,
             ];
+            $tailored_cv_model_raw = wp_unslash((string) ($_POST['tailored_cv_model'] ?? '{}'));
+            $tailored_cv_model_decoded = json_decode($tailored_cv_model_raw, true);
+            if (is_array($tailored_cv_model_decoded)) {
+                $payload['tailored_cv_model'] = $this->sanitize_crm_application_task_diagnostic_value($tailored_cv_model_decoded);
+            }
             if (is_user_logged_in()) {
                 $payload['candidate_profile'] = $this->get_crm_apply_chat_profile_preferences(get_current_user_id());
             }
@@ -45797,6 +45806,175 @@ CRITICAL INSTRUCTIONS:
                 'display_name' => sanitize_text_field((string) $user->display_name),
                 'message' => __('We found that MENA Careers account.', 'senna-finance'),
             ]);
+        }
+
+        public function ajax_crm_apply_chat_service_signup_email()
+        {
+            check_ajax_referer('sffc_crm_apply_chat_service_signup_email', 'nonce');
+
+            $phase = isset($_POST['phase']) ? sanitize_key(wp_unslash((string) $_POST['phase'])) : 'info';
+            $email = isset($_POST['email']) ? sanitize_email(wp_unslash((string) $_POST['email'])) : '';
+            $full_name = isset($_POST['full_name']) ? sanitize_text_field(wp_unslash((string) $_POST['full_name'])) : '';
+            $location = isset($_POST['location']) ? sanitize_text_field(wp_unslash((string) $_POST['location'])) : '';
+            $role_title = isset($_POST['role_title']) ? sanitize_text_field(wp_unslash((string) $_POST['role_title'])) : '';
+            $signup_url = isset($_POST['signup_url']) ? esc_url_raw(wp_unslash((string) $_POST['signup_url'])) : $this->get_canonical_membership_url();
+            $source = isset($_POST['source']) ? sanitize_key(wp_unslash((string) $_POST['source'])) : 'apply_chat';
+
+            if ($email === '' || !is_email($email)) {
+                wp_send_json_error([
+                    'message' => __('Enter a valid email address.', 'senna-finance'),
+                ], 422);
+            }
+
+            if ($full_name === '') {
+                $full_name = __('there', 'senna-finance');
+            }
+
+            $context = [
+                'phase' => $phase,
+                'email' => $email,
+                'full_name' => $full_name,
+                'location' => $location,
+                'role_title' => $role_title,
+                'signup_url' => $signup_url,
+                'source' => $source,
+                'page_url' => isset($_POST['page_url']) ? esc_url_raw(wp_unslash((string) $_POST['page_url'])) : '',
+            ];
+
+            $subject = $phase === 'welcome'
+                ? __('Welcome onboard - Emily from MENA Careers', 'senna-finance')
+                : __('Your tailored applications service with MENA Careers', 'senna-finance');
+            $html = $phase === 'welcome'
+                ? $this->build_apply_chat_service_welcome_email($context)
+                : $this->build_apply_chat_service_info_email($context);
+
+            $sent = $this->send_apply_chat_service_email($email, $subject, $html, [
+                'email_type' => 'apply_chat_service_' . $phase,
+                'source' => $source,
+            ]);
+            $admin_sent = $phase === 'welcome' ? $this->send_apply_chat_service_admin_email($context) : false;
+
+            wp_send_json_success([
+                'sent' => (bool) $sent,
+                'admin_sent' => (bool) $admin_sent,
+                'phase' => $phase,
+            ]);
+        }
+
+        private function send_apply_chat_service_email($recipient_email, $subject, $html_message, array $custom_args = [])
+        {
+            $sender = [
+                'from_email' => 'emily.bradshaw@joinsenna.com',
+                'from_name' => 'Emily Bradshaw',
+                'reply_to_email' => 'emily.bradshaw@joinsenna.com',
+                'reply_to_name' => 'Emily Bradshaw',
+            ];
+
+            if (class_exists('SFFC_CRM_SendGrid_Service')) {
+                $sendgrid = SFFC_CRM_SendGrid_Service::get_instance();
+                if ($sendgrid && $sendgrid->is_configured()) {
+                    $result = $sendgrid->send_email_from_sender($sender, $subject, $html_message, $recipient_email, null, $custom_args, ['apply_chat_service']);
+                    if (!is_wp_error($result)) {
+                        return true;
+                    }
+                }
+            }
+
+            $headers = [
+                'Content-Type: text/html; charset=UTF-8',
+                'From: Emily Bradshaw <emily.bradshaw@joinsenna.com>',
+                'Reply-To: Emily Bradshaw <emily.bradshaw@joinsenna.com>',
+            ];
+
+            return (bool) wp_mail($recipient_email, $subject, $html_message, $headers);
+        }
+
+        private function send_apply_chat_service_admin_email(array $context)
+        {
+            $admin_email = sanitize_email(get_option('admin_email'));
+            if (!$admin_email) {
+                return false;
+            }
+
+            $phase = sanitize_text_field((string) ($context['phase'] ?? 'info'));
+            $subject = sprintf('[MENA Careers] Apply chat service %s: %s', $phase, sanitize_text_field((string) ($context['full_name'] ?? 'Candidate')));
+            $rows = [
+                'Phase' => $phase,
+                'Name' => (string) ($context['full_name'] ?? ''),
+                'Email' => (string) ($context['email'] ?? ''),
+                'Location' => (string) ($context['location'] ?? ''),
+                'Current role context' => (string) ($context['role_title'] ?? ''),
+                'Signup URL' => (string) ($context['signup_url'] ?? ''),
+                'Page URL' => (string) ($context['page_url'] ?? ''),
+                'Source' => (string) ($context['source'] ?? 'apply_chat'),
+            ];
+            $body = '<h2>Apply chat service signup</h2><table cellpadding="8" cellspacing="0" border="1" style="border-collapse:collapse;border-color:#d9dee7;">';
+            foreach ($rows as $label => $value) {
+                $body .= '<tr><th align="left" style="background:#f6f8fb;">' . esc_html($label) . '</th><td>' . esc_html($value) . '</td></tr>';
+            }
+            $body .= '</table>';
+
+            return $this->send_apply_chat_service_email($admin_email, $subject, $body, [
+                'email_type' => 'apply_chat_service_admin',
+                'phase' => $phase,
+            ]);
+        }
+
+        private function build_apply_chat_service_info_email(array $context)
+        {
+            $name = sanitize_text_field((string) ($context['full_name'] ?? 'there'));
+            $first_name = trim(strtok($name, ' ')) ?: $name;
+            $location = sanitize_text_field((string) ($context['location'] ?? 'your target market'));
+            $signup_url = esc_url((string) ($context['signup_url'] ?? $this->get_canonical_membership_url()));
+
+            return $this->build_apply_chat_service_email_shell(
+                __('Your search support is ready to set up', 'senna-finance'),
+                '<p>Hi ' . esc_html($first_name) . ',</p>'
+                . '<p>I can actively source suitable roles in ' . esc_html($location) . ', approach relevant recruiters, and submit tailored applications on your behalf.</p>'
+                . '<p>Here is what the applications and recruiter outreach plan includes:</p>'
+                . '<ul>'
+                . '<li><strong>Tailored applications</strong> prepared around your CV and each role.</li>'
+                . '<li><strong>Actively sourced matching opportunities</strong> instead of waiting for you to search manually.</li>'
+                . '<li><strong>Recruiter messaging and introductions</strong> where relevant contacts are available.</li>'
+                . '<li><strong>Emily as your dedicated career manager</strong> to keep the search organised and moving.</li>'
+                . '</ul>'
+                . '<p>You can sign up here when ready:</p>'
+                . '<p><a href="' . $signup_url . '" class="button">Open signup</a></p>'
+                . '<p>If you have questions, reply to this email and I’ll help.</p>'
+                . '<p>Emily</p>'
+            );
+        }
+
+        private function build_apply_chat_service_welcome_email(array $context)
+        {
+            $name = sanitize_text_field((string) ($context['full_name'] ?? 'there'));
+            $first_name = trim(strtok($name, ' ')) ?: $name;
+
+            return $this->build_apply_chat_service_email_shell(
+                __('Welcome onboard', 'senna-finance'),
+                '<p>Hi ' . esc_html($first_name) . ',</p>'
+                . '<p>Welcome onboard. I’m happy to help with your search.</p>'
+                . '<p>I’ll get everything prepared on my side and start working through suitable roles, tailored applications, and relevant recruiter outreach.</p>'
+                . '<p>If you need me directly, you can reach me at <a href="mailto:emily.bradshaw@joinsenna.com">emily.bradshaw@joinsenna.com</a>. For customer support, email <a href="mailto:support.team@joinsenna.com">support.team@joinsenna.com</a>.</p>'
+                . '<p>Emily</p>'
+            );
+        }
+
+        private function build_apply_chat_service_email_shell($title, $inner_html)
+        {
+            return '<!doctype html><html><body style="margin:0;padding:0;background:#f3f6fb;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Arial,sans-serif;color:#17212b;">'
+                . '<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f3f6fb;"><tr><td style="padding:28px 16px;">'
+                . '<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:620px;margin:0 auto;background:#fff;border:1px solid #dce5f2;border-radius:16px;overflow:hidden;">'
+                . '<tr><td style="padding:24px 26px;background:#0a66c2;color:#fff;">'
+                . '<div style="font-size:13px;font-weight:800;">MENA Careers</div>'
+                . '<h1 style="margin:10px 0 0;font-size:25px;line-height:1.2;">' . esc_html($title) . '</h1>'
+                . '</td></tr>'
+                . '<tr><td style="padding:26px;font-size:15px;line-height:1.65;color:#263442;">'
+                . '<style>.button{display:inline-block;background:#0a66c2;color:#fff!important;text-decoration:none;padding:12px 18px;border-radius:8px;font-weight:800} ul{padding-left:20px} li{margin:8px 0}</style>'
+                . $inner_html
+                . '</td></tr>'
+                . '<tr><td style="padding:16px 26px;background:#f8fbff;border-top:1px solid #e3ebf6;color:#697586;font-size:12px;">Emily Bradshaw · MENA Careers</td></tr>'
+                . '</table></td></tr></table></body></html>';
         }
 
         private function extract_crm_apply_chat_cv_text_from_upload($file, $analysis_mode = 'full')
@@ -50855,7 +51033,7 @@ CRITICAL INSTRUCTIONS:
         }
 
         /**
-         * Compact upgrade cards that reuse the same plan and MemberPress sources as the recruiter carousel.
+         * Compact upgrade cards that reuse the same plan and Krevitz checkout sources as the recruiter carousel.
          * Usage: [sffc_recruiter_upgrade_cards]
          */
         public function render_recruiter_upgrade_cards($atts = [])
@@ -53637,22 +53815,60 @@ CRITICAL INSTRUCTIONS:
             }
 
             $shortcode = stripslashes((string) $shortcode);
+            if (preg_match('/\[krevitz_checkout[^\]]*\bplan=[\'"]?(\d+)[\'"]?/i', $shortcode, $matches)) {
+                return absint($matches[1]);
+            }
             if (preg_match('/\[mepr[-_]membership[-_]registration[-_]form[^\]]*\bid=[\'"]?(\d+)[\'"]?/i', $shortcode, $matches)) {
+                return absint($matches[1]);
+            }
+            if (preg_match('/\[mepr[-_]membership[-_]link[^\]]*\bid=[\'"]?(\d+)[\'"]?/i', $shortcode, $matches)) {
                 return absint($matches[1]);
             }
 
             return 0;
         }
 
+        private function normalize_krevitz_checkout_shortcode($shortcode)
+        {
+            $shortcode = trim(stripslashes((string) $shortcode));
+            if ($shortcode === '') {
+                return '';
+            }
+
+            if (preg_match('/^\[krevitz_checkout[^\]]*\]$/i', $shortcode)) {
+                return $shortcode;
+            }
+
+            $plan_id = $this->extract_memberpress_product_id_from_shortcode($shortcode);
+            return $plan_id > 0 ? '[krevitz_checkout plan="' . $plan_id . '"]' : $shortcode;
+        }
+
         private function get_active_memberpress_product_ids($user_id)
         {
             $user_id = absint($user_id);
-            if (!$user_id || !class_exists('MeprUser')) {
+            if (!$user_id) {
                 return array();
             }
 
             $product_ids = array();
+            if (class_exists('Krevitz_Subs_DB')) {
+                global $wpdb;
+                $krevitz_table = Krevitz_Subs_DB::subscriptions_table();
+                $krevitz_plan_ids = $wpdb->get_col($wpdb->prepare(
+                    "SELECT DISTINCT plan_id FROM {$krevitz_table} WHERE user_id = %d AND status IN ('active', 'trialing', 'past_due', 'cancel_pending')",
+                    $user_id
+                ));
+                if (is_array($krevitz_plan_ids)) {
+                    foreach ($krevitz_plan_ids as $plan_id) {
+                        $product_ids[] = (int) $plan_id;
+                    }
+                }
+            }
+
             try {
+                if (!class_exists('MeprUser')) {
+                    return array_values(array_unique(array_filter(array_map('absint', $product_ids))));
+                }
                 $mepr_user = new MeprUser($user_id);
                 $active_products = $mepr_user->active_product_subscriptions('products');
                 if (is_array($active_products)) {
@@ -53685,7 +53901,16 @@ CRITICAL INSTRUCTIONS:
         private function get_memberpress_product_price_amount($product_id)
         {
             $product_id = absint($product_id);
-            if (!$product_id || !class_exists('MeprProduct')) {
+            if (!$product_id) {
+                return 0.0;
+            }
+
+            if (class_exists('Krevitz_Subs_Plans') && get_post_type($product_id) === Krevitz_Subs_Plans::POST_TYPE) {
+                $meta = Krevitz_Subs_Plans::get_plan_meta($product_id);
+                return isset($meta['price']) ? (float) $meta['price'] : 0.0;
+            }
+
+            if (!class_exists('MeprProduct')) {
                 return 0.0;
             }
 
@@ -54906,11 +55131,11 @@ CRITICAL INSTRUCTIONS:
                 ],
                 [
                     'question' => __('Does MENA Careers apply to jobs for me?', 'senna-finance'),
-                    'answer' => __('Some plans include more hands-on application and outreach support. The plan cards show the available features, and checkout uses the existing MemberPress setup.', 'senna-finance'),
+                    'answer' => __('Some plans include more hands-on application and outreach support. The plan cards show the available features, and checkout uses the Krevitz subscription setup.', 'senna-finance'),
                 ],
                 [
                     'question' => __('Can I change plans later?', 'senna-finance'),
-                    'answer' => __('Yes. If you are signed in, the page detects your active paid plan and lets you switch where MemberPress supports plan changes.', 'senna-finance'),
+                    'answer' => __('Yes. If you are signed in, the page detects your active paid plan and lets you switch where the subscription setup supports plan changes.', 'senna-finance'),
                 ],
             ];
 
@@ -55222,13 +55447,13 @@ CRITICAL INSTRUCTIONS:
                             <?php esc_html_e('Secure checkout', 'senna-finance'); ?>
                         </span>
                         <h3 data-sffc-mena-pricing-checkout-title><?php esc_html_e('Choose a plan to continue', 'senna-finance'); ?></h3>
-                        <p data-sffc-mena-pricing-checkout-copy><?php esc_html_e('Your selected MemberPress checkout will appear here.', 'senna-finance'); ?></p>
+                        <p data-sffc-mena-pricing-checkout-copy><?php esc_html_e('Your selected Krevitz checkout will appear here.', 'senna-finance'); ?></p>
                         <div class="sffc-mena-pricing-tiers__checkout-price">
                             <span><?php esc_html_e('Selected plan', 'senna-finance'); ?></span>
                             <strong data-sffc-mena-pricing-checkout-price></strong>
                         </div>
                         <ul>
-                            <li><?php esc_html_e('MemberPress secure payment', 'senna-finance'); ?></li>
+                            <li><?php esc_html_e('Secure Krevitz subscription payment', 'senna-finance'); ?></li>
                             <li><?php esc_html_e('Instant account access after checkout', 'senna-finance'); ?></li>
                             <li><?php esc_html_e('Plan state updates automatically when signed in', 'senna-finance'); ?></li>
                         </ul>
@@ -55246,7 +55471,7 @@ CRITICAL INSTRUCTIONS:
                         <?php endforeach; ?>
                         <div class="sffc-mena-pricing-tiers__checkout-external" data-sffc-mena-pricing-external hidden>
                             <h4><?php esc_html_e('Open secure checkout', 'senna-finance'); ?></h4>
-                            <p><?php esc_html_e('This plan does not have an embedded form configured yet. Use the secure MemberPress checkout link below.', 'senna-finance'); ?></p>
+                            <p><?php esc_html_e('This plan does not have an embedded form configured yet. Use the secure Krevitz checkout link below.', 'senna-finance'); ?></p>
                             <a href="#" data-sffc-mena-pricing-external-link><?php esc_html_e('Open checkout', 'senna-finance'); ?></a>
                         </div>
                     </div>
@@ -55600,7 +55825,7 @@ CRITICAL INSTRUCTIONS:
                             <form class="sffc-member-pricing__identity-form" data-member-pricing-identity-form novalidate>
                                 <div class="sffc-member-pricing__identity-formhead">
                                     <h3><?php esc_html_e('Complete your details', 'senna-finance'); ?></h3>
-                                    <p><?php esc_html_e('We will use this to pre-fill the secure MemberPress checkout form.', 'senna-finance'); ?></p>
+                                    <p><?php esc_html_e('We will use this to pre-fill the secure Krevitz checkout form.', 'senna-finance'); ?></p>
                                 </div>
                                 <label>
                                     <span><?php esc_html_e('Full name', 'senna-finance'); ?></span>
@@ -56764,8 +56989,8 @@ CRITICAL INSTRUCTIONS:
             </section>
             <?php
             /*
-             * MemberPress initialises pricing and checkout behaviour by scanning live
-             * signup forms on page load. These checkout forms start in `[hidden]`
+             * Some checkout providers initialise by scanning live signup forms on page
+             * load. These checkout forms start in `[hidden]`
              * containers, so render one visually clipped form outside that tree.
              */
             $memberpress_init_shortcode = '';
@@ -57593,8 +57818,58 @@ CRITICAL INSTRUCTIONS:
                 $payload = [];
             }
 
+            $aliases = [
+                'hasHistory' => 'has_history',
+                'lastFlow' => 'last_flow',
+                'lastPath' => 'last_path',
+                'lastPromptState' => 'last_prompt_state',
+                'lastRoleTitle' => 'last_role_title',
+                'preferredUiLanguage' => 'preferred_ui_language',
+                'preferredLocation' => 'preferred_location',
+                'globalVisaStatus' => 'global_visa_status',
+                'deliveryFrequency' => 'delivery_frequency',
+                'premiumOnboardingCompleted' => 'premium_onboarding_completed',
+                'cvState' => 'cv_state',
+                'lastAction' => 'last_action',
+                'targetFunctions' => 'target_functions',
+                'targetSectors' => 'target_sectors',
+                'targetLocations' => 'target_locations',
+                'futureTargetLocations' => 'future_target_locations',
+                'excludedTargetLocations' => 'excluded_target_locations',
+                'excludedTargetFunctions' => 'excluded_target_functions',
+                'excludedTargetSectors' => 'excluded_target_sectors',
+                'targetSkills' => 'target_skills',
+                'salaryPriorities' => 'salary_priorities',
+                'familyConstraints' => 'family_constraints',
+                'workStylePreferences' => 'work_style_preferences',
+                'timingNotes' => 'timing_notes',
+                'savedRoleTitles' => 'saved_role_titles',
+                'rejectedRoleTitles' => 'rejected_role_titles',
+                'savedCompanyNames' => 'saved_company_names',
+                'rejectedCompanyNames' => 'rejected_company_names',
+                'recentTopics' => 'recent_topics',
+                'answeredQuestions' => 'answered_questions',
+                'activeTopicStack' => 'active_topic_stack',
+                'currentSelectedRole' => 'current_selected_role',
+                'recentResultEntities' => 'recent_result_entities',
+                'pausedTasks' => 'paused_tasks',
+                'userObjections' => 'user_objections',
+                'inferredCareerProblem' => 'inferred_career_problem',
+                'searchHealth' => 'search_health',
+                'applicationOutcomeHistory' => 'application_outcome_history',
+                'preferredApplyBehavior' => 'preferred_apply_behavior',
+                'locationVisaRequirements' => 'location_visa_requirements',
+                'followUpState' => 'follow_up_state',
+                'updatedAt' => 'updated_at',
+            ];
+            foreach ($aliases as $camel_key => $snake_key) {
+                if (array_key_exists($camel_key, $payload) && !array_key_exists($snake_key, $payload)) {
+                    $payload[$snake_key] = $payload[$camel_key];
+                }
+            }
+
             $defaults = [
-                'version' => 1,
+                'version' => 2,
                 'has_history' => false,
                 'last_flow' => '',
                 'last_path' => '',
@@ -57603,6 +57878,7 @@ CRITICAL INSTRUCTIONS:
                 'preferred_ui_language' => '',
                 'preferred_location' => '',
                 'global_visa_status' => '',
+                'delivery_frequency' => '',
                 'cv_state' => '',
                 'last_action' => '',
                 'target_functions' => [],
@@ -57623,6 +57899,15 @@ CRITICAL INSTRUCTIONS:
                 'rejected_company_names' => [],
                 'recent_topics' => [],
                 'answered_questions' => [],
+                'active_topic_stack' => [],
+                'current_selected_role' => [],
+                'recent_result_entities' => [],
+                'paused_tasks' => [],
+                'user_objections' => [],
+                'inferred_career_problem' => '',
+                'search_health' => [],
+                'application_outcome_history' => [],
+                'preferred_apply_behavior' => '',
                 'location_visa_requirements' => [],
                 'updated_at' => '',
             ];
@@ -57649,11 +57934,22 @@ CRITICAL INSTRUCTIONS:
                 'rejected_company_names',
                 'recent_topics',
                 'answered_questions',
+                'active_topic_stack',
             ] as $list_key) {
                 $values = is_array($payload[$list_key]) ? $payload[$list_key] : [];
                 $values = array_values(array_filter(array_map('sanitize_text_field', $values)));
                 $payload[$list_key] = array_values(array_unique($values));
             }
+
+            foreach (['recent_result_entities', 'paused_tasks', 'user_objections', 'application_outcome_history'] as $object_list_key) {
+                $values = is_array($payload[$object_list_key]) ? $payload[$object_list_key] : [];
+                $payload[$object_list_key] = array_slice(array_values(array_filter($values, 'is_array')), -25);
+            }
+
+            $payload['current_selected_role'] = is_array($payload['current_selected_role']) ? $payload['current_selected_role'] : [];
+            $payload['search_health'] = is_array($payload['search_health']) ? $payload['search_health'] : [];
+            $payload['inferred_career_problem'] = sanitize_text_field((string) ($payload['inferred_career_problem'] ?? ''));
+            $payload['preferred_apply_behavior'] = sanitize_key((string) ($payload['preferred_apply_behavior'] ?? ''));
 
             $visa_map = is_array($payload['location_visa_requirements']) ? $payload['location_visa_requirements'] : [];
             $clean_visa_map = [];
@@ -57667,7 +57963,7 @@ CRITICAL INSTRUCTIONS:
             }
             $payload['location_visa_requirements'] = $clean_visa_map;
             $payload['has_history'] = !empty($payload['has_history']);
-            $payload['version'] = 1;
+            $payload['version'] = 2;
 
             return $payload;
         }
@@ -59412,7 +59708,7 @@ CRITICAL INSTRUCTIONS:
                     'features' => !empty($catalog_entry['includes']) && is_array($catalog_entry['includes'])
                         ? array_values(array_filter(array_map('sanitize_text_field', (array) $catalog_entry['includes'])))
                         : array_slice($features, 0, 4),
-                    'shortcode' => isset($plan['shortcode']) ? wp_kses_post((string) $plan['shortcode']) : '',
+                    'shortcode' => isset($plan['shortcode']) ? wp_kses_post($this->normalize_krevitz_checkout_shortcode((string) $plan['shortcode'])) : '',
                     'url' => !empty($plan['mp_url']) ? esc_url_raw((string) $plan['mp_url']) : esc_url_raw($this->get_canonical_membership_url()),
                     'featured_signup' => !empty($plan['featured_signup']),
                 ];
@@ -59443,7 +59739,7 @@ CRITICAL INSTRUCTIONS:
                 $annual_entry['amount_label'] = $annual_amount_label;
                 $annual_entry['billing_cycle'] = trim((string) ($plan['annual_billing_cycle'] ?? __('per year', 'senna-finance'))) ?: __('per year', 'senna-finance');
                 $annual_entry['shortcode'] = !empty($plan['annual_shortcode'])
-                    ? wp_kses_post((string) $plan['annual_shortcode'])
+                    ? wp_kses_post($this->normalize_krevitz_checkout_shortcode((string) $plan['annual_shortcode']))
                     : $monthly_entry['shortcode'];
                 $annual_entry['url'] = !empty($plan['annual_mp_url']) ? esc_url_raw((string) $plan['annual_mp_url']) : $monthly_entry['url'];
                 $plan_cycles['annual'][$signup_path] = $annual_entry;
@@ -59932,7 +60228,7 @@ CRITICAL INSTRUCTIONS:
                 ])));
             }
             $preferred_email = sanitize_email((string) ($context['email'] ?? ''));
-            $checkout_shortcode = '[mepr_membership_registration_form id="234380"]';
+            $checkout_shortcode = '[krevitz_checkout plan="234380"]';
             $delivery_line = '';
             $support_line = '';
             $first_steps = [];
@@ -64947,9 +65243,9 @@ HTML;
                             'audience' => sanitize_text_field($plan['audience'] ?? ''),
                             'features' => $features,
                             'mp_url' => esc_url_raw($plan['mp_url'] ?? ''),
-                            'shortcode' => isset($plan['shortcode']) ? wp_kses_post($plan['shortcode']) : '',
+                            'shortcode' => isset($plan['shortcode']) ? wp_kses_post($this->normalize_krevitz_checkout_shortcode($plan['shortcode'])) : '',
                             'annual_mp_url' => esc_url_raw($plan['annual_mp_url'] ?? ''),
-                            'annual_shortcode' => isset($plan['annual_shortcode']) ? wp_kses_post($plan['annual_shortcode']) : '',
+                            'annual_shortcode' => isset($plan['annual_shortcode']) ? wp_kses_post($this->normalize_krevitz_checkout_shortcode($plan['annual_shortcode'])) : '',
                             'featured_signup' => !empty($plan['featured_signup']) ? 1 : 0,
                             'is_annual' => !empty($plan['is_annual']) ? 1 : 0,
                             'recruiter_contact_pricing' => !empty($plan['recruiter_contact_pricing']) ? 1 : 0,
@@ -91016,7 +91312,7 @@ HTML;
                     'billing_cycle' => sanitize_text_field($billing_cycle),
                     'tagline' => sanitize_text_field($tagline),
                     'url' => esc_url_raw($url),
-                    'shortcode' => isset($plan['shortcode']) ? wp_kses_post($plan['shortcode']) : '',
+                    'shortcode' => isset($plan['shortcode']) ? wp_kses_post($this->normalize_krevitz_checkout_shortcode($plan['shortcode'])) : '',
                     'memberpress_product_id' => !empty($plan['memberpress_product_id'])
                         ? (int) $plan['memberpress_product_id']
                         : $this->extract_memberpress_product_id_from_shortcode((string) ($plan['shortcode'] ?? '')),
@@ -97932,7 +98228,7 @@ CRITICAL INSTRUCTIONS:
         }
 
         /**
-         * Pre-fill MemberPress form with captured signup data
+         * Pre-fill subscription form with captured signup data
          * Hook: mepr-signup-form-vars
          */
         public function prefill_memberpress_form($vars)
@@ -97980,12 +98276,12 @@ CRITICAL INSTRUCTIONS:
         }
 
         /**
-         * Pre-fill MemberPress registration fields using JavaScript
+         * Pre-fill subscription registration fields using JavaScript
          * This runs early to inject script that will populate fields
          */
         public function prefill_memberpress_registration_fields()
         {
-            // Only run on MemberPress registration pages
+            // Only run on legacy MemberPress registration pages
             if (!function_exists('mepr_is_registration_page') || !mepr_is_registration_page()) {
                 return;
             }
@@ -98019,7 +98315,7 @@ CRITICAL INSTRUCTIONS:
         ?>
             <script type="text/javascript">
                 jQuery(document).ready(function($) {
-                    // Pre-fill MemberPress registration form fields
+                    // Pre-fill legacy subscription registration form fields
                     <?php if ($email): ?>
                         $('input[name="user_email"], input[name="mepr_user_email"], input[name="email"], #user_email, #user_email1, #mepr_email, #mepr_user_email').val('<?php echo esc_js($email); ?>');
                     <?php endif; ?>
