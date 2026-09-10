@@ -1875,6 +1875,7 @@ class SFFC_Feed_Manager_Admin {
             'schema_url' => esc_url_raw((string) $schema_url),
             'hosted_url' => esc_url_raw((string) $hosted_url),
             'absolute_url' => esc_url_raw((string) ($job['url'] ?? $hosted_url)),
+            'application_embed_mode' => $this->detect_application_workspace_embed_mode($provider, $hosted_url),
             'questions' => $questions,
             'location_questions' => [],
             'required_question_count' => count(array_filter($questions, static function ($question) {
@@ -1883,6 +1884,84 @@ class SFFC_Feed_Manager_Admin {
             'field_count' => $field_count,
             'discovered_at' => current_time('mysql'),
         ], $extra);
+    }
+
+    private function detect_application_workspace_embed_mode($provider, $hosted_url) {
+        $header_mode = $this->detect_application_embed_mode_from_headers($hosted_url);
+        if ($header_mode !== '') {
+            return $header_mode;
+        }
+
+        return $this->infer_application_workspace_embed_mode($provider, $hosted_url);
+    }
+
+    private function detect_application_embed_mode_from_headers($url) {
+        $url = esc_url_raw((string) $url);
+        if ($url === '' || !preg_match('/^https?:\/\//i', $url)) {
+            return '';
+        }
+
+        $args = [
+            'timeout' => 8,
+            'redirection' => 3,
+            'user-agent' => 'SennaFeedEmbedAudit/1.0',
+            'headers' => [
+                'Accept' => 'text/html,application/xhtml+xml,application/xml,text/xml,*/*',
+            ],
+        ];
+        $response = wp_remote_head($url, $args);
+        if (is_wp_error($response) || (int) wp_remote_retrieve_response_code($response) === 405) {
+            $response = wp_remote_get($url, $args);
+        }
+        if (is_wp_error($response)) {
+            return '';
+        }
+
+        $x_frame_options = strtolower(trim((string) wp_remote_retrieve_header($response, 'x-frame-options')));
+        $content_security_policy = (string) wp_remote_retrieve_header($response, 'content-security-policy');
+        $frame_ancestors = '';
+        if (preg_match('/frame-ancestors\s+([^;]+)/i', $content_security_policy, $matches)) {
+            $frame_ancestors = strtolower(trim((string) $matches[1]));
+        }
+
+        if (preg_match('/\b(?:deny|sameorigin)\b/i', $x_frame_options)) {
+            return 'screenshot';
+        }
+        if ($frame_ancestors !== '') {
+            if (preg_match('/(^|\s)\'(?:none|self)\'(\s|$)/i', $frame_ancestors)) {
+                return 'screenshot';
+            }
+            if (strpos($frame_ancestors, '*') === false && strpos($frame_ancestors, 'joinsenna.com') === false) {
+                return 'screenshot';
+            }
+        }
+
+        return 'embed';
+    }
+
+    private function infer_application_workspace_embed_mode($provider, $hosted_url) {
+        $provider = sanitize_key((string) $provider);
+        $host = strtolower((string) wp_parse_url((string) $hosted_url, PHP_URL_HOST));
+        $url = (string) $hosted_url;
+
+        if (in_array($provider, ['workable', 'workable_board', 'greenhouse'], true)) {
+            return 'embed';
+        }
+
+        if ($provider === 'successfactors') {
+            return preg_match('/[?&]career_ns=job_application\b/i', $url) ? 'embed' : 'screenshot';
+        }
+
+        if (
+            in_array($provider, ['recruitee', 'teamtailor', 'teamtailor_rss', 'michael_page'], true)
+            || preg_match('/(?:^|\.)recruitee\.com$/', $host)
+            || preg_match('/(?:^|\.)teamtailor\.com$/', $host)
+            || preg_match('/michaelpage\./', $host)
+        ) {
+            return 'screenshot';
+        }
+
+        return 'auto';
     }
 
     private function normalize_application_workspace_question($label, $required = false, $type = 'text', array $values = [], $name = '') {

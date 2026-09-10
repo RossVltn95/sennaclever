@@ -6092,6 +6092,12 @@ class SFFC_CRM_Admin
                     <tr>
                         <th><label for="application_url"><?php esc_html_e('Application URL', 'senna-finance'); ?></label></th>
                         <td>
+                            <?php
+                            $application_embed_mode = sanitize_key((string) ($post['application_embed_mode'] ?? 'auto'));
+                            if (!in_array($application_embed_mode, ['auto', 'embed', 'screenshot'], true)) {
+                                $application_embed_mode = 'auto';
+                            }
+                            ?>
                             <input type="url" name="application_url" id="application_url" class="large-text"
                                 value="<?php echo esc_attr($post['application_url'] ?? ''); ?>"
                                 placeholder="<?php esc_attr_e('https://jobs.company.com/apply/...', 'senna-finance'); ?>">
@@ -6104,6 +6110,15 @@ class SFFC_CRM_Admin
                                 </button>
                             </p>
                             <p class="description"><?php esc_html_e('Direct link where candidates can apply for this role', 'senna-finance'); ?></p>
+                            <label for="application_embed_mode" style="display:block; margin-top:12px;">
+                                <strong><?php esc_html_e('Chat preview mode', 'senna-finance'); ?></strong>
+                            </label>
+                            <select name="application_embed_mode" id="application_embed_mode">
+                                <option value="auto" <?php selected($application_embed_mode, 'auto'); ?>><?php esc_html_e('Auto detect', 'senna-finance'); ?></option>
+                                <option value="embed" <?php selected($application_embed_mode, 'embed'); ?>><?php esc_html_e('Embed friendly', 'senna-finance'); ?></option>
+                                <option value="screenshot" <?php selected($application_embed_mode, 'screenshot'); ?>><?php esc_html_e('Screenshot fallback', 'senna-finance'); ?></option>
+                            </select>
+                            <p class="description"><?php esc_html_e('Use Embed friendly for manually added links that work in the chat iframe. Use Screenshot fallback for links that block embeds.', 'senna-finance'); ?></p>
                             <div id="sffc-crm-embed-test" class="sffc-crm-embed-test" aria-live="polite">
                                 <div class="sffc-crm-embed-test__bar">
                                     <span id="sffc-crm-embed-test-status" class="sffc-crm-embed-test__status"><?php esc_html_e('Not tested', 'senna-finance'); ?></span>
@@ -8216,6 +8231,10 @@ class SFFC_CRM_Admin
         $source_url = esc_url_raw($_POST['source_url'] ?? '');
         $raw_application_url = trim((string) ($_POST['application_url'] ?? ''));
         $application_url = esc_url_raw($raw_application_url);
+        $application_embed_mode = sanitize_key((string) ($_POST['application_embed_mode'] ?? 'auto'));
+        if (!in_array($application_embed_mode, ['auto', 'embed', 'screenshot'], true)) {
+            $application_embed_mode = 'auto';
+        }
         $company_logo_url = $this->normalize_company_logo_input($company_logo_input);
         $allowed_source_platforms = ['LinkedIn', 'Indeed', 'Wuzzuf', 'Glassdoor', 'Company Website', 'Recruiter Network', 'Direct Post', 'Other'];
         $source_platform = sanitize_text_field($_POST['source_platform'] ?? '');
@@ -8368,6 +8387,7 @@ class SFFC_CRM_Admin
             'content' => $content,
             'source_url' => $source_url,
             'application_url' => $application_url,
+            'application_embed_mode' => $application_embed_mode,
             'admin_approved' => isset($_POST['admin_approved']) ? 1 : 0,
             'publish_to_jobs' => isset($_POST['publish_to_jobs']) ? 1 : 0,
             'is_featured' => isset($_POST['is_featured']) ? 1 : 0,
@@ -12359,6 +12379,11 @@ class SFFC_CRM_Admin
             if (!empty($post_data['application_url'])) {
                 update_post_meta($wp_post_id, '_application_url', $post_data['application_url']);
             }
+            $application_embed_mode = sanitize_key((string) ($post_data['application_embed_mode'] ?? 'auto'));
+            if (!in_array($application_embed_mode, ['auto', 'embed', 'screenshot'], true)) {
+                $application_embed_mode = 'auto';
+            }
+            update_post_meta($wp_post_id, '_sffc_application_embed_mode', $application_embed_mode);
 
             // Set taxonomies
             // Set location taxonomy
@@ -12472,6 +12497,10 @@ class SFFC_CRM_Admin
 
         $application_url = esc_url_raw((string) ($post_data['application_url'] ?? ''));
         $jobs_application_url = $application_url;
+        $application_embed_mode = sanitize_key((string) ($post_data['application_embed_mode'] ?? 'auto'));
+        if (!in_array($application_embed_mode, ['auto', 'embed', 'screenshot'], true)) {
+            $application_embed_mode = 'auto';
+        }
         $auto_submit_schema = is_array($post_data['auto_submit_schema'] ?? null) ? $post_data['auto_submit_schema'] : [];
         $auto_submit_provider = sanitize_key((string) ($post_data['auto_submit_provider'] ?? ($auto_submit_schema['provider'] ?? '')));
         $auto_submit_supported = !empty($post_data['auto_submit_supported']) || !empty($auto_submit_schema);
@@ -12574,6 +12603,7 @@ class SFFC_CRM_Admin
         $this->sync_jobs_meta_value($jobs_post_id, '_job_title', $role_title);
         $this->sync_jobs_meta_value($jobs_post_id, '_job_location', $location);
         $this->sync_jobs_meta_value($jobs_post_id, '_application_url', $jobs_application_url);
+        $this->sync_jobs_meta_value($jobs_post_id, '_sffc_application_embed_mode', $application_embed_mode);
         $this->sync_jobs_meta_value($jobs_post_id, '_salary_display', $salary_text);
         $this->sync_jobs_meta_value($jobs_post_id, '_sffc_auto_submit_supported', $auto_submit_supported ? '1' : '');
         $this->sync_jobs_meta_value($jobs_post_id, '_sffc_auto_submit_provider', $auto_submit_provider);

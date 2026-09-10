@@ -7,14 +7,11 @@ try {
   puppeteer = require("../application-worker/node_modules/puppeteer");
 }
 
-const browserWs =
-  process.env.SFFC_CHROME_WS ||
-  process.env.BROWSER_WS_ENDPOINT ||
-  "ws://127.0.0.1:9222/devtools/browser/1744e14a-7356-49a9-9be7-2e5111942700";
+const { getChromeBrowserWsEndpoint } = require("./chrome-debug");
 const textPattern = process.argv.slice(2).join(" ") || "Jump to application";
 
 (async () => {
-  const browser = await puppeteer.connect({ browserWSEndpoint: browserWs });
+  const browser = await puppeteer.connect({ browserWSEndpoint: await getChromeBrowserWsEndpoint() });
   const page = (await browser.pages()).find((item) => /joinsenna\.com\/jobs\//.test(item.url()));
   if (!page) throw new Error("No joinsenna.com job page found.");
   const clicked = await page.evaluate((patternText) => {

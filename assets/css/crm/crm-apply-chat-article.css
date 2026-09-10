@@ -635,12 +635,23 @@
 }
 
 .sffc-crm-apply-chat--home-launcher.is-chat-open {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483000;
+  width: 100vw;
+  height: 100dvh;
+  min-height: 100dvh;
   display: block;
   padding: 0;
+  overflow: hidden;
+  background: #ebf1f8;
 }
 
 .sffc-crm-apply-chat__home-hero {
-  width: min(980px, 100%);
+  width: min(1120px, calc(100vw - 32px));
+  display: grid;
+  justify-items: center;
+  gap: 34px;
 }
 
 .sffc-crm-apply-chat--home-launcher.is-chat-open .sffc-crm-apply-chat__home-hero {
@@ -652,13 +663,13 @@
 }
 
 .sffc-crm-apply-chat__home-launcher {
-  width: min(980px, 100%);
+  width: min(820px, 100%);
   margin: 0;
   position: relative;
 }
 
 .sffc-crm-apply-chat__home-launcher-shell {
-  min-height: 92px;
+  min-height: 84px;
   padding: 12px 18px 12px 22px;
   border: 1px solid rgba(17, 17, 17, 0.08);
   border-radius: 999px;
@@ -668,6 +679,40 @@
   grid-template-columns: auto auto minmax(0, 1fr) auto auto;
   align-items: center;
   gap: 14px;
+  position: relative;
+}
+
+.sffc-crm-apply-chat__home-launcher-badge {
+  position: absolute;
+  left: 72px;
+  top: -20px;
+  min-height: 38px;
+  max-width: min(360px, calc(100% - 144px));
+  padding: 0 16px;
+  border: 1px solid rgba(25, 91, 196, 0.18);
+  border-bottom-color: rgba(17, 17, 17, 0.08);
+  border-radius: 18px 18px 12px 12px;
+  background: #ffffff;
+  color: #195bc4;
+  box-shadow: 0 10px 24px rgba(25, 91, 196, 0.1);
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.15;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  pointer-events: none;
+  z-index: 4;
+}
+
+.sffc-crm-apply-chat__home-launcher-badge svg {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
+  fill: currentColor;
 }
 
 .sffc-crm-apply-chat__home-launcher-plus,
@@ -749,11 +794,67 @@
   font-size: clamp(18px, 1.7vw, 24px);
   line-height: 1.15;
   padding: 0;
+  position: relative;
+  z-index: 2;
+  grid-column: 3 / 4;
+  grid-row: 1;
 }
 
 .sffc-crm-apply-chat__home-launcher-input::placeholder {
   color: #6e6e6e;
   opacity: 1;
+}
+
+.sffc-crm-apply-chat__home-launcher.has-typing .sffc-crm-apply-chat__home-launcher-input::placeholder {
+  color: transparent;
+}
+
+.sffc-crm-apply-chat__home-launcher-typing {
+  min-width: 0;
+  grid-column: 3 / 4;
+  grid-row: 1;
+  align-self: center;
+  color: #5f6368;
+  font: inherit;
+  font-size: clamp(18px, 1.7vw, 24px);
+  line-height: 1.15;
+  pointer-events: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.18s ease, transform 0.18s ease;
+  z-index: 1;
+}
+
+.sffc-crm-apply-chat__home-launcher-typing::after {
+  content: "";
+  display: inline-block;
+  width: 2px;
+  height: 1.08em;
+  margin-left: 4px;
+  border-radius: 999px;
+  background: #111111;
+  vertical-align: -0.13em;
+  animation: sffc-home-launcher-caret 0.9s steps(1, end) infinite;
+}
+
+.sffc-crm-apply-chat__home-launcher.has-value .sffc-crm-apply-chat__home-launcher-typing,
+.sffc-crm-apply-chat__home-launcher.is-typing-paused .sffc-crm-apply-chat__home-launcher-typing {
+  opacity: 0;
+  transform: translateY(2px);
+}
+
+@keyframes sffc-home-launcher-caret {
+  0%,
+  48% {
+    opacity: 1;
+  }
+  49%,
+  100% {
+    opacity: 0;
+  }
 }
 
 .sffc-crm-apply-chat__home-suggestions {
@@ -862,6 +963,252 @@
   font-weight: 700;
 }
 
+.sffc-crm-apply-chat__home-trending {
+  width: 100%;
+  display: grid;
+  gap: 14px;
+}
+
+.sffc-crm-apply-chat__home-trending-head {
+  width: min(820px, 100%);
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  color: #062b55;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.sffc-crm-apply-chat__home-trending-head > span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+  padding: 8px 13px;
+  border: 1px solid rgba(25, 91, 196, 0.14);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.82);
+  box-shadow: 0 12px 30px rgba(6, 43, 85, 0.1);
+  backdrop-filter: blur(10px);
+}
+
+.sffc-crm-apply-chat__home-trending-controls {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px;
+  border: 1px solid rgba(25, 91, 196, 0.12);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.74);
+  box-shadow: 0 12px 30px rgba(6, 43, 85, 0.1);
+  backdrop-filter: blur(10px);
+}
+
+.sffc-crm-apply-chat__home-trending-controls button {
+  width: 32px;
+  height: 32px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #062b55;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font: inherit;
+  font-size: 21px;
+  font-weight: 700;
+  line-height: 1;
+  box-shadow: 0 6px 14px rgba(6, 43, 85, 0.1);
+}
+
+.sffc-crm-apply-chat__home-trending-controls button:hover,
+.sffc-crm-apply-chat__home-trending-controls button:focus {
+  border-color: rgba(49, 230, 178, 0.46);
+  background: #062b55;
+  color: #ffffff;
+}
+
+.sffc-crm-apply-chat__home-trending-track {
+  width: 100%;
+  display: flex;
+  gap: 22px;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  padding: 0 2px 8px;
+}
+
+.sffc-crm-apply-chat__home-trending-track::-webkit-scrollbar {
+  display: none;
+}
+
+.sffc-crm-apply-chat__home-trending-card {
+  min-width: 0;
+  flex: 0 0 calc((100% - 44px) / 3);
+  scroll-snap-align: start;
+}
+
+.sffc-crm-apply-chat__home-trending-card a {
+  min-height: 150px;
+  height: 100%;
+  padding: 18px;
+  border: 1px solid rgba(17, 17, 17, 0.08);
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: 0 16px 36px rgba(17, 17, 17, 0.14);
+  color: #111111;
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr);
+  gap: 14px;
+  text-decoration: none;
+}
+
+.sffc-crm-apply-chat__home-trending-top {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 54px minmax(0, 1fr);
+  align-items: center;
+  gap: 14px;
+}
+
+.sffc-crm-apply-chat__home-trending-logo {
+  position: relative;
+  width: 54px;
+  height: 54px;
+  border: 1px solid rgba(25, 91, 196, 0.12);
+  border-radius: 8px;
+  background: #f3f7ff;
+  color: #195bc4;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.sffc-crm-apply-chat__home-trending-logo:not(.has-image) {
+  border-color: rgba(255, 255, 255, 0.4);
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0) 34%),
+    linear-gradient(135deg, #062b55 0%, #195bc4 56%, #31e6b2 100%);
+  color: #ffffff;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.34),
+    0 10px 22px rgba(6, 43, 85, 0.16);
+}
+
+.sffc-crm-apply-chat__home-trending-logo:not(.has-image)::before {
+  content: "";
+  position: absolute;
+  inset: 7px;
+  border: 1px solid rgba(255, 255, 255, 0.36);
+  border-radius: 6px;
+}
+
+.sffc-crm-apply-chat__home-trending-logo:not(.has-image)::after {
+  content: "";
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: #31e6b2;
+  box-shadow: 0 0 0 3px rgba(49, 230, 178, 0.2);
+}
+
+.sffc-crm-apply-chat__home-trending-logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  padding: 7px;
+  background: #ffffff;
+}
+
+.sffc-crm-apply-chat__home-trending-logo strong {
+  position: relative;
+  z-index: 1;
+  font-size: 20px;
+  font-weight: 800;
+}
+
+.sffc-crm-apply-chat__home-trending-title {
+  min-width: 0;
+  display: grid;
+  gap: 5px;
+}
+
+.sffc-crm-apply-chat__home-trending-title strong,
+.sffc-crm-apply-chat__home-trending-title small {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sffc-crm-apply-chat__home-trending-title strong {
+  color: #111827;
+  font-size: 17px;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.sffc-crm-apply-chat__home-trending-title small {
+  color: #4b5563;
+  font-size: 14px;
+  line-height: 1.25;
+}
+
+.sffc-crm-apply-chat__home-trending-tags {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  overflow: hidden;
+}
+
+.sffc-crm-apply-chat__home-trending-tags em {
+  max-width: 100%;
+  padding: 5px 9px;
+  border-radius: 999px;
+  background: #eef4ff;
+  color: #195bc4;
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 800;
+  line-height: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sffc-crm-apply-chat__home-trending-preview {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr);
+  gap: 10px;
+  color: #4b5563;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.sffc-crm-apply-chat__home-trending-preview i {
+  color: #195bc4;
+  font-style: normal;
+  line-height: 1.2;
+}
+
+.sffc-crm-apply-chat__home-trending-preview span {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
 @media (max-width: 900px) {
   .sffc-crm-apply-chat--home-launcher {
     display: block;
@@ -875,9 +1222,13 @@
     padding: 0 14px;
   }
 
+  .sffc-crm-apply-chat__home-hero {
+    gap: 24px;
+  }
+
   .sffc-crm-apply-chat__home-launcher-shell {
     min-height: 0;
-    padding: 14px;
+    padding: 46px 14px 14px;
     border-radius: 28px;
     grid-template-columns: auto auto minmax(0, 1fr) auto;
     grid-template-areas:
@@ -885,6 +1236,20 @@
       "mode mode mode mode";
     gap: 10px 12px;
     align-items: center;
+  }
+
+  .sffc-crm-apply-chat__home-launcher-badge {
+    top: 10px;
+    left: 14px;
+    right: 14px;
+    max-width: none;
+    min-height: 28px;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    font-size: 14px;
   }
 
   .sffc-crm-apply-chat__home-launcher-plus {
@@ -899,6 +1264,13 @@
     grid-area: input;
     font-size: 16px;
     line-height: 1.25;
+  }
+
+  .sffc-crm-apply-chat__home-launcher-typing {
+    grid-area: input;
+    font-size: 16px;
+    line-height: 1.25;
+    max-width: 100%;
   }
 
   .sffc-crm-apply-chat__home-launcher-submit {
@@ -931,6 +1303,18 @@
     transform: none;
     min-width: 168px;
   }
+
+  .sffc-crm-apply-chat__home-trending {
+    padding: 0 14px;
+  }
+
+  .sffc-crm-apply-chat__home-trending-track {
+    gap: 14px;
+  }
+
+  .sffc-crm-apply-chat__home-trending-card {
+    flex-basis: min(82vw, 360px);
+  }
 }
 
 @media (max-width: 640px) {
@@ -943,14 +1327,25 @@
     padding: 0 10px;
   }
 
+  .sffc-crm-apply-chat__home-hero {
+    gap: 20px;
+  }
+
   .sffc-crm-apply-chat__home-launcher-shell {
-    padding: 12px;
+    padding: 42px 12px 12px;
     border-radius: 22px;
     grid-template-columns: auto minmax(0, 1fr) auto;
     grid-template-areas:
       "plus input submit"
       "pin mode mode";
     gap: 10px;
+  }
+
+  .sffc-crm-apply-chat__home-launcher-badge {
+    top: 10px;
+    left: 12px;
+    right: 12px;
+    font-size: 13px;
   }
 
   .sffc-crm-apply-chat__home-location {
@@ -967,6 +1362,36 @@
 
   .sffc-crm-apply-chat__home-launcher-input {
     font-size: 16px;
+  }
+
+  .sffc-crm-apply-chat__home-launcher-typing {
+    font-size: 16px;
+  }
+
+  .sffc-crm-apply-chat__home-trending {
+    padding: 0 10px;
+  }
+
+  .sffc-crm-apply-chat__home-trending-head {
+    font-size: 12px;
+  }
+
+  .sffc-crm-apply-chat__home-trending-controls button {
+    width: 32px;
+    height: 32px;
+  }
+
+  .sffc-crm-apply-chat__home-trending-track {
+    gap: 12px;
+  }
+
+  .sffc-crm-apply-chat__home-trending-card {
+    flex-basis: min(88vw, 330px);
+  }
+
+  .sffc-crm-apply-chat__home-trending-card a {
+    min-height: 142px;
+    padding: 15px;
   }
 
   .sffc-crm-apply-chat__home-suggestion {
@@ -14674,6 +15099,192 @@ body.sffc-crm-apply-chat-lock {
   line-height: 1.3 !important;
 }
 
+.sffc-crm-apply-chat .sffc-crm-apply-chat__application-material-card {
+  width: 100% !important;
+  max-width: 760px !important;
+  margin: 0 !important;
+  padding: 22px !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 14px !important;
+  background: #ffffff !important;
+  color: #111827 !important;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08) !important;
+}
+
+.sffc-crm-apply-chat .sffc-crm-apply-chat__cover-letter-template-card {
+  display: grid !important;
+  gap: 14px !important;
+  max-width: min(760px, 100%) !important;
+  overflow: hidden !important;
+}
+
+.sffc-crm-apply-chat .sffc-crm-apply-chat__cover-letter-template-meta {
+  min-width: 0 !important;
+}
+
+.sffc-crm-apply-chat .sffc-crm-apply-chat__application-material-card small {
+  display: block !important;
+  margin: 0 0 6px !important;
+  color: #2563eb !important;
+  font-size: 12px !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.08em !important;
+  text-transform: uppercase !important;
+}
+
+.sffc-crm-apply-chat .sffc-crm-apply-chat__application-material-card h3 {
+  margin: 0 0 10px !important;
+  color: #111827 !important;
+  font-size: 22px !important;
+  line-height: 1.2 !important;
+  font-weight: 800 !important;
+  letter-spacing: 0 !important;
+}
+
+.sffc-crm-apply-chat .sffc-crm-apply-chat__application-material-card p {
+  margin: 0 0 16px !important;
+  color: #475569 !important;
+  font-size: 15px !important;
+  line-height: 1.55 !important;
+}
+
+.sffc-crm-apply-chat .sffc-crm-apply-chat__cover-letter-window {
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  max-height: min(68vh, 760px) !important;
+  overflow: auto !important;
+  padding: clamp(10px, 1.8vw, 18px) !important;
+  border: 1px solid #d8e0eb !important;
+  border-radius: 12px !important;
+  background: #eef3f8 !important;
+}
+
+.sffc-crm-apply-chat .sffc-crm-apply-chat__cover-letter-sheet {
+  width: min(100%, 640px) !important;
+  min-width: 0 !important;
+  margin: 0 auto !important;
+  padding: clamp(28px, 5vw, 48px) clamp(20px, 6vw, 54px) clamp(34px, 6vw, 64px) !important;
+  border: 1px solid #e2e8f0 !important;
+  background: #ffffff !important;
+  color: #000000 !important;
+  box-shadow: 0 18px 36px rgba(15, 23, 42, 0.12) !important;
+  font-family: Cambria, Georgia, "Times New Roman", serif !important;
+}
+
+.sffc-crm-apply-chat .sffc-crm-apply-chat__cover-letter-sheet-head {
+  margin: 0 0 16px !important;
+  padding: 0 !important;
+  border: 0 !important;
+  text-align: center !important;
+}
+
+.sffc-crm-apply-chat .sffc-crm-apply-chat__cover-letter-sheet-head h4 {
+  margin: 0 0 6px !important;
+  color: #000000 !important;
+  font-size: clamp(20px, 3.2vw, 27px) !important;
+  line-height: 1.08 !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.03em !important;
+  text-transform: uppercase !important;
+}
+
+.sffc-crm-apply-chat .sffc-crm-apply-chat__cover-letter-sheet-contact {
+  margin: 0 !important;
+  color: #111827 !important;
+  font-family: Cambria, Georgia, "Times New Roman", serif !important;
+  font-size: clamp(12px, 1.8vw, 14.5px) !important;
+  line-height: 1.35 !important;
+}
+
+.sffc-crm-apply-chat .sffc-crm-apply-chat__cover-letter-sheet-rule {
+  width: 100% !important;
+  height: 0 !important;
+  margin: 0 0 24px !important;
+  border: 0 !important;
+  border-top: 1.5px solid #111111 !important;
+}
+
+.sffc-crm-apply-chat .sffc-crm-apply-chat__cover-letter-date,
+.sffc-crm-apply-chat .sffc-crm-apply-chat__cover-letter-recipient,
+.sffc-crm-apply-chat .sffc-crm-apply-chat__cover-letter-salutation {
+  margin: 0 0 20px !important;
+  color: #111111 !important;
+  font-family: Cambria, Georgia, "Times New Roman", serif !important;
+  font-size: clamp(13px, 1.9vw, 15.5px) !important;
+  line-height: 1.45 !important;
+}
+
+.sffc-crm-apply-chat .sffc-crm-apply-chat__cover-letter-body-text {
+  display: block !important;
+}
+
+.sffc-crm-apply-chat .sffc-crm-apply-chat__cover-letter-body-text p {
+  margin: 0 0 15px !important;
+  color: #111111 !important;
+  font-family: Cambria, Georgia, "Times New Roman", serif !important;
+  font-size: clamp(13px, 1.9vw, 15.5px) !important;
+  line-height: 1.55 !important;
+  text-align: justify !important;
+  overflow-wrap: break-word !important;
+}
+
+.sffc-crm-apply-chat .sffc-crm-apply-chat__cover-letter-field {
+  display: inline !important;
+  min-width: 0 !important;
+  padding: 0 2px !important;
+  border-bottom: 1px dotted #8b95a1 !important;
+  color: inherit !important;
+}
+
+.sffc-crm-apply-chat .sffc-crm-apply-chat__cover-letter-sheet-signoff {
+  display: grid !important;
+  gap: 26px !important;
+  margin-top: 8px !important;
+  color: #111111 !important;
+  font-family: Cambria, Georgia, "Times New Roman", serif !important;
+}
+
+.sffc-crm-apply-chat .sffc-crm-apply-chat__cover-letter-sheet-signoff p,
+.sffc-crm-apply-chat .sffc-crm-apply-chat__cover-letter-sheet-signoff strong {
+  margin: 0 !important;
+  color: #111111 !important;
+  font-size: clamp(13px, 1.9vw, 15.5px) !important;
+  line-height: 1.45 !important;
+}
+
+.sffc-crm-apply-chat .sffc-crm-apply-chat__cover-letter-template-note {
+  margin: 0 !important;
+  color: #64748b !important;
+  font-size: 13px !important;
+  line-height: 1.4 !important;
+}
+
+@media (max-width: 760px) {
+  .sffc-crm-apply-chat .sffc-crm-apply-chat__application-material-card {
+    padding: 16px !important;
+    border-radius: 12px !important;
+  }
+
+  .sffc-crm-apply-chat .sffc-crm-apply-chat__application-material-card h3 {
+    font-size: 18px !important;
+  }
+
+  .sffc-crm-apply-chat .sffc-crm-apply-chat__cover-letter-window {
+    max-height: min(70vh, 620px) !important;
+    padding: 8px !important;
+    border-radius: 10px !important;
+  }
+
+  .sffc-crm-apply-chat .sffc-crm-apply-chat__cover-letter-sheet {
+    padding: 26px 18px 34px !important;
+  }
+
+  .sffc-crm-apply-chat .sffc-crm-apply-chat__cover-letter-body-text p {
+    text-align: left !important;
+  }
+}
+
 .sffc-crm-apply-chat .sffc-crm-apply-results__company {
   overflow: hidden !important;
   color: #202124 !important;
@@ -14982,12 +15593,92 @@ body.sffc-crm-apply-chat-lock {
 }
 
 .sffc-crm-apply-chat .sffc-crm-apply-results__review-screenshot.is-loading {
-  background: #f8fbff !important;
+  position: relative !important;
+  background:
+    linear-gradient(110deg, rgba(255, 255, 255, 0) 0%, rgba(10, 102, 194, 0.08) 42%, rgba(255, 255, 255, 0) 76%),
+    #f8fbff !important;
+  background-size: 220% 100%, auto !important;
+  animation: sffc-apply-review-screenshot-sheen 1.45s ease-in-out infinite !important;
 }
 
 .sffc-crm-apply-chat .sffc-crm-apply-results__review-screenshot.is-error {
   background: #fff8f7 !important;
   color: #9f1c10 !important;
+}
+
+.sffc-crm-apply-chat .sffc-crm-apply-results__review-loader {
+  width: min(100%, 340px) !important;
+  display: grid !important;
+  justify-items: center !important;
+  gap: 12px !important;
+}
+
+.sffc-crm-apply-chat .sffc-crm-apply-results__review-loader-ring {
+  width: 34px !important;
+  height: 34px !important;
+  border: 3px solid #d7e7f8 !important;
+  border-top-color: #0a66c2 !important;
+  border-radius: 999px !important;
+  animation: sffc-apply-review-screenshot-spin 0.8s linear infinite !important;
+}
+
+.sffc-crm-apply-chat .sffc-crm-apply-results__review-loader-copy {
+  color: #364b63 !important;
+  font-size: 13.5px !important;
+  line-height: 1.45 !important;
+  font-weight: 750 !important;
+}
+
+.sffc-crm-apply-chat .sffc-crm-apply-results__review-loader-bar {
+  overflow: hidden !important;
+  width: min(100%, 260px) !important;
+  height: 5px !important;
+  border-radius: 999px !important;
+  background: #dbeafe !important;
+}
+
+.sffc-crm-apply-chat .sffc-crm-apply-results__review-loader-bar i {
+  display: block !important;
+  width: 42% !important;
+  height: 100% !important;
+  border-radius: inherit !important;
+  background: #0a66c2 !important;
+  animation: sffc-apply-review-screenshot-progress 1.2s ease-in-out infinite !important;
+}
+
+@keyframes sffc-apply-review-screenshot-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes sffc-apply-review-screenshot-sheen {
+  0% {
+    background-position: 180% 0, 0 0;
+  }
+  100% {
+    background-position: -80% 0, 0 0;
+  }
+}
+
+@keyframes sffc-apply-review-screenshot-progress {
+  0% {
+    transform: translateX(-115%);
+  }
+  50% {
+    transform: translateX(72%);
+  }
+  100% {
+    transform: translateX(240%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sffc-crm-apply-chat .sffc-crm-apply-results__review-screenshot.is-loading,
+  .sffc-crm-apply-chat .sffc-crm-apply-results__review-loader-ring,
+  .sffc-crm-apply-chat .sffc-crm-apply-results__review-loader-bar i {
+    animation: none !important;
+  }
 }
 
 .sffc-crm-apply-chat .sffc-crm-apply-results__review-image-link,
@@ -15901,10 +16592,10 @@ body.sffc-crm-apply-chat-lock {
   margin: 0 0 6px !important;
   color: #000000 !important;
   font-family: "EB Garamond", Georgia, "Times New Roman", Times, serif !important;
-  font-size: clamp(20px, 2.6vw, 28px) !important;
+  font-size: 28px !important;
   font-weight: 700 !important;
   line-height: 1.12 !important;
-  letter-spacing: 0.03em !important;
+  letter-spacing: 0 !important;
   text-transform: uppercase !important;
 }
 
@@ -16938,208 +17629,85 @@ body.sffc-crm-apply-chat-lock {
   }
 }
 
-.sffc-crm-apply-chat .sffc-crm-apply-chat__quick-route-selector {
-  width: min(520px, calc(100vw - 34px)) !important;
-  min-width: 0 !important;
+.sffc-crm-apply-chat .sffc-crm-apply-chat__quick-route-chat {
   display: grid !important;
-  gap: 12px !important;
-  margin: 8px auto !important;
-  padding: 14px !important;
-  overflow: hidden !important;
-  border: 1px solid #dfe7f0 !important;
-  border-radius: 14px !important;
-  background: #ffffff !important;
-  color: #1c2733 !important;
-  box-shadow: 0 10px 26px rgba(21, 35, 46, 0.08) !important;
-}
-
-.sffc-crm-apply-chat .sffc-crm-apply-chat__quick-route-head {
-  max-width: none !important;
-  margin: 0 !important;
-  display: grid !important;
-  gap: 6px !important;
-  text-align: left !important;
-}
-
-.sffc-crm-apply-chat .sffc-crm-apply-chat__quick-route-head p,
-.sffc-crm-apply-chat .sffc-crm-apply-chat__quick-route-head h3,
-.sffc-crm-apply-chat .sffc-crm-apply-chat__quick-route-head span {
-  margin: 0 !important;
-}
-
-.sffc-crm-apply-chat .sffc-crm-apply-chat__quick-route-head p {
-  color: #3762d6 !important;
-  font-size: 12px !important;
-  font-weight: 800 !important;
-  letter-spacing: 0 !important;
-  text-transform: none !important;
-}
-
-.sffc-crm-apply-chat .sffc-crm-apply-chat__quick-route-head h3 {
-  color: #1c2733 !important;
-  font-size: 16px !important;
-  line-height: 1.35 !important;
-  font-weight: 850 !important;
-  letter-spacing: 0 !important;
-}
-
-.sffc-crm-apply-chat .sffc-crm-apply-chat__quick-route-head span {
-  color: #5b6b7a !important;
-  font-size: 13px !important;
-  line-height: 1.45 !important;
-  font-weight: 600 !important;
-}
-
-.sffc-crm-apply-chat .sffc-crm-apply-chat__quick-route-plans {
+  gap: 14px !important;
   width: 100% !important;
   min-width: 0 !important;
-  display: grid !important;
-  grid-template-columns: 1fr !important;
-  gap: 8px !important;
-  align-items: stretch !important;
-}
-
-.sffc-crm-apply-chat .sffc-crm-apply-chat__quick-route-plan {
-  position: relative !important;
-  min-width: 0 !important;
-  display: grid !important;
-  grid-template-columns: minmax(0, 1fr) auto !important;
-  gap: 4px 12px !important;
-  align-items: center !important;
-  padding: 12px !important;
-  overflow: hidden !important;
-  border: 1px solid #dfe4ea !important;
-  border-radius: 12px !important;
-  background: #fbfcfe !important;
-  text-align: left !important;
-}
-
-.sffc-crm-apply-chat .sffc-crm-apply-chat__quick-route-plan.is-premium {
-  border-color: rgba(55, 98, 214, 0.28) !important;
-  background: #f7faff !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
   box-shadow: none !important;
 }
 
-.sffc-crm-apply-chat .sffc-crm-apply-chat__quick-route-plan.is-free {
-  border: 1px solid #dfe4ea !important;
-  background: #ffffff !important;
-}
-
-.sffc-crm-apply-chat .sffc-crm-apply-chat__quick-route-plan h4,
-.sffc-crm-apply-chat .sffc-crm-apply-chat__quick-route-plan p {
+.sffc-crm-apply-chat .sffc-crm-apply-chat__quick-route-chat p {
   margin: 0 !important;
-}
-
-.sffc-crm-apply-chat .sffc-crm-apply-chat__quick-route-plan h4 {
-  grid-column: 1 !important;
-  color: #1c2733 !important;
-  font-size: 14px !important;
-  line-height: 1.25 !important;
-  font-weight: 850 !important;
+  color: inherit !important;
+  font-size: inherit !important;
+  line-height: inherit !important;
+  font-weight: inherit !important;
   letter-spacing: 0 !important;
 }
 
-.sffc-crm-apply-chat .sffc-crm-apply-chat__quick-route-plan p {
-  grid-column: 1 !important;
-  color: #5b6b7a !important;
-  font-size: 12px !important;
-  line-height: 1.35 !important;
-  font-weight: 600 !important;
+.sffc-crm-apply-chat .sffc-crm-apply-chat__quick-route-actions {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 8px !important;
+  min-width: 0 !important;
+  padding-top: 4px !important;
 }
 
-.sffc-crm-apply-chat .sffc-crm-apply-chat__quick-route-cta {
-  grid-column: 2 !important;
-  grid-row: 1 / span 2 !important;
-  width: auto !important;
-  min-width: 138px !important;
-  min-height: 38px !important;
+.sffc-crm-apply-chat .sffc-crm-apply-chat__quick-route-action {
+  min-height: 36px !important;
+  max-width: 100% !important;
   display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
-  padding: 9px 13px !important;
+  padding: 10px 16px !important;
+  border: 1px solid #d8e0eb !important;
   border-radius: 999px !important;
+  background: #ffffff !important;
+  color: #334155 !important;
   font: inherit !important;
-  font-size: 12px !important;
-  line-height: 1.1 !important;
-  font-weight: 850 !important;
-  cursor: pointer !important;
+  font-size: 13px !important;
+  line-height: 1.15 !important;
+  font-weight: 800 !important;
+  letter-spacing: 0 !important;
+  text-align: center !important;
   white-space: normal !important;
+  cursor: pointer !important;
 }
 
-.sffc-crm-apply-chat .sffc-crm-apply-chat__quick-route-plan.is-premium .sffc-crm-apply-chat__quick-route-cta {
-  border: 0 !important;
-  background: #3762d6 !important;
+.sffc-crm-apply-chat .sffc-crm-apply-chat__quick-route-action.is-primary {
+  border-color: #126dcc !important;
+  background: #126dcc !important;
   color: #ffffff !important;
 }
 
-.sffc-crm-apply-chat .sffc-crm-apply-chat__quick-route-plan.is-premium .sffc-crm-apply-chat__quick-route-cta:hover,
-.sffc-crm-apply-chat .sffc-crm-apply-chat__quick-route-plan.is-premium .sffc-crm-apply-chat__quick-route-cta:focus-visible {
-  background: #2748ac !important;
+.sffc-crm-apply-chat .sffc-crm-apply-chat__quick-route-action:hover,
+.sffc-crm-apply-chat .sffc-crm-apply-chat__quick-route-action:focus-visible {
+  border-color: #126dcc !important;
+  outline: none !important;
 }
 
-.sffc-crm-apply-chat .sffc-crm-apply-chat__quick-route-plan.is-free .sffc-crm-apply-chat__quick-route-cta {
-  border: 1px solid #dfe4ea !important;
-  background: #ffffff !important;
-  color: #5b6b7a !important;
-}
-
-.sffc-crm-apply-chat .sffc-crm-apply-chat__quick-route-plan.is-free .sffc-crm-apply-chat__quick-route-cta:hover,
-.sffc-crm-apply-chat .sffc-crm-apply-chat__quick-route-plan.is-free .sffc-crm-apply-chat__quick-route-cta:focus-visible {
-  border-color: #94a1ae !important;
-  color: #1c2733 !important;
+.sffc-crm-apply-chat .sffc-crm-apply-chat__quick-route-action.is-primary:hover,
+.sffc-crm-apply-chat .sffc-crm-apply-chat__quick-route-action.is-primary:focus-visible {
+  background: #0d5eb4 !important;
 }
 
 @media (max-width: 520px) {
-  .sffc-crm-apply-chat .sffc-crm-apply-chat__quick-route-selector {
-    width: min(100%, calc(100vw - 18px)) !important;
-    gap: 10px !important;
-    padding: 12px !important;
-    border-radius: 14px !important;
+  .sffc-crm-apply-chat .sffc-crm-apply-chat__quick-route-chat {
+    gap: 12px !important;
   }
 
-  .sffc-crm-apply-chat .sffc-crm-apply-chat__quick-route-head {
-    gap: 4px !important;
+  .sffc-crm-apply-chat .sffc-crm-apply-chat__quick-route-actions {
+    display: grid !important;
   }
 
-  .sffc-crm-apply-chat .sffc-crm-apply-chat__quick-route-head h3 {
-    font-size: 15px !important;
-  }
-
-  .sffc-crm-apply-chat .sffc-crm-apply-chat__quick-route-head span {
-    font-size: 11.5px !important;
-  }
-
-  .sffc-crm-apply-chat .sffc-crm-apply-chat__quick-route-plans {
-    gap: 8px !important;
-  }
-
-  .sffc-crm-apply-chat .sffc-crm-apply-chat__quick-route-plan {
-    grid-template-columns: 1fr !important;
-    gap: 8px !important;
-    padding: 11px !important;
-    border-radius: 12px !important;
-  }
-
-  .sffc-crm-apply-chat .sffc-crm-apply-chat__quick-route-plan h4 {
-    font-size: 13px !important;
-    line-height: 1.25 !important;
-    overflow-wrap: anywhere !important;
-  }
-
-  .sffc-crm-apply-chat .sffc-crm-apply-chat__quick-route-plan p {
-    font-size: 11px !important;
-    line-height: 1.35 !important;
-  }
-
-  .sffc-crm-apply-chat .sffc-crm-apply-chat__quick-route-cta {
-    grid-column: 1 !important;
-    grid-row: auto !important;
+  .sffc-crm-apply-chat .sffc-crm-apply-chat__quick-route-action {
     width: 100% !important;
-    min-width: 0 !important;
-    min-height: 34px !important;
-    padding: 8px 10px !important;
-    font-size: 11px !important;
-    border-radius: 999px !important;
   }
 }
 
@@ -17356,6 +17924,382 @@ body.sffc-crm-apply-chat-lock {
   line-height: 1.3 !important;
   text-overflow: ellipsis !important;
   white-space: nowrap !important;
+}
+
+.sffc-crm-apply-chat .sffc-crm-apply-chat__tailored-cv-document-card {
+  box-sizing: border-box !important;
+  width: min(100%, 980px) !important;
+  max-width: 980px !important;
+  min-width: 0 !important;
+  margin: 18px auto !important;
+  padding: 28px 32px !important;
+  overflow: visible !important;
+  border-radius: 8px !important;
+}
+
+.sffc-crm-apply-chat .sffc-crm-apply-chat__tailored-cv-document-card .sffc-crm-apply-chat__tailored-cv-preview {
+  box-sizing: border-box !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  max-height: none !important;
+  overflow: visible !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: #ffffff !important;
+}
+
+.sffc-crm-apply-chat .sffc-crm-apply-chat__tailored-cv-editor-bar {
+  width: min(100%, 800px) !important;
+  min-height: 34px !important;
+  margin: 0 auto 12px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  gap: 10px !important;
+}
+
+.sffc-crm-apply-chat .sffc-crm-apply-chat__tailored-cv-editor-status {
+  min-height: 26px !important;
+  padding: 5px 10px !important;
+  border: 1px solid #d8dee8 !important;
+  border-radius: 999px !important;
+  background: #f8fafc !important;
+  color: #475569 !important;
+  font-size: 12px !important;
+  font-weight: 800 !important;
+  line-height: 1.2 !important;
+  letter-spacing: 0 !important;
+}
+
+.sffc-crm-apply-chat .sffc-crm-apply-chat__tailored-cv-editor-layout {
+  box-sizing: border-box !important;
+  width: 100% !important;
+  display: block !important;
+}
+
+.sffc-crm-apply-chat .sffc-crm-apply-chat__tailored-cv-preview.has-edits .sffc-crm-apply-chat__tailored-cv-editor-status {
+  border-color: rgba(22, 163, 74, 0.22) !important;
+  background: #f0fdf4 !important;
+  color: #166534 !important;
+}
+
+.sffc-crm-apply-chat [data-sffc-tailored-cv-field] {
+  cursor: text !important;
+  border-radius: 3px !important;
+  outline: 0 solid transparent !important;
+  transition: background-color 0.12s ease, box-shadow 0.12s ease !important;
+}
+
+.sffc-crm-apply-chat [data-sffc-tailored-cv-field]:hover {
+  background: rgba(255, 237, 213, 0.44) !important;
+  box-shadow: 0 0 0 2px rgba(251, 146, 60, 0.12) !important;
+}
+
+.sffc-crm-apply-chat [data-sffc-tailored-cv-field]:focus {
+  background: #fff7ed !important;
+  box-shadow: 0 0 0 2px rgba(249, 115, 22, 0.36) !important;
+}
+
+.sffc-crm-apply-chat .sffc-crm-apply-chat__tailored-cv-highlight {
+  position: relative !important;
+  border-radius: 3px !important;
+  box-decoration-break: clone !important;
+  -webkit-box-decoration-break: clone !important;
+}
+
+.sffc-crm-apply-chat .sffc-crm-apply-chat__tailored-cv-has-comment {
+  position: relative !important;
+}
+
+.sffc-crm-apply-chat .sffc-crm-apply-chat__tailored-cv-suggestion {
+  position: absolute !important;
+  z-index: 80 !important;
+  left: auto !important;
+  right: 0 !important;
+  top: calc(100% + 9px) !important;
+  bottom: auto !important;
+  box-sizing: border-box !important;
+  display: grid !important;
+  gap: 7px !important;
+  width: max-content !important;
+  min-width: 250px !important;
+  max-width: min(360px, calc(100vw - 42px)) !important;
+  padding: 12px 13px !important;
+  border: 1px solid #dbe3ef !important;
+  border-left-width: 4px !important;
+  border-radius: 8px !important;
+  background: #ffffff !important;
+  color: #111827 !important;
+  box-shadow: 0 18px 44px rgba(15, 23, 42, 0.22) !important;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+    "Segoe UI", sans-serif !important;
+  font-style: normal !important;
+  letter-spacing: 0 !important;
+  text-align: left !important;
+  text-transform: none !important;
+  white-space: normal !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+  transform: translateY(4px) !important;
+  transition: opacity 0.14s ease, transform 0.14s ease, visibility 0.14s ease !important;
+}
+
+.sffc-crm-apply-chat .sffc-crm-apply-chat__tailored-cv-suggestion::before {
+  content: "" !important;
+  position: absolute !important;
+  top: -8px !important;
+  right: 22px !important;
+  left: auto !important;
+  width: 14px !important;
+  height: 14px !important;
+  border-left: 1px solid #dbe3ef !important;
+  border-top: 1px solid #dbe3ef !important;
+  border-bottom: 0 !important;
+  background: #ffffff !important;
+  transform: rotate(45deg) !important;
+}
+
+.sffc-crm-apply-chat .sffc-crm-apply-chat__tailored-cv-suggestion.is-rewrite {
+  border-left-color: #0d9488 !important;
+}
+
+.sffc-crm-apply-chat .sffc-crm-apply-chat__tailored-cv-suggestion.is-keyword {
+  border-left-color: #2563eb !important;
+}
+
+.sffc-crm-apply-chat .sffc-crm-apply-chat__tailored-cv-suggestion.is-quality {
+  border-left-color: #dc2626 !important;
+}
+
+.sffc-crm-apply-chat .sffc-crm-apply-chat__tailored-cv-suggestion.is-structure {
+  border-left-color: #d97706 !important;
+}
+
+.sffc-crm-apply-chat .sffc-crm-apply-chat__tailored-cv-has-comment:hover > .sffc-crm-apply-chat__tailored-cv-suggestion,
+.sffc-crm-apply-chat .sffc-crm-apply-chat__tailored-cv-has-comment:focus-within > .sffc-crm-apply-chat__tailored-cv-suggestion {
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+  transform: translateY(0) !important;
+}
+
+.sffc-crm-apply-chat .sffc-crm-apply-chat__tailored-cv-suggestion-kicker {
+  color: #6b7280 !important;
+  font-size: 10.5px !important;
+  font-weight: 850 !important;
+  line-height: 1.1 !important;
+  letter-spacing: 0 !important;
+  text-transform: uppercase !important;
+}
+
+.sffc-crm-apply-chat .sffc-crm-apply-chat__tailored-cv-suggestion-title {
+  color: #111827 !important;
+  font-size: 13px !important;
+  font-weight: 850 !important;
+  line-height: 1.2 !important;
+}
+
+.sffc-crm-apply-chat .sffc-crm-apply-chat__tailored-cv-suggestion-copy {
+  color: #4b5563 !important;
+  font-size: 12px !important;
+  font-weight: 650 !important;
+  line-height: 1.35 !important;
+}
+
+.sffc-crm-apply-chat .sffc-crm-apply-chat__tailored-cv-suggestion-actions {
+  display: flex !important;
+  align-items: center !important;
+  gap: 7px !important;
+  margin-top: 2px !important;
+}
+
+.sffc-crm-apply-chat .sffc-crm-apply-chat__tailored-cv-suggestion-actions button {
+  min-height: 27px !important;
+  padding: 5px 9px !important;
+  border: 1px solid #d1d5db !important;
+  border-radius: 7px !important;
+  background: #ffffff !important;
+  color: #374151 !important;
+  cursor: pointer !important;
+  font: inherit !important;
+  font-size: 11.5px !important;
+  font-weight: 800 !important;
+  line-height: 1.1 !important;
+}
+
+.sffc-crm-apply-chat .sffc-crm-apply-chat__tailored-cv-suggestion-actions button:first-child {
+  border-color: #0f766e !important;
+  background: #0f766e !important;
+  color: #ffffff !important;
+}
+
+@media (max-width: 900px) {
+  .sffc-crm-apply-chat .sffc-crm-apply-chat__tailored-cv-suggestion {
+    left: 0 !important;
+    right: auto !important;
+    top: auto !important;
+    bottom: calc(100% + 9px) !important;
+    min-width: min(260px, 76vw) !important;
+    transform: translateY(4px) !important;
+  }
+
+  .sffc-crm-apply-chat
+    .sffc-crm-apply-chat__tailored-cv-suggestion::before {
+    top: auto !important;
+    bottom: -8px !important;
+    left: 18px !important;
+    border: 0 !important;
+    border-right: 1px solid #dbe3ef !important;
+    border-bottom: 1px solid #dbe3ef !important;
+  }
+
+  .sffc-crm-apply-chat .sffc-crm-apply-chat__tailored-cv-has-comment:hover > .sffc-crm-apply-chat__tailored-cv-suggestion,
+  .sffc-crm-apply-chat .sffc-crm-apply-chat__tailored-cv-has-comment:focus-within > .sffc-crm-apply-chat__tailored-cv-suggestion {
+    transform: translateY(0) !important;
+  }
+}
+
+.sffc-crm-apply-chat .sffc-crm-apply-chat__tailored-cv-highlight.is-rewrite {
+  background: linear-gradient(
+    transparent 58%,
+    rgba(45, 212, 191, 0.3) 58%
+  ) !important;
+  box-shadow: inset 0 -2px 0 rgba(13, 148, 136, 0.75) !important;
+}
+
+.sffc-crm-apply-chat .sffc-crm-apply-chat__tailored-cv-highlight.is-keyword {
+  background: linear-gradient(
+    transparent 58%,
+    rgba(147, 197, 253, 0.34) 58%
+  ) !important;
+  box-shadow: inset 0 -2px 0 rgba(37, 99, 235, 0.7) !important;
+}
+
+.sffc-crm-apply-chat .sffc-crm-apply-chat__tailored-cv-highlight.is-quality {
+  background: linear-gradient(
+    transparent 58%,
+    rgba(254, 202, 202, 0.48) 58%
+  ) !important;
+  box-shadow: inset 0 -2px 0 rgba(220, 38, 38, 0.72) !important;
+}
+
+.sffc-crm-apply-chat .sffc-crm-apply-chat__tailored-cv-highlight.is-structure {
+  background: linear-gradient(
+    transparent 58%,
+    rgba(253, 230, 138, 0.5) 58%
+  ) !important;
+  box-shadow: inset 0 -2px 0 rgba(217, 119, 6, 0.74) !important;
+}
+
+.sffc-crm-apply-chat .sffc-crm-apply-chat__tailored-cv-document-card .sffc-crm-apply-chat__tailored-cv-preview.is-visual-fallback {
+  max-height: none !important;
+  padding: 12px !important;
+  overflow: hidden !important;
+  background: #f5f8fb !important;
+}
+
+.sffc-crm-apply-chat .sffc-crm-apply-chat__tailored-cv-preview.is-visual-fallback .sffc-crm-apply-chat__tailored-cv-visual-preview {
+  max-width: 760px !important;
+  margin: 0 auto !important;
+}
+
+.sffc-crm-apply-chat .sffc-crm-apply-chat__tailored-cv-document-card .sffc-crm-apply-chat__tailored-cv-document-viewport {
+  box-sizing: border-box !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  max-height: none !important;
+  min-height: 0 !important;
+  padding: 0 !important;
+  overflow-x: hidden !important;
+  overflow-y: visible !important;
+  background: #ffffff !important;
+}
+
+.sffc-crm-apply-chat .sffc-crm-apply-chat__tailored-cv-document-card .sffc-crm-apply-chat__tailored-cv-sheet {
+  box-sizing: border-box !important;
+  width: min(100%, 800px) !important;
+  max-width: 800px !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  margin: 0 auto !important;
+  overflow: visible !important;
+  padding: 52px 60px 70px !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  background: #ffffff !important;
+}
+
+.sffc-crm-apply-chat .sffc-crm-apply-chat__tailored-cv-document-card .sffc-crm-apply-chat__tailored-cv-name {
+  font-size: 24px !important;
+}
+
+.sffc-crm-apply-chat .sffc-crm-apply-chat__tailored-cv-document-card .sffc-crm-apply-chat__tailored-cv-sec-head {
+  font-size: 13px !important;
+}
+
+.sffc-crm-apply-chat .sffc-crm-apply-chat__tailored-cv-document-card .sffc-crm-apply-chat__tailored-cv-entry-head,
+.sffc-crm-apply-chat .sffc-crm-apply-chat__tailored-cv-document-card .sffc-crm-apply-chat__tailored-cv-entry-sub,
+.sffc-crm-apply-chat .sffc-crm-apply-chat__tailored-cv-document-card .sffc-crm-apply-chat__tailored-cv-bullets li,
+.sffc-crm-apply-chat .sffc-crm-apply-chat__tailored-cv-document-card .sffc-crm-apply-chat__tailored-cv-summary-text,
+.sffc-crm-apply-chat .sffc-crm-apply-chat__tailored-cv-document-card .sffc-crm-apply-chat__tailored-cv-skills-list p {
+  overflow-wrap: anywhere !important;
+}
+
+@media (max-width: 760px) {
+  .sffc-crm-apply-chat .sffc-crm-apply-chat__tailored-cv-document-card {
+    width: 100% !important;
+    padding: 18px !important;
+  }
+
+  .sffc-crm-apply-chat .sffc-crm-apply-chat__tailored-cv-document-card .sffc-crm-apply-chat__tailored-cv-document-viewport {
+    padding: 0 !important;
+  }
+
+  .sffc-crm-apply-chat .sffc-crm-apply-chat__tailored-cv-document-card .sffc-crm-apply-chat__tailored-cv-sheet {
+    min-height: 0 !important;
+    padding: 24px 18px 34px !important;
+    font-size: 12.5px !important;
+    line-height: 1.36 !important;
+  }
+
+  .sffc-crm-apply-chat .sffc-crm-apply-chat__tailored-cv-document-card .sffc-crm-apply-chat__tailored-cv-name {
+    font-size: 18px !important;
+    line-height: 1.08 !important;
+    letter-spacing: 0 !important;
+  }
+
+  .sffc-crm-apply-chat .sffc-crm-apply-chat__tailored-cv-document-card .sffc-crm-apply-chat__tailored-cv-contact-line,
+  .sffc-crm-apply-chat .sffc-crm-apply-chat__tailored-cv-document-card .sffc-crm-apply-chat__tailored-cv-summary-text,
+  .sffc-crm-apply-chat .sffc-crm-apply-chat__tailored-cv-document-card .sffc-crm-apply-chat__tailored-cv-note,
+  .sffc-crm-apply-chat .sffc-crm-apply-chat__tailored-cv-document-card .sffc-crm-apply-chat__tailored-cv-bullets li,
+  .sffc-crm-apply-chat .sffc-crm-apply-chat__tailored-cv-document-card .sffc-crm-apply-chat__tailored-cv-skills-list p {
+    font-size: 12px !important;
+    line-height: 1.34 !important;
+    text-align: left !important;
+    overflow-wrap: break-word !important;
+  }
+
+  .sffc-crm-apply-chat .sffc-crm-apply-chat__tailored-cv-document-card .sffc-crm-apply-chat__tailored-cv-entry-head,
+  .sffc-crm-apply-chat .sffc-crm-apply-chat__tailored-cv-document-card .sffc-crm-apply-chat__tailored-cv-entry-sub {
+    font-size: 12.5px !important;
+    line-height: 1.28 !important;
+  }
+
+  .sffc-crm-apply-chat .sffc-crm-apply-chat__tailored-cv-document-card .sffc-crm-apply-chat__tailored-cv-sec-head {
+    font-size: 11px !important;
+    margin-bottom: 7px !important;
+  }
+
+  .sffc-crm-apply-chat .sffc-crm-apply-chat__tailored-cv-document-card .sffc-crm-apply-chat__tailored-cv-summary-text {
+    margin-bottom: 14px !important;
+  }
+
+  .sffc-crm-apply-chat .sffc-crm-apply-chat__tailored-cv-document-card .sffc-crm-apply-chat__tailored-cv-doc-section {
+    margin-bottom: 14px !important;
+  }
 }
 
 .sffc-crm-apply-chat .sffc-crm-apply-chat__quick-doc-heading {
@@ -17721,4 +18665,44 @@ body.sffc-crm-apply-chat-lock {
   width: 100% !important;
   max-width: 100% !important;
   min-width: 0 !important;
+}
+
+.sffc-crm-apply-chat .sffc-crm-apply-chat__managed-search-intake-summary {
+  width: min(100%, 620px);
+  max-width: calc(100vw - 32px);
+  margin: 0 auto;
+}
+
+.sffc-crm-apply-chat .sffc-crm-apply-chat__managed-search-intake-summary dl {
+  display: grid;
+  gap: 10px;
+  margin: 14px 0 0;
+}
+
+.sffc-crm-apply-chat .sffc-crm-apply-chat__managed-search-intake-summary dl > div {
+  display: grid;
+  grid-template-columns: minmax(96px, 0.32fr) minmax(0, 1fr);
+  gap: 10px;
+  padding: 10px 0;
+  border-top: 1px solid rgba(17, 24, 39, 0.1);
+}
+
+.sffc-crm-apply-chat .sffc-crm-apply-chat__managed-search-intake-summary dt,
+.sffc-crm-apply-chat .sffc-crm-apply-chat__managed-search-intake-summary dd {
+  min-width: 0;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.sffc-crm-apply-chat .sffc-crm-apply-chat__managed-search-intake-summary dt {
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.sffc-crm-apply-chat .sffc-crm-apply-chat__managed-search-intake-summary dd {
+  color: #111827;
+  font-size: 14px;
+  font-weight: 700;
 }

@@ -2,6 +2,7 @@
 
 let puppeteer;
 const fs = require("fs");
+const { getChromeBrowserWsEndpoint } = require("./chrome-debug");
 
 try {
   puppeteer = require("puppeteer");
@@ -20,6 +21,21 @@ const browserLaunchOptions = {
   timeout: 60000,
   args: ["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"],
 };
+
+async function openBrowser() {
+  if (process.env.SFFC_USE_EXISTING_CHROME === "1") {
+    return {
+      browser: await puppeteer.connect({
+        browserWSEndpoint: await getChromeBrowserWsEndpoint(),
+      }),
+      connected: true,
+    };
+  }
+  return {
+    browser: await puppeteer.launch(browserLaunchOptions),
+    connected: false,
+  };
+}
 
 if (process.env.PUPPETEER_EXECUTABLE_PATH) {
   browserLaunchOptions.executablePath = process.env.PUPPETEER_EXECUTABLE_PATH;
@@ -65,7 +81,7 @@ const html = String.raw`<!doctype html>
 <body>
   <main class="sffc-crm-apply-chat">
     <section class="sffc-crm-apply-chat__message is-emily has-apply-results-card">
-      <div class="sffc-crm-apply-results">
+      <div class="sffc-crm-apply-results sffc-crm-apply-results--job-search" data-sffc-apply-results-query="private credit dubai" data-sffc-apply-results-count-value="1">
         <div class="sffc-crm-apply-results__topbar">
           <input data-sffc-apply-results-search value="" aria-label="Search role">
         </div>
@@ -74,7 +90,7 @@ const html = String.raw`<!doctype html>
           <button data-sffc-apply-results-filter="high">Match: High</button>
         </div>
         <div class="sffc-crm-apply-results__list">
-          <article class="sffc-crm-apply-results__result is-shortlisted" data-sffc-apply-results-item>
+          <article class="sffc-crm-apply-results__result is-shortlisted" data-sffc-apply-results-item data-sffc-apply-results-index="1" data-sffc-apply-results-key="role-1" data-sffc-apply-chat-role-title="Business Development & Operations Senior Associate" data-sffc-apply-chat-company="Tam Development Co" data-sffc-apply-chat-location="Dubai" data-sffc-apply-chat-salary="AED 30k+" data-sffc-apply-chat-seniority="Senior Associate" data-sffc-apply-chat-sector="Private credit" data-sffc-apply-chat-description="Commercial operations role with investment-adjacent execution." data-sffc-apply-chat-match-reason="Strong overlap with finance, operations and GCC market exposure." data-sffc-apply-chat-match-missing="Direct private credit execution is not fully visible.">
             <button type="button" class="sffc-crm-apply-results__title" data-sffc-apply-results-toggle-review="role-1" aria-expanded="false" aria-controls="review-1">Business Development & Operations Senior Associate</button>
             <p class="sffc-crm-apply-results__snippet">Matched against your CV and current search.</p>
             <div class="sffc-crm-apply-results__actions">
@@ -118,6 +134,29 @@ async function assertViewport(page, viewport) {
   if (buttonCount < 2) {
     throw new Error("missing result action buttons");
   }
+  const resultContext = await page.$eval(".sffc-crm-apply-results--job-search", (surface) => {
+    const card = surface.querySelector(".sffc-crm-apply-results__result");
+    return {
+      query: surface.getAttribute("data-sffc-apply-results-query"),
+      count: surface.getAttribute("data-sffc-apply-results-count-value"),
+      index: card && card.getAttribute("data-sffc-apply-results-index"),
+      key: card && card.getAttribute("data-sffc-apply-results-key"),
+      title: card && card.getAttribute("data-sffc-apply-chat-role-title"),
+      company: card && card.getAttribute("data-sffc-apply-chat-company"),
+      salary: card && card.getAttribute("data-sffc-apply-chat-salary"),
+      seniority: card && card.getAttribute("data-sffc-apply-chat-seniority"),
+      sector: card && card.getAttribute("data-sffc-apply-chat-sector"),
+      description: card && card.getAttribute("data-sffc-apply-chat-description"),
+      matchReason: card && card.getAttribute("data-sffc-apply-chat-match-reason"),
+      matchMissing: card && card.getAttribute("data-sffc-apply-chat-match-missing"),
+    };
+  });
+  const missingContext = Object.entries(resultContext)
+    .filter(([, value]) => !value)
+    .map(([key]) => key);
+  if (missingContext.length) {
+    throw new Error(`missing structured result context: ${missingContext.join(", ")}`);
+  }
   await page.click(".sffc-crm-apply-results__title");
   const expanded = await page.$eval(".sffc-crm-apply-results__title", (node) => node.getAttribute("aria-expanded"));
   const frameSrc = await page.$eval(".sffc-crm-apply-results__review-frame", (node) => node.getAttribute("src"));
@@ -127,14 +166,19 @@ async function assertViewport(page, viewport) {
 }
 
 (async () => {
-  const browser = await puppeteer.launch(browserLaunchOptions);
+  const session = await openBrowser();
+  const browser = session.browser;
   try {
     const page = await browser.newPage();
     await assertViewport(page, { width: 1366, height: 900 });
     await assertViewport(page, { width: 390, height: 844 });
     console.log("PASS apply-chat browser UI fixtures");
   } finally {
-    await browser.close();
+    if (session.connected && typeof browser.disconnect === "function") {
+      browser.disconnect();
+    } else {
+      await browser.close();
+    }
   }
 })().catch((error) => {
   if (/(waiting for the WS endpoint URL|Failed to launch the browser process)/i.test(error && error.message ? error.message : "")) {

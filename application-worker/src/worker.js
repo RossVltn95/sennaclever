@@ -351,12 +351,21 @@ async function postAjax(action, fields) {
     method: "POST",
     body,
   });
-  const payload = await response.json().catch(() => null);
+  const responseText = await response.text().catch(() => "");
+  let payload = null;
+  try {
+    payload = responseText ? JSON.parse(responseText) : null;
+  } catch (error) {
+    payload = null;
+  }
   if (!response.ok || !payload || !payload.success) {
+    const responseDetail = cleanText(
+      responseText && responseText.length > 700 ? `${responseText.slice(0, 700)}...` : responseText
+    );
     const message =
       payload && payload.data && payload.data.message
         ? payload.data.message
-        : `WordPress AJAX ${action} failed with ${response.status}`;
+        : `WordPress AJAX ${action} failed with ${response.status}${responseDetail ? `: ${responseDetail}` : ""}`;
     throw new Error(message);
   }
   return payload.data || {};
@@ -367,6 +376,32 @@ async function claimTask() {
     worker_id: workerId,
   });
   return data.task || null;
+}
+
+function isInternalSennaUrl(url) {
+  const clean = cleanText(url || "");
+  if (!clean || clean === "#") {
+    return false;
+  }
+  try {
+    const parsed = new URL(clean);
+    return /(^|\.)joinsenna\.com$/i.test(parsed.hostname || "");
+  } catch (error) {
+    return false;
+  }
+}
+
+function isValidExternalApplicationUrl(url) {
+  const clean = cleanText(url || "");
+  if (!clean || clean === "#" || isInternalSennaUrl(clean)) {
+    return false;
+  }
+  try {
+    const parsed = new URL(clean);
+    return parsed.protocol === "http:" || parsed.protocol === "https:";
+  } catch (error) {
+    return false;
+  }
 }
 
 async function completeTask(taskUuid, status, result) {
@@ -30654,6 +30689,27 @@ async function processSimpleFormTask(page, task, candidate, cvPath, url) {
 async function processTask(task) {
   const url = task.application_workspace_url || task.application_url;
   const payload = getTaskPayload(task);
+  if (!isValidExternalApplicationUrl(url)) {
+    return {
+      provider: cleanText(task.provider || "unknown"),
+      url,
+      final_url: url,
+      clicked_submit: false,
+      form_opened: false,
+      form_ready: false,
+      uploaded_resume: false,
+      application_answers_attempted: 0,
+      application_answers_filled: 0,
+      application_choice_answers_attempted: 0,
+      application_choice_answers_filled: 0,
+      missing_required_fields: [],
+      validation_errors: [],
+      last_error: isInternalSennaUrl(url)
+        ? "Application task was queued with an internal Senna URL instead of an employer application URL."
+        : "Application task was queued without a valid employer application URL.",
+      status: "failed",
+    };
+  }
   if (payload.source === "application_preview" || task.provider === "application_preview") {
     debugLog(task.task_uuid || "application_preview", "preview_adapter_start", url);
     return await processApplicationPreviewTask(task);
@@ -31927,13 +31983,15 @@ function summarizeApplicationFailureDetails(result) {
 
 async function runOnce() {
   lastHeartbeat = new Date().toISOString();
-  const task = await claimTask();
-  if (!task) {
-    lastTaskStatus = "idle";
-    return;
-  }
+  let task = null;
 
   try {
+    task = await claimTask();
+    if (!task) {
+      lastTaskStatus = "idle";
+      return;
+    }
+
     lastTaskStatus = `processing:${task.task_uuid}`;
     const result = await processTask(task);
     await completeTask(task.task_uuid, result.status, result);
@@ -31958,8 +32016,15 @@ async function runOnce() {
         (logError ? ` error="${logError}"` : "")
     );
   } catch (error) {
+    const errorMessage = error && error.message ? error.message : String(error);
+    if (!task) {
+      lastTaskStatus = "claim_failed";
+      console.error(`[${new Date().toISOString()}] application worker claim failed`, error);
+      return;
+    }
+
     await completeTask(task.task_uuid, "failed", {
-      last_error: error && error.message ? error.message : String(error),
+      last_error: errorMessage,
     }).catch(() => {});
     lastTaskStatus = `${task.task_uuid}:failed`;
     console.error(`[${new Date().toISOString()}] ${task.task_uuid} failed`, error);

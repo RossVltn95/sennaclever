@@ -650,6 +650,10 @@ class SFFC_CRM_Shortcodes
         add_shortcode('sffc_crm_editorial_community', [$this, 'render_crm_editorial_community']);
         add_shortcode('sffc_crm_editorial_community_launcher', [$this, 'render_crm_editorial_community_launcher']);
         add_shortcode('sffc_crm_editorial_community_filter_launcher', [$this, 'render_crm_editorial_community_launcher']);
+        add_shortcode('sffc_community_apply_for_me', [$this, 'render_community_apply_for_me_shortcode']);
+        add_shortcode('sffc_apply_for_me', [$this, 'render_community_apply_for_me_shortcode']);
+        add_shortcode('sffc_community_apply_for_me_results', [$this, 'render_community_apply_for_me_results_shortcode']);
+        add_shortcode('sffc_apply_for_me_results', [$this, 'render_community_apply_for_me_results_shortcode']);
         add_shortcode('sffc_community_editorial_search', [$this, 'render_crm_editorial_community_search']);
         add_shortcode('sffc_crm_editorial_search', [$this, 'render_crm_editorial_community_search']);
         add_shortcode('sffc_crm_jobs_carousel', [$this, 'render_crm_editorial_jobs_carousel']);
@@ -10243,6 +10247,16 @@ CSS;
                 $duration = sanitize_text_field((string) $crm_post['duration']);
             }
             $auto_submit_payload = $this->get_crm_apply_chat_auto_submit_payload($jobs_post_id);
+            $application_embed_mode = sanitize_key((string) get_post_meta($jobs_post_id, '_sffc_application_embed_mode', true));
+            if ($application_embed_mode === '' && !empty($crm_post['application_embed_mode'])) {
+                $application_embed_mode = sanitize_key((string) $crm_post['application_embed_mode']);
+            }
+            if (($application_embed_mode === '' || $application_embed_mode === 'auto') && !empty($auto_submit_payload['application_embed_mode'])) {
+                $application_embed_mode = sanitize_key((string) $auto_submit_payload['application_embed_mode']);
+            }
+            if (!in_array($application_embed_mode, ['auto', 'embed', 'screenshot'], true)) {
+                $application_embed_mode = 'auto';
+            }
 
             return [
                 'source' => 'jobs',
@@ -10275,6 +10289,7 @@ CSS;
                 'view_url' => get_permalink($jobs_post_id) ?: '',
                 'apply_url' => esc_url_raw((string) $application_url),
                 'application_workspace_url' => esc_url_raw((string) ($auto_submit_payload['application_embed_url'] ?? '')),
+                'application_embed_mode' => $application_embed_mode,
                 'auto_submit_supported' => $auto_submit_payload['supported'],
                 'auto_submit_provider' => $auto_submit_payload['provider'],
                 'auto_submit_schema_status' => $auto_submit_payload['schema_status'],
@@ -10306,6 +10321,7 @@ CSS;
                 'field_count' => 0,
                 'required_question_count' => 0,
                 'application_embed_url' => '',
+                'application_embed_mode' => 'auto',
                 'greenhouse_board_token' => '',
                 'greenhouse_job_id' => '',
             ];
@@ -10366,6 +10382,10 @@ CSS;
             $payload['field_count'] = absint($schema['field_count'] ?? 0);
             $payload['required_question_count'] = absint($schema['required_question_count'] ?? 0);
             $payload['application_embed_url'] = esc_url_raw((string) ($schema['application_embed_url'] ?? ($schema['hosted_url'] ?? '')));
+            $payload['application_embed_mode'] = sanitize_key((string) ($schema['application_embed_mode'] ?? 'auto'));
+            if (!in_array($payload['application_embed_mode'], ['auto', 'embed', 'screenshot'], true)) {
+                $payload['application_embed_mode'] = 'auto';
+            }
             $payload['greenhouse_board_token'] = sanitize_text_field((string) get_post_meta($jobs_post_id, '_sffc_greenhouse_board_token', true));
             $payload['greenhouse_job_id'] = sanitize_text_field((string) get_post_meta($jobs_post_id, '_sffc_greenhouse_job_id', true));
 
@@ -10394,12 +10414,34 @@ CSS;
 
             foreach (['_application_url', 'newapplicationLink', 'applicationLink', 'sffc_application_url', '_sffc_job_application_url'] as $application_meta_key) {
                 $application_url = esc_url_raw((string) get_post_meta($jobs_post_id, $application_meta_key, true));
-                if ($application_url !== '') {
+                if ($this->is_crm_apply_chat_external_application_url($application_url)) {
                     return $application_url;
                 }
             }
 
             return '';
+        }
+
+        private function is_crm_apply_chat_external_application_url($url)
+        {
+            $url = trim((string) $url);
+            if ($url === '' || $url === '#') {
+                return false;
+            }
+            if (!preg_match('/^https?:\/\//i', $url) || !wp_http_validate_url($url)) {
+                return false;
+            }
+
+            $host = strtolower((string) wp_parse_url($url, PHP_URL_HOST));
+            $home_host = strtolower((string) wp_parse_url(home_url('/'), PHP_URL_HOST));
+            if ($host === '') {
+                return false;
+            }
+
+            $is_senna_host = $host === 'joinsenna.com' || substr($host, -strlen('.joinsenna.com')) === '.joinsenna.com';
+            $is_home_host = $home_host !== '' && ($host === $home_host || substr($host, -strlen('.' . $home_host)) === '.' . $home_host);
+
+            return !$is_senna_host && !$is_home_host;
         }
 
         private function fetch_crm_apply_chat_successfactors_schema_from_job_url($jobs_post_id)
@@ -10786,6 +10828,16 @@ CSS;
                 (int) ($post['id'] ?? 0)
             );
             $auto_submit_payload = $this->get_crm_apply_chat_auto_submit_payload($jobs_post_id);
+            $application_embed_mode = sanitize_key((string) ($post['application_embed_mode'] ?? 'auto'));
+            if (($application_embed_mode === '' || $application_embed_mode === 'auto') && $jobs_post_id > 0) {
+                $application_embed_mode = sanitize_key((string) get_post_meta($jobs_post_id, '_sffc_application_embed_mode', true));
+            }
+            if (($application_embed_mode === '' || $application_embed_mode === 'auto') && !empty($auto_submit_payload['application_embed_mode'])) {
+                $application_embed_mode = sanitize_key((string) $auto_submit_payload['application_embed_mode']);
+            }
+            if (!in_array($application_embed_mode, ['auto', 'embed', 'screenshot'], true)) {
+                $application_embed_mode = 'auto';
+            }
 
             return [
                 'source' => 'crm',
@@ -10819,6 +10871,7 @@ CSS;
                 'view_url' => $view_url,
                 'apply_url' => esc_url_raw((string) ($post['application_url'] ?? '')),
                 'application_workspace_url' => esc_url_raw((string) ($auto_submit_payload['application_embed_url'] ?? '')),
+                'application_embed_mode' => $application_embed_mode,
                 'auto_submit_supported' => $auto_submit_payload['supported'],
                 'auto_submit_provider' => $auto_submit_payload['provider'],
                 'auto_submit_schema_status' => $auto_submit_payload['schema_status'],
@@ -10866,6 +10919,16 @@ CSS;
                 (int) ($post['id'] ?? 0)
             );
             $auto_submit_payload = $this->get_crm_apply_chat_auto_submit_payload($jobs_post_id);
+            $application_embed_mode = sanitize_key((string) ($post['application_embed_mode'] ?? 'auto'));
+            if (($application_embed_mode === '' || $application_embed_mode === 'auto') && $jobs_post_id > 0) {
+                $application_embed_mode = sanitize_key((string) get_post_meta($jobs_post_id, '_sffc_application_embed_mode', true));
+            }
+            if (($application_embed_mode === '' || $application_embed_mode === 'auto') && !empty($auto_submit_payload['application_embed_mode'])) {
+                $application_embed_mode = sanitize_key((string) $auto_submit_payload['application_embed_mode']);
+            }
+            if (!in_array($application_embed_mode, ['auto', 'embed', 'screenshot'], true)) {
+                $application_embed_mode = 'auto';
+            }
 
             return [
                 'source' => 'crm',
@@ -10895,6 +10958,7 @@ CSS;
                 'description_preview' => $description_preview,
                 'view_url' => $view_url,
                 'apply_url' => esc_url_raw((string) ($post['application_url'] ?? '')),
+                'application_embed_mode' => $application_embed_mode,
                 'auto_submit_supported' => $auto_submit_payload['supported'],
                 'auto_submit_provider' => $auto_submit_payload['provider'],
                 'auto_submit_schema_status' => $auto_submit_payload['schema_status'],
@@ -12053,15 +12117,20 @@ CSS;
             $cv_text = trim((string) ($resume_payload['cv_text'] ?? ''));
 
             if ($cv_text === '') {
-                wp_send_json_error([
+                wp_send_json_success([
+                    'cv_text' => '',
+                    'cv_source' => $cv_source,
+                    'source' => (string) ($resume_payload['source'] ?? ''),
+                    'has_cv' => false,
                     'message' => __('That saved CV could not be loaded right now.', 'senna-finance'),
-                ], 404);
+                ]);
             }
 
             wp_send_json_success([
                 'cv_text' => $cv_text,
                 'cv_source' => $cv_source,
                 'source' => (string) ($resume_payload['source'] ?? ''),
+                'has_cv' => true,
             ]);
         }
 
@@ -15656,7 +15725,7 @@ CSS;
 
             $sql = "SELECT DISTINCT p.id, p.role_title, p.company, p.location, p.location_country,
                            p.salary_text, p.seniority, p.sector, p.content, p.content_snippet, p.posted_at,
-                           p.is_remote, p.is_hybrid, p.application_url, p.wp_post_id, p.company_logo, p.keywords,
+                           p.is_remote, p.is_hybrid, p.application_url, p.application_embed_mode, p.wp_post_id, p.company_logo, p.keywords,
                            p.experience_years, p.is_featured, {$early_bird_exclusion_select},
                            COALESCE(NULLIF(p.company_logo, ''), r.default_company_logo) AS company_logo,
                            r.name as recruiter_name, r.firm as recruiter_firm,
@@ -40981,10 +41050,17 @@ CRITICAL INSTRUCTIONS:
                 'isLoggedIn' => is_user_logged_in(),
                 'isAdminTester' => current_user_can('manage_options'),
                 'currentUserFirstName' => $this->get_crm_apply_chat_current_user_first_name(),
+                'currentUserFullName' => $this->get_crm_reddit_current_user_full_name(),
                 'currentUserAvatarUrl' => is_user_logged_in() ? (string) get_avatar_url(get_current_user_id(), ['size' => 96]) : 'https://media.joinsenna.com/2025/05/bb-profile-avatar-buddyboss.webp',
                 'pdfScriptUrl' => 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js',
                 'pdfWorker' => 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js',
                 'mammothScriptUrl' => 'https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js',
+                'cvIntelligenceOntologyUrl' => file_exists(SFFC_PLUGIN_DIR . 'assets/data/cv-intelligence-ontology.json')
+                    ? SFFC_PLUGIN_URL . 'assets/data/cv-intelligence-ontology.json?ver=' . (string) filemtime(SFFC_PLUGIN_DIR . 'assets/data/cv-intelligence-ontology.json')
+                    : '',
+                'cvIntelligenceOntology' => file_exists(SFFC_PLUGIN_DIR . 'assets/data/cv-intelligence-ontology.json')
+                    ? (json_decode((string) file_get_contents(SFFC_PLUGIN_DIR . 'assets/data/cv-intelligence-ontology.json'), true) ?: [])
+                    : [],
             ]);
 
             $post_model = new SFFC_CRM_Post();
@@ -41010,11 +41086,11 @@ CRITICAL INSTRUCTIONS:
             }
 
             $application_url = trim((string) ($post['application_url'] ?? ''));
-            if ($application_url === '') {
-                $application_url = trim((string) ($post['source_url'] ?? ''));
+            if (!$this->is_crm_apply_chat_external_application_url($application_url)) {
+                $application_url = '';
             }
             if ($application_url === '' && !empty($post['wp_post_id'])) {
-                $application_url = (string) (get_permalink((int) $post['wp_post_id']) ?: '');
+                $application_url = $this->get_crm_apply_chat_jobs_application_url((int) $post['wp_post_id']);
             }
             $public_opportunity_url = $this->get_crm_editorial_community_public_opportunity_url((array) $post, $role_title, $company_name);
             $jobs_post_id = $this->resolve_cv_match_job_view_jobs_post_id(
@@ -41177,6 +41253,16 @@ CRITICAL INSTRUCTIONS:
             $apply_chat_review_mode = in_array($apply_chat_review_mode_key, ['profile', 'recruiter_outreach'], true)
                 ? $apply_chat_review_mode_key
                 : 'role';
+            $apply_chat_application_embed_mode = sanitize_key((string) ($post['application_embed_mode'] ?? 'auto'));
+            if (($apply_chat_application_embed_mode === '' || $apply_chat_application_embed_mode === 'auto') && $jobs_post_id > 0) {
+                $apply_chat_application_embed_mode = sanitize_key((string) get_post_meta($jobs_post_id, '_sffc_application_embed_mode', true));
+            }
+            if (($apply_chat_application_embed_mode === '' || $apply_chat_application_embed_mode === 'auto') && !empty($apply_chat_auto_submit['application_embed_mode'])) {
+                $apply_chat_application_embed_mode = sanitize_key((string) $apply_chat_auto_submit['application_embed_mode']);
+            }
+            if (!in_array($apply_chat_application_embed_mode, ['auto', 'embed', 'screenshot'], true)) {
+                $apply_chat_application_embed_mode = 'auto';
+            }
 
             ob_start();
             ?>
@@ -41195,6 +41281,7 @@ CRITICAL INSTRUCTIONS:
                 data-posted-label="<?php echo esc_attr($apply_chat_posted_label); ?>"
                 data-application-url="<?php echo esc_url($application_url); ?>"
                 data-application-workspace-url="<?php echo esc_url((string) ($apply_chat_auto_submit['application_embed_url'] ?? '')); ?>"
+                data-application-embed-mode="<?php echo esc_attr($apply_chat_application_embed_mode); ?>"
                 data-role-url="<?php echo esc_url($public_opportunity_url); ?>"
                 data-auto-submit-supported="<?php echo !empty($apply_chat_auto_submit['supported']) ? '1' : '0'; ?>"
                 data-auto-submit-provider="<?php echo esc_attr((string) ($apply_chat_auto_submit['provider'] ?? '')); ?>"
@@ -41668,8 +41755,37 @@ CRITICAL INSTRUCTIONS:
             $title = sanitize_text_field((string) ($item['title'] ?? $item['role_title'] ?? __('Opportunity', 'senna-finance')));
             $view_url = esc_url_raw((string) ($item['view_url'] ?? $item['url'] ?? ''));
             $apply_url = esc_url_raw((string) ($item['apply_url'] ?? $item['application_url'] ?? ''));
+            if (!$this->is_crm_apply_chat_external_application_url($apply_url)) {
+                $apply_url = '';
+            }
+            $application_workspace_url = esc_url_raw((string) ($item['application_workspace_url'] ?? $item['application_embed_url'] ?? ''));
+            if (!$this->is_crm_apply_chat_external_application_url($application_workspace_url)) {
+                $application_workspace_url = '';
+            }
+            $company_logo = esc_url_raw((string) (
+                $item['companyLogo']
+                ?? $item['company_logo']
+                ?? $item['companyLogoUrl']
+                ?? $item['company_logo_url']
+                ?? $item['logoUrl']
+                ?? $item['logo_url']
+                ?? $item['logo']
+                ?? $item['thumbnailUrl']
+                ?? $item['thumbnail_url']
+                ?? $item['thumbnail']
+                ?? $item['featuredImage']
+                ?? $item['featured_image']
+                ?? $item['imageUrl']
+                ?? $item['image_url']
+                ?? $item['image']
+                ?? ''
+            ));
             if ($view_url === '' && !empty($item['wp_post_id'])) {
                 $view_url = esc_url_raw((string) (get_permalink((int) $item['wp_post_id']) ?: ''));
+            }
+            $application_embed_mode = sanitize_key((string) ($item['application_embed_mode'] ?? 'auto'));
+            if (!in_array($application_embed_mode, ['auto', 'embed', 'screenshot'], true)) {
+                $application_embed_mode = 'auto';
             }
 
             return [
@@ -41682,6 +41798,9 @@ CRITICAL INSTRUCTIONS:
                 'title' => $title,
                 'role_title' => $title,
                 'company' => sanitize_text_field((string) ($item['company'] ?? '')),
+                'company_logo' => $company_logo,
+                'companyLogo' => $company_logo,
+                'logo' => $company_logo,
                 'location' => sanitize_text_field((string) ($item['location'] ?? '')),
                 'salary_text' => sanitize_text_field((string) ($item['salary_text'] ?? '')),
                 'seniority' => sanitize_text_field((string) ($item['seniority'] ?? '')),
@@ -41691,7 +41810,8 @@ CRITICAL INSTRUCTIONS:
                 'recruiter_id' => (int) ($item['recruiter_id'] ?? 0),
                 'view_url' => $view_url,
                 'apply_url' => $apply_url,
-                'application_workspace_url' => esc_url_raw((string) ($item['application_workspace_url'] ?? $item['application_embed_url'] ?? '')),
+                'application_workspace_url' => $application_workspace_url,
+                'application_embed_mode' => $application_embed_mode,
                 'posted_label' => sanitize_text_field((string) ($item['posted_label'] ?? '')),
                 'auto_submit_supported' => !empty($item['auto_submit_supported']),
                 'auto_submit_provider' => sanitize_key((string) ($item['auto_submit_provider'] ?? '')),
@@ -41757,6 +41877,71 @@ CRITICAL INSTRUCTIONS:
             if ($provider === 'successfactors') {
                 $url_like = '%' . $wpdb->esc_like('successfactors') . '%';
             }
+            if ($provider === 'teamtailor') {
+                $url_like = '%' . $wpdb->esc_like('teamtailor') . '%';
+            }
+            if ($provider === 'greenhouse') {
+                $url_like = '%' . $wpdb->esc_like('greenhouse') . '%';
+            }
+            if ($provider === 'workday') {
+                $url_like = '%' . $wpdb->esc_like('workday') . '%';
+            }
+            if ($provider === 'simple_form') {
+                $url_like = '%' . $wpdb->esc_like('apply') . '%';
+            }
+
+            $matches_provider = static function ($item) use ($provider) {
+                $apply_url = (string) ($item['apply_url'] ?? $item['application_url'] ?? $item['application_workspace_url'] ?? '');
+                $workspace_url = (string) ($item['application_workspace_url'] ?? '');
+                $source_platform = strtolower((string) ($item['source_platform'] ?? ''));
+                $auto_submit_provider = sanitize_key((string) ($item['auto_submit_provider'] ?? ''));
+                $haystack = strtolower($apply_url . ' ' . $workspace_url . ' ' . $source_platform . ' ' . $auto_submit_provider);
+
+                if ($provider === 'workable') {
+                    return strpos($haystack, 'workable.com') !== false || $auto_submit_provider === 'workable';
+                }
+                if ($provider === 'greenhouse') {
+                    return strpos($haystack, 'greenhouse') !== false || $auto_submit_provider === 'greenhouse';
+                }
+                if ($provider === 'teamtailor') {
+                    return strpos($haystack, 'teamtailor') !== false || strpos($haystack, 'team tailor') !== false || $auto_submit_provider === 'teamtailor';
+                }
+                if ($provider === 'workday') {
+                    return strpos($haystack, 'myworkdayjobs') !== false || strpos($haystack, 'workday') !== false || preg_match('~/wday/cxs/~i', $apply_url) || $auto_submit_provider === 'workday';
+                }
+                if ($provider === 'successfactors') {
+                    return (bool) preg_match('~successfactors\.(?:com|eu)|sapsf\.com|careers\.stc\.com\.sa|afuturewithus\.com|career\.elm\.sa|jobs\.standardchartered\.com|careers\.gic\.com\.sg|jobs\.temasek\.com\.sg|adcbcareers\.com|careers\.fitch\.group|careers\.nbf\.ae|careers\.theredsea\.sa|/talentcommunity/apply/~i', $apply_url . ' ' . $workspace_url) || $auto_submit_provider === 'successfactors';
+                }
+                if ($provider === 'simple_form') {
+                    return $apply_url !== '' && in_array($auto_submit_provider, ['', 'simple_form', 'simple-form', 'basic_form', 'basic-form'], true) && !preg_match('~workable\.com|greenhouse|myworkdayjobs|workday|successfactors|sapsf\.com|teamtailor|comeet|oraclecloud|lever\.co|recruitee|smartrecruiters|bamboohr|ashbyhq~i', $apply_url . ' ' . $workspace_url);
+                }
+                return strpos($haystack, $provider) !== false;
+            };
+
+            $prepare_provider_item = static function ($item) use ($provider) {
+                $apply_url = (string) ($item['apply_url'] ?? $item['application_url'] ?? $item['application_workspace_url'] ?? '');
+                if ($provider !== 'simple_form') {
+                    $item['auto_submit_provider'] = $provider;
+                }
+                if ($provider === 'successfactors') {
+                    $item['source_platform'] = 'SAP SuccessFactors';
+                } elseif ($provider === 'teamtailor') {
+                    $item['source_platform'] = 'Teamtailor';
+                } elseif ($provider === 'greenhouse') {
+                    $item['source_platform'] = 'Greenhouse';
+                } elseif ($provider === 'workday') {
+                    $item['source_platform'] = 'Workday';
+                } elseif ($provider === 'workable') {
+                    $item['source_platform'] = 'Workable';
+                } elseif ($provider === 'simple_form') {
+                    $item['auto_submit_provider'] = 'simple_form';
+                    $item['source_platform'] = 'Simple form';
+                }
+                if (empty($item['application_workspace_url']) && $apply_url !== '') {
+                    $item['application_workspace_url'] = $apply_url;
+                }
+                return $item;
+            };
 
             $job_ids = $wpdb->get_col($wpdb->prepare(
                 "SELECT DISTINCT p.ID
@@ -41784,29 +41969,10 @@ CRITICAL INSTRUCTIONS:
                 if (empty($item) || !is_array($item)) {
                     continue;
                 }
-                if ($provider === 'workable') {
-                    $apply_url = (string) ($item['apply_url'] ?? '');
-                    if ($apply_url === '' || stripos($apply_url, 'workable.com') === false) {
-                        continue;
-                    }
-                    $item['auto_submit_supported'] = true;
-                    $item['auto_submit_provider'] = 'workable';
-                    if (empty($item['application_workspace_url'])) {
-                        $item['application_workspace_url'] = $apply_url;
-                    }
+                if (!$matches_provider($item)) {
+                    continue;
                 }
-                if ($provider === 'successfactors') {
-                    $apply_url = (string) ($item['apply_url'] ?? $item['application_url'] ?? $item['application_workspace_url'] ?? '');
-                    if ($apply_url === '' || !preg_match('~successfactors\.(?:com|eu)|sapsf\.com|careers\.stc\.com\.sa|afuturewithus\.com|career\.elm\.sa|jobs\.standardchartered\.com|careers\.gic\.com\.sg|jobs\.temasek\.com\.sg|adcbcareers\.com|careers\.fitch\.group|careers\.nbf\.ae|careers\.theredsea\.sa|/talentcommunity/apply/~i', $apply_url)) {
-                        continue;
-                    }
-                    $item['auto_submit_supported'] = true;
-                    $item['auto_submit_provider'] = 'successfactors';
-                    $item['source_platform'] = 'SAP SuccessFactors';
-                    if (empty($item['application_workspace_url'])) {
-                        $item['application_workspace_url'] = $apply_url;
-                    }
-                }
+                $item = $prepare_provider_item($item);
                 $normalized = $this->normalize_crm_apply_chat_job_search_item($item);
                 $key = 'jobs:' . $normalized['jobs_post_id'] . ':' . $normalized['wp_post_id'] . ':' . $normalized['post_id'];
                 $seen[$key] = true;
@@ -41843,29 +42009,10 @@ CRITICAL INSTRUCTIONS:
                     if (empty($item) || !is_array($item)) {
                         continue;
                     }
-                    if ($provider === 'workable') {
-                        $apply_url = (string) ($item['apply_url'] ?? $item['application_url'] ?? '');
-                        if ($apply_url === '' || stripos($apply_url, 'workable.com') === false) {
-                            continue;
-                        }
-                        $item['auto_submit_supported'] = true;
-                        $item['auto_submit_provider'] = 'workable';
-                        if (empty($item['application_workspace_url'])) {
-                            $item['application_workspace_url'] = $apply_url;
-                        }
+                    if (!$matches_provider($item)) {
+                        continue;
                     }
-                    if ($provider === 'successfactors') {
-                        $apply_url = (string) ($item['apply_url'] ?? $item['application_url'] ?? $item['application_workspace_url'] ?? '');
-                        if ($apply_url === '' || !preg_match('~successfactors\.(?:com|eu)|sapsf\.com|careers\.stc\.com\.sa|afuturewithus\.com|career\.elm\.sa|jobs\.standardchartered\.com|careers\.gic\.com\.sg|jobs\.temasek\.com\.sg|adcbcareers\.com|careers\.fitch\.group|careers\.nbf\.ae|careers\.theredsea\.sa|/talentcommunity/apply/~i', $apply_url)) {
-                            continue;
-                        }
-                        $item['auto_submit_supported'] = true;
-                        $item['auto_submit_provider'] = 'successfactors';
-                        $item['source_platform'] = 'SAP SuccessFactors';
-                        if (empty($item['application_workspace_url'])) {
-                            $item['application_workspace_url'] = $apply_url;
-                        }
-                    }
+                    $item = $prepare_provider_item($item);
                     $normalized = $this->normalize_crm_apply_chat_job_search_item($item);
                     $key = 'crm:' . $normalized['jobs_post_id'] . ':' . $normalized['wp_post_id'] . ':' . $normalized['post_id'];
                     if (isset($seen[$key])) {
@@ -41895,9 +42042,6 @@ CRITICAL INSTRUCTIONS:
             }
 
             if ($provider !== '') {
-                if (!current_user_can('manage_options')) {
-                    wp_send_json_error(['message' => __('This test search is only available to admins.', 'senna-finance')], 403);
-                }
                 wp_send_json_success([
                     'items' => $this->search_crm_apply_chat_provider_jobs($provider, $limit),
                     'query' => $query,
@@ -41923,6 +42067,114 @@ CRITICAL INSTRUCTIONS:
             $atts['review_only'] = '1';
 
             return $this->render_crm_apply_chat_launcher($atts);
+        }
+
+        private function render_apply_chat_home_trending_jobs(array $items, $limit = 6)
+        {
+            $items = array_values(array_filter($items, 'is_array'));
+            $limit = max(3, min(9, absint($limit)));
+            $seen = [];
+            $unique_items = [];
+
+            foreach ($items as $item) {
+                $title = trim((string) ($item['title'] ?? $item['role_title'] ?? ''));
+                $company = trim((string) ($item['company'] ?? ''));
+                $location = trim((string) ($item['location'] ?? ''));
+                $id = trim((string) ($item['wp_post_id'] ?? $item['jobs_post_id'] ?? $item['crm_post_id'] ?? $item['post_id'] ?? $item['id'] ?? ''));
+                $semantic_key = strtolower(trim($title . '|' . $company . '|' . $location));
+                $key = $semantic_key !== '||' ? $semantic_key : strtolower($id);
+
+                if ($key === '' || isset($seen[$key])) {
+                    continue;
+                }
+
+                $seen[$key] = true;
+                $unique_items[] = $item;
+            }
+
+            $items = array_slice($unique_items, 0, $limit);
+
+            if (empty($items)) {
+                return '';
+            }
+
+            ob_start();
+            ?>
+            <section class="sffc-crm-apply-chat__home-trending" aria-label="<?php esc_attr_e('Trending jobs', 'senna-finance'); ?>">
+                <div class="sffc-crm-apply-chat__home-trending-head">
+                    <span><?php esc_html_e('Trending jobs', 'senna-finance'); ?></span>
+                    <div class="sffc-crm-apply-chat__home-trending-controls">
+                        <button type="button" data-sffc-apply-chat-home-trending-prev aria-label="<?php esc_attr_e('Previous jobs', 'senna-finance'); ?>">‹</button>
+                        <button type="button" data-sffc-apply-chat-home-trending-next aria-label="<?php esc_attr_e('Next jobs', 'senna-finance'); ?>">›</button>
+                    </div>
+                </div>
+                <div class="sffc-crm-apply-chat__home-trending-track" data-sffc-apply-chat-home-trending-track>
+                    <?php foreach ($items as $item) : ?>
+                        <?php
+                        $title = trim((string) ($item['title'] ?? $item['role_title'] ?? __('Open role', 'senna-finance')));
+                        $company = trim((string) ($item['company'] ?? ''));
+                        $location = trim((string) ($item['location'] ?? ''));
+                        $sector = trim((string) ($item['sector'] ?? ''));
+                        $seniority = trim((string) ($item['seniority'] ?? ''));
+                        $salary = trim((string) ($item['salary'] ?? $item['salary_text'] ?? ''));
+                        $snippet = trim((string) ($item['snippet'] ?? $item['content_snippet'] ?? $item['excerpt'] ?? ''));
+                        $logo = trim((string) ($item['logo'] ?? $item['company_logo'] ?? ''));
+                        $url = trim((string) ($item['url'] ?? $item['view_url'] ?? ''));
+                        $meta = implode(' · ', array_filter([$company, $location]));
+                        $tags = array_values(array_filter([$seniority, $sector, $salary]));
+                        $initial_source = $company !== '' ? $company : $title;
+                        $initial = function_exists('mb_substr')
+                            ? mb_strtoupper(mb_substr($initial_source, 0, 1))
+                            : strtoupper(substr($initial_source, 0, 1));
+                        ?>
+                        <article class="sffc-crm-apply-chat__home-trending-card">
+                            <a
+                                href="<?php echo esc_url($url !== '' ? $url : home_url('/terminal/')); ?>"
+                                data-sffc-apply-chat-home-trending-card
+                                data-role-title="<?php echo esc_attr($title); ?>"
+                                data-role-company="<?php echo esc_attr($company); ?>"
+                                data-role-location="<?php echo esc_attr($location); ?>"
+                                data-role-sector="<?php echo esc_attr($sector); ?>"
+                                data-role-seniority="<?php echo esc_attr($seniority); ?>"
+                                data-role-salary="<?php echo esc_attr($salary); ?>"
+                                data-role-logo="<?php echo esc_url($logo); ?>"
+                                data-role-url="<?php echo esc_url($url !== '' ? $url : home_url('/terminal/')); ?>"
+                                data-role-post-id="<?php echo esc_attr((string) ($item['crm_post_id'] ?? $item['post_id'] ?? '')); ?>"
+                                data-role-jobs-post-id="<?php echo esc_attr((string) ($item['wp_post_id'] ?? $item['jobs_post_id'] ?? $item['id'] ?? '')); ?>">
+                                <span class="sffc-crm-apply-chat__home-trending-top">
+                                    <span class="sffc-crm-apply-chat__home-trending-logo<?php echo $logo !== '' ? ' has-image' : ''; ?>" aria-hidden="true">
+                                        <?php if ($logo !== '') : ?>
+                                            <img src="<?php echo esc_url($logo); ?>" alt="" loading="lazy">
+                                        <?php else : ?>
+                                            <strong><?php echo esc_html($initial !== '' ? $initial : 'S'); ?></strong>
+                                        <?php endif; ?>
+                                    </span>
+                                    <span class="sffc-crm-apply-chat__home-trending-title">
+                                        <strong><?php echo esc_html($title); ?></strong>
+                                        <?php if ($meta !== '') : ?>
+                                            <small><?php echo esc_html($meta); ?></small>
+                                        <?php endif; ?>
+                                    </span>
+                                </span>
+                                <?php if (!empty($tags)) : ?>
+                                    <span class="sffc-crm-apply-chat__home-trending-tags">
+                                        <?php foreach (array_slice($tags, 0, 3) as $tag) : ?>
+                                            <em><?php echo esc_html($tag); ?></em>
+                                        <?php endforeach; ?>
+                                    </span>
+                                <?php endif; ?>
+                                <span class="sffc-crm-apply-chat__home-trending-preview">
+                                    <i aria-hidden="true">✦</i>
+                                    <span><?php echo esc_html($snippet !== '' ? wp_trim_words($snippet, 22, '...') : sprintf(__('Open %1$s role%2$s.', 'senna-finance'), $title, $company !== '' ? ' at ' . $company : '')); ?></span>
+                                </span>
+                            </a>
+                        </article>
+                    <?php endforeach; ?>
+                </div>
+            </section>
+            <?php
+
+            return (string) ob_get_clean();
         }
 
         public function render_crm_apply_chat_launcher($atts = [])
@@ -42022,10 +42274,17 @@ CRITICAL INSTRUCTIONS:
                 'isLoggedIn' => is_user_logged_in(),
                 'isAdminTester' => current_user_can('manage_options'),
                 'currentUserFirstName' => $this->get_crm_apply_chat_current_user_first_name(),
+                'currentUserFullName' => $this->get_crm_reddit_current_user_full_name(),
                 'currentUserAvatarUrl' => is_user_logged_in() ? (string) get_avatar_url(get_current_user_id(), ['size' => 96]) : 'https://media.joinsenna.com/2025/05/bb-profile-avatar-buddyboss.webp',
                 'pdfScriptUrl' => 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js',
                 'pdfWorker' => 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js',
                 'mammothScriptUrl' => 'https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js',
+                'cvIntelligenceOntologyUrl' => file_exists(SFFC_PLUGIN_DIR . 'assets/data/cv-intelligence-ontology.json')
+                    ? SFFC_PLUGIN_URL . 'assets/data/cv-intelligence-ontology.json?ver=' . (string) filemtime(SFFC_PLUGIN_DIR . 'assets/data/cv-intelligence-ontology.json')
+                    : '',
+                'cvIntelligenceOntology' => file_exists(SFFC_PLUGIN_DIR . 'assets/data/cv-intelligence-ontology.json')
+                    ? (json_decode((string) file_get_contents(SFFC_PLUGIN_DIR . 'assets/data/cv-intelligence-ontology.json'), true) ?: [])
+                    : [],
             ]);
 
             $post_model = new SFFC_CRM_Post();
@@ -42142,6 +42401,16 @@ CRITICAL INSTRUCTIONS:
                 ? $this->get_crm_editorial_community_public_opportunity_url((array) $launch_post, $launch_role_title, $launch_company_name)
                 : (!empty($launch_jobs_item['view_url']) ? (string) $launch_jobs_item['view_url'] : '#');
             $launch_auto_submit = $this->get_crm_apply_chat_auto_submit_payload($launch_jobs_post_id);
+            $launch_application_embed_mode = sanitize_key((string) ($launch_post['application_embed_mode'] ?? ($launch_jobs_item['application_embed_mode'] ?? 'auto')));
+            if (($launch_application_embed_mode === '' || $launch_application_embed_mode === 'auto') && $launch_jobs_post_id > 0) {
+                $launch_application_embed_mode = sanitize_key((string) get_post_meta($launch_jobs_post_id, '_sffc_application_embed_mode', true));
+            }
+            if (($launch_application_embed_mode === '' || $launch_application_embed_mode === 'auto') && !empty($launch_auto_submit['application_embed_mode'])) {
+                $launch_application_embed_mode = sanitize_key((string) $launch_auto_submit['application_embed_mode']);
+            }
+            if (!in_array($launch_application_embed_mode, ['auto', 'embed', 'screenshot'], true)) {
+                $launch_application_embed_mode = 'auto';
+            }
             $matching_roles_seed = [];
             $matching_recruiters_seed = [];
             $matching_salary_guides_seed = [];
@@ -42249,6 +42518,7 @@ CRITICAL INSTRUCTIONS:
                 data-role-salary="<?php echo esc_attr($launch_salary); ?>"
                 data-application-url="<?php echo esc_url($launch_application_url !== '' ? $launch_application_url : '#'); ?>"
                 data-application-workspace-url="<?php echo esc_url((string) ($launch_auto_submit['application_embed_url'] ?? '')); ?>"
+                data-application-embed-mode="<?php echo esc_attr($launch_application_embed_mode); ?>"
                 data-role-url="<?php echo esc_url($launch_public_opportunity_url !== '' ? $launch_public_opportunity_url : '#'); ?>"
                 data-auto-submit-supported="<?php echo !empty($launch_auto_submit['supported']) ? '1' : '0'; ?>"
                 data-auto-submit-provider="<?php echo esc_attr((string) ($launch_auto_submit['provider'] ?? '')); ?>"
@@ -42265,8 +42535,15 @@ CRITICAL INSTRUCTIONS:
                 data-advisor-photo="<?php echo esc_url('https://media.joinsenna.com/2026/07/1784056723762.png?1784414003'); ?>">
                 <?php if (!$is_member_desk_surface) : ?>
                 <div class="sffc-crm-apply-chat__home-hero">
-                    <form class="sffc-crm-apply-chat__home-launcher" data-sffc-apply-chat-home-launcher>
+                    <form class="sffc-crm-apply-chat__home-launcher <?php echo $launch_role_title !== '' ? 'has-value' : 'has-typing'; ?>" data-sffc-apply-chat-home-launcher>
                         <div class="sffc-crm-apply-chat__home-launcher-shell">
+                            <span class="sffc-crm-apply-chat__home-launcher-badge">
+                                <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                                    <path d="M12 3l1.55 4.45L18 9l-4.45 1.55L12 15l-1.55-4.45L6 9l4.45-1.55L12 3z"></path>
+                                    <path d="M19 14l.9 2.1L22 17l-2.1.9L19 20l-.9-2.1L16 17l2.1-.9L19 14z"></path>
+                                </svg>
+                                <span><?php esc_html_e('What job are you looking for?', 'senna-finance'); ?></span>
+                            </span>
                             <button type="button" class="sffc-crm-apply-chat__home-launcher-plus" data-sffc-apply-chat-home-upload aria-label="<?php esc_attr_e('Upload your CV', 'senna-finance'); ?>">+</button>
                             <div class="sffc-crm-apply-chat__home-location">
                                 <button type="button" class="sffc-crm-apply-chat__home-launcher-pin" data-sffc-apply-chat-home-location-toggle aria-label="<?php esc_attr_e('Choose a location', 'senna-finance'); ?>">⌖</button>
@@ -42284,9 +42561,10 @@ CRITICAL INSTRUCTIONS:
                                 autocomplete="off"
                                 value="<?php echo esc_attr($launch_role_title); ?>"
                                 placeholder="<?php echo esc_attr((string) $atts['prompt']); ?>">
-                            <span class="sffc-crm-apply-chat__home-launcher-mode is-static" aria-label="<?php esc_attr_e('Apply for Me', 'senna-finance'); ?>">
+                            <span class="sffc-crm-apply-chat__home-launcher-typing" data-sffc-apply-chat-home-typing aria-hidden="true"><?php esc_html_e('Find private equity roles in Dubai', 'senna-finance'); ?></span>
+                            <span class="sffc-crm-apply-chat__home-launcher-mode is-static" data-sffc-apply-chat-home-mode aria-label="<?php esc_attr_e('Selected location', 'senna-finance'); ?>">
                                 <span class="sffc-crm-apply-chat__home-launcher-mode-dot" aria-hidden="true"></span>
-                                <strong><?php esc_html_e('Apply for Me', 'senna-finance'); ?></strong>
+                                <strong data-sffc-apply-chat-home-location-label><?php esc_html_e('Dubai', 'senna-finance'); ?></strong>
                             </span>
                             <button type="submit" class="sffc-crm-apply-chat__home-launcher-submit" data-sffc-apply-chat-home-submit aria-label="<?php esc_attr_e('Start Apply for Me', 'senna-finance'); ?>">
                                 <span aria-hidden="true">↑</span>
@@ -42294,6 +42572,7 @@ CRITICAL INSTRUCTIONS:
                         </div>
                         <div class="sffc-crm-apply-chat__home-suggestions" data-sffc-apply-chat-home-suggestions hidden></div>
                     </form>
+                    <?php echo $this->render_apply_chat_home_trending_jobs($matching_roles_seed, 6); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
                 </div>
                 <?php endif; ?>
 
@@ -44046,14 +44325,21 @@ CRITICAL INSTRUCTIONS:
             $application_url = esc_url_raw(wp_unslash((string) ($_POST['application_url'] ?? '')));
             $application_workspace_url = esc_url_raw(wp_unslash((string) ($_POST['application_workspace_url'] ?? '')));
             $provider = sanitize_key((string) wp_unslash($_POST['provider'] ?? ''));
+            if (!$this->is_crm_apply_chat_external_application_url($application_url)) {
+                $application_url = '';
+            }
+            if (!$this->is_crm_apply_chat_external_application_url($application_workspace_url)) {
+                $application_workspace_url = '';
+            }
 
             if ($jobs_post_id > 0 && get_post_type($jobs_post_id) === 'jobs') {
                 if ($application_url === '') {
                     $application_url = $this->get_crm_apply_chat_jobs_application_url($jobs_post_id);
                 }
                 $auto_submit = $this->get_crm_apply_chat_auto_submit_payload($jobs_post_id);
-                if ($application_workspace_url === '' && !empty($auto_submit['application_embed_url'])) {
-                    $application_workspace_url = esc_url_raw((string) $auto_submit['application_embed_url']);
+                $auto_submit_embed_url = !empty($auto_submit['application_embed_url']) ? esc_url_raw((string) $auto_submit['application_embed_url']) : '';
+                if ($application_workspace_url === '' && $this->is_crm_apply_chat_external_application_url($auto_submit_embed_url)) {
+                    $application_workspace_url = $auto_submit_embed_url;
                 }
                 if ($provider === '' && !empty($auto_submit['provider'])) {
                     $provider = sanitize_key((string) $auto_submit['provider']);
@@ -44270,7 +44556,7 @@ CRITICAL INSTRUCTIONS:
             }
 
             $application_url = esc_url_raw(wp_unslash((string) ($_POST['application_url'] ?? '')));
-            if ($application_url === '' || !preg_match('/^https?:\/\//i', $application_url)) {
+            if (!$this->is_crm_apply_chat_external_application_url($application_url)) {
                 wp_send_json_error(['message' => __('I need a valid employer application URL before I can preview it.', 'senna-finance')], 422);
             }
 
@@ -45211,6 +45497,7 @@ CRITICAL INSTRUCTIONS:
                 'profile_preferences' => $profile_preferences,
                 'membership' => $membership_snapshot,
                 'first_name' => $this->get_crm_apply_chat_current_user_first_name(),
+                'full_name' => $this->get_crm_reddit_current_user_full_name(),
             ]);
         }
 
@@ -45295,6 +45582,11 @@ CRITICAL INSTRUCTIONS:
             $content = isset($_POST['content']) ? sanitize_textarea_field(wp_unslash((string) $_POST['content'])) : '';
             $content_html = isset($_POST['content_html']) ? wp_kses_post(wp_unslash((string) $_POST['content_html'])) : '';
             $client_message_id = isset($_POST['client_message_id']) ? sanitize_text_field(wp_unslash((string) $_POST['client_message_id'])) : '';
+
+            if (strlen($content_html) > 50000) {
+                $summary_text = $content !== '' ? $content : wp_strip_all_tags($content_html);
+                $content_html = '<div class="sffc-crm-apply-chat-log-summary"><p><strong>' . esc_html__('Emily card shown in chat', 'senna-finance') . '</strong></p><p>' . esc_html(wp_html_excerpt($summary_text, 2500, '...')) . '</p></div>';
+            }
 
             if ($speaker === '' || ($content === '' && trim(wp_strip_all_tags($content_html)) === '')) {
                 wp_send_json_error(['message' => __('Message content required.', 'senna-finance')], 422);
@@ -52724,7 +53016,7 @@ CRITICAL INSTRUCTIONS:
                     'requirements' => array_slice($requirements, 0, 6),
                     'posted_at' => get_post_time('mysql', true, $post_id),
                     'source_url' => get_permalink($post_id),
-                    'application_url' => $application_url ?: get_permalink($post_id),
+                    'application_url' => $this->is_crm_apply_chat_external_application_url($application_url) ? $application_url : '',
                     'keywords' => [],
                 ];
             }
@@ -57858,6 +58150,7 @@ CRITICAL INSTRUCTIONS:
                 'searchHealth' => 'search_health',
                 'applicationOutcomeHistory' => 'application_outcome_history',
                 'preferredApplyBehavior' => 'preferred_apply_behavior',
+                'lastLauncherSearch' => 'last_launcher_search',
                 'locationVisaRequirements' => 'location_visa_requirements',
                 'followUpState' => 'follow_up_state',
                 'updatedAt' => 'updated_at',
@@ -57908,6 +58201,7 @@ CRITICAL INSTRUCTIONS:
                 'search_health' => [],
                 'application_outcome_history' => [],
                 'preferred_apply_behavior' => '',
+                'last_launcher_search' => [],
                 'location_visa_requirements' => [],
                 'updated_at' => '',
             ];
@@ -57950,6 +58244,15 @@ CRITICAL INSTRUCTIONS:
             $payload['search_health'] = is_array($payload['search_health']) ? $payload['search_health'] : [];
             $payload['inferred_career_problem'] = sanitize_text_field((string) ($payload['inferred_career_problem'] ?? ''));
             $payload['preferred_apply_behavior'] = sanitize_key((string) ($payload['preferred_apply_behavior'] ?? ''));
+            $launcher_search = is_array($payload['last_launcher_search']) ? $payload['last_launcher_search'] : [];
+            $payload['last_launcher_search'] = [
+                'query' => sanitize_text_field((string) ($launcher_search['query'] ?? '')),
+                'roleTarget' => sanitize_text_field((string) ($launcher_search['roleTarget'] ?? $launcher_search['role_target'] ?? $launcher_search['role'] ?? '')),
+                'location' => sanitize_text_field((string) ($launcher_search['location'] ?? $launcher_search['market'] ?? '')),
+                'mode' => sanitize_key((string) ($launcher_search['mode'] ?? '')),
+                'entryRoute' => sanitize_key((string) ($launcher_search['entryRoute'] ?? $launcher_search['entry_route'] ?? '')),
+                'updatedAt' => sanitize_text_field((string) ($launcher_search['updatedAt'] ?? $launcher_search['updated_at'] ?? '')),
+            ];
 
             $visa_map = is_array($payload['location_visa_requirements']) ? $payload['location_visa_requirements'] : [];
             $clean_visa_map = [];
@@ -58582,6 +58885,10 @@ CRITICAL INSTRUCTIONS:
             $speaker = sanitize_key((string) $speaker);
             $content_text = trim((string) $content_text);
             $content_html = trim((string) $content_html);
+            if (strlen($content_html) > 50000) {
+                $summary_text = $content_text !== '' ? $content_text : wp_strip_all_tags($content_html);
+                $content_html = '<div class="sffc-crm-apply-chat-log-summary"><p><strong>' . esc_html__('Emily card shown in chat', 'senna-finance') . '</strong></p><p>' . esc_html(wp_html_excerpt($summary_text, 2500, '...')) . '</p></div>';
+            }
             if ($content_text === '' && $content_html === '') {
                 return new WP_Error('empty_content', __('Message content required.', 'senna-finance'));
             }
@@ -79471,6 +79778,167 @@ HTML;
             return (string) ob_get_clean();
         }
 
+        public function render_community_apply_for_me_shortcode($atts = [])
+        {
+            $atts = shortcode_atts([
+                'eyebrow' => __('Tailored Applications & Recruiter Outreach', 'senna-finance'),
+                'title' => __('Land More Interviews in the Middle East', 'senna-finance'),
+                'button_label' => __('Get Started', 'senna-finance'),
+            ], $atts, 'sffc_community_apply_for_me');
+
+            $this->enqueue_community_apply_for_me_shortcode_assets();
+
+            $is_logged_in = is_user_logged_in();
+            $has_premium_access = $is_logged_in && $this->current_user_has_crm_editorial_paid_membership_access();
+            $community_locale = $this->get_member_pricing_signup_locale();
+
+            ob_start();
+            ?>
+            <section
+                class="sffc-community-editorial sffc-community-editorial__apply-for-me-shortcode"
+                dir="<?php echo esc_attr($this->is_arabic_locale($community_locale) ? 'rtl' : 'ltr'); ?>"
+                data-sffc-community-editorial
+                data-sffc-community-logged-in="<?php echo $is_logged_in ? 'true' : 'false'; ?>"
+                data-sffc-community-premium-access="<?php echo $has_premium_access ? 'true' : 'false'; ?>"
+            >
+                <div class="sffc-community-editorial__apply-for-me-shortcode-hero">
+                    <span class="sffc-community-editorial__apply-for-me-shortcode-eyebrow"><?php echo esc_html((string) $atts['eyebrow']); ?></span>
+                    <h2><?php echo esc_html((string) $atts['title']); ?></h2>
+                    <button type="button" class="sffc-community-editorial__apply-for-me-shortcode-button" data-sffc-community-apply-for-me-shortcode-trigger aria-expanded="false">
+                        <span aria-hidden="true">
+                            <svg viewBox="0 0 24 24" focusable="false"><path d="M12 4.5a7.5 7.5 0 1 1 0 15 7.5 7.5 0 0 1 0-15Zm.2 4.1-1.2 1.2 1.8 1.8H8v1.8h4.8L11 15.2l1.2 1.2 3.9-3.9-3.9-3.9Z"/></svg>
+                        </span>
+                        <?php echo esc_html((string) $atts['button_label']); ?>
+                    </button>
+                </div>
+                <div class="sffc-community-editorial__apply-for-me-shortcode-panel" data-sffc-community-apply-for-me-shortcode-panel hidden>
+                    <?php echo $this->render_crm_editorial_community_apply_for_me_panel(true); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+                </div>
+            </section>
+            <?php
+
+            return (string) ob_get_clean();
+        }
+
+        public function render_community_apply_for_me_results_shortcode($atts = [])
+        {
+            $atts = shortcode_atts([
+                'eyebrow' => __('Senna job search', 'senna-finance'),
+                'title' => __('Find roles Senna can shortlist and process for you', 'senna-finance'),
+                'button_label' => __('Get Started', 'senna-finance'),
+            ], $atts, 'sffc_community_apply_for_me_results');
+
+            $this->enqueue_community_apply_for_me_shortcode_assets();
+
+            $is_logged_in = is_user_logged_in();
+            $has_premium_access = $is_logged_in && $this->current_user_has_crm_editorial_paid_membership_access();
+            $community_locale = $this->get_member_pricing_signup_locale();
+
+            ob_start();
+            ?>
+            <section
+                class="sffc-community-editorial sffc-community-apply-results"
+                dir="<?php echo esc_attr($this->is_arabic_locale($community_locale) ? 'rtl' : 'ltr'); ?>"
+                data-sffc-community-editorial
+                data-sffc-community-apply-results
+                data-sffc-community-logged-in="<?php echo $is_logged_in ? 'true' : 'false'; ?>"
+                data-sffc-community-premium-access="<?php echo $has_premium_access ? 'true' : 'false'; ?>"
+            >
+                <header class="sffc-community-apply-results__hero">
+                    <span class="sffc-community-apply-results__eyebrow"><?php echo esc_html((string) $atts['eyebrow']); ?></span>
+                    <h2><?php echo esc_html((string) $atts['title']); ?></h2>
+                    <button type="button" class="sffc-community-apply-results__start" data-sffc-community-apply-results-start aria-expanded="false">
+                        <span aria-hidden="true">
+                            <svg viewBox="0 0 24 24" focusable="false"><path d="M12 4.5a7.5 7.5 0 1 1 0 15 7.5 7.5 0 0 1 0-15Zm.2 4.1-1.2 1.2 1.8 1.8H8v1.8h4.8L11 15.2l1.2 1.2 3.9-3.9-3.9-3.9Z"/></svg>
+                        </span>
+                        <?php echo esc_html((string) $atts['button_label']); ?>
+                    </button>
+                </header>
+
+                <section class="sffc-community-apply-results__criteria" data-sffc-community-apply-results-criteria hidden>
+                    <div class="sffc-community-apply-results__criteria-head">
+                        <div>
+                            <span><?php esc_html_e('Search criteria', 'senna-finance'); ?></span>
+                            <h3><?php esc_html_e('Tell Senna what should count as a match', 'senna-finance'); ?></h3>
+                        </div>
+                        <div class="sffc-community-apply-results__criteria-actions">
+                            <button type="button" class="sffc-community-apply-results__criteria-toggle" data-sffc-community-apply-results-toggle-criteria aria-expanded="true">
+                                <?php esc_html_e('Hide criteria', 'senna-finance'); ?>
+                            </button>
+                            <button type="button" class="sffc-community-apply-results__run" data-sffc-community-apply-results-run>
+                                <?php esc_html_e('Show matching roles', 'senna-finance'); ?>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="sffc-community-apply-results__criteria-panel" data-sffc-community-apply-results-criteria-panel>
+                        <?php echo $this->render_crm_editorial_community_apply_for_me_panel(true); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+                    </div>
+                </section>
+
+                <section class="sffc-community-apply-results__surface" data-sffc-community-apply-results-surface hidden>
+                    <div class="sffc-community-apply-results__topbar">
+                        <label class="sffc-community-apply-results__search">
+                            <span aria-hidden="true">
+                                <svg viewBox="0 0 24 24" focusable="false"><path d="M10.8 18.1a7.3 7.3 0 1 1 0-14.6 7.3 7.3 0 0 1 0 14.6Zm0-1.8a5.5 5.5 0 1 0 0-11 5.5 5.5 0 0 0 0 11Zm5.1.9 1.3-1.3 4.1 4.1-1.3 1.3-4.1-4.1Z"/></svg>
+                            </span>
+                            <input type="search" data-sffc-community-apply-results-search placeholder="<?php esc_attr_e('Search within these results', 'senna-finance'); ?>" aria-label="<?php esc_attr_e('Search within results', 'senna-finance'); ?>">
+                        </label>
+                        <button type="button" class="sffc-community-apply-results__process-selected" data-sffc-community-apply-results-process-selected disabled>
+                            <?php esc_html_e('Process selected', 'senna-finance'); ?>
+                        </button>
+                    </div>
+                    <div class="sffc-community-apply-results__filters" data-sffc-community-apply-results-filter-summary></div>
+                    <p class="sffc-community-apply-results__status" data-sffc-community-apply-results-status></p>
+                    <div class="sffc-community-apply-results__list" data-sffc-community-apply-results-list></div>
+                </section>
+            </section>
+            <?php
+
+            return (string) ob_get_clean();
+        }
+
+        private function enqueue_community_apply_for_me_shortcode_assets()
+        {
+            $css_version = file_exists(SFFC_PLUGIN_DIR . 'assets/css/crm/community-editorial.css')
+                ? (string) filemtime(SFFC_PLUGIN_DIR . 'assets/css/crm/community-editorial.css')
+                : SFFC_VERSION;
+
+            wp_enqueue_style(
+                'sffc-crm-community-editorial',
+                SFFC_PLUGIN_URL . 'assets/css/crm/community-editorial.css',
+                [],
+                $css_version
+            );
+
+            $js_version = file_exists(SFFC_PLUGIN_DIR . 'assets/js/crm/community-editorial.js')
+                ? (string) filemtime(SFFC_PLUGIN_DIR . 'assets/js/crm/community-editorial.js')
+                : SFFC_VERSION;
+
+            wp_enqueue_script(
+                'sffc-crm-community-editorial',
+                SFFC_PLUGIN_URL . 'assets/js/crm/community-editorial.js',
+                [],
+                $js_version,
+                true
+            );
+
+            wp_add_inline_script('sffc-crm-community-editorial', 'window.sffcCommunityEditorialConfig = Object.assign({}, window.sffcCommunityEditorialConfig || {}, ' . wp_json_encode([
+                'ajaxUrl' => admin_url('admin-ajax.php'),
+                'crmNonce' => wp_create_nonce('sffc_crm_nonce'),
+                'applyForMeMandateNonce' => wp_create_nonce('sffc_crm_editorial_apply_for_me_mandate'),
+                'requestHumanNonce' => wp_create_nonce('sffc_crm_apply_chat_request_human_followup'),
+                'jobsSearchNonce' => wp_create_nonce('sffc_crm_apply_chat_search_jobs'),
+                'applicationTaskNonce' => wp_create_nonce('sffc_crm_apply_chat_queue_application_task'),
+                'isLoggedIn' => is_user_logged_in(),
+                'hasPremiumAccess' => is_user_logged_in() && $this->current_user_has_crm_editorial_paid_membership_access(),
+                'currentUserEmail' => is_user_logged_in() ? sanitize_email((string) wp_get_current_user()->user_email) : '',
+                'currentUserName' => is_user_logged_in() ? sanitize_text_field((string) wp_get_current_user()->display_name) : '',
+                'membershipsUrl' => home_url('/memberships/'),
+                'loginUrl' => home_url('/login/'),
+                'terminalUrl' => home_url('/terminal'),
+            ]) . ');', 'before');
+        }
+
         public function render_crm_editorial_community_launcher($atts = [])
         {
             $atts = shortcode_atts([
@@ -89272,11 +89740,12 @@ HTML;
             ];
         }
 
-        private function render_crm_editorial_community_apply_for_me_panel()
+        private function render_crm_editorial_community_apply_for_me_panel($force_sequence = false)
         {
             $community_locale = $this->get_member_pricing_signup_locale();
             $is_logged_in = is_user_logged_in();
             $has_premium_access = $is_logged_in && $this->current_user_has_crm_editorial_paid_membership_access();
+            $show_sequence = $has_premium_access || (bool) $force_sequence;
             $profile_url = home_url('/terminal/?community_tab=templates');
             $memberships_url = home_url('/memberships/');
             $saved_mandate = $is_logged_in ? get_user_meta(get_current_user_id(), 'sffc_crm_editorial_apply_for_me_mandate', true) : [];
@@ -89453,8 +89922,8 @@ HTML;
 
             ob_start();
             ?>
-            <section class="sffc-community-editorial__apply-for-me<?php echo !$has_premium_access ? ' sffc-community-editorial__apply-for-me--landing' : ''; ?>" data-sffc-apply-for-me-panel>
-                <?php if (!$has_premium_access) : ?>
+            <section class="sffc-community-editorial__apply-for-me<?php echo !$show_sequence ? ' sffc-community-editorial__apply-for-me--landing' : ''; ?>" data-sffc-apply-for-me-panel>
+                <?php if (!$show_sequence) : ?>
                     <section class="sffc-community-editorial__get-hired-landing" aria-labelledby="sffc-get-hired-title">
                         <div class="sffc-community-editorial__get-hired-hero">
                             <div class="sffc-community-editorial__get-hired-copy">

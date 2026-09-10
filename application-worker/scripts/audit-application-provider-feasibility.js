@@ -547,7 +547,10 @@ async function main() {
       console.log(`${result.provider.padEnd(15)} ${result.mock_result} ${result.job_url || result.discovery_url}`);
     }
   } finally {
-    await browser.close().catch(() => {});
+    await Promise.race([
+      browser.close().catch(() => {}),
+      new Promise((resolve) => setTimeout(resolve, 5000)),
+    ]);
   }
 
   const reportPath = path.join(tmp, "provider-feasibility-report.json");

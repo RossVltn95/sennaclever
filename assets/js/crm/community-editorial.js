@@ -1968,6 +1968,515 @@
       });
   }
 
+  function getApplyResultsShortcodeState(root) {
+    if (!root.__sffcApplyResultsState) {
+      root.__sffcApplyResultsState = {
+        items: [],
+        selectedKeys: {},
+        shortlistedKeys: {},
+        requestId: 0,
+        controller: null
+      };
+    }
+    return root.__sffcApplyResultsState;
+  }
+
+  function getApplyResultsText(value) {
+    return String(value || '').replace(/\s+/g, ' ').trim();
+  }
+
+  function getApplyResultsInitial(text) {
+    var clean = getApplyResultsText(text || 'S');
+    if (!clean) {
+      return 'S';
+    }
+    return clean.slice(0, 2).toUpperCase();
+  }
+
+  function getApplyResultsItemKey(item, index) {
+    var parts = [
+      item && (item.jobs_post_id || item.wp_post_id || item.post_id || item.id),
+      item && (item.title || item.role_title),
+      item && item.company,
+      item && item.location
+    ];
+    return parts.map(getApplyResultsText).filter(Boolean).join('|').toLowerCase() || ('result-' + index);
+  }
+
+  function getApplyResultsProviderLabel(item) {
+    var provider = getApplyResultsText(item && (item.auto_submit_provider || item.source_platform));
+    var source = provider.toLowerCase();
+    if (source.indexOf('workable') !== -1) {
+      return 'Workable route';
+    }
+    if (source.indexOf('greenhouse') !== -1) {
+      return 'Greenhouse route';
+    }
+    if (source.indexOf('successfactors') !== -1 || source.indexOf('sap') !== -1) {
+      return 'SAP SuccessFactors route';
+    }
+    if (source.indexOf('teamtailor') !== -1 || source.indexOf('team tailor') !== -1) {
+      return 'Teamtailor route';
+    }
+    if (source.indexOf('workday') !== -1) {
+      return 'Workday route';
+    }
+    return provider ? provider + ' route' : 'Application route';
+  }
+
+  function applyResultsMandateHasCriteria(mandate) {
+    return Object.keys(mandate || {}).some(function (key) {
+      var section = mandate[key] || {};
+      var hasOptions = Array.isArray(section.options) && section.options.length > 0;
+      var hasFields = Object.keys(section.fields || {}).some(function (fieldKey) {
+        return getApplyResultsText(section.fields[fieldKey]) !== '';
+      });
+      return hasOptions || hasFields;
+    });
+  }
+
+  function buildApplyResultsCriteriaTerms(mandate) {
+    var terms = [];
+    Object.keys(mandate || {}).forEach(function (key) {
+      var section = mandate[key] || {};
+      (section.options || []).forEach(function (option) {
+        var clean = getApplyResultsText(option);
+        if (
+          clean &&
+          !/^(i'?m flexible|stay within set criteria|ask before applying|auto-apply|never apply)$/i.test(clean)
+        ) {
+          terms.push(clean);
+        }
+      });
+      Object.keys(section.fields || {}).forEach(function (fieldKey) {
+        var value = getApplyResultsText(section.fields[fieldKey]);
+        if (
+          value &&
+          ['stored_cv_url', 'stored_cv_name', 'cv_file', 'bonus_equity_notes', 'extra_notes'].indexOf(fieldKey) === -1
+        ) {
+          terms.push(value);
+        }
+      });
+    });
+    return terms.filter(function (term, index) {
+      return term && terms.indexOf(term) === index;
+    });
+  }
+
+  function buildApplyResultsSearchQueries(mandate) {
+    var terms = buildApplyResultsCriteriaTerms(mandate);
+    var combined = terms.slice(0, 5).join(' ');
+    var queries = [];
+    if (combined) {
+      queries.push(combined);
+    }
+    terms.slice(0, 8).forEach(function (term) {
+      queries.push(term);
+    });
+    if (!queries.length && applyResultsMandateHasCriteria(mandate)) {
+      queries.push('finance Middle East');
+    }
+    return queries.filter(function (query, index) {
+      return query && queries.indexOf(query) === index;
+    });
+  }
+
+  function fetchApplyResultsJobs(query, limit) {
+    var body = new FormData();
+    body.append('action', 'sffc_crm_apply_chat_search_jobs');
+    body.append('nonce', config.jobsSearchNonce || '');
+    body.append('query', query);
+    body.append('limit', String(limit || 12));
+
+    return window.fetch(config.ajaxUrl || '/wp-admin/admin-ajax.php', {
+      method: 'POST',
+      credentials: 'same-origin',
+      body: body
+    })
+      .then(parseAjaxJson)
+      .then(function (payload) {
+        return payload && payload.success && payload.data && Array.isArray(payload.data.items)
+          ? payload.data.items
+          : [];
+      });
+  }
+
+  function mergeApplyResultsJobs(groups) {
+    var seen = {};
+    var merged = [];
+    (groups || []).forEach(function (items) {
+      (items || []).forEach(function (item, index) {
+        var key = getApplyResultsItemKey(item, index);
+        if (!key || seen[key]) {
+          return;
+        }
+        seen[key] = true;
+        merged.push(item);
+      });
+    });
+    return merged;
+  }
+
+  function renderApplyResultsFilterSummary(root, mandate) {
+    var target = root.querySelector('[data-sffc-community-apply-results-filter-summary]');
+    var terms = buildApplyResultsCriteriaTerms(mandate).slice(0, 10);
+    if (!target) {
+      return;
+    }
+    target.innerHTML = terms.length
+      ? terms.map(function (term) {
+        return '<span>' + escapeCommunityHtml(term) + '</span>';
+      }).join('')
+      : '<span>Flexible finance search</span>';
+  }
+
+  function renderApplyResultsCards(root) {
+    var state = getApplyResultsShortcodeState(root);
+    var list = root.querySelector('[data-sffc-community-apply-results-list]');
+    var status = root.querySelector('[data-sffc-community-apply-results-status]');
+    var search = root.querySelector('[data-sffc-community-apply-results-search]');
+    var filter = normalizeCommunityToken(search ? search.value : '');
+    var visibleItems = state.items.filter(function (item) {
+      if (!filter) {
+        return true;
+      }
+      return normalizeCommunityToken([
+        item.title || item.role_title,
+        item.company,
+        item.location,
+        item.seniority,
+        item.sector,
+        item.excerpt
+      ].join(' ')).indexOf(filter) !== -1;
+    });
+
+    if (!list) {
+      return;
+    }
+
+    if (status) {
+      status.textContent = visibleItems.length
+        ? visibleItems.length + ' roles matched from your criteria. Shortlist or process one role, or select several.'
+        : 'No roles match the current text filter. Adjust the search above or edit the criteria.';
+    }
+
+    list.innerHTML = visibleItems.map(function (item, index) {
+      var key = getApplyResultsItemKey(item, index);
+      var title = getApplyResultsText(item.title || item.role_title || 'Open role');
+      var company = getApplyResultsText(item.company || 'Senna role');
+      var location = getApplyResultsText(item.location || 'Location not listed');
+      var sector = getApplyResultsText(item.sector || '');
+      var seniority = getApplyResultsText(item.seniority || '');
+      var salary = getApplyResultsText(item.salary_text || item.salary || '');
+      var posted = getApplyResultsText(item.posted_label || '');
+      var excerpt = getApplyResultsText(item.excerpt || 'Matched from at least one part of your criteria.');
+      var logo = getApplyResultsText(item.company_logo || item.companyLogo || item.logo || '');
+      var viewUrl = getApplyResultsText(item.view_url || item.url || '#');
+      var selected = !!state.selectedKeys[key];
+      var shortlisted = !!state.shortlistedKeys[key];
+      var tags = [getApplyResultsProviderLabel(item), posted, location, seniority, sector, salary].filter(Boolean);
+
+      return (
+        '<article class="sffc-community-apply-results__card' + (selected ? ' is-selected' : '') + (shortlisted ? ' is-shortlisted' : '') + '" data-sffc-community-apply-results-card data-result-key="' + escapeCommunityHtml(key) + '">' +
+          '<label class="sffc-community-apply-results__select">' +
+            '<input type="checkbox" data-sffc-community-apply-results-select="' + escapeCommunityHtml(key) + '"' + (selected ? ' checked' : '') + '>' +
+            '<span></span>' +
+          '</label>' +
+          '<div class="sffc-community-apply-results__logo' + (logo ? ' has-image' : '') + '">' +
+            (logo ? '<img src="' + escapeCommunityHtml(logo) + '" alt="">' : '<strong>' + escapeCommunityHtml(getApplyResultsInitial(company)) + '</strong>') +
+          '</div>' +
+          '<div class="sffc-community-apply-results__body">' +
+            '<div class="sffc-community-apply-results__meta"><strong>' + escapeCommunityHtml(company) + '</strong><span>' + escapeCommunityHtml(viewUrl.replace(/^https?:\/\//, '')) + '</span></div>' +
+            '<a class="sffc-community-apply-results__title" href="' + escapeCommunityHtml(viewUrl) + '" target="_blank" rel="noopener noreferrer">' + escapeCommunityHtml(title) + '</a>' +
+            '<div class="sffc-community-apply-results__chips">' + tags.slice(0, 6).map(function (tag) { return '<span>' + escapeCommunityHtml(tag) + '</span>'; }).join('') + '</div>' +
+            '<p>' + escapeCommunityHtml(excerpt) + '</p>' +
+            '<div class="sffc-community-apply-results__actions">' +
+              '<button type="button" class="sffc-community-apply-results__btn sffc-community-apply-results__btn--shortlist' + (shortlisted ? ' is-shortlisted' : '') + '" data-sffc-community-apply-results-shortlist="' + escapeCommunityHtml(key) + '">' + (shortlisted ? '<span aria-hidden="true">✓</span> Shortlisted' : 'Add to Shortlist') + '</button>' +
+            '</div>' +
+            '<p class="sffc-community-apply-results__task-status" data-sffc-community-apply-results-task-status="' + escapeCommunityHtml(key) + '"></p>' +
+          '</div>' +
+        '</article>'
+      );
+    }).join('');
+
+    updateApplyResultsProcessSelectedState(root);
+  }
+
+  function updateApplyResultsProcessSelectedState(root) {
+    var state = getApplyResultsShortcodeState(root);
+    var trigger = root.querySelector('[data-sffc-community-apply-results-process-selected]');
+    var count = Object.keys(state.selectedKeys).filter(function (key) {
+      return !!state.selectedKeys[key];
+    }).length;
+    if (trigger) {
+      trigger.disabled = count === 0;
+      trigger.textContent = count ? 'Process selected (' + count + ')' : 'Process selected';
+    }
+  }
+
+  function getApplyResultsItemByKey(root, key) {
+    var state = getApplyResultsShortcodeState(root);
+    return state.items.filter(function (item, index) {
+      return getApplyResultsItemKey(item, index) === key;
+    })[0] || null;
+  }
+
+  function queueApplyResultsApplication(root, item, statusNode) {
+    var body = new FormData();
+    var email = getApplyResultsText(config.currentUserEmail || '');
+    var candidateName = getApplyResultsText(config.currentUserName || (email ? email.split('@')[0] : ''));
+    var applyUrl = getApplyResultsText(item && (item.apply_url || item.application_url || item.application_workspace_url));
+
+    if (!item || !applyUrl) {
+      if (statusNode) {
+        statusNode.textContent = 'This role does not have a usable employer application link yet.';
+      }
+      return Promise.resolve(false);
+    }
+
+    if (!email) {
+      if (statusNode) {
+        statusNode.textContent = 'Sign in or add your account email before Senna can process this application.';
+      }
+      return Promise.resolve(false);
+    }
+
+    body.append('action', 'sffc_crm_apply_chat_queue_application_task');
+    body.append('nonce', config.applicationTaskNonce || '');
+    body.append('session_token', 'apply-results-' + Date.now());
+    body.append('post_id', getApplyResultsText(item && (item.post_id || item.id)));
+    body.append('crm_post_id', getApplyResultsText(item && (item.post_id || item.id)));
+    body.append('jobs_post_id', getApplyResultsText(item && (item.jobs_post_id || item.wp_post_id)));
+    body.append('role_title', getApplyResultsText(item && (item.title || item.role_title)));
+    body.append('company_name', getApplyResultsText(item && item.company));
+    body.append('candidate_name', candidateName || 'Senna Candidate');
+    body.append('candidate_email', email);
+    body.append('provider', getApplyResultsText(item && item.auto_submit_provider));
+    body.append('application_url', applyUrl);
+    body.append('application_workspace_url', getApplyResultsText(item && (item.application_workspace_url || applyUrl)));
+    body.append('role_url', getApplyResultsText(item && (item.view_url || item.url)));
+    body.append('page_url', window.location.href || '');
+    body.append('cv_mode', 'tailored');
+    body.append('cover_letter_requested', '1');
+    body.append('consent', 'candidate_selected_process_application_from_results');
+
+    if (statusNode) {
+      statusNode.textContent = 'Queuing this application with Senna...';
+    }
+
+    return window.fetch(config.ajaxUrl || '/wp-admin/admin-ajax.php', {
+      method: 'POST',
+      credentials: 'same-origin',
+      body: body
+    })
+      .then(parseAjaxJson)
+      .then(function (payload) {
+        if (!payload || !payload.success) {
+          throw new Error((payload && payload.data && payload.data.message) || 'Could not queue this application.');
+        }
+        if (statusNode) {
+          statusNode.textContent = 'Application queued. Senna will process it and flag anything that needs your input.';
+        }
+        return true;
+      })
+      .catch(function (error) {
+        if (statusNode) {
+          statusNode.textContent = error && error.message ? error.message : 'Could not queue this application.';
+        }
+        return false;
+      });
+  }
+
+  function findApplyResultsStatusNode(root, key) {
+    var nodes = root ? root.querySelectorAll('[data-sffc-community-apply-results-task-status]') : [];
+    var match = null;
+    nodes.forEach(function (node) {
+      if (!match && node.getAttribute('data-sffc-community-apply-results-task-status') === key) {
+        match = node;
+      }
+    });
+    return match;
+  }
+
+  function runApplyResultsSearch(root) {
+    var panel = getApplyForMePanel(root);
+    var surface = root.querySelector('[data-sffc-community-apply-results-surface]');
+    var list = root.querySelector('[data-sffc-community-apply-results-list]');
+    var status = root.querySelector('[data-sffc-community-apply-results-status]');
+    var mandate = collectApplyForMeMandate(panel);
+    var state = getApplyResultsShortcodeState(root);
+    var queries = buildApplyResultsSearchQueries(mandate);
+    var requestId;
+
+    if (!panel || !surface || !list) {
+      return;
+    }
+
+    if (!applyResultsMandateHasCriteria(mandate)) {
+      var feedback = panel.querySelector('[data-sffc-apply-feedback]');
+      if (feedback) {
+        feedback.hidden = false;
+        feedback.classList.add('is-error');
+        feedback.textContent = 'Choose at least one criterion or add one note before showing results.';
+      }
+      return;
+    }
+
+    renderApplyForMeSummary(panel);
+    renderApplyResultsFilterSummary(root, mandate);
+    surface.hidden = false;
+    list.innerHTML = '<div class="sffc-community-apply-results__loading"><span></span><strong>Finding roles that match your criteria...</strong></div>';
+    if (status) {
+      status.textContent = 'Searching across the strongest criteria you selected.';
+    }
+
+    state.requestId += 1;
+    requestId = state.requestId;
+    Promise.all(queries.slice(0, 8).map(function (query) {
+      return fetchApplyResultsJobs(query, 12).catch(function () {
+        return [];
+      });
+    })).then(function (groups) {
+      var criteriaPanel = root.querySelector('[data-sffc-community-apply-results-criteria-panel]');
+      var criteriaToggle = root.querySelector('[data-sffc-community-apply-results-toggle-criteria]');
+      if (requestId !== state.requestId) {
+        return;
+      }
+      state.items = mergeApplyResultsJobs(groups).slice(0, 24);
+      state.selectedKeys = {};
+      if (!state.items.length) {
+        list.innerHTML = '<div class="sffc-community-apply-results__empty"><strong>No roles found yet.</strong><span>Open the criteria above and broaden one part of the brief.</span></div>';
+        if (status) {
+          status.textContent = 'No live roles matched the current criteria.';
+        }
+        updateApplyResultsProcessSelectedState(root);
+        return;
+      }
+      renderApplyResultsCards(root);
+      if (criteriaPanel && criteriaToggle) {
+        criteriaPanel.hidden = true;
+        criteriaToggle.setAttribute('aria-expanded', 'false');
+        criteriaToggle.textContent = 'Edit criteria';
+      }
+      surface.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  }
+
+  function initApplyForMeResultsShortcode(root) {
+    if (!root || root.__sffcApplyResultsBound) {
+      return;
+    }
+    root.__sffcApplyResultsBound = true;
+
+    root.addEventListener('click', function (event) {
+      var start = event.target.closest('[data-sffc-community-apply-results-start]');
+      var criteria = root.querySelector('[data-sffc-community-apply-results-criteria]');
+      var panel = root.querySelector('[data-sffc-community-apply-results-criteria-panel]');
+      var toggle = event.target.closest('[data-sffc-community-apply-results-toggle-criteria]');
+      var run = event.target.closest('[data-sffc-community-apply-results-run]');
+      var submit = event.target.closest('[data-sffc-apply-submit]');
+      var shortlist = event.target.closest('[data-sffc-community-apply-results-shortlist]');
+      var processSelected = event.target.closest('[data-sffc-community-apply-results-process-selected]');
+
+      if (start && root.contains(start)) {
+        event.preventDefault();
+        if (!criteria) {
+          return;
+        }
+        criteria.hidden = false;
+        start.setAttribute('aria-expanded', 'true');
+        criteria.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        return;
+      }
+
+      if (toggle && root.contains(toggle)) {
+        event.preventDefault();
+        var hidden = panel ? !panel.hidden : false;
+        if (panel) {
+          panel.hidden = hidden;
+        }
+        toggle.setAttribute('aria-expanded', hidden ? 'false' : 'true');
+        toggle.textContent = hidden ? 'Edit criteria' : 'Hide criteria';
+        return;
+      }
+
+      if (run && root.contains(run)) {
+        event.preventDefault();
+        event.stopPropagation();
+        runApplyResultsSearch(root);
+        return;
+      }
+
+      if (submit && root.contains(submit)) {
+        event.preventDefault();
+        event.stopPropagation();
+        if (typeof event.stopImmediatePropagation === 'function') {
+          event.stopImmediatePropagation();
+        }
+        runApplyResultsSearch(root);
+        return;
+      }
+
+      if (shortlist && root.contains(shortlist)) {
+        event.preventDefault();
+        var shortlistKey = shortlist.getAttribute('data-sffc-community-apply-results-shortlist') || '';
+        var state = getApplyResultsShortcodeState(root);
+        state.shortlistedKeys[shortlistKey] = !state.shortlistedKeys[shortlistKey];
+        renderApplyResultsCards(root);
+        return;
+      }
+
+      if (processSelected && root.contains(processSelected)) {
+        event.preventDefault();
+        var selectedState = getApplyResultsShortcodeState(root);
+        Object.keys(selectedState.selectedKeys).filter(function (key) {
+          return !!selectedState.selectedKeys[key];
+        }).forEach(function (key) {
+          var selectedItem = getApplyResultsItemByKey(root, key);
+          var selectedStatus = findApplyResultsStatusNode(root, key);
+          if (!getApplyResultsText(selectedItem && (selectedItem.apply_url || selectedItem.application_url || selectedItem.application_workspace_url))) {
+            if (selectedStatus) {
+              selectedStatus.textContent = 'Skipped: this role does not have a usable employer application link yet.';
+            }
+            return;
+          }
+          queueApplyResultsApplication(root, selectedItem, selectedStatus);
+        });
+        return;
+      }
+    }, true);
+
+    root.addEventListener('change', function (event) {
+      var selector = event.target.closest('[data-sffc-community-apply-results-select]');
+      if (!selector || !root.contains(selector)) {
+        return;
+      }
+      var state = getApplyResultsShortcodeState(root);
+      var key = selector.getAttribute('data-sffc-community-apply-results-select') || '';
+      state.selectedKeys[key] = !!selector.checked;
+      var card = selector.closest('[data-sffc-community-apply-results-card]');
+      if (card) {
+        card.classList.toggle('is-selected', !!selector.checked);
+      }
+      updateApplyResultsProcessSelectedState(root);
+    });
+
+    root.addEventListener('input', function (event) {
+      if (event.target.closest('[data-sffc-community-apply-results-search]')) {
+        renderApplyResultsCards(root);
+      }
+    });
+
+    root.querySelectorAll('[data-sffc-apply-submit]').forEach(function (submit) {
+      var label = submit.querySelector('span:last-child');
+      if (label) {
+        label.textContent = 'Show matching roles';
+      } else {
+        submit.textContent = 'Show matching roles';
+      }
+    });
+  }
+
   function initializeApplyForMePanel(root) {
     var panel = getApplyForMePanel(root);
 
@@ -1977,6 +2486,33 @@
 
     panel.__sffcApplyForMeInitialized = true;
     setApplyForMeStep(panel, 0);
+  }
+
+  function openApplyForMeShortcodeSequence(root, trigger) {
+    var shell = root ? root.querySelector('[data-sffc-community-apply-for-me-shortcode-panel]') : null;
+    var panel = getApplyForMePanel(root);
+    var firstFocusable;
+
+    if (!root || !shell || !panel) {
+      return;
+    }
+
+    shell.hidden = false;
+    root.classList.add('is-apply-for-me-shortcode-started');
+    if (trigger) {
+      trigger.setAttribute('aria-expanded', 'true');
+    }
+    initializeApplyForMePanel(root);
+    setApplyForMeStep(panel, 0);
+    if (typeof shell.scrollIntoView === 'function') {
+      shell.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    firstFocusable = panel.querySelector('[data-sffc-apply-option], textarea, select, input, button');
+    if (firstFocusable && typeof firstFocusable.focus === 'function') {
+      window.setTimeout(function () {
+        firstFocusable.focus({ preventScroll: true });
+      }, 260);
+    }
   }
 
   function trackCommunityCompanyClick(root, trigger) {
@@ -5445,12 +5981,17 @@
       return;
     }
 
+    var isApplyForMeShortcodeRoot = root.classList && (
+      root.classList.contains('sffc-community-editorial__apply-for-me-shortcode') ||
+      root.classList.contains('sffc-community-apply-results')
+    );
+
     bindCommunityFilterOutsideClose(root);
     moveCommunityFilterToolbarBelowHeader(root);
     setupCommunityFilterToolbarScroll(root);
 
     var storedGuestCvToken = getStoredCommunityGuestCvToken();
-    if (storedGuestCvToken && !getCommunityGuestCvToken(root)) {
+    if (!isApplyForMeShortcodeRoot && storedGuestCvToken && !getCommunityGuestCvToken(root)) {
       root.setAttribute('data-sffc-community-guest-cv-token', storedGuestCvToken);
       setCommunityCvUploadStatus(root, 'CV uploaded', 'loaded');
       window.setTimeout(function () {
@@ -5483,21 +6024,21 @@
       updateOnboardingPlanPrices(root);
     }
 
-    if (typeof window.requestIdleCallback === 'function') {
+    if (!isApplyForMeShortcodeRoot && typeof window.requestIdleCallback === 'function') {
       window.requestIdleCallback(function () {
         requestCommunitySidebars(root);
       }, { timeout: 1200 });
-    } else {
+    } else if (!isApplyForMeShortcodeRoot) {
       window.setTimeout(function () {
         requestCommunitySidebars(root);
       }, 200);
     }
 
-    if (typeof window.requestIdleCallback === 'function') {
+    if (!isApplyForMeShortcodeRoot && typeof window.requestIdleCallback === 'function') {
       window.requestIdleCallback(function () {
         prefetchDeferredCommunityTabs(root);
       }, { timeout: 1600 });
-    } else {
+    } else if (!isApplyForMeShortcodeRoot) {
       window.setTimeout(function () {
         prefetchDeferredCommunityTabs(root);
       }, 350);
@@ -5620,6 +6161,14 @@
         !event.target.closest('[data-sffc-community-auth-open]')
       ) {
         closeCommunityAuthDropdown(root);
+      }
+
+      var applyForMeShortcodeTrigger = event.target.closest('[data-sffc-community-apply-for-me-shortcode-trigger]');
+      if (applyForMeShortcodeTrigger && root.contains(applyForMeShortcodeTrigger)) {
+        event.preventDefault();
+        event.stopPropagation();
+        openApplyForMeShortcodeSequence(root, applyForMeShortcodeTrigger);
+        return;
       }
 
       var applyForMePanel = getApplyForMePanel(root);
@@ -7330,6 +7879,7 @@
   }
 
   document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('[data-sffc-community-apply-results]').forEach(initApplyForMeResultsShortcode);
     document.querySelectorAll('[data-sffc-community-editorial]').forEach(init);
     document.querySelectorAll('[data-sffc-community-editorial-search]').forEach(initStandaloneCommunitySearch);
     document.querySelectorAll('[data-sffc-community-filter-launcher]').forEach(initCommunityFilterLauncher);

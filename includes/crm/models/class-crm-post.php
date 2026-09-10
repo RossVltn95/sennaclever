@@ -18,7 +18,7 @@ class SFFC_CRM_Post {
     private $saved_table;
     private $activity_table;
     private static $columns_ready = false;
-    private const COLUMNS_READY_OPTION = 'sffc_crm_posts_columns_ready_v4';
+    private const COLUMNS_READY_OPTION = 'sffc_crm_posts_columns_ready_v5';
 
     public function __construct() {
         global $wpdb;
@@ -52,6 +52,7 @@ class SFFC_CRM_Post {
             'post_status' => "ADD COLUMN post_status enum('open','closed') DEFAULT 'open'",
             'is_early_bird' => "ADD COLUMN is_early_bird tinyint(1) DEFAULT 0",
             'application_url' => "ADD COLUMN application_url varchar(500) DEFAULT NULL",
+            'application_embed_mode' => "ADD COLUMN application_embed_mode varchar(20) DEFAULT 'auto'",
             'source_url' => "ADD COLUMN source_url varchar(500) DEFAULT NULL",
             'wp_post_id' => "ADD COLUMN wp_post_id bigint(20) DEFAULT NULL",
             'jobs_post_id' => "ADD COLUMN jobs_post_id bigint(20) DEFAULT NULL",
@@ -334,7 +335,7 @@ class SFFC_CRM_Post {
                        p.admin_approved, p.is_active, p.post_status, p.source, p.source_platform,
                        p.source_platform_custom, p.publish_to_jobs, p.created_at, p.updated_at, p.posted_at,
                        p.is_remote, p.is_hybrid, p.engagement_count, p.is_featured, p.is_early_bird, p.exclude_from_early_bird,
-                       p.application_url, p.source_url, p.wp_post_id, p.jobs_post_id, p.keywords,
+                       p.application_url, p.application_embed_mode, p.source_url, p.wp_post_id, p.jobs_post_id, p.keywords,
                        COALESCE(NULLIF(p.company_logo, ''), r.default_company_logo) AS company_logo,
                        p.recruiter_display_name, p.recruiter_display_company,
                        p.response_label{$new_columns},
@@ -500,7 +501,7 @@ class SFFC_CRM_Post {
                        p.salary_min, p.salary_max, p.salary_currency, p.salary_text,
                        p.seniority, p.sector, p.experience_years, p.content, p.content_snippet, p.posted_at,
                        p.is_remote, p.is_hybrid, p.engagement_count, p.is_featured, p.is_early_bird, p.exclude_from_early_bird,
-                       p.application_url, p.source_url, p.wp_post_id, p.jobs_post_id, p.keywords,
+                       p.application_url, p.application_embed_mode, p.source_url, p.wp_post_id, p.jobs_post_id, p.keywords,
                        COALESCE(NULLIF(p.company_logo, ''), r.default_company_logo) AS company_logo,
                        p.recruiter_display_name, p.recruiter_display_company,
                        p.response_label{$new_columns},
@@ -705,7 +706,7 @@ class SFFC_CRM_Post {
                        p.salary_min, p.salary_max, p.salary_currency, p.salary_text,
                        p.seniority, p.sector, p.experience_years, p.content, p.content_snippet, p.posted_at,
                        p.is_remote, p.is_hybrid, p.engagement_count, p.is_featured, p.is_early_bird, p.exclude_from_early_bird,
-                       p.application_url, p.source_url, p.wp_post_id, p.jobs_post_id, p.keywords,
+                       p.application_url, p.application_embed_mode, p.source_url, p.wp_post_id, p.jobs_post_id, p.keywords,
                        COALESCE(NULLIF(p.company_logo, ''), r.default_company_logo) AS company_logo,
                        p.recruiter_display_name, p.recruiter_display_company,
                        p.interview_questions, p.interview_questions_docx, p.cv_template_docx,

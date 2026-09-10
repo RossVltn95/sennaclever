@@ -459,6 +459,14 @@
         
         initializePipelineDragDrop() {
             const self = this;
+
+            if (
+                typeof $.fn.draggable !== 'function' ||
+                typeof $.fn.droppable !== 'function'
+            ) {
+                $('.opportunity-pipeline').addClass('drag-drop-unavailable');
+                return;
+            }
             
             // Initialize all existing pipeline items as draggable
             const initDraggable = () => {

@@ -123,6 +123,7 @@ class SFFC_CRM_Database_Schema {
             is_active tinyint(1) DEFAULT 1,
             is_featured tinyint(1) DEFAULT 0,
             is_early_bird tinyint(1) DEFAULT 0,
+            application_embed_mode varchar(20) DEFAULT 'auto',
             exclude_from_early_bird tinyint(1) DEFAULT 0,
             response_label varchar(200) DEFAULT NULL,
             response_badge varchar(200) DEFAULT NULL,
@@ -1471,6 +1472,7 @@ class SFFC_CRM_Database_Schema {
 
         $table_posts = $wpdb->prefix . 'sffc_crm_posts';
         $this->add_column_if_not_exists($table_posts, 'application_url', 'varchar(500) DEFAULT NULL');
+        $this->add_column_if_not_exists($table_posts, 'application_embed_mode', "varchar(20) DEFAULT 'auto'");
         $this->add_column_if_not_exists($table_posts, 'wp_post_id', 'bigint(20) DEFAULT NULL');
         $this->add_column_if_not_exists($table_posts, 'jobs_post_id', 'bigint(20) DEFAULT NULL');
         $this->add_column_if_not_exists($table_posts, 'source_url', 'varchar(500) DEFAULT NULL');
@@ -2765,6 +2767,7 @@ Best regards,
 
         // Add missing columns to posts table
         $this->add_column_if_not_exists($table_posts, 'application_url', 'varchar(500) DEFAULT NULL');
+        $this->add_column_if_not_exists($table_posts, 'application_embed_mode', "varchar(20) DEFAULT 'auto'");
         $this->add_column_if_not_exists($table_posts, 'wp_post_id', 'bigint(20) DEFAULT NULL');
         $this->add_column_if_not_exists($table_posts, 'jobs_post_id', 'bigint(20) DEFAULT NULL');
         $this->add_column_if_not_exists($table_posts, 'source_url', 'varchar(500) DEFAULT NULL');

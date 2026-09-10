@@ -2,6 +2,7 @@
 
 const fs = require("fs");
 const path = require("path");
+const { getChromeBrowserWsEndpoint } = require("./chrome-debug");
 
 let puppeteer;
 try {
@@ -17,10 +18,6 @@ const testQueries = (process.env.SFFC_LIVE_CHAT_QUERIES || "show me private cred
   .split("|")
   .map((item) => item.trim())
   .filter(Boolean);
-const browserWs =
-  process.env.SFFC_CHROME_WS ||
-  process.env.BROWSER_WS_ENDPOINT ||
-  "ws://127.0.0.1:9222/devtools/browser/1744e14a-7356-49a9-9be7-2e5111942700";
 const outputDir = process.env.SFFC_LIVE_CHAT_REPORT_DIR || "/tmp/senna-live-apply-chat";
 
 fs.mkdirSync(outputDir, { recursive: true });
@@ -175,7 +172,7 @@ async function clickButtonByText(page, patternText) {
   const consoleMessages = [];
   const pageErrors = [];
   const failedRequests = [];
-  const browser = await puppeteer.connect({ browserWSEndpoint: browserWs });
+  const browser = await puppeteer.connect({ browserWSEndpoint: await getChromeBrowserWsEndpoint() });
   const page = await getPage(browser);
 
   page.on("console", (message) => {

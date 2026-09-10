@@ -1,0 +1,234 @@
+{
+  "schemaVersion": 1,
+  "description": "Permanent regression conversations for sffc-crm-apply-chat. Each turn asserts the decision-level behavior expected from Emily before any UI/provider side effects run.",
+  "scenarios": [
+    {
+      "id": "guest_search_refine_reference_no_cv_apply",
+      "tier": "guest",
+      "description": "Guest searches, refines, references a role, asks for CV match without a CV, then asks to apply with original CV.",
+      "initialContext": {
+        "activeTask": "",
+        "selectedRole": false,
+        "referencedRole": false,
+        "hasCv": false
+      },
+      "turns": [
+        {
+          "message": "show me private markets roles in Abu Dhabi",
+          "activeTask": "",
+          "expectedIntent": "job_search",
+          "expectedRelationship": "new_topic",
+          "expectedAction": "show_job_results"
+        },
+        {
+          "message": "remove operations and anything too junior",
+          "activeTask": "search",
+          "expectedIntent": "search_refinement",
+          "expectedRelationship": "changes_task",
+          "expectedAction": "update_search_preferences"
+        },
+        {
+          "message": "open the second one",
+          "activeTask": "search",
+          "referencedRole": true,
+          "expectedIntent": "role_reference",
+          "expectedRelationship": "continues_task",
+          "expectedAction": "render_selected_role"
+        },
+        {
+          "message": "compare this job against my CV",
+          "activeTask": "apply_flow",
+          "selectedRole": true,
+          "expectedIntent": "cv_role_comparison",
+          "expectedRelationship": "continues_task",
+          "expectedAction": "compare_selected_role_cv"
+        },
+        {
+          "message": "use the CV as is no tailoring",
+          "activeTask": "apply_flow",
+          "selectedRole": true,
+          "expectedIntent": "apply_action",
+          "expectedRelationship": "continues_task",
+          "expectedAction": "start_apply_execution"
+        }
+      ]
+    },
+    {
+      "id": "application_pause_company_question_resume_status",
+      "tier": "guest",
+      "description": "User pauses an application to inspect the company, resumes, then asks for application status.",
+      "initialContext": {
+        "activeTask": "apply_flow",
+        "selectedRole": true,
+        "referencedRole": true
+      },
+      "turns": [
+        {
+          "message": "pause, I want to understand the company first",
+          "activeTask": "apply_flow",
+          "selectedRole": true,
+          "expectedIntent": "role_question",
+          "expectedRelationship": "continues_task",
+          "expectedAction": "answer_role_question"
+        },
+        {
+          "message": "ok continue applying",
+          "activeTask": "apply_flow",
+          "selectedRole": true,
+          "expectedIntent": "application_resume",
+          "expectedRelationship": "resumes_task",
+          "expectedAction": "resume_task"
+        },
+        {
+          "message": "where are we with the application?",
+          "activeTask": "apply_flow",
+          "selectedRole": true,
+          "expectedIntent": "application_status",
+          "expectedRelationship": "continues_task",
+          "expectedAction": "answer_application_status"
+        }
+      ]
+    },
+    {
+      "id": "paying_member_results_first",
+      "tier": "paying",
+      "description": "Paying member should remain results-first and avoid membership route choices.",
+      "initialContext": {
+        "activeTask": "search",
+        "selectedRole": false,
+        "referencedRole": true,
+        "hasCv": true
+      },
+      "turns": [
+        {
+          "message": "anything new for Dubai private credit?",
+          "activeTask": "search",
+          "expectedIntent": "job_search",
+          "expectedRelationship": "continues_task",
+          "expectedAction": "show_job_results"
+        },
+        {
+          "message": "these companies don't feel right",
+          "activeTask": "search",
+          "expectedIntent": "search_refinement",
+          "expectedRelationship": "changes_task",
+          "expectedAction": "update_search_preferences"
+        },
+        {
+          "message": "apply to the first result please",
+          "activeTask": "search",
+          "referencedRole": true,
+          "expectedIntent": "apply_action",
+          "expectedRelationship": "continues_task",
+          "expectedAction": "start_apply_execution"
+        }
+      ]
+    },
+    {
+      "id": "career_interruption_then_search_resume",
+      "tier": "free",
+      "description": "Career advice interrupts search without destroying the search task.",
+      "initialContext": {
+        "activeTask": "search",
+        "selectedRole": true,
+        "referencedRole": true
+      },
+      "turns": [
+        {
+          "message": "actually should I target Riyadh instead of Dubai?",
+          "activeTask": "search",
+          "selectedRole": true,
+          "expectedIntent": "career_question",
+          "expectedRelationship": "interrupts_task",
+          "expectedAction": "answer_directly"
+        },
+        {
+          "message": "okay continue searching",
+          "activeTask": "search",
+          "selectedRole": true,
+          "expectedIntent": "job_search",
+          "expectedRelationship": "continues_task",
+          "expectedAction": "show_job_results"
+        },
+        {
+          "message": "same search but Abu Dhabi",
+          "activeTask": "search",
+          "expectedIntent": "search_refinement",
+          "expectedRelationship": "changes_task",
+          "expectedAction": "update_search_preferences"
+        }
+      ]
+    },
+    {
+      "id": "provider_specific_searches",
+      "tier": "guest",
+      "description": "Provider-specific search wording should still produce job results rather than CV prompts.",
+      "initialContext": {
+        "activeTask": "search"
+      },
+      "turns": [
+        {
+          "message": "workday only finance roles please",
+          "activeTask": "search",
+          "expectedIntent": "job_search",
+          "expectedRelationship": "continues_task",
+          "expectedAction": "show_job_results"
+        },
+        {
+          "message": "greenhouse only investment associate",
+          "activeTask": "search",
+          "expectedIntent": "job_search",
+          "expectedRelationship": "continues_task",
+          "expectedAction": "show_job_results"
+        },
+        {
+          "message": "direct/simple form applications only",
+          "activeTask": "search",
+          "expectedIntent": "job_search",
+          "expectedRelationship": "continues_task",
+          "expectedAction": "show_job_results"
+        }
+      ]
+    },
+    {
+      "id": "provider_filter_status_and_reset",
+      "tier": "free",
+      "description": "Provider filters can be set, inspected, cleared, and fully reset without being turned into literal job searches.",
+      "initialContext": {
+        "activeTask": "search",
+        "selectedRole": false,
+        "referencedRole": false
+      },
+      "turns": [
+        {
+          "message": "Greenhouse only",
+          "activeTask": "search",
+          "expectedIntent": "job_search",
+          "expectedRelationship": "continues_task",
+          "expectedAction": "show_job_results"
+        },
+        {
+          "message": "remove the ATS restriction",
+          "activeTask": "search",
+          "expectedIntent": "search_refinement",
+          "expectedRelationship": "changes_task",
+          "expectedAction": "update_search_preferences"
+        },
+        {
+          "message": "show me my current filters",
+          "activeTask": "search",
+          "expectedIntent": "search_filter_status",
+          "expectedRelationship": "continues_task",
+          "expectedAction": "answer_search_filters"
+        },
+        {
+          "message": "reset everything except Dubai and private credit",
+          "activeTask": "search",
+          "expectedIntent": "search_filter_reset",
+          "expectedRelationship": "changes_task",
+          "expectedAction": "reset_search_preferences"
+        }
+      ]
+    }
+  ]
+}

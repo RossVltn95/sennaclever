@@ -61,13 +61,13 @@ const roleLens = {
 };
 
 const sectionMap = [
-  ["summary", /^(summary|profile|professional summary|personal profile|career profile|objective)$/i],
-  ["education", /^(education|academic background|qualifications)$/i],
-  ["experience", /^(work experience|professional experience|professional experience and leadership|experience|experiences|employment|employment history|career history|work history|organisational experience|organizational experience|internships?)$/i],
-  ["skills", /^(skills|technical skills|core skills|key skills|additional skills)$/i],
+  ["summary", /^(summary|profile|professional summary|personal profile|career profile|objective|about me|chi sono)$/i],
+  ["education", /^(education|academic background|qualifications|formations?|formation|formazione)$/i],
+  ["experience", /^(work experience|professional experience|professional experience and leadership|experience|experiences|employment|employment history|career history|work history|organisational experience|organizational experience|internships?|experiences professionnelles|expériences professionnelles|esperienze lavorative)$/i],
+  ["skills", /^(skills|technical skills|core skills|key skills|additional skills|comp[eé]tences(?: et centres d.?int[eé]r[eê]t)?|competenze tecniche)$/i],
   ["projects", /^(projects|selected projects|selected transactions|transactions)$/i],
-  ["languages", /^(languages|language skills)$/i],
-  ["interests", /^(interests|additional information|extracurricular activities|activities)$/i],
+  ["languages", /^(languages|language skills|langues|lingue)$/i],
+  ["interests", /^(interests|additional information|extracurricular activities|activities|centres d.?int[eé]r[eê]t|dati personali)$/i],
 ];
 
 const weakVerbRules = [
@@ -100,6 +100,20 @@ const weakVerbRules = [
   [/^\s*enabling\b/i, "Enabled"],
   [/^\s*get experience with\b/i, "Gained experience with"],
   [/^\s*pmo for\b/i, "Supported project management for"],
+  [/^\s*conducting\b/i, "Conducted"],
+  [/^\s*management of\b/i, "Managed"],
+  [/^\s*identification of\b/i, "Identified"],
+  [/^\s*analysis of\b/i, "Analyzed"],
+  [/^\s*development of\b/i, "Developed"],
+  [/^\s*acquiring\b/i, "Acquired"],
+  [/^\s*grant\b/i, "Granted"],
+  [/^\s*analyze\b/i, "Analyzed"],
+  [/^\s*liaise\b/i, "Liaised"],
+  [/^\s*support\b/i, "Supported"],
+  [/^\s*sviluppo\b/i, "Developed"],
+  [/^\s*gestione\b/i, "Managed"],
+  [/^\s*politique de\b/i, "Analyzed"],
+  [/^\s*mod[eé]lisation\b/i, "Modeled"],
   [/^\s*conduct\b/i, "Conducted"],
 ];
 
@@ -210,7 +224,6 @@ function getSectionKey(line) {
   const normalized = clean(line).replace(/[:\-–—]+$/g, "");
   const hit = sectionMap.find((entry) => entry[1].test(normalized));
   if (hit) return hit[0];
-  if (/^[A-Z][A-Z\s/&,-]{2,70}$/.test(normalized)) return normalized.toLowerCase().replace(/[^a-z]+/g, "_");
   return "";
 }
 
@@ -341,6 +354,24 @@ function dateText(line) {
   return match ? clean(match[0]).replace(/\b(?:current|now)\b/i, "Present") : "";
 }
 
+function looseDateText(line) {
+  const value = clean(line);
+  return (
+    dateText(value) ||
+    ((value.match(/\b(?:(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Sept|Oct|Nov|Dec)[a-z]*|\d{1,2})[ ./-]+(?:19|20)\d{2}\b/i) || [])[0]) ||
+    ((value.match(/\b(?:19|20)\d{2}\b/) || [])[0]) ||
+    ""
+  );
+}
+
+function removeLooseDateText(line, date) {
+  const value = clean(line);
+  const token = clean(date);
+  return token
+    ? clean(value.replace(new RegExp(token.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i"), "").replace(/^[|,:;–—-]+|[|,:;–—-]+$/g, ""))
+    : value;
+}
+
 function looksDateLine(line) {
   const value = clean(line);
   const date = dateText(value);
@@ -348,10 +379,37 @@ function looksDateLine(line) {
   return value.length <= 90 && (date.length / Math.max(value.length, 1) > 0.35 || value.split(/\s+/).length <= 8);
 }
 
+function looksLikePersonalOrAdminLine(line) {
+  const value = clean(line);
+  if (!value) return true;
+  if (/@|linkedin|www\.|https?:/i.test(value)) return true;
+  if (/^(?:date of birth|date of issue|date of expiry|place of issue|gender|marital status|nationality|passport|visa status|driving licence|address|contact|phone|email|website|linkedin)\b/i.test(value)) return true;
+  if (/\b(?:date of birth|date of issue|date of expiry|place of issue|gender|marital status|nationality|passport|visa status)\b/i.test(value)) return true;
+  if (/^(?:available|availability|notice period|references available|current location|location)\b/i.test(value)) return true;
+  if (/^(?:jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)[a-z]*\.?\s+(?:19|20)\d{2}\b/i.test(value)) return true;
+  if (/^\[?\s*(?:jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)[a-z]*\.?\s+(?:19|20)\d{2}\s*(?:-|–|—|to)\s*(?:present|current|(?:jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)[a-z]*\.?\s+(?:19|20)\d{2}|(?:19|20)\d{2})\s*\]?$/i.test(value)) return true;
+  if (/^(?:course|courses|certificate|certification|education|training|project|language|languages|skills|interests|hobbies|profile|summary)\b/i.test(value)) return true;
+  if (/^(?:portuguese|english|french|german|spanish|arabic|italian|russian|hindi|urdu|mandarin|cantonese)\s+(?:native|fluent|proficient|professional|advanced|intermediate|basic)\b/i.test(value)) return true;
+  if (/\b(?:native|fluent|proficient|professional working proficiency|advanced|intermediate)\b/i.test(value) && (value.match(/\b(?:english|french|german|spanish|arabic|italian|portuguese|russian|hindi|urdu|mandarin|cantonese)\b/gi) || []).length >= 2) return true;
+  return false;
+}
+
+function looksLikeUnsafeEvidenceLine(line) {
+  const value = clean(line).replace(/^[•▪●○◦❖\-–—]\s*/, "");
+  if (!value) return true;
+  if (looksLikePersonalOrAdminLine(value)) return true;
+  if (looksEducationLine(value) && !/\b(?:taught|trained|researched|analysed|analyzed|built|prepared|developed|managed|led|conducted)\b/i.test(value)) return true;
+  if (value.length <= 90 && (/,\s*[A-Z][A-Za-z.'’ -]{2,}$/.test(value) || /\b(remote|hybrid|riyadh|dubai|abu dhabi|doha|london|milan|rome|barcelona|geneva|toronto|paris|new york|singapore|hong kong|india|uae|united kingdom|uk|italy|spain|france|canada|saudi arabia|qatar|germany|switzerland|netherlands)\b/i.test(value))) return true;
+  if (/^(?:architecture|architectural|design|urban planning|bsc|msc|mba|matric|degree)\b/i.test(value) && value.split(/\s+/).length < 10) return true;
+  if (/^[A-Z][A-Za-zÀ-ÿ'’.-]+(?:\s+[A-Z][A-Za-zÀ-ÿ'’.-]+){6,}$/.test(value) && !/[.,;:]/.test(value)) return true;
+  if ((value.match(/\b(?:analyst|associate|manager|director|finance|banking|investment|excel|powerpoint|english|french|degree|university|education|software|retail|logistics)\b/gi) || []).length >= 8 && !/[.,;:]/.test(value)) return true;
+  return false;
+}
+
 function looksLikeBullet(line) {
   const value = clean(line);
-  if (value.length < 24 || value.length > 430 || /@|linkedin|www\./i.test(value) || isHeading(value)) return false;
-  return /^[•▪●○◦❖\-–—]\s+/.test(line) || /^(helped|assisted|supported|worked|participated|handled|managed|led|built|prepared|executed|developed|created|streamlined|monitored|evaluated|sourced|coordinated|validated|performed|provided|contributed|improved|reduced|increased|analy[sz]ed|reviewed|delivered|owned|oversaw|directed|applied|conducted)\b/i.test(value);
+  if (value.length < 24 || value.length > 430 || isHeading(value) || looksLikeUnsafeEvidenceLine(value)) return false;
+  return /^[•▪●○◦❖\-–—]\s+/.test(line) || /^(helped|assisted|supported|worked|participated|handled|managed|led|built|prepared|executed|developed|created|streamlined|monitored|evaluated|sourced|coordinated|validated|performed|provided|contributed|improved|reduced|increased|analy[sz]ed|reviewed|delivered|owned|oversaw|directed|applied|conducted|conducting|management of|identification of|analysis of|development of|acquiring|grant|sviluppo|gestione|politique de|mod[eé]lisation)\b/i.test(value);
 }
 
 function familyFor(text) {
@@ -364,18 +422,29 @@ function weakIssues(text) {
 }
 
 function metrics(text) {
-  return clean(text).match(/(?:\+?\d+(?:[.,]\d+)?%?|[$€£]\s*\+?[0-9.,]+\s*(?:m|mn|mln|bn|billion|million)?|[0-9.,]+\s*(?:transactions|investments|leads|start-?ups|clients|companies|teams|markets|hours))/gi) || [];
+  return clean(text).match(/(?:\+?\d+(?:[.,]\d+)?%?|[$€£]\s*\+?[0-9][0-9.,]*\s*(?:m|mn|mln|bn|billion|million)?|[0-9][0-9.,]*\s*(?:transactions|investments|leads|start-?ups|clients|companies|teams|markets|hours))/gi) || [];
 }
 
 function tools(text) {
-  return clean(text).match(/\b(?:LBO|DCF|SQL|Python|Tableau|Excel|VBA|SAP|Bloomberg|Capital IQ|FactSet|Refinitiv|Power BI|R|CRM)\b/gi) || [];
+  return clean(text).match(/\b(?:LBO|DCF|SQL|Python|Tableau|Excel|VBA|SAP|Bloomberg|Capital IQ|FactSet|Refinitiv|Power BI|CRM)\b/gi) || [];
+}
+
+function looksNonEnglishSentence(text) {
+  const value = ` ${clean(text).toLowerCase()} `;
+  const hits = (value.match(/\b(?:di|della|delle|degli|con|per|nel|nella|des|du|avec|pour|aux|dans|sur|données|projets|risques|étude|évaluation|gestione|redazione|monitoraggio|fornitori|contrattualistica|competenze)\b/g) || []).length;
+  return hits >= 3;
 }
 
 function finishSentence(text) {
   const value = clean(text)
+    .replace(/^\s*Supported\s+(Directed|Identified|Acquired|Modeled|Modelled|Performed|Used|Reviewed|Guided|Enabled|Analy[sz]ed|Developed|Conducted|Managed|Spearheaded|Acted|Advised|Demonstrated|Planned|Communicated|Prioriti[sz]ed)\b/i, "$1")
+    .replace(/\bGained experience with ([^.!?]+?) as ([^.!?]+?)\.\s*e\.g\.,\s*/i, "Gained experience with $1, including $2, ")
+    .replace(/\bGained experience with ([^.!?]+?) as ([^.!?]+?)(?=,|\.)/i, "Gained experience with $1, including $2")
     .replace(/\s+([,.;:])/g, "$1")
     .replace(/\.{2,}/g, ".")
-    .replace(/;\./g, ".")
+    .replace(/[;:]\./g, ".")
+    .replace(/[;:]+$/g, "")
+    .replace(/,+$/g, "")
     .replace(/(?:,\s*)?(and|or|with|through|across|including|using|by|in|of|to|for|the|a)\s*\.?$/i, "")
     .trim();
   return value ? (/[.!?]$/.test(value) ? value : `${value}.`) : "";
@@ -383,6 +452,29 @@ function finishSentence(text) {
 
 function rewriteBullet(text, targetKeywords) {
   const source = clean(text).replace(/^[A-Z][A-Za-z/& -]{2,42}:\s*/, "");
+  if (looksLikeUnsafeEvidenceLine(source)) {
+    return {
+      original: source,
+      rewritten: "",
+      family: "unsafe",
+      weakIssues: ["unsafe_source_line"],
+      metrics: [],
+      tools: [],
+      changed: false,
+    };
+  }
+  if (looksNonEnglishSentence(source)) {
+    const original = finishSentence(source);
+    return {
+      original: source,
+      rewritten: original,
+      family: familyFor(source) ? familyFor(source).key : "general",
+      weakIssues: [],
+      metrics: metrics(source),
+      tools: tools(source),
+      changed: clean(source) !== clean(original),
+    };
+  }
   let base = source
     .replace(/\b(successfully|effectively|efficiently|proactively|actively)\b\s*/gi, "")
     .replace(/\b(strong|excellent|good|great)\s+(?=(communication|interpersonal|analytical|teamwork|leadership|problem))/gi, "")
@@ -401,7 +493,7 @@ function rewriteBullet(text, targetKeywords) {
   const sourceMetrics = metrics(source);
   const sourceTools = tools(source);
   const hasOutcome = /\b(supporting|support|resulting|contributing|improving|reducing|increasing|accelerating|enhancing|informing|inform|driving|enabling|ensuring|saving|securing|facilitating|facilitate|to\s+(?:inform|support|improve|reduce|increase|enhance|drive|enable|deliver|facilitate))\b/i.test(base);
-  const hasStrongAction = /^(Led|Built|Prepared|Managed|Executed|Developed|Analy[sz]ed|Evaluated|Streamlined|Sourced|Monitored|Validated|Supported|Contributed|Delivered|Improved|Applied|Coordinated|Conducted|Created|Reviewed|Provided|Gained|Performed|Ensured|Facilitated|Guided|Enabled|Used)\b/i.test(base);
+  const hasStrongAction = /^(Led|Built|Prepared|Managed|Executed|Developed|Analy[sz]ed|Evaluated|Streamlined|Sourced|Monitored|Validated|Supported|Contributed|Delivered|Improved|Applied|Coordinated|Conducted|Created|Reviewed|Provided|Gained|Performed|Ensured|Facilitated|Guided|Enabled|Used|Identified|Acquired|Modeled|Modelled|Granted|Liaised|Directed|Spearheaded|Acted|Advised|Demonstrated|Planned|Communicated|Prioriti[sz]ed)\b/i.test(base);
   const outcomeBase = base.replace(/[.!?]+$/g, "").trim();
   const candidates = [finishSentence(base)];
   if (family && !hasStrongAction) {
@@ -415,6 +507,7 @@ function rewriteBullet(text, targetKeywords) {
   }
   const selected = candidates
     .filter(Boolean)
+    .filter((candidate) => !hasBrokenRewriteText(candidate) && !looksLikeUnsafeRewrite(candidate, source))
     .filter((candidate) => sourceMetrics.every((metric) => candidate.toLowerCase().includes(metric.toLowerCase())))
     .filter((candidate) => tools(candidate).every((tool) => sourceTools.map((item) => item.toLowerCase()).includes(tool.toLowerCase())))
     .sort((a, b) => scoreBullet(b, family, targetKeywords) - scoreBullet(a, family, targetKeywords))[0] || finishSentence(base);
@@ -430,8 +523,9 @@ function rewriteBullet(text, targetKeywords) {
 }
 
 function scoreBullet(text, family, targetKeywords) {
+  if (hasBrokenRewriteText(text) || looksLikeUnsafeRewrite(text, "")) return -1000;
   let score = 0;
-  if (/^(Led|Built|Prepared|Managed|Executed|Developed|Analy[sz]ed|Evaluated|Streamlined|Sourced|Monitored|Validated|Supported|Contributed|Delivered|Improved|Applied|Coordinated|Conducted)\b/.test(text)) score += 20;
+  if (/^(Led|Built|Prepared|Managed|Executed|Developed|Analy[sz]ed|Evaluated|Streamlined|Sourced|Monitored|Validated|Supported|Contributed|Delivered|Improved|Applied|Coordinated|Conducted|Identified|Acquired|Modeled|Modelled|Granted|Liaised|Directed|Spearheaded|Acted|Advised|Demonstrated|Planned|Communicated|Prioriti[sz]ed)\b/.test(text)) score += 20;
   if (family) score += 12;
   if (metrics(text).length) score += 12;
   if (tools(text).length) score += 6;
@@ -462,7 +556,7 @@ function looksEducationLine(line) {
 function looksExperienceRoleLine(line) {
   const value = clean(line);
   if (!value || value.length > 120 || /@|linkedin|www\./i.test(value) || isHeading(value)) return false;
-  return /\b(analyst|associate|assistant|manager|director|consultant|intern|officer|specialist|advisor|adviser|lead|controller|accountant|auditor|researcher|engineer|developer|representative|agent|coordinator|executive|banker|trader|asset manager|business development|operations|customer support|call center|claims assessor)\b/i.test(value);
+  return /\b(analyst|associate|assistant|manager|director|consultant|intern|internship|officer|specialist|advisor|adviser|lead|controller|accountant|auditor|researcher|engineer|developer|representative|agent|coordinator|executive|banker|trader|asset manager|business development|operations|customer support|call center|claims assessor|commercial finance|commercial manager|wholesale specialist|consultante?|stagiaire|cheffe? de projet|analyste|data analyst|finance|project manager)\b/i.test(value);
 }
 
 function looksCompanyLine(line) {
@@ -552,6 +646,11 @@ function parseEntries(linesOrSection) {
       current.pendingDateFirst = false;
       return;
     }
+    if (current.heading && !current.bullets.length && looksExperienceRoleLine(value) && value !== current.heading) {
+      current.heading = clean(current.heading + " - " + value);
+      current.pendingDateFirst = false;
+      return;
+    }
     if (looksLocationLine(value)) {
       current.location = value;
       return;
@@ -569,9 +668,9 @@ function parseEntries(linesOrSection) {
   push();
   return entries
     .map((entry) => ({
-      heading: [entry.heading, entry.company].filter(Boolean).join(entry.heading && entry.company ? " - " : ""),
+      heading: [removeLooseDateText(entry.heading, entry.dates || looseDateText(entry.heading)), entry.company].filter(Boolean).join(entry.heading && entry.company ? " - " : ""),
       location: entry.location || "",
-      dates: entry.dates,
+      dates: entry.dates || looseDateText(entry.heading),
       bullets: entry.bullets,
     }))
     .filter((entry) => entry.heading || entry.bullets.length)
@@ -583,7 +682,9 @@ function buildModel(file, text) {
   const sections = parseSections(lines);
   const section = (key) => sections.find((item) => item.key === key) || { lines: [] };
   const bullets = sections.reduce((list, item) => list.concat(item.lines.filter(looksLikeBullet)), []);
-  const rewrites = bullets.slice(0, 40).map((line) => rewriteBullet(line, roleLens.keywords));
+  const rewrites = bullets.slice(0, 40)
+    .map((line) => rewriteBullet(line, roleLens.keywords))
+    .filter((item) => item.rewritten && !hasBrokenRewriteText(item.rewritten) && !looksLikeUnsafeRewrite(item.rewritten, item.original));
   const skills = extractSkills(lines, roleLens.keywords);
   const email = detectEmail(text);
   const name = detectName(lines, file, email);
@@ -597,8 +698,15 @@ function buildModel(file, text) {
     dates: clean(entry.dates || dateText(entry.heading || "")),
     bullets: (entry.bullets && entry.bullets.length ? entry.bullets : [])
       .slice(0, 6)
-      .map((line) => rewriteBullet(line, roleLens.keywords)),
+      .map((line) => rewriteBullet(line, roleLens.keywords))
+      .filter((item) => item.rewritten && !hasBrokenRewriteText(item.rewritten) && !looksLikeUnsafeRewrite(item.rewritten, item.original)),
   })).filter((entry) => entry.heading || entry.bullets.length);
+  if (experienceEntries.length && rewrites.length && !experienceEntries.some((entry) => entry.bullets.length)) {
+    experienceEntries[0].bullets = rewrites.slice(0, 8);
+  }
+  if (experienceEntries.some((entry) => entry.bullets.length)) {
+    experienceEntries = experienceEntries.filter((entry) => entry.bullets.length || (entry.heading && entry.dates));
+  }
   if (!experienceEntries.length && rewrites.length >= 3) {
     experienceEntries = [{
       heading: "Relevant Experience",
@@ -664,39 +772,226 @@ function collectFiles() {
   return [...new Set(files)];
 }
 
+function hasBrokenRewriteText(value) {
+  return /\b(Supported|Managed|Prepared|Built|Applied|Delivered|Improved|Reviewed|Analyzed|Analysed|Executed|Developed|Collected)\s+(supported|managed|prepared|built|applied|delivered|improved|reviewed|analy[sz]ed|executed|developed|formulated|collaborated|ensured|performed|liaised|negotiated|examined|uncovered|collected|assessed)\b/i.test(value || "") ||
+    /\.\.|;\.|,\.|undefined|null|\band conduct\b|\bRead and analyse\b|\bsurveys Read\b|\bcarry out\b|,\s*,|\busing using\b|\bfor for\b|\bmanage over task\b|\b(?:Delivered|Managed|Prepared|Built|Applied|Executed|Developed|Reviewed|Analyzed|Analysed)\s+(?:PROFILE|available|availability|april|october|date of|place of|architecture|course|certificate|education|training|language|languages|jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)\b|\busing\s+(?:Delivered|Improved|Managed|Prepared|Developed|Executed)\b|\bkey point of contact leading for\b|\b(?:aligning|provide|including|using|for|and|the)\.$/i.test(value || "");
+}
+
+function looksLikeUnsafeRewrite(value, source) {
+  const text = clean(value);
+  const sourceText = clean(source);
+  if (!text) return true;
+  if (looksLikeUnsafeEvidenceLine(text)) return true;
+  if (/^(?:Delivered|Managed|Prepared|Built|Applied|Executed|Developed|Reviewed|Analyzed|Analysed)\s+(?:available|availability|date of|place of|gender|nationality|passport|visa|architecture|design and urban planning|course|courses|certificate|education|training|language|languages)\b/i.test(text)) return true;
+  if (/^(?:Delivered|Managed|Prepared|Built|Applied|Executed|Developed|Reviewed|Analyzed|Analysed)\s+\[?(?:jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)[a-z]*\.?\s+(?:19|20)\d{2}/i.test(text)) return true;
+  const inventedDemoMetrics = ["25 close-cycle", "12 monthly", "$12.5m", "$45m", "100%", "18%", "20%"];
+  if (inventedDemoMetrics.some((metric) => text.toLowerCase().includes(metric.toLowerCase()) && !sourceText.toLowerCase().includes(metric.toLowerCase()))) return true;
+  if (/\b(?:Reframe this|show the action taken|connect it more directly)\b/i.test(text)) return true;
+  if (text.split(/\s+/).length < 5) return true;
+  return false;
+}
+
+function evaluateTailoredAst(ast) {
+  const doc = ast && ast.tailoredDocument ? ast.tailoredDocument : {};
+  const rewrites = doc.rewrites || [];
+  const entries = doc.experience || [];
+  const coverage = doc.requirementCoverage || [];
+  const warnings = [];
+  let score = 100;
+
+  if (!doc.documentPlan) {
+    warnings.push("missing_document_plan");
+    score -= 20;
+  }
+  if (!entries.length) {
+    warnings.push("missing_tailored_experience");
+    score -= 30;
+  }
+  if (!rewrites.length) {
+    warnings.push("missing_rewrites");
+    score -= 35;
+  }
+  if (!doc.summary || String(doc.summary).split(/\s+/).length < 8) {
+    warnings.push("weak_or_missing_summary");
+    score -= 12;
+  }
+  if (!ast.candidate || !ast.candidate.email) {
+    warnings.push("missing_email");
+    score -= 8;
+  }
+  if (!ast.candidate || !ast.candidate.name || ast.candidate.name === "Candidate Name") {
+    warnings.push("confirm_candidate_name");
+    score -= 8;
+  }
+  const invalidRewrites = rewrites.filter((rewrite) => !(rewrite.validation && rewrite.validation.passed));
+  if (invalidRewrites.length) {
+    warnings.push("rewrite_validation_failed");
+    score -= Math.min(30, invalidRewrites.length * 10);
+  }
+  const brokenRewrites = rewrites.filter((rewrite) => hasBrokenRewriteText(rewrite.rewritten));
+  if (brokenRewrites.length) {
+    warnings.push("broken_rewrite_text");
+    score -= Math.min(40, brokenRewrites.length * 20);
+  }
+  const changedCount = rewrites.filter((rewrite) => rewrite.original !== rewrite.rewritten).length;
+  if (rewrites.length && changedCount / rewrites.length < 0.25) {
+    warnings.push("low_rewrite_change_rate");
+    score -= 8;
+  }
+  const strongCoverage = coverage.filter((item) => item.status === "strong").length;
+  if (coverage.length && strongCoverage === 0) {
+    warnings.push("no_strong_requirement_coverage");
+    score -= 14;
+  }
+  const hasMetric = rewrites.some((rewrite) => /(?:\+?\d+(?:[.,]\d+)?%?|[$€£]\s*\+?[0-9.,]+|[0-9.,]+\s*(?:transactions|investments|leads|companies|teams|reports|models))/i.test(rewrite.rewritten || ""));
+  if (!hasMetric) {
+    warnings.push("no_metric_visible");
+    score -= 7;
+  }
+  const hasOutcome = rewrites.some((rewrite) => /\b(?:supporting|informing|improving|strengthening|enabling|driving|contributing|delivering|reducing|increasing)\b/i.test(rewrite.rewritten || ""));
+  if (!hasOutcome) {
+    warnings.push("no_outcome_language");
+    score -= 9;
+  }
+  const likelyKeywordSoup = (doc.skills || []).some((skill) => String(skill || "").split(/\s+/).length > 14);
+  if (likelyKeywordSoup) {
+    warnings.push("skills_keyword_soup");
+    score -= 8;
+  }
+
+  return {
+    sourceFile: ast.sourceFile,
+    candidate: ast.candidate && ast.candidate.name,
+    tailoredHtmlFile: ast.tailoredHtmlFile,
+    score: Math.max(0, Math.min(100, Math.round(score))),
+    status: score >= 82 && !brokenRewrites.length && !invalidRewrites.length ? "pass" : score >= 68 ? "review" : "fail",
+    warnings: [...new Set(warnings.concat(doc.warnings || []))]
+      .filter((warning) => warning !== "candidate_name_needs_confirmation"),
+    metrics: {
+      entries: entries.length,
+      rewrites: rewrites.length,
+      changedRewrites: changedCount,
+      validationPassed: rewrites.filter((rewrite) => rewrite.validation && rewrite.validation.passed).length,
+      strongRequirementCoverage: strongCoverage,
+      requirementCount: coverage.length,
+      hasMetric,
+      hasOutcome,
+    },
+  };
+}
+
+function summarizeQuality(items) {
+  const warningCounts = {};
+  items.forEach((item) => {
+    (item.warnings || []).forEach((warning) => {
+      warningCounts[warning] = (warningCounts[warning] || 0) + 1;
+    });
+  });
+  return {
+    evaluated: items.length,
+    pass: items.filter((item) => item.status === "pass").length,
+    review: items.filter((item) => item.status === "review").length,
+    fail: items.filter((item) => item.status === "fail").length,
+    averageScore: items.length
+      ? Math.round(items.reduce((sum, item) => sum + item.score, 0) / items.length)
+      : 0,
+    warningCounts,
+    lowestScoring: items
+      .slice()
+      .sort((left, right) => left.score - right.score)
+      .slice(0, 12),
+  };
+}
+
+function recommendedQaAction(item) {
+  const warnings = new Set(item.warnings || []);
+  if (warnings.has("missing_tailored_experience") || warnings.has("missing_rewrites")) {
+    return "Parser rescue needed: recover experience bullets from low-structure or scanned CV text.";
+  }
+  if (warnings.has("broken_rewrite_text") || warnings.has("rewrite_validation_failed")) {
+    return "Rewrite guard needed: block malformed generated text before rendering.";
+  }
+  if (warnings.has("confirm_candidate_name") || warnings.has("missing_email")) {
+    return "Identity confirmation needed before application submission.";
+  }
+  if (warnings.has("no_strong_requirement_coverage")) {
+    return "Role matching needs review: evidence may be valid but not mapped to this target lens.";
+  }
+  if (warnings.has("no_metric_visible")) {
+    return "Ask for metrics only if material; do not invent numbers.";
+  }
+  if (warnings.has("low_rewrite_change_rate")) {
+    return "Rewrite ambition can increase, but only where source evidence supports it.";
+  }
+  return "Manual spot check.";
+}
+
+function renderQualityReportHtml(summary, items) {
+  const rows = items
+    .slice()
+    .sort((left, right) => left.score - right.score)
+    .map((item) => {
+      const href = item.tailoredHtmlFile || "#";
+      return `<tr class="is-${html(item.status)}"><td><a href="${html(href)}">${html(item.candidate || "Candidate")}</a><small>${html(item.sourceFile || "")}</small></td><td><strong>${html(item.score)}</strong></td><td>${html(item.status)}</td><td>${html((item.warnings || []).join(", ") || "pass")}<small>${html(recommendedQaAction(item))}</small></td><td>${html(JSON.stringify(item.metrics))}</td></tr>`;
+    })
+    .join("");
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><title>CV Tailoring QA</title><style>
+*{box-sizing:border-box}body{margin:0;background:#eef4fb;color:#172033;font-family:Inter,Arial,sans-serif}main{width:min(1280px,calc(100% - 40px));margin:34px auto}.stats{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin:22px 0}.stat,table,pre{background:#fff;border:1px solid #d9e0ea;border-radius:8px;box-shadow:0 14px 40px rgba(20,33,61,.08)}.stat{padding:16px}.stat strong{display:block;font-size:30px}table{width:100%;border-collapse:collapse;overflow:hidden}th,td{padding:12px 14px;border-bottom:1px solid #e6ebf2;text-align:left;vertical-align:top;font-size:13px}th{background:#132c52;color:#fff}a{color:#2f61e8;font-weight:800;text-decoration:none}small{display:block;color:#667085;margin-top:4px}pre{white-space:pre-wrap;padding:16px}.is-fail td{background:#fff7f7}.is-review td{background:#fffaf0}@media(max-width:900px){.stats{grid-template-columns:repeat(2,1fr)}td{overflow-wrap:anywhere}}</style></head><body><main><h1>CV Tailoring QA</h1><p>Automated quality gates for generated tailored CVs. Low-scoring rows should be manually inspected before production changes ship.</p><div class="stats"><div class="stat"><strong>${summary.evaluated}</strong><span>evaluated</span></div><div class="stat"><strong>${summary.pass}</strong><span>pass</span></div><div class="stat"><strong>${summary.review}</strong><span>review</span></div><div class="stat"><strong>${summary.fail}</strong><span>fail</span></div><div class="stat"><strong>${summary.averageScore}</strong><span>avg score</span></div></div><h2>Warning Counts</h2><pre>${html(JSON.stringify(summary.warningCounts, null, 2))}</pre><table><thead><tr><th>CV</th><th>Score</th><th>Status</th><th>Warnings</th><th>Metrics</th></tr></thead><tbody>${rows}</tbody></table></main></body></html>`;
+}
+
 function main() {
   fs.mkdirSync(outDir, { recursive: true });
   fs.readdirSync(outDir)
     .filter((file) => /\.(html|json)$/i.test(file))
     .forEach((file) => fs.unlinkSync(path.join(outDir, file)));
-  const files = collectFiles();
-  const reviewReports = [];
-  const results = files.map((file, index) => {
-    const extracted = extractText(file);
-    if (!extracted.text) return { file: path.basename(file), failed: true, error: extracted.error };
-    if (isReviewFile(file)) {
-      const issues = weakPatterns.filter((item) => item[1].test(extracted.text)).map((item) => item[0]);
-      reviewReports.push({ file: path.basename(file), issues: [...new Set(issues)] });
-      return { file: path.basename(file), reviewReport: true, issues: [...new Set(issues)] };
-    }
-    const model = buildModel(file, extracted.text);
-    const base = `${String(index + 1).padStart(3, "0")}-${slug(model.name)}-${slug(path.basename(file, path.extname(file)))}`;
-    model.htmlFile = `${base}.html`;
-    model.jsonFile = `${base}.json`;
-    fs.writeFileSync(path.join(outDir, model.htmlFile), renderCv(model));
-    fs.writeFileSync(path.join(outDir, model.jsonFile), JSON.stringify(model, null, 2));
-    return model;
+  const builder = path.join(__dirname, "build-cv-intelligence-corpus.js");
+  const result = spawnSync(process.execPath, [builder, outDir], {
+    encoding: "utf8",
+    stdio: "pipe",
   });
-  const tailored = results.filter((item) => !item.failed && !item.reviewReport);
-  const rows = results.map((item) => {
-    if (item.failed) return `<tr><td>${html(item.file)}</td><td>Failed</td><td colspan="5">${html(item.error)}</td></tr>`;
-    if (item.reviewReport) return `<tr><td>${html(item.file)}</td><td>Review report</td><td colspan="5">${html((item.issues || []).join(", ") || "reference notes captured")}</td></tr>`;
-    return `<tr><td><a href="${html(item.htmlFile)}">${html(item.name)}</a><small>${html(item.sourceFile)}</small></td><td>Tailored CV</td><td>${item.rewrites.length}</td><td>${item.rewrites.filter((r) => r.changed).length}</td><td>${item.rewrites.filter((r) => r.weakIssues.length).length}</td><td>${html(item.validation.join(", ") || "pass")}</td></tr>`;
-  }).join("");
-  const indexHtml = `<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Document Tailoring Evaluation</title><style>body{margin:0;background:#eef4fb;color:#172033;font-family:Inter,system-ui,sans-serif}main{width:min(1240px,calc(100% - 40px));margin:34px auto}.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:24px 0}.stat,table{background:#fff;border:1px solid #d9e0ea;border-radius:8px;box-shadow:0 14px 40px rgba(20,33,61,.08)}.stat{padding:16px}.stat strong{display:block;font-size:28px}table{width:100%;border-collapse:collapse;overflow:hidden}th,td{padding:12px 14px;border-bottom:1px solid #e6ebf2;text-align:left;vertical-align:top;font-size:13px}th{background:#132c52;color:#fff}a{color:#2f61e8;font-weight:800;text-decoration:none}small{display:block;color:#667085;margin-top:4px}</style></head><body><main><h1>Document Tailoring Evaluation</h1><p>Full professional-CV outputs generated from candidate CVs. Review/ATS reports are separated as critique references.</p><div class="stats"><div class="stat"><strong>${tailored.length}</strong><span>tailored CVs</span></div><div class="stat"><strong>${reviewReports.length}</strong><span>review reports</span></div><div class="stat"><strong>${tailored.reduce((sum, item) => sum + item.rewrites.length, 0)}</strong><span>bullets evaluated</span></div><div class="stat"><strong>${tailored.reduce((sum, item) => sum + item.validation.length, 0)}</strong><span>validation warnings</span></div></div><table><thead><tr><th>File</th><th>Type</th><th>Bullets</th><th>Changed</th><th>Weak</th><th>Validation</th></tr></thead><tbody>${rows}</tbody></table></main></body></html>`;
-  fs.writeFileSync(path.join(outDir, "index.html"), indexHtml);
-  fs.writeFileSync(path.join(outDir, "evaluation-report.json"), JSON.stringify({ generatedAt: new Date().toISOString(), roleLens, results }, null, 2));
-  console.log(`Generated ${tailored.length} tailored CVs and captured ${reviewReports.length} review reports in ${outDir}`);
+  if (result.status !== 0) {
+    process.stderr.write(result.stderr || result.stdout || "Structured CV corpus builder failed.\n");
+    process.exit(result.status || 1);
+  }
+  const reportPath = path.join(outDir, "corpus-report.json");
+  const report = fs.existsSync(reportPath)
+    ? JSON.parse(fs.readFileSync(reportPath, "utf8"))
+    : { summary: {} };
+  const candidateAsts = fs.readdirSync(outDir)
+    .filter((file) => /\.ast\.json$/i.test(file))
+    .map((file) => JSON.parse(fs.readFileSync(path.join(outDir, file), "utf8")));
+  const qualityItems = candidateAsts.map((ast) => {
+    const item = evaluateTailoredAst(ast);
+    return Object.assign({}, item, {
+      recommendedAction: recommendedQaAction(item),
+    });
+  });
+  const qualitySummary = summarizeQuality(qualityItems);
+  fs.writeFileSync(
+    path.join(outDir, "tailored-cv-quality-report.json"),
+    JSON.stringify({
+      generatedAt: new Date().toISOString(),
+      summary: qualitySummary,
+      items: qualityItems,
+    }, null, 2)
+  );
+  fs.writeFileSync(
+    path.join(outDir, "tailored-cv-quality-report.html"),
+    renderQualityReportHtml(qualitySummary, qualityItems)
+  );
+  fs.writeFileSync(
+    path.join(outDir, "evaluation-report.json"),
+    JSON.stringify({
+      generatedAt: new Date().toISOString(),
+      roleLens,
+      source: "build-cv-intelligence-corpus",
+      summary: report.summary || {},
+      quality: qualitySummary,
+    }, null, 2)
+  );
+  console.log(
+    `Generated ${report.summary && report.summary.candidateCvs ? report.summary.candidateCvs : 0} structured tailored CVs and captured ${report.summary && report.summary.reviewReports ? report.summary.reviewReports : 0} review reports in ${outDir}. QA pass=${qualitySummary.pass}, review=${qualitySummary.review}, fail=${qualitySummary.fail}, avg=${qualitySummary.averageScore}`
+  );
 }
 
 main();

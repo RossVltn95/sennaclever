@@ -1,0 +1,2039 @@
+{
+  "generatedAt": "2026-09-09T23:44:04.073Z",
+  "phase": "phase_7_review_report_learning",
+  "source": {
+    "corpus": "/Users/ropafadzoyasheushe/Downloads/CVs",
+    "candidateCvs": 192,
+    "reviewReports": 19,
+    "evidenceUnits": 2004,
+    "structuredExperienceEntries": 331,
+    "roleCompanyEntryCoverage": 404,
+    "extractionSources": {
+      "pdftotext": 180,
+      "textutil": 8,
+      "ocr_tesseract": 1,
+      "pdftotext_layout": 3
+    }
+  },
+  "documentAstSchema": {
+    "candidate": [
+      "name",
+      "email",
+      "phone"
+    ],
+    "sections": [
+      "header",
+      "summary",
+      "experience",
+      "education",
+      "skills",
+      "projects",
+      "certifications",
+      "languages",
+      "additional"
+    ],
+    "experienceEntry": [
+      "role",
+      "company",
+      "location",
+      "dates",
+      "rawLines",
+      "bullets",
+      "confidence",
+      "evidence"
+    ],
+    "evidenceUnit": [
+      "source",
+      "action",
+      "families",
+      "requirementMatches",
+      "metrics",
+      "tools",
+      "semanticFrame",
+      "weaknesses",
+      "senioritySignal",
+      "provenance",
+      "rewritePermission"
+    ],
+    "rewritePlan": [
+      "evidenceId",
+      "family",
+      "relevance",
+      "action",
+      "object",
+      "outcome",
+      "rewriteActions"
+    ],
+    "tailoredDocument": [
+      "targetRole",
+      "candidate",
+      "summary",
+      "skills",
+      "education",
+      "certifications",
+      "languages",
+      "experience",
+      "rewrites",
+      "requirementCoverage",
+      "documentPlan",
+      "warnings",
+      "quality"
+    ]
+  },
+  "familyCoverage": [
+    {
+      "key": "general",
+      "count": 1105
+    },
+    {
+      "key": "operations",
+      "count": 285
+    },
+    {
+      "key": "investment",
+      "count": 282
+    },
+    {
+      "key": "technology",
+      "count": 201
+    },
+    {
+      "key": "risk_compliance",
+      "count": 195
+    },
+    {
+      "key": "business_development",
+      "count": 175
+    },
+    {
+      "key": "finance_reporting",
+      "count": 74
+    }
+  ],
+  "weaknessCoverage": [
+    {
+      "key": "missing_outcome_signal",
+      "count": 1460
+    },
+    {
+      "key": "missing_metric",
+      "count": 1252
+    },
+    {
+      "key": "vague_quantity",
+      "count": 103
+    },
+    {
+      "key": "weak_opening_verb",
+      "count": 67
+    },
+    {
+      "key": "filler_language",
+      "count": 64
+    },
+    {
+      "key": "first_person_language",
+      "count": 35
+    },
+    {
+      "key": "buzzword_overload",
+      "count": 31
+    },
+    {
+      "key": "generic_responsibility",
+      "count": 24
+    },
+    {
+      "key": "unsupported_soft_skill",
+      "count": 1
+    }
+  ],
+  "reviewLearning": {
+    "critiqueThemes": [
+      {
+        "key": "formatting_readability",
+        "label": "Formatting and readability",
+        "weight": 72,
+        "rewriteAction": "clean_structure_and_section_order",
+        "count": 140,
+        "examples": [
+          "11/12/2024, 01:31 Resume Checker Results  Your Score 53/100 17 Issues 50%  FORMAT 67%  SECTIONS 0%  SKILLS 100%  STYLE 50%  CONTENT  ATS Parse Rate  Quantifying Impact  Repetition  Spelling & Grammar 10 ISSUES FOUND  ATS PARSE RATE https://app.en...",
+          "Your experience section lacks quantifiable achievements from previous positions you’ve held.",
+          "1 ISSUE FOUND FILE FORMAT & SIZE  Good job!",
+          " Why is PDF the preferred format?",
+          "PREMIUM  LONG BULLET POINTS https://app.enhancv.com/resume-checker/results?key=resumeChecker/2e2333c359ad4c717e77372a8254bb0337db30a423600e85621f8343cbbabf36.pdf 9/20 11/12/2024, 01:31 Resume Checker Results Good job!",
+          "Hugo Geffroy Paris, France | +33(0)7 82 21 39 26 | hgeffroypro@gmail.com insert personal statement - Highlight key competencies & target role EDUCATION 2024-2025 Include LinkedIn Link Second Gap year These two can be removed as they are not part of educatio...",
+          "11/12/2024, 01:04 Resume Checker Results  Your Score 60/100 15 Issues 25%  FORMAT 67%  SECTIONS 33%  SKILLS 100%  STYLE 75%  CONTENT  ATS Parse Rate  Quantifying Impact  Repetition  Spelling & Grammar 9 ISSUES FOUND https://app.enhancv.com/resume-...",
+          "Some information on your resume is visible and readable by applicant tracking systems but your score suggests the resume template you’re using has some parsing issues.",
+          "Your experience section lacks quantifiable achievements from previous positions you’ve held.",
+          "1 ISSUE FOUND https://app.enhancv.com/resume-checker/results?key=resumeChecker/c0082fd54ea0e89d99ef4bc3d0c124f06690c68deba3a214d61fc980363fa1f7.pdf  FILE FORMAT & SIZE 7/21 11/12/2024, 01:04 Resume Checker Results Good job!"
+        ]
+      },
+      {
+        "key": "missing_metrics",
+        "label": "Metrics and quantification",
+        "weight": 90,
+        "rewriteAction": "ask_for_or_preserve_metrics",
+        "count": 107,
+        "examples": [
+          "MATILDE IORI Include location Email:matilde.iori@studbocconi.it ; Phone number: https://www.linkedin.com/in/matilde-iori-a8539722b .",
+          "number missing Include personal summary - highlight key competencies and target role EDUCATION .",
+          "Space out Bocconi University Milan, Italy MASTER OF SCIENCE in MANAGEMENT, Major in Finance September Electives: Advanced Methods for Portfolio and Risk Management, Financial Statements Analysis, 2023 - Present Distressed Value Investing, Finance for the Gr...",
+          "11/12/2024, 01:31 Resume Checker Results  Your Score 53/100 17 Issues 50%  FORMAT 67%  SECTIONS 0%  SKILLS 100%  STYLE 50%  CONTENT  ATS Parse Rate  Quantifying Impact  Repetition  Spelling & Grammar 10 ISSUES FOUND  ATS PARSE RATE https://app.en...",
+          "PREMIUM  QUANTIFY IMPACT 8 Oh, no!",
+          "Examples that quantify impact GOOD EXAMPLE  Achieved 40% product revenue growth in three months by planning and launching four new key features.",
+          "FAQs  What if I’m not in a number-focused role?",
+          "https://app.enhancv.com/resume-checker/results?key=resumeChecker/2e2333c359ad4c717e77372a8254bb0337db30a423600e85621f8343cbbabf36.pdf 4/20 11/12/2024, 01:31 Resume Checker Results If you think outside of the financial impact of your work, you can find numbe...",
+          "11/12/2024, 01:04 Resume Checker Results  Your Score 60/100 15 Issues 25%  FORMAT 67%  SECTIONS 33%  SKILLS 100%  STYLE 75%  CONTENT  ATS Parse Rate  Quantifying Impact  Repetition  Spelling & Grammar 9 ISSUES FOUND https://app.enhancv.com/resume-...",
+          "https://app.enhancv.com/resume-checker/results?key=resumeChecker/c0082fd54ea0e89d99ef4bc3d0c124f06690c68deba3a214d61fc980363fa1f7.pdf 2/21 Resume Checker Results QUANTIFY IMPACT PREMIUM  11/12/2024, 01:04 5 Oh, no!"
+        ]
+      },
+      {
+        "key": "achievement_orientation",
+        "label": "Achievement-led bullets",
+        "weight": 86,
+        "rewriteAction": "convert_duties_to_evidence_led_bullets",
+        "count": 83,
+        "examples": [
+          "Delivered Profit & Loss spanning different timeframes for Amazon Monthly Payment's programme, collaborating with US World Wide Installments finance team.",
+          "11/12/2024, 01:31 Resume Checker Results  Your Score 53/100 17 Issues 50%  FORMAT 67%  SECTIONS 0%  SKILLS 100%  STYLE 50%  CONTENT  ATS Parse Rate  Quantifying Impact  Repetition  Spelling & Grammar 10 ISSUES FOUND  ATS PARSE RATE https://app.en...",
+          "PREMIUM  QUANTIFY IMPACT 8 Oh, no!",
+          "Examples that quantify impact GOOD EXAMPLE  Achieved 40% product revenue growth in three months by planning and launching four new key features.",
+          " Improved state test pass rates from 78% to 87% in two years.",
+          "https://app.enhancv.com/resume-checker/results?key=resumeChecker/2e2333c359ad4c717e77372a8254bb0337db30a423600e85621f8343cbbabf36.pdf 4/20 11/12/2024, 01:31 Resume Checker Results If you think outside of the financial impact of your work, you can find numbe...",
+          "11/12/2024, 01:04 Resume Checker Results  Your Score 60/100 15 Issues 25%  FORMAT 67%  SECTIONS 33%  SKILLS 100%  STYLE 75%  CONTENT  ATS Parse Rate  Quantifying Impact  Repetition  Spelling & Grammar 9 ISSUES FOUND https://app.enhancv.com/resume-...",
+          "https://app.enhancv.com/resume-checker/results?key=resumeChecker/c0082fd54ea0e89d99ef4bc3d0c124f06690c68deba3a214d61fc980363fa1f7.pdf 2/21 Resume Checker Results QUANTIFY IMPACT PREMIUM  11/12/2024, 01:04 5 Oh, no!",
+          " Collaborated with the Structured Capital team on market benchmarking projects, delivering actionable insights into key business performance metrics  Developed analytical frameworks and used data visualization to present trends and dynamics, enhancing res...",
+          "Examples that quantify impact GOOD EXAMPLE  Achieved 40% product revenue growth in three months by planning and launching four new key features."
+        ]
+      },
+      {
+        "key": "ats_keywords",
+        "label": "ATS and role keywords",
+        "weight": 84,
+        "rewriteAction": "align_role_keywords_without_stuffing",
+        "count": 72,
+        "examples": [
+          "number missing Include personal summary - highlight key competencies and target role EDUCATION .",
+          "Conceptualized and modelled a light-weight system for matching Amazon competitors' financing offers, kicked off in EU5 (UK, DE, IT, FR, ES) and expected to drive €36M+ incremental revenue for the Installments programme.",
+          "11/12/2024, 01:31 Resume Checker Results  Your Score 53/100 17 Issues 50%  FORMAT 67%  SECTIONS 0%  SKILLS 100%  STYLE 50%  CONTENT  ATS Parse Rate  Quantifying Impact  Repetition  Spelling & Grammar 10 ISSUES FOUND  ATS PARSE RATE https://app.en...",
+          "We parsed 85% of your resume successfully using an industryleading ATS.",
+          "Job-Winning Resume In Minutes Create an Enhancv Resume FAQs  What is an ATS-compliant resume?",
+          "An ATS-compliant resume is one that can be easily scanned and interpreted by an applicant tracking system (ATS).",
+          "This means that your resume should be formatted clearly, with relevant keywords included.",
+          "Hugo Geffroy Paris, France | +33(0)7 82 21 39 26 | hgeffroypro@gmail.com insert personal statement - Highlight key competencies & target role EDUCATION 2024-2025 Include LinkedIn Link Second Gap year These two can be removed as they are not part of educatio...",
+          "11/12/2024, 01:04 Resume Checker Results  Your Score 60/100 15 Issues 25%  FORMAT 67%  SECTIONS 33%  SKILLS 100%  STYLE 75%  CONTENT  ATS Parse Rate  Quantifying Impact  Repetition  Spelling & Grammar 9 ISSUES FOUND https://app.enhancv.com/resume-...",
+          "Build an ATS-friendly resume using Enhancv's resume templates."
+        ]
+      },
+      {
+        "key": "skills_section_noise",
+        "label": "Skills section quality",
+        "weight": 62,
+        "rewriteAction": "dedupe_and_group_skills",
+        "count": 89,
+        "examples": [
+          "English (Fluent, C1) - IELTS: 7.5 Italian (First language) .",
+          "Proficient usage of Excel, SQL and Quicksight.",
+          "Resume buzzwords are commonly used words and phrases that hiring managers often see, made up of vague and unoriginal language.",
+          "PREMIUM  ESSENTIAL SECTIONS We’ve found the following essential sections in your resume:  Skills section  Experience section  Education section Although, you are missing essential section(s): https://app.enhancv.com/resume-checker/results?key=resumeChe...",
+          "https://app.enhancv.com/resume-checker/results?key=resumeChecker/2e2333c359ad4c717e77372a8254bb0337db30a423600e85621f8343cbbabf36.pdf 17/20 11/12/2024, 01:31 Resume Checker Results 0 ISSUES FOUND HARD SKILLS  We’ve found the following hard skills in your r...",
+          "This doesn’t include soft skills like teamwork, leadership, and communication.",
+          "SOFT SKILLS  We’ve found the following soft skills in your resume:  teamwork  decisionmaking  analysis  leader https://app.enhancv.com/resume-checker/results?key=resumeChecker/2e2333c359ad4c717e77372a8254bb0337db30a423600e85621f8343cbbabf36.pdf 19/20 1...",
+          "Hugo Geffroy Paris, France | +33(0)7 82 21 39 26 | hgeffroypro@gmail.com insert personal statement - Highlight key competencies & target role EDUCATION 2024-2025 Include LinkedIn Link Second Gap year These two can be removed as they are not part of educatio...",
+          "Resume buzzwords are commonly used words and phrases that hiring managers often see, made up of vague and unoriginal language.",
+          "PREMIUM  ESSENTIAL SECTIONS We’ve found the following essential sections in your resume:  Skills section  Experience section  Education section Although, you are missing essential section(s): https://app.enhancv.com/resume-checker/results?key=resumeChe..."
+        ]
+      },
+      {
+        "key": "weak_action_verbs",
+        "label": "Action verbs and ownership",
+        "weight": 82,
+        "rewriteAction": "strengthen_action_with_seniority_guard",
+        "count": 61,
+        "examples": [
+          "AMAZON UK London, United Kingdom Product Manager Intern February 2024 - Present • Led data analysis and financial reporting for Amazon Monthly Payments EU (Amazon's initiative worth $1.2bln across Europe) on crucial initiatives such as vendor funding and ve...",
+          "Delivered Profit & Loss spanning different timeframes for Amazon Monthly Payment's programme, collaborating with US World Wide Installments finance team.",
+          "Managed CRM systems Include more details and quantifiable outcomes • Contributed to the setup of commercial contracts for business operations.",
+          "https://app.enhancv.com/resume-checker/results?key=resumeChecker/2e2333c359ad4c717e77372a8254bb0337db30a423600e85621f8343cbbabf36.pdf 2/20 11/12/2024, 01:31 Resume Checker Results  Conducted market research and competitive analysis across multiple cities t...",
+          " Led performance reporting for a {20} company private equity portfolio, maintaining clear visibility on growth metrics.",
+          "https://app.enhancv.com/resume-checker/results?key=resumeChecker/2e2333c359ad4c717e77372a8254bb0337db30a423600e85621f8343cbbabf36.pdf 3/20 11/12/2024, 01:31 Resume Checker Results  Achieved portfolio diversification in the sports & media sector by targetin...",
+          "Examples that quantify impact GOOD EXAMPLE  Achieved 40% product revenue growth in three months by planning and launching four new key features.",
+          " Responsible for preparing financial reports including budget performance.",
+          "Hugo Geffroy Paris, France | +33(0)7 82 21 39 26 | hgeffroypro@gmail.com insert personal statement - Highlight key competencies & target role EDUCATION 2024-2025 Include LinkedIn Link Second Gap year These two can be removed as they are not part of educatio...",
+          " Led {3} analytical frameworks to support data visualization of {50} trends, improving research quality by {25}%."
+        ]
+      },
+      {
+        "key": "contact_identity",
+        "label": "Contact and identity clarity",
+        "weight": 65,
+        "rewriteAction": "confirm_identity_and_contact",
+        "count": 71,
+        "examples": [
+          "MATILDE IORI Include location Email:matilde.iori@studbocconi.it ; Phone number: https://www.linkedin.com/in/matilde-iori-a8539722b .",
+          " EMAIL ADDRESS https://app.enhancv.com/resume-checker/results?key=resumeChecker/2e2333c359ad4c717e77372a8254bb0337db30a423600e85621f8343cbbabf36.pdf 11/20 11/12/2024, 01:31 Resume Checker Results Good job!",
+          "hgeffroypro@gmail.com Job-Winning Resume In Minutes Create an Enhancv Resume FAQs  What is a professional email address?",
+          "Professional email addresses consist of your first or last name or both.",
+          "Use email addresses like: john.doe@example.com and peter@example.com.",
+          "4 ISSUES FOUND  CONTACT INFORMATION We’ve found the following contact information in your resume:  Phone number: +33782213926  Email address: hgeffroypro@gmail.com Although, you are missing essential contact information:  LinkedIn https://app.enhancv.co...",
+          "Hugo Geffroy Paris, France | +33(0)7 82 21 39 26 | hgeffroypro@gmail.com insert personal statement - Highlight key competencies & target role EDUCATION 2024-2025 Include LinkedIn Link Second Gap year These two can be removed as they are not part of educatio...",
+          "https://app.enhancv.com/resume-checker/results?key=resumeChecker/c0082fd54ea0e89d99ef4bc3d0c124f06690c68deba3a214d61fc980363fa1f7.pdf  EMAIL ADDRESS 11/21 11/12/2024, 01:04 Resume Checker Results Good job!",
+          "dhumal.mrunmayee@gmail.com Job-Winning Resume In Minutes Create an Enhancv Resume FAQs  What is a professional email address?",
+          "Professional email addresses consist of your first or last name or both."
+        ]
+      },
+      {
+        "key": "grammar_clarity",
+        "label": "Grammar and clarity",
+        "weight": 74,
+        "rewriteAction": "polish_sentence_quality",
+        "count": 56,
+        "examples": [
+          "11/12/2024, 01:31 Resume Checker Results  Your Score 53/100 17 Issues 50%  FORMAT 67%  SECTIONS 0%  SKILLS 100%  STYLE 50%  CONTENT  ATS Parse Rate  Quantifying Impact  Repetition  Spelling & Grammar 10 ISSUES FOUND  ATS PARSE RATE https://app.en...",
+          "https://app.enhancv.com/resume-checker/results?key=resumeChecker/2e2333c359ad4c717e77372a8254bb0337db30a423600e85621f8343cbbabf36.pdf 5/20 Resume Checker Results SPELLING & GRAMMAR PREMIUM  11/12/2024, 01:31 2 Oh, no!",
+          "We found the following spelling mistakes in your resume:  Equipe did you mean Equip Equine Equips  Amaury did you mean Mary Marry Amur Mauro Maura https://app.enhancv.com/resume-checker/results?key=resumeChecker/2e2333c359ad4c717e77372a8254bb0337db30a4236...",
+          "With modern technology and all the spellcheckers out there, having a spelling mistake on your resume can be interpreted as an unprofessional and sometimes disrespectful thing.",
+          " How many spelling errors are acceptable on a resume?",
+          "11/12/2024, 01:04 Resume Checker Results  Your Score 60/100 15 Issues 25%  FORMAT 67%  SECTIONS 33%  SKILLS 100%  STYLE 75%  CONTENT  ATS Parse Rate  Quantifying Impact  Repetition  Spelling & Grammar 9 ISSUES FOUND https://app.enhancv.com/resume-...",
+          "PREMIUM 3 https://app.enhancv.com/resume-checker/results?key=resumeChecker/c0082fd54ea0e89d99ef4bc3d0c124f06690c68deba3a214d61fc980363fa1f7.pdf  SPELLING & GRAMMAR 5/21 11/12/2024, 01:04 Resume Checker Results Oh, no!",
+          "We found the following spelling mistakes in your resume:  ValueNotes did you mean Alienates Valences Valencies Bluenoses Valuates  Fergusson did you mean Ferguson Fergus son  hsc did you mean https://app.enhancv.com/resume-checker/results?key=resumeCheck...",
+          "With modern technology and all the spellcheckers out there, having a spelling mistake on your resume can be interpreted as an unprofessional and sometimes disrespectful thing.",
+          " How many spelling errors are acceptable on a resume?"
+        ]
+      },
+      {
+        "key": "weak_summary",
+        "label": "Profile summary positioning",
+        "weight": 78,
+        "rewriteAction": "rewrite_profile_around_role_evidence",
+        "count": 29,
+        "examples": [
+          "number missing Include personal summary - highlight key competencies and target role EDUCATION .",
+          "4 ISSUES FOUND  CONTACT INFORMATION We’ve found the following contact information in your resume:  Phone number: +33782213926  Email address: hgeffroypro@gmail.com Although, you are missing essential contact information:  LinkedIn https://app.enhancv.co...",
+          "PREMIUM  ESSENTIAL SECTIONS We’ve found the following essential sections in your resume:  Skills section  Experience section  Education section Although, you are missing essential section(s): https://app.enhancv.com/resume-checker/results?key=resumeChe...",
+          "Hugo Geffroy Paris, France | +33(0)7 82 21 39 26 | hgeffroypro@gmail.com insert personal statement - Highlight key competencies & target role EDUCATION 2024-2025 Include LinkedIn Link Second Gap year These two can be removed as they are not part of educatio...",
+          "PREMIUM  ESSENTIAL SECTIONS We’ve found the following essential sections in your resume:  Skills section  Experience section  Education section Although, you are missing essential section(s): https://app.enhancv.com/resume-checker/results?key=resumeChe...",
+          "https://app.enhancv.com/resume-checker/results?key=resumeChecker/02e0b2cfc99b39110f5479b94fb7ecc5818da1c152b962fdd9de7d4db5e57563.pdf 2/22 09/12/2024, 20:52 Resume Checker Results  Optimized client use of ARGUS software (ARGUS Enterprise, Taliance, Develop...",
+          " Optimized client use of ARGUS software (ARGUS Enterprise, Taliance, Developer): Empowered high-profile stakeholders, including C-suite executives, fund managers, and senior analysts, to perform precise property valuations and investment analyses using tra...",
+          "4 ISSUES FOUND  CONTACT INFORMATION We’ve found the following contact information in your resume:  Phone number: +447840606681  Email address: aidaazzouni@gmail.com Although, you are missing essential contact information:  LinkedIn You are either not us...",
+          "PREMIUM  ESSENTIAL SECTIONS We’ve found the following essential sections in your resume:  Summary section  Skills section  Experience section  Education section Job-Winning Resume In Minutes Create an Enhancv Resume FAQs https://app.enhancv.com/resume...",
+          "CV should be 1 page Aïda Azzouni, Real Estate Analyst uk Right to work in the UK, London, United Kingdom, +44 (0) 7840 606681, +33760113404, aidaazzouni@gmail.com PROFILE Change to Bullet point format Analytical and detail-oriented professional with a robus..."
+        ]
+      },
+      {
+        "key": "role_alignment",
+        "label": "Role alignment",
+        "weight": 88,
+        "rewriteAction": "rank_evidence_by_target_role",
+        "count": 17,
+        "examples": [
+          "number missing Include personal summary - highlight key competencies and target role EDUCATION .",
+          "All bullet points in your resume fit within the length limit.",
+          "Hugo Geffroy Paris, France | +33(0)7 82 21 39 26 | hgeffroypro@gmail.com insert personal statement - Highlight key competencies & target role EDUCATION 2024-2025 Include LinkedIn Link Second Gap year These two can be removed as they are not part of educatio...",
+          " Fit {5} exponential curves and linear models, uncovering a {15}% inverse relationship between Inflation and Unemployment.",
+          "All bullet points in your resume fit within the length limit.",
+          "All bullet points in your resume fit within the length limit.",
+          "All bullet points in your resume fit within the length limit.",
+          "Sulpice, 75006, Paris Include LinkedIn Link Insert personal summary - include key competencies & target role EDUCATION 2024-2027 Sciences Po Paris Master of Science: Finance & Strategy 2023-2024 University of St.",
+          "Christopher Clowes BEng (Hons) Mobile: +44 754 078 9414 Email: christopherclowes@hotmail.com linkedin.com/in/chris-clowes/ Summary My principal skill is to persuade, but to persuade you must know the details of what you are persuading, both in terms of unde...",
+          "Include location CV should be 1 page Christopher Clowes BEng (Hons) Mobile: +44 754 078 9414 Email: christopherclowes@hotmail.com linkedin.com/in/chris-clowes/ include technical skills Summary My principal skill is to persuade, but to persuade you must know..."
+        ]
+      }
+    ],
+    "rewritePriorities": [
+      {
+        "key": "clean_structure_and_section_order",
+        "count": 10080
+      },
+      {
+        "key": "ask_for_or_preserve_metrics",
+        "count": 9630
+      },
+      {
+        "key": "convert_duties_to_evidence_led_bullets",
+        "count": 7138
+      },
+      {
+        "key": "align_role_keywords_without_stuffing",
+        "count": 6048
+      },
+      {
+        "key": "dedupe_and_group_skills",
+        "count": 5518
+      },
+      {
+        "key": "strengthen_action_with_seniority_guard",
+        "count": 5002
+      },
+      {
+        "key": "confirm_identity_and_contact",
+        "count": 4615
+      },
+      {
+        "key": "polish_sentence_quality",
+        "count": 4144
+      },
+      {
+        "key": "rewrite_profile_around_role_evidence",
+        "count": 2262
+      },
+      {
+        "key": "rank_evidence_by_target_role",
+        "count": 1496
+      }
+    ],
+    "appliedPolicy": [
+      "Professional review reports are used as critique signals, not as text to copy.",
+      "Recurring review themes increase the priority of document structure, metrics, role alignment, ATS clarity, and achievement-led bullets.",
+      "Review-learned feedback is only used to rank and explain rewrite actions; it does not authorize unsupported claims."
+    ]
+  },
+  "validationWarnings": [
+    {
+      "key": "missing_name",
+      "count": 99
+    },
+    {
+      "key": "entry_identity_low_confidence",
+      "count": 96
+    },
+    {
+      "key": "missing_education",
+      "count": 44
+    },
+    {
+      "key": "parser_rescue_used",
+      "count": 32
+    },
+    {
+      "key": "weak_experience_ast",
+      "count": 10
+    },
+    {
+      "key": "missing_email",
+      "count": 3
+    },
+    {
+      "key": "layout_text_extracted",
+      "count": 3
+    },
+    {
+      "key": "ocr_text_extracted",
+      "count": 1
+    }
+  ],
+  "sentenceArchetypes": [
+    {
+      "key": "Sports Leaders Level [METRIC] & [METRIC] Developed leadership and communication skills by managing a diverse team.",
+      "count": 8
+    },
+    {
+      "key": "Taught and organised lessons that taught me responsibility, made me more confident in presenting, and developed my communication skills. Recorded students’ progress which taught me to maintain internal and external relationships as information disclosed to me about students was confidential.",
+      "count": 4
+    },
+    {
+      "key": "Dean’s list of Excellence [METRIC]/[METRIC]/[METRIC]/[METRIC] for securing [METRIC]st Class.",
+      "count": 4
+    },
+    {
+      "key": "Advanced [TOOL] user with experience in [TOOL] modelling.",
+      "count": 4
+    },
+    {
+      "key": "[METRIC] EY Young Tax Professional of the Year",
+      "count": 3
+    },
+    {
+      "key": "Developed a financial model for a B[METRIC]B Fintech SaaS startup, projecting [METRIC]n revenue in [METRIC] years",
+      "count": 3
+    },
+    {
+      "key": "Compiled a RegTech industry report, analysing competitive landscape, trends and market entry avenues",
+      "count": 3
+    },
+    {
+      "key": "Evaluated Fintech and PropTech startups, analysing pitch decks and creating targeted questions to",
+      "count": 3
+    },
+    {
+      "key": "assess business viability and support informed investment decision-making Hamleys London, UK",
+      "count": 3
+    },
+    {
+      "key": "Engaging with a diverse customer base, spanning various age groups and backgrounds",
+      "count": 3
+    },
+    {
+      "key": "Conducting cash and credit card sales in multiple currencies",
+      "count": 3
+    },
+    {
+      "key": "Sustaining attractive merchandise displays to optimise sales Mathfluent Online",
+      "count": 3
+    },
+    {
+      "key": "Developing lessons to help students improve their predicted grade",
+      "count": 3
+    },
+    {
+      "key": "Identifying and targeting areas of struggle to ensure development",
+      "count": 3
+    },
+    {
+      "key": "Microsoft Office (including Outlook, Word and PowerPoint) – Advanced",
+      "count": 3
+    },
+    {
+      "key": "Monthly, Quarterly and Annual financial closings, governmental and tax reporting.",
+      "count": 2
+    },
+    {
+      "key": "Identification of financial risks and development of strategies to mitigate them using [TOOL].",
+      "count": 2
+    },
+    {
+      "key": "Sustainability Reports: benchmark analysis, data collection and analysis, double materiality assessment, development and monitoring of action plans.",
+      "count": 2
+    },
+    {
+      "key": "Other activities: Gap analysis for CSRD implementation, GHG emissions calculation, PAI calculation and PAI statement, KPI calculation.",
+      "count": 2
+    },
+    {
+      "key": "[TOOL] Market Concepts Certificate, by Blomberg LP",
+      "count": 2
+    },
+    {
+      "key": "Organization of the [METRIC] regional football cup final, breaking the stadium's attendance record",
+      "count": 2
+    },
+    {
+      "key": "Constructed [TOOL], comparable companies, and precedent transaction valuation models to evaluate a stock price for a large sports apparel company",
+      "count": 2
+    },
+    {
+      "key": "Performed sensitivity analysis of the stock price to various factors to assess how change in model assumptions affect the output",
+      "count": 2
+    },
+    {
+      "key": "Led a team of [METRIC] to prepare and present a stock recommendation presentation comparing model results to real-world observed stock prices",
+      "count": 2
+    },
+    {
+      "key": "Prepared an industry overview of the IT sector in Bulgaria by producing graphs in [TOOL] outlining comparison indicators. Presentation was used as a part of a larger project for a foreign client",
+      "count": 2
+    },
+    {
+      "key": "Analysed Income Statement and Balance Sheet figures of the applicants of Deloitte’s Technology Fast [METRIC] Central Europe program to shortlist those meeting relevant criteria. Reduced list of",
+      "count": 2
+    },
+    {
+      "key": "Analysed and compared the financial statements of the largest five medical distributors in Bulgaria and communicated findings with senior staff",
+      "count": 2
+    },
+    {
+      "key": "Managed a client’s portfolio of [METRIC]illion as an asset manager by investing in stocks through a",
+      "count": 2
+    },
+    {
+      "key": "Prepared bid/ask spreads for various stock quotes as an investment banker and performed numerous trades to offset short and long positions",
+      "count": 2
+    },
+    {
+      "key": "Prepared and analysed profitability, efficiency, liquidity, and gearing ratios, as well as [METRIC] financial statements for a fictional company. Provided advice on actions to be taken to improve financial stability",
+      "count": 2
+    },
+    {
+      "key": "Timesheet & Billing Analysis: Conducted in-depth analysis of timesheets reconciling TP billing discrepancies that resulted in a [METRIC] improvement in billing accuracy and recovery of unaccounted revenue.",
+      "count": 2
+    },
+    {
+      "key": "Financial Reporting: Developed and delivered monthly reports tracking billing and employee utilization, aligning with financial forecasts and achieving a [METRIC] reduction in forecast variance.",
+      "count": 2
+    },
+    {
+      "key": "Industry Research: Led market research on various industries focusing on growth rates, market opportunities, and competitive positioning in the Middle East and UAE. Created pitch decks and presentations to communicate findings",
+      "count": 2
+    },
+    {
+      "key": "Data Analysis & Reporting: Leveraged financial data to enhance reporting accuracy, reducing discrepancies by [METRIC], optimizing internal processes, resulting in time savings of over [METRIC].",
+      "count": 2
+    },
+    {
+      "key": "Financial Record Accuracy: Achieved [METRIC] accuracy in financial records by",
+      "count": 2
+    },
+    {
+      "key": "reconciling VAT data for Q[METRIC] [METRIC], ensuring precise VAT submissions and aiding in streamlined audit processes.",
+      "count": 2
+    },
+    {
+      "key": "Financial Transaction Review: Meticulously reviewed financial transactions, identified discrepancies, and ensured compliance with regulations, contributing",
+      "count": 2
+    },
+    {
+      "key": "Cost Efficiency Recommendations: Utilized financial insights to recommend strategies for enhancing cost efficiency across various departments, supporting overall organizational success.",
+      "count": 2
+    },
+    {
+      "key": "Successfully passed both Part [METRIC] and Part [METRIC] exams",
+      "count": 2
+    },
+    {
+      "key": "Mora-Sanguinetti, J. S., & Atienza-Maeso, A. ([METRIC]).",
+      "count": 2
+    },
+    {
+      "key": "Drafting relevant court documents and filing them at court timeously",
+      "count": 2
+    },
+    {
+      "key": "I am currently preparing for Level [METRIC] of",
+      "count": 2
+    },
+    {
+      "key": "Created a portfolio of [METRIC] stocks listed on European exchanges in the period March-June, using a long-only approach and finished the competition in [METRIC]rd place out of [METRIC] teams",
+      "count": 2
+    },
+    {
+      "key": "Qualified for [METRIC] investment by the King's Investment Fund",
+      "count": 2
+    },
+    {
+      "key": "Assumed leadership and collaborated with team members struggling with tasks, ensuring smooth workflow",
+      "count": 2
+    },
+    {
+      "key": "Collaborated with [METRIC] people and leveraged my communication skills to write a report and navigate through obstacles that arose",
+      "count": 2
+    },
+    {
+      "key": "Analysed equities using technical analysis, including Dow Theory, Elliot Wave Theory, Ichimoku cloud, momentum oscillators and other techniques, and identified [METRIC] investment opportunities and price targets",
+      "count": 2
+    },
+    {
+      "key": "Backtested the portfolio using the following strategies: Equally-weighted, Markowitz Optimisation, Max Sharpe Ratio, Inverse Variance, and obtained an annualised return of [METRIC]",
+      "count": 2
+    },
+    {
+      "key": "Reported the picked stocks and justified our decisions based on macroeconomic analysis, sector analysis, individual stocks analysis and backtesting strategies of [METRIC] companies",
+      "count": 2
+    },
+    {
+      "key": "Presented the professional report in front of a panel of judges Practera Micro internship, London Member",
+      "count": 2
+    },
+    {
+      "key": "Researched a number of grants and alternative financing solutions for client",
+      "count": 2
+    },
+    {
+      "key": "Collaborated in a team of [METRIC], and acted as a leader by supporting the other members with their work and made sure everything that was done was transparent",
+      "count": 2
+    },
+    {
+      "key": "Reported findings and gave recommendations for further development of the organization",
+      "count": 2
+    },
+    {
+      "key": "Enabling a new process for tracking a new product, alternative names",
+      "count": 2
+    },
+    {
+      "key": "application to capture the data from Multi Ticker Document.",
+      "count": 2
+    },
+    {
+      "key": "Helped Team to reduce Team Error by [METRIC] percentage as well as Team",
+      "count": 2
+    },
+    {
+      "key": "Europhone Banking Call Center Agent Eurobank, Tauros/Athens Managed over [METRIC] customer calls per day",
+      "count": 2
+    },
+    {
+      "key": "Processed debit and credit card and electronic check payments Adhered to company policies and scripts to consistently achieve call-time and quality standards Sought out extra training opportunities to enhance customer relationship",
+      "count": 2
+    },
+    {
+      "key": "Gestion de projet : coordination, suivi des risques, budget, ressources, reporting et optimisation du portefeuille de projets.",
+      "count": 2
+    },
+    {
+      "key": "Modélisation des options, analyses comparatives des actions et revalorisations actuarielles (IAS[METRIC], IFRS[METRIC]) / Due Diligence",
+      "count": 2
+    },
+    {
+      "key": "Lead a team of [METRIC] for the Entrepreneurship Accountancy project",
+      "count": 2
+    },
+    {
+      "key": "Developed an original, innovative business idea to aid people with incurable disease-imposed dietary restrictions.",
+      "count": 2
+    },
+    {
+      "key": "Lead the WIL team project for Advanced Internal Auditing",
+      "count": 2
+    },
+    {
+      "key": "Conducted a practical, real-world based revenue collection audit for DigiMedical.",
+      "count": 2
+    },
+    {
+      "key": "Met with and coordinated events with speakers and businesses",
+      "count": 2
+    },
+    {
+      "key": "Posting bills, accruals, and prepayment entries into the system.",
+      "count": 2
+    },
+    {
+      "key": "Record revenue and issue tax invoices to [STAKEHOLDER].",
+      "count": 2
+    },
+    {
+      "key": "Coordination of all interview logistics, including location, room bookings & calendar invites",
+      "count": 2
+    },
+    {
+      "key": "Act as liaison between recruiters, candidates & hiring managers",
+      "count": 2
+    },
+    {
+      "key": "Managing cash ﬂow and ﬁnancial risk and working closely with other departments to ensure accurate and timely ﬁnancial information Maintain [TOOL] reports",
+      "count": 2
+    },
+    {
+      "key": "Customer Invoicing based on Purchase Orders & project status reports from Project Department heads.",
+      "count": 2
+    },
+    {
+      "key": "Vat Returns Filing as per UAE Value Added Taxes Rules on monthly basis.",
+      "count": 2
+    },
+    {
+      "key": " Scrutinizing, allocating, posting and reconciling accounts payables and general ledgers.",
+      "count": 2
+    },
+    {
+      "key": " Collaborating with internal departments to gather, analyze and interpret financial data.",
+      "count": 2
+    },
+    {
+      "key": " Account for accruals, prepayments, and recharges of monthly utility payments.",
+      "count": 2
+    },
+    {
+      "key": " Responsible for deployment of ERP modules ensuring maximum outreach and consistent analysis of data.",
+      "count": 2
+    },
+    {
+      "key": " Verifying, allocating, posting and reconciling accounts payables and receivables.",
+      "count": 2
+    },
+    {
+      "key": " Responsible for timely month-end and year-end consolidated financial statements, payments, cash flow",
+      "count": 2
+    },
+    {
+      "key": " Maintain efficient records and an effective filing system.",
+      "count": 2
+    },
+    {
+      "key": " Monitor the daily activities pertaining to overall performance and production, compilation of the data source and supervised performance against key success metrics by identifying and reducing risks.",
+      "count": 2
+    },
+    {
+      "key": " Maintained robust relationships with banks, supplier, customer to ensure information is accurate for direct mailing activities.",
+      "count": 2
+    },
+    {
+      "key": " Maintained consistent relation with financial institution for international payments, international trade, letter of",
+      "count": 2
+    },
+    {
+      "key": " Review and approve monthly payroll of [METRIC] staff and monitor staff’s salary distribution.",
+      "count": 2
+    },
+    {
+      "key": " Prepares reports and preserves documentation pertaining to audit for yearly financial submission.",
+      "count": 2
+    },
+    {
+      "key": " Contributed to clearance of special cargo as well as developed post custom clearance documentation; implemented the work of import and export checklist with customs.",
+      "count": 2
+    },
+    {
+      "key": " Preparation and review of various reconciliation statements.",
+      "count": 2
+    },
+    {
+      "key": " Client’s data entry  Preparation and submission of sales tax under the overseeing of supervisor.",
+      "count": 2
+    },
+    {
+      "key": " Update and maintain book of accounts for [STAKEHOLDER].",
+      "count": 2
+    },
+    {
+      "key": "Sales Skills Data Analysis and Modelling (Familiar with R-Studio)",
+      "count": 2
+    },
+    {
+      "key": "[METRIC] or guided group sessions, as well as personalized training and nutrition plans.",
+      "count": 2
+    },
+    {
+      "key": "Sviluppo di grafici interattivi utilizzando [TOOL] per la visualizzazione dati.",
+      "count": 2
+    },
+    {
+      "key": "Gestione e pulizia dati attraverso strumenti avanzati come [TOOL].",
+      "count": 2
+    },
+    {
+      "key": "Drafting legal documents filed to court and correspondence between parties",
+      "count": 2
+    },
+    {
+      "key": "Assisted in preparation of tax computation, return filing and tax audits for HNIs, corporates and trusts",
+      "count": 2
+    },
+    {
+      "key": "Estagiário de Programação | TSCTI - Soluções Fiscais ([METRIC] - [METRIC])",
+      "count": 2
+    },
+    {
+      "key": "Estagiário de TI | Single Confecção ([METRIC])",
+      "count": 2
+    },
+    {
+      "key": "Managing relationships with suppliers to negotiate better terms and prices, and ensuring timely payments.",
+      "count": 2
+    },
+    {
+      "key": "High attention to details and ability to multy-task.",
+      "count": 2
+    },
+    {
+      "key": "Junior Auditor Collect basic financial documents such as invoices, receipts, contracts, and bank account statements.",
+      "count": 2
+    },
+    {
+      "key": "Preparing financial statements (balance sheet, income statement, and cash flow statement) in accordance",
+      "count": 2
+    },
+    {
+      "key": "Implementing analytical tests to identify unjustified changes or unusual patterns in the financial statements",
+      "count": 2
+    },
+    {
+      "key": "Managed day-to-day sales, purchases, and expense tracking",
+      "count": 2
+    },
+    {
+      "key": "Oversaw petty cash and daily cash transactions, ensuring",
+      "count": 2
+    },
+    {
+      "key": "Prepared detailed financial statements to aid in strategic decision-making.",
+      "count": 2
+    },
+    {
+      "key": "Handled salary statement preparation and ensured timely distribution.",
+      "count": 2
+    },
+    {
+      "key": "Calculated taxes and expertly prepared VAT returns.",
+      "count": 2
+    },
+    {
+      "key": "Executed efficient financial closing procedure on a monthly, quarterly, and annual basis.",
+      "count": 2
+    },
+    {
+      "key": "Oversaw daily financial operations, including payroll and invoicing, to maintain smooth processes.",
+      "count": 2
+    },
+    {
+      "key": "Directed budgeting and forecasting activities to facilitate",
+      "count": 2
+    },
+    {
+      "key": "Prepared detailed monthly and annual financial reports for informed decision-making.",
+      "count": 2
+    },
+    {
+      "key": "Ensured the accurate and timely closing of books of accounts.",
+      "count": 2
+    },
+    {
+      "key": "Executed comprehensive market mapping across [METRIC]+ private markets, influenced investment strategies by delivering competitive benchmarking, identifying key acquisition targets among [METRIC]+ companies Conducted TAM analysis and financial modeling in the event rentals market, identifying [METRIC]+ high-growth players for",
+      "count": 2
+    },
+    {
+      "key": "Built proprietary deal-sourcing networks, leveraging industry relationships and market intelligence platforms to identify",
+      "count": 2
+    },
+    {
+      "key": "Collaborated with the Structured Capital team on market benchmarking projects, delivering actionable insights into key business performance metrics",
+      "count": 2
+    },
+    {
+      "key": "Conducted market research across internet and e-commerce sectors, synthesizing insights from multiple sources to",
+      "count": 2
+    },
+    {
+      "key": "Developed analytical frameworks and used data visualization to present trends and dynamics, enhancing research quality",
+      "count": 2
+    },
+    {
+      "key": "Evaluated impact of macroeconomic variables on USD-INR Exchange Rates using multiple linear regression and vector error correction model",
+      "count": 2
+    },
+    {
+      "key": "Applied Time Series Modeling and SARIMA model to predict future trends Inflation and Unemployment",
+      "count": 2
+    },
+    {
+      "key": "Formulated and implemented strategic financial plans that minimized risks and ensured financial stability.",
+      "count": 1
+    },
+    {
+      "key": "Developed comprehensive budgetary controls and monitored performance via MIS systems, leading to a [METRIC] increase in profitability.",
+      "count": 1
+    }
+  ],
+  "examplesByFamily": {
+    "general": [
+      {
+        "source": "Formulated and implemented strategic financial plans that minimized risks and ensured financial stability.",
+        "pattern": "Formulated and implemented strategic financial plans that minimized risks and ensured financial stability.",
+        "weaknesses": [
+          "missing_outcome_signal",
+          "missing_metric"
+        ],
+        "metrics": [],
+        "tools": []
+      },
+      {
+        "source": "Collaborated with departments to prepare annual budgets, analyze variances, and provide strategic recommendations.",
+        "pattern": "Collaborated with departments to prepare annual budgets, analyze variances, and provide strategic recommendations.",
+        "weaknesses": [
+          "missing_outcome_signal",
+          "missing_metric"
+        ],
+        "metrics": [],
+        "tools": []
+      },
+      {
+        "source": "Performed material wastage analysis for product mixes, which optimized production processes and minimized material wastage.",
+        "pattern": "Performed material wastage analysis for product mixes, which optimized production processes and minimized material wastage.",
+        "weaknesses": [
+          "missing_outcome_signal",
+          "missing_metric"
+        ],
+        "metrics": [],
+        "tools": []
+      },
+      {
+        "source": "Enhanced machine and labor productivity, resulting in a steady increase in overall productivity.",
+        "pattern": "Enhanced machine and labor productivity, resulting in a steady increase in overall productivity.",
+        "weaknesses": [
+          "missing_metric"
+        ],
+        "metrics": [],
+        "tools": []
+      },
+      {
+        "source": "Managed inventory control of materials, ensuring accurate receipt and issue records.",
+        "pattern": "Managed inventory control of materials, ensuring accurate receipt and issue records.",
+        "weaknesses": [
+          "missing_metric"
+        ],
+        "metrics": [],
+        "tools": []
+      },
+      {
+        "source": "Prepared monthly and year-end financial reports and evaluated profit and loss accounts.",
+        "pattern": "Prepared monthly and year-end financial reports and evaluated profit and loss accounts.",
+        "weaknesses": [
+          "missing_outcome_signal",
+          "missing_metric"
+        ],
+        "metrics": [],
+        "tools": []
+      },
+      {
+        "source": "2019 EY Young Tax Professional of the Year",
+        "pattern": "[METRIC] EY Young Tax Professional of the Year",
+        "weaknesses": [],
+        "metrics": [
+          "2019"
+        ],
+        "tools": []
+      },
+      {
+        "source": "Beyond active share: Boosting fund performance through common holdings with same-benchmark mutual funds.",
+        "pattern": "Beyond active share: Boosting fund performance through common holdings with same-benchmark mutual funds.",
+        "weaknesses": [
+          "missing_outcome_signal",
+          "missing_metric"
+        ],
+        "metrics": [],
+        "tools": []
+      },
+      {
+        "source": "Crowding by index-benchmarked mutual funds and the low-volatility anomaly",
+        "pattern": "Crowding by index-benchmarked mutual funds and the low-volatility anomaly",
+        "weaknesses": [
+          "missing_outcome_signal",
+          "missing_metric"
+        ],
+        "metrics": [],
+        "tools": []
+      },
+      {
+        "source": "The implications of crowding by index-benchmarked mutual funds on cash positions",
+        "pattern": "The implications of crowding by index-benchmarked mutual funds on cash positions",
+        "weaknesses": [
+          "missing_outcome_signal",
+          "missing_metric"
+        ],
+        "metrics": [],
+        "tools": []
+      },
+      {
+        "source": "Asset allocator for multiple markets including fixed income, equities, forex and money market.",
+        "pattern": "Asset allocator for multiple markets including fixed income, equities, forex and money market.",
+        "weaknesses": [
+          "vague_quantity",
+          "missing_outcome_signal",
+          "missing_metric"
+        ],
+        "metrics": [],
+        "tools": []
+      },
+      {
+        "source": "Developed economic and financial indicators for top-down macroeconomic strategies",
+        "pattern": "Developed economic and financial indicators for top-down macroeconomic strategies",
+        "weaknesses": [
+          "missing_outcome_signal",
+          "missing_metric"
+        ],
+        "metrics": [],
+        "tools": []
+      }
+    ],
+    "operations": [
+      {
+        "source": "Developed comprehensive budgetary controls and monitored performance via MIS systems, leading to a 10% increase in profitability.",
+        "pattern": "Developed comprehensive budgetary controls and monitored performance via MIS systems, leading to a [METRIC] increase in profitability.",
+        "weaknesses": [
+          "missing_outcome_signal"
+        ],
+        "metrics": [
+          "10%"
+        ],
+        "tools": []
+      },
+      {
+        "source": "Liaised with auditors and statutory bodies to ensure compliance with all regulatory requirements.",
+        "pattern": "Liaised with auditors and statutory bodies to ensure compliance with all regulatory requirements.",
+        "weaknesses": [
+          "missing_outcome_signal",
+          "missing_metric"
+        ],
+        "metrics": [],
+        "tools": []
+      },
+      {
+        "source": "Designed and implemented an advanced costing system for daily reporting on key cost factors, leading to a 15% reduction in production costs.",
+        "pattern": "Designed and implemented an advanced costing system for daily reporting on key cost factors, leading to a [METRIC] reduction in production costs.",
+        "weaknesses": [
+          "missing_outcome_signal"
+        ],
+        "metrics": [
+          "15%"
+        ],
+        "tools": []
+      },
+      {
+        "source": "Ensured compliance with tax regulations, preparing necessary documents and handling monthly salary statements.",
+        "pattern": "Ensured compliance with tax regulations, preparing necessary documents and handling monthly salary statements.",
+        "weaknesses": [
+          "missing_outcome_signal",
+          "missing_metric"
+        ],
+        "metrics": [],
+        "tools": []
+      },
+      {
+        "source": "Prepared and presented the the P&L, Cashflow and Balancesheet for license application in Europe Experience in cross-border remittances as as well as building strategic partnerships. Collaborated with Compliance and Legal team on reviewing agreements and regulatory laws on EMI and PSP laws Worked with the schemes on projections on virtual and physical cards as well as e-commerce processing and physical POS processing",
+        "pattern": "Prepared and presented the the P&L, Cashflow and Balancesheet for license application in Europe Experience in cross-border remittances as as well as building strategic partnerships. Collaborated with Compliance and Legal team on reviewing agreements and regulatory laws on EMI and PSP laws Worked with the schemes on projections on virtual and physical cards as well as e-commerce processing and physical POS processing",
+        "weaknesses": [
+          "missing_outcome_signal",
+          "missing_metric"
+        ],
+        "metrics": [],
+        "tools": []
+      },
+      {
+        "source": "Partnered with various stakeholders to build and evaluate the financial feasibility to launch projects such as an offline acquiring product, a MADA Direct Integration and built a payment facilitator and acquiring business case Streamlined financial functions and implemented 6 financial reports and 2 reconciliation reports for a PayFac model",
+        "pattern": "Partnered with various stakeholders to build and evaluate the financial feasibility to launch projects such as an offline acquiring product, a MADA Direct Integration and built a payment facilitator and acquiring business case Streamlined financial functions and implemented [METRIC] financial reports and [METRIC] reconciliation reports for a PayFac model",
+        "weaknesses": [
+          "vague_quantity",
+          "missing_outcome_signal"
+        ],
+        "metrics": [
+          "6",
+          "2"
+        ],
+        "tools": []
+      },
+      {
+        "source": "approved by Compliance team and Internal Auditor Analysed the different schemes fees and licensing costs for Principal license, affiliate and BIN Sponsorship to present the best route for Acquiring Forecasted 10YP P&Ls for acquiring in UAE, Omnichannel and MADA DI",
+        "pattern": "approved by Compliance team and Internal Auditor Analysed the different schemes fees and licensing costs for Principal license, affiliate and BIN Sponsorship to present the best route for Acquiring Forecasted [METRIC]YP P&Ls for acquiring in UAE, Omnichannel and MADA DI",
+        "weaknesses": [
+          "vague_quantity",
+          "missing_outcome_signal"
+        ],
+        "metrics": [
+          "10"
+        ],
+        "tools": []
+      },
+      {
+        "source": "Minimised time-consuming payout process by implementing an automated bulk payment through a single processing file",
+        "pattern": "Minimised time-consuming payout process by implementing an automated bulk payment through a single processing file",
+        "weaknesses": [
+          "missing_outcome_signal",
+          "missing_metric"
+        ],
+        "metrics": [],
+        "tools": []
+      },
+      {
+        "source": "Creation of beneficiary accounts on banking platform to process transfers Prepared agents’ statements for referred merchants based on agreements Quarterly filing of TPV based on MCCs to VISA and Mastercard’s portal.",
+        "pattern": "Creation of beneficiary accounts on banking platform to process transfers Prepared agents’ statements for referred merchants based on agreements Quarterly filing of TPV based on MCCs to VISA and Mastercard’s portal.",
+        "weaknesses": [
+          "missing_outcome_signal",
+          "missing_metric"
+        ],
+        "metrics": [],
+        "tools": []
+      },
+      {
+        "source": "IQERA, MAURITIUS Bank Reconciliation Office – Mauritius (Aug16 to Jun17)",
+        "pattern": "IQERA, MAURITIUS Bank Reconciliation Office – Mauritius (Aug[METRIC] to Jun[METRIC])",
+        "weaknesses": [
+          "missing_outcome_signal"
+        ],
+        "metrics": [
+          "16",
+          "17"
+        ],
+        "tools": []
+      },
+      {
+        "source": "Conduct comprehensive analysis of merchant accounts to ensure full compliance with current AML standards and regulatory requirements.",
+        "pattern": "Conduct comprehensive analysis of merchant accounts to ensure full compliance with current AML standards and regulatory requirements.",
+        "weaknesses": [
+          "missing_outcome_signal",
+          "missing_metric"
+        ],
+        "metrics": [],
+        "tools": []
+      },
+      {
+        "source": "Ensure compliance with regulatory requirements and mitigate risks associated with client onboarding and continuous monitoring.",
+        "pattern": "Ensure compliance with regulatory requirements and mitigate risks associated with client onboarding and continuous monitoring.",
+        "weaknesses": [
+          "missing_outcome_signal",
+          "missing_metric"
+        ],
+        "metrics": [],
+        "tools": []
+      }
+    ],
+    "risk_compliance": [
+      {
+        "source": "Developed comprehensive budgetary controls and monitored performance via MIS systems, leading to a 10% increase in profitability.",
+        "pattern": "Developed comprehensive budgetary controls and monitored performance via MIS systems, leading to a [METRIC] increase in profitability.",
+        "weaknesses": [
+          "missing_outcome_signal"
+        ],
+        "metrics": [
+          "10%"
+        ],
+        "tools": []
+      },
+      {
+        "source": "Liaised with auditors and statutory bodies to ensure compliance with all regulatory requirements.",
+        "pattern": "Liaised with auditors and statutory bodies to ensure compliance with all regulatory requirements.",
+        "weaknesses": [
+          "missing_outcome_signal",
+          "missing_metric"
+        ],
+        "metrics": [],
+        "tools": []
+      },
+      {
+        "source": "Ensured compliance with tax regulations, preparing necessary documents and handling monthly salary statements.",
+        "pattern": "Ensured compliance with tax regulations, preparing necessary documents and handling monthly salary statements.",
+        "weaknesses": [
+          "missing_outcome_signal",
+          "missing_metric"
+        ],
+        "metrics": [],
+        "tools": []
+      },
+      {
+        "source": "Prepared and presented the the P&L, Cashflow and Balancesheet for license application in Europe Experience in cross-border remittances as as well as building strategic partnerships. Collaborated with Compliance and Legal team on reviewing agreements and regulatory laws on EMI and PSP laws Worked with the schemes on projections on virtual and physical cards as well as e-commerce processing and physical POS processing",
+        "pattern": "Prepared and presented the the P&L, Cashflow and Balancesheet for license application in Europe Experience in cross-border remittances as as well as building strategic partnerships. Collaborated with Compliance and Legal team on reviewing agreements and regulatory laws on EMI and PSP laws Worked with the schemes on projections on virtual and physical cards as well as e-commerce processing and physical POS processing",
+        "weaknesses": [
+          "missing_outcome_signal",
+          "missing_metric"
+        ],
+        "metrics": [],
+        "tools": []
+      },
+      {
+        "source": "approved by Compliance team and Internal Auditor Analysed the different schemes fees and licensing costs for Principal license, affiliate and BIN Sponsorship to present the best route for Acquiring Forecasted 10YP P&Ls for acquiring in UAE, Omnichannel and MADA DI",
+        "pattern": "approved by Compliance team and Internal Auditor Analysed the different schemes fees and licensing costs for Principal license, affiliate and BIN Sponsorship to present the best route for Acquiring Forecasted [METRIC]YP P&Ls for acquiring in UAE, Omnichannel and MADA DI",
+        "weaknesses": [
+          "vague_quantity",
+          "missing_outcome_signal"
+        ],
+        "metrics": [
+          "10"
+        ],
+        "tools": []
+      },
+      {
+        "source": "Collaborated with the leadership to implement strategies for high-risk merchants during Covid-19, mostly related to MCCs such as Travel and Hotels.",
+        "pattern": "Collaborated with the leadership to implement strategies for high-risk merchants during Covid-[METRIC], mostly related to MCCs such as Travel and Hotels.",
+        "weaknesses": [
+          "missing_outcome_signal"
+        ],
+        "metrics": [
+          "19"
+        ],
+        "tools": []
+      },
+      {
+        "source": "Conduct comprehensive analysis of merchant accounts to ensure full compliance with current AML standards and regulatory requirements.",
+        "pattern": "Conduct comprehensive analysis of merchant accounts to ensure full compliance with current AML standards and regulatory requirements.",
+        "weaknesses": [
+          "missing_outcome_signal",
+          "missing_metric"
+        ],
+        "metrics": [],
+        "tools": []
+      },
+      {
+        "source": "Ensure compliance with regulatory requirements and mitigate risks associated with client onboarding and continuous monitoring.",
+        "pattern": "Ensure compliance with regulatory requirements and mitigate risks associated with client onboarding and continuous monitoring.",
+        "weaknesses": [
+          "missing_outcome_signal",
+          "missing_metric"
+        ],
+        "metrics": [],
+        "tools": []
+      },
+      {
+        "source": "KYC/ KYB",
+        "pattern": "KYC/ KYB",
+        "weaknesses": [],
+        "metrics": [],
+        "tools": []
+      },
+      {
+        "source": "AML/CTF regulations",
+        "pattern": "AML/CTF regulations",
+        "weaknesses": [],
+        "metrics": [],
+        "tools": []
+      },
+      {
+        "source": "Risk Assessment & Compliance",
+        "pattern": "Risk Assessment & Compliance",
+        "weaknesses": [],
+        "metrics": [],
+        "tools": []
+      },
+      {
+        "source": "Conduct audit processes for various dealers to ensure compliance and operational efficiency.",
+        "pattern": "Conduct audit processes for various dealers to ensure compliance and operational efficiency.",
+        "weaknesses": [
+          "vague_quantity",
+          "missing_outcome_signal",
+          "missing_metric"
+        ],
+        "metrics": [],
+        "tools": []
+      }
+    ],
+    "finance_reporting": [
+      {
+        "source": "Developed comprehensive budgetary controls and monitored performance via MIS systems, leading to a 10% increase in profitability.",
+        "pattern": "Developed comprehensive budgetary controls and monitored performance via MIS systems, leading to a [METRIC] increase in profitability.",
+        "weaknesses": [
+          "missing_outcome_signal"
+        ],
+        "metrics": [
+          "10%"
+        ],
+        "tools": []
+      },
+      {
+        "source": "05/2022 - 03/2023 Organised team social events for 30+ people and presented ideas back to managers, MD and C-Suite with budget allocations and timelines Managed diaries, and travel bookings on behalf of the team and C-Suite Documented bi-weekly board meetings recording minutes and plans of actions to distribute to board",
+        "pattern": "[METRIC]/[METRIC] - [METRIC]/[METRIC] Organised team social events for [METRIC]+ people and presented ideas back to managers, MD and C-Suite with budget allocations and timelines Managed diaries, and travel bookings on behalf of the team and C-Suite Documented bi-weekly [STAKEHOLDER] meetings recording minutes and plans of actions to distribute to [STAKEHOLDER]",
+        "weaknesses": [
+          "missing_outcome_signal"
+        ],
+        "metrics": [
+          "05",
+          "2022",
+          "03",
+          "2023",
+          "30"
+        ],
+        "tools": []
+      },
+      {
+        "source": "Prepared and presented the the P&L, Cashflow and Balancesheet for license application in Europe Experience in cross-border remittances as as well as building strategic partnerships. Collaborated with Compliance and Legal team on reviewing agreements and regulatory laws on EMI and PSP laws Worked with the schemes on projections on virtual and physical cards as well as e-commerce processing and physical POS processing",
+        "pattern": "Prepared and presented the the P&L, Cashflow and Balancesheet for license application in Europe Experience in cross-border remittances as as well as building strategic partnerships. Collaborated with Compliance and Legal team on reviewing agreements and regulatory laws on EMI and PSP laws Worked with the schemes on projections on virtual and physical cards as well as e-commerce processing and physical POS processing",
+        "weaknesses": [
+          "missing_outcome_signal",
+          "missing_metric"
+        ],
+        "metrics": [],
+        "tools": []
+      },
+      {
+        "source": "cash flow patterns, and financial statements to identify trends, assess risks, and recommend strategic actions",
+        "pattern": "cash flow patterns, and financial statements to identify trends, assess risks, and recommend strategic actions",
+        "weaknesses": [
+          "missing_outcome_signal",
+          "missing_metric"
+        ],
+        "metrics": [],
+        "tools": []
+      },
+      {
+        "source": "Prepared and analyzed financial statements(Income Statements, Balance Sheet, and Cash Flow Statements) for both profit and nonprofit organizations..",
+        "pattern": "Prepared and analyzed financial statements(Income Statements, Balance Sheet, and Cash Flow Statements) for both profit and nonprofit organizations..",
+        "weaknesses": [
+          "missing_outcome_signal",
+          "missing_metric"
+        ],
+        "metrics": [],
+        "tools": []
+      },
+      {
+        "source": "Generated and maintained balance sheet schedules, ensuring",
+        "pattern": "Generated and maintained balance sheet schedules, ensuring",
+        "weaknesses": [
+          "missing_metric"
+        ],
+        "metrics": [],
+        "tools": []
+      },
+      {
+        "source": "Conducted variance analysis to identify discrepancies in",
+        "pattern": "Conducted variance analysis to identify discrepancies in",
+        "weaknesses": [
+          "missing_outcome_signal",
+          "missing_metric"
+        ],
+        "metrics": [],
+        "tools": []
+      },
+      {
+        "source": "Analysed Income Statement and Balance Sheet figures of the applicants of Deloitte’s Technology Fast 50 Central Europe program to shortlist those meeting relevant criteria. Reduced list of",
+        "pattern": "Analysed Income Statement and Balance Sheet figures of the applicants of Deloitte’s Technology Fast [METRIC] Central Europe program to shortlist those meeting relevant criteria. Reduced list of",
+        "weaknesses": [
+          "missing_outcome_signal"
+        ],
+        "metrics": [
+          "50"
+        ],
+        "tools": []
+      },
+      {
+        "source": "Financial Reporting: Developed and delivered monthly reports tracking billing and employee utilization, aligning with financial forecasts and achieving a 10% reduction in forecast variance.",
+        "pattern": "Financial Reporting: Developed and delivered monthly reports tracking billing and employee utilization, aligning with financial forecasts and achieving a [METRIC] reduction in forecast variance.",
+        "weaknesses": [],
+        "metrics": [
+          "10%"
+        ],
+        "tools": []
+      },
+      {
+        "source": "Accelerated month-end closing by implementing scheduled error check points, reducing errors found at later stages by 90%.",
+        "pattern": "Accelerated month-end closing by implementing scheduled error check points, reducing errors found at later stages by [METRIC].",
+        "weaknesses": [],
+        "metrics": [
+          "90%"
+        ],
+        "tools": []
+      },
+      {
+        "source": "Financial Reporting: Developed and delivered monthly reports tracking billing and employee utilization, aligning with financial forecasts and achieving a 10% reduction in forecast variance.",
+        "pattern": "Financial Reporting: Developed and delivered monthly reports tracking billing and employee utilization, aligning with financial forecasts and achieving a [METRIC] reduction in forecast variance.",
+        "weaknesses": [],
+        "metrics": [
+          "10%"
+        ],
+        "tools": []
+      },
+      {
+        "source": "Analysed Income Statement and Balance Sheet figures of the applicants of Deloitte’s Technology Fast 50 Central Europe program to shortlist those meeting relevant criteria. Reduced list of",
+        "pattern": "Analysed Income Statement and Balance Sheet figures of the applicants of Deloitte’s Technology Fast [METRIC] Central Europe program to shortlist those meeting relevant criteria. Reduced list of",
+        "weaknesses": [
+          "missing_outcome_signal"
+        ],
+        "metrics": [
+          "50"
+        ],
+        "tools": []
+      }
+    ],
+    "investment": [
+      {
+        "source": "Negotiated favorable terms with banks for debt restructuring, securing $2M in additional credit lines.",
+        "pattern": "Negotiated favorable terms with banks for debt restructuring, securing [METRIC] in additional credit lines.",
+        "weaknesses": [],
+        "metrics": [
+          "$2M"
+        ],
+        "tools": []
+      },
+      {
+        "source": "Collect customer information and conduct credit surveys Read and analyse financial statements and information, carry out financial reclassifications",
+        "pattern": "Collect customer information and conduct credit surveys Read and analyse financial statements and information, carry out financial reclassifications",
+        "weaknesses": [
+          "missing_outcome_signal",
+          "missing_metric"
+        ],
+        "metrics": [],
+        "tools": []
+      },
+      {
+        "source": "Research and development of a financial model Graphs and tables for the annual report.",
+        "pattern": "Research and development of a financial model Graphs and tables for the annual report.",
+        "weaknesses": [
+          "missing_outcome_signal",
+          "missing_metric"
+        ],
+        "metrics": [],
+        "tools": []
+      },
+      {
+        "source": "Main research on highly connected same-benchmark funds, and its implications on portfolio returns and volatility, cash",
+        "pattern": "Main research on highly connected same-benchmark funds, and its implications on portfolio returns and volatility, cash",
+        "weaknesses": [
+          "missing_outcome_signal",
+          "missing_metric"
+        ],
+        "metrics": [],
+        "tools": []
+      },
+      {
+        "source": "Investment committee member, prepared monthly memo for top-down macroeconomic analysis. Anticipated the 1MDB",
+        "pattern": "[STAKEHOLDER] member, prepared monthly memo for top-down macroeconomic analysis. Anticipated the [METRIC]MDB",
+        "weaknesses": [
+          "missing_outcome_signal"
+        ],
+        "metrics": [
+          "1"
+        ],
+        "tools": []
+      },
+      {
+        "source": "Strengthened relationships with developed clients and maximized deal sizes through cross-selling",
+        "pattern": "Strengthened relationships with developed [STAKEHOLDER] and maximized deal sizes through cross-selling",
+        "weaknesses": [
+          "missing_outcome_signal",
+          "missing_metric"
+        ],
+        "metrics": [],
+        "tools": []
+      },
+      {
+        "source": "reports for credit limit allocation ensuring that the banking products are ready for using at all times",
+        "pattern": "reports for credit limit allocation ensuring that the banking products are ready for using at all times",
+        "weaknesses": [
+          "missing_metric"
+        ],
+        "metrics": [],
+        "tools": []
+      },
+      {
+        "source": "accurate record of documents, deal models etc. o Daily client interaction to service client needs and ensure",
+        "pattern": "accurate record of documents, deal models etc. o Daily client interaction to service client needs and ensure",
+        "weaknesses": [
+          "missing_outcome_signal",
+          "missing_metric"
+        ],
+        "metrics": [],
+        "tools": []
+      },
+      {
+        "source": "Research Analyst at ITIC - ISCTE Trading & Investment Club",
+        "pattern": "Research Analyst at ITIC - ISCTE Trading & Investment Club",
+        "weaknesses": [
+          "missing_outcome_signal",
+          "missing_metric"
+        ],
+        "metrics": [],
+        "tools": []
+      },
+      {
+        "source": "Constructed DCF, comparable companies, and precedent transaction valuation models to evaluate a stock price for a large sports apparel company",
+        "pattern": "Constructed [TOOL], comparable companies, and precedent transaction valuation models to evaluate a stock price for a large sports apparel company",
+        "weaknesses": [
+          "missing_outcome_signal",
+          "missing_metric"
+        ],
+        "metrics": [],
+        "tools": [
+          "DCF"
+        ]
+      },
+      {
+        "source": "Managed a client’s portfolio of $20 million as an asset manager by investing in stocks through a",
+        "pattern": "Managed a client’s portfolio of [METRIC]illion as an asset manager by investing in stocks through a",
+        "weaknesses": [
+          "missing_outcome_signal"
+        ],
+        "metrics": [
+          "$20 m"
+        ],
+        "tools": []
+      },
+      {
+        "source": "Prepared bid/ask spreads for various stock quotes as an investment banker and performed numerous trades to offset short and long positions",
+        "pattern": "Prepared bid/ask spreads for various stock quotes as an investment banker and performed numerous trades to offset short and long positions",
+        "weaknesses": [
+          "vague_quantity",
+          "missing_outcome_signal",
+          "missing_metric"
+        ],
+        "metrics": [],
+        "tools": []
+      }
+    ],
+    "business_development": [
+      {
+        "source": "Led initiatives to optimize inventory control, reducing material wastage by 12%. Account and Costing Department",
+        "pattern": "Led initiatives to optimize inventory control, reducing material wastage by [METRIC]. Account and Costing Department",
+        "weaknesses": [],
+        "metrics": [
+          "12%"
+        ],
+        "tools": []
+      },
+      {
+        "source": "Onboarded and trained clients supporting new and existing business teams, often being clients' first interaction with the company to maintain successful future relationships looking after an account pack value worth over £2m Contributed to the development of strategic plans for clients by collecting data to aid new product launches,",
+        "pattern": "Onboarded and trained [STAKEHOLDER] supporting new and existing business teams, often being [STAKEHOLDER]' first interaction with the company to maintain successful future relationships looking after an account pack value worth over [METRIC] Contributed to the development of strategic plans for [STAKEHOLDER] by collecting data to aid new product launches,",
+        "weaknesses": [],
+        "metrics": [
+          "£2m"
+        ],
+        "tools": []
+      },
+      {
+        "source": "Administration of client board meetings",
+        "pattern": "Administration of client [STAKEHOLDER] meetings",
+        "weaknesses": [],
+        "metrics": [],
+        "tools": []
+      },
+      {
+        "source": "Prepared and reported revenue streams and costs analysis to the CFO and CEO, together with a local benchmarking",
+        "pattern": "Prepared and reported revenue streams and costs analysis to the CFO and CEO, together with a local benchmarking",
+        "weaknesses": [
+          "missing_outcome_signal",
+          "missing_metric"
+        ],
+        "metrics": [],
+        "tools": []
+      },
+      {
+        "source": "Performed periodic CDD review of various types of entities such as Ltd company/Ltd by shares/Public Ltd, Partnership firms, Sole Traders, Clubs, Unions, NGOs and Trusts.",
+        "pattern": "Performed periodic CDD review of various types of entities such as Ltd company/Ltd by shares/Public Ltd, Partnership firms, Sole Traders, Clubs, Unions, NGOs and Trusts.",
+        "weaknesses": [
+          "vague_quantity",
+          "missing_outcome_signal",
+          "missing_metric"
+        ],
+        "metrics": [],
+        "tools": []
+      },
+      {
+        "source": "Ensure compliance with regulatory requirements and mitigate risks associated with client onboarding and continuous monitoring.",
+        "pattern": "Ensure compliance with regulatory requirements and mitigate risks associated with client onboarding and continuous monitoring.",
+        "weaknesses": [
+          "missing_outcome_signal",
+          "missing_metric"
+        ],
+        "metrics": [],
+        "tools": []
+      },
+      {
+        "source": "Analysis and account postings related to Intercompany Loan agreements between ExxonMobil affiliates.",
+        "pattern": "Analysis and account postings related to Intercompany Loan agreements between ExxonMobil affiliates.",
+        "weaknesses": [
+          "missing_outcome_signal",
+          "missing_metric"
+        ],
+        "metrics": [],
+        "tools": []
+      },
+      {
+        "source": "Monthly account reconciliations.",
+        "pattern": "Monthly account reconciliations.",
+        "weaknesses": [],
+        "metrics": [],
+        "tools": []
+      },
+      {
+        "source": "Monthly account reconciliations",
+        "pattern": "Monthly account reconciliations",
+        "weaknesses": [],
+        "metrics": [],
+        "tools": []
+      },
+      {
+        "source": "COMMERCIAL MANAGER: INTERNSHIP Acquiring the necessary skills to analyze customer",
+        "pattern": "COMMERCIAL MANAGER: INTERNSHIP Acquiring the necessary skills to analyze customer",
+        "weaknesses": [
+          "missing_outcome_signal",
+          "missing_metric"
+        ],
+        "metrics": [],
+        "tools": []
+      },
+      {
+        "source": "Developed new business opportunities through partnership building and restructuring business models. 1",
+        "pattern": "Developed new business opportunities through partnership building and restructuring business models. [METRIC]",
+        "weaknesses": [
+          "missing_outcome_signal"
+        ],
+        "metrics": [
+          "1"
+        ],
+        "tools": []
+      },
+      {
+        "source": "Led and contributed to pitches, presentations, and other opportunities for assigned teams in collaboration with local IR firms. Transcend Information UK Ltd – Account Manager & Marketing, Hemel Hempstead, UK",
+        "pattern": "Led and contributed to pitches, presentations, and other opportunities for assigned teams in collaboration with local IR firms. Transcend Information UK Ltd – Account Manager & Marketing, Hemel Hempstead, UK",
+        "weaknesses": [
+          "missing_outcome_signal",
+          "missing_metric"
+        ],
+        "metrics": [],
+        "tools": []
+      }
+    ],
+    "technology": [
+      {
+        "source": "Data Analysis Java Problem solving Team work Leadership Attenzione ai dettagli",
+        "pattern": "Data Analysis Java Problem solving Team work Leadership Attenzione ai dettagli",
+        "weaknesses": [
+          "missing_outcome_signal",
+          "missing_metric"
+        ],
+        "metrics": [],
+        "tools": []
+      },
+      {
+        "source": "Onboarded and trained clients supporting new and existing business teams, often being clients' first interaction with the company to maintain successful future relationships looking after an account pack value worth over £2m Contributed to the development of strategic plans for clients by collecting data to aid new product launches,",
+        "pattern": "Onboarded and trained [STAKEHOLDER] supporting new and existing business teams, often being [STAKEHOLDER]' first interaction with the company to maintain successful future relationships looking after an account pack value worth over [METRIC] Contributed to the development of strategic plans for [STAKEHOLDER] by collecting data to aid new product launches,",
+        "weaknesses": [],
+        "metrics": [
+          "£2m"
+        ],
+        "tools": []
+      },
+      {
+        "source": "Closing invoices in SAP",
+        "pattern": "Closing invoices in [TOOL]",
+        "weaknesses": [],
+        "metrics": [],
+        "tools": [
+          "SAP"
+        ]
+      },
+      {
+        "source": "Introduced the mechanism to store project data in AWS S3 with MongoDB to leverage performance and high availability, resulting in a 20% reduction in the overall data latency",
+        "pattern": "Introduced the mechanism to store project data in AWS S[METRIC] with MongoDB to leverage performance and high availability, resulting in a [METRIC] reduction in the overall data latency",
+        "weaknesses": [
+          "buzzword_overload"
+        ],
+        "metrics": [
+          "3",
+          "20%"
+        ],
+        "tools": []
+      },
+      {
+        "source": "Identification of financial risks and development of strategies to mitigate them using excel.",
+        "pattern": "Identification of financial risks and development of strategies to mitigate them using [TOOL].",
+        "weaknesses": [
+          "missing_outcome_signal",
+          "missing_metric"
+        ],
+        "metrics": [],
+        "tools": [
+          "excel"
+        ]
+      },
+      {
+        "source": "Identification of financial risks and development of strategies to mitigate them using excel.",
+        "pattern": "Identification of financial risks and development of strategies to mitigate them using [TOOL].",
+        "weaknesses": [
+          "missing_outcome_signal",
+          "missing_metric"
+        ],
+        "metrics": [],
+        "tools": [
+          "excel"
+        ]
+      },
+      {
+        "source": "Analysis of factoring data and correction of the invoiving.",
+        "pattern": "Analysis of factoring data and correction of the invoiving.",
+        "weaknesses": [
+          "missing_outcome_signal",
+          "missing_metric"
+        ],
+        "metrics": [],
+        "tools": []
+      },
+      {
+        "source": "Conducted market research, competitor analysis, and data analysis for the UK market.",
+        "pattern": "Conducted market research, competitor analysis, and data analysis for the UK market.",
+        "weaknesses": [
+          "missing_outcome_signal",
+          "missing_metric"
+        ],
+        "metrics": [],
+        "tools": []
+      },
+      {
+        "source": "Managed market research, data analysis, and coordination of TV commercial productions. Era Public Relations (Ogilvy Worldwide) – Account Executive, Taipei, Taiwan",
+        "pattern": "Managed market research, data analysis, and coordination of TV commercial productions. Era Public Relations (Ogilvy Worldwide) – Account Executive, Taipei, Taiwan",
+        "weaknesses": [
+          "missing_outcome_signal",
+          "missing_metric"
+        ],
+        "metrics": [],
+        "tools": []
+      },
+      {
+        "source": "Sustainability Reports: benchmark analysis, data collection and analysis, double materiality assessment, development and monitoring of action plans.",
+        "pattern": "Sustainability Reports: benchmark analysis, data collection and analysis, double materiality assessment, development and monitoring of action plans.",
+        "weaknesses": [
+          "missing_outcome_signal",
+          "missing_metric"
+        ],
+        "metrics": [],
+        "tools": []
+      },
+      {
+        "source": "Sustainability Reports: benchmark analysis, data collection and analysis, double materiality assessment, development and monitoring of action plans.",
+        "pattern": "Sustainability Reports: benchmark analysis, data collection and analysis, double materiality assessment, development and monitoring of action plans.",
+        "weaknesses": [
+          "missing_outcome_signal",
+          "missing_metric"
+        ],
+        "metrics": [],
+        "tools": []
+      },
+      {
+        "source": "Bloomberg Market Concepts Certificate, by Blomberg LP",
+        "pattern": "[TOOL] Market Concepts Certificate, by Blomberg LP",
+        "weaknesses": [
+          "missing_outcome_signal"
+        ],
+        "metrics": [],
+        "tools": [
+          "Bloomberg"
+        ]
+      }
+    ]
+  },
+  "rewritePlanner": {
+    "targetRoleLens": {
+      "title": "Business Development & Operations Senior Associate",
+      "families": [
+        "business_development",
+        "operations",
+        "investment",
+        "technology",
+        "finance_reporting"
+      ],
+      "requirements": [
+        {
+          "key": "business_development",
+          "label": "Business development",
+          "priority": "important",
+          "weight": 70,
+          "patterns": [
+            "business development",
+            "origination",
+            "sourcing",
+            "pipeline",
+            "partnership",
+            "client relationship",
+            "commercial growth"
+          ]
+        },
+        {
+          "key": "operations",
+          "label": "Operations",
+          "priority": "important",
+          "weight": 65,
+          "patterns": [
+            "operations",
+            "process improvement",
+            "workflow",
+            "controls",
+            "automation",
+            "operational"
+          ]
+        },
+        {
+          "key": "financial_modelling",
+          "label": "Financial modelling",
+          "priority": "important",
+          "weight": 70,
+          "patterns": [
+            "financial modelling",
+            "financial modeling",
+            "valuation model",
+            "lbo",
+            "dcf",
+            "forecasting"
+          ]
+        },
+        {
+          "key": "valuation",
+          "label": "Valuation",
+          "priority": "important",
+          "weight": 65,
+          "patterns": [
+            "valuation",
+            "enterprise value",
+            "ev/ebitda",
+            "comparable companies",
+            "precedent transactions"
+          ]
+        },
+        {
+          "key": "market_research",
+          "label": "Market research",
+          "priority": "positioning",
+          "weight": 45,
+          "patterns": [
+            "market research",
+            "market mapping",
+            "market analysis",
+            "competitive analysis"
+          ]
+        },
+        {
+          "key": "performance_monitoring",
+          "label": "Performance monitoring",
+          "priority": "important",
+          "weight": 70,
+          "patterns": [
+            "performance monitoring",
+            "kpi",
+            "dashboard",
+            "management reporting",
+            "portfolio monitoring",
+            "variance analysis"
+          ]
+        },
+        {
+          "key": "stakeholder_management",
+          "label": "Stakeholder management",
+          "priority": "positioning",
+          "weight": 45,
+          "patterns": [
+            "stakeholder management",
+            "senior stakeholders",
+            "cross-functional",
+            "client-facing",
+            "presentation"
+          ]
+        },
+        {
+          "key": "reporting",
+          "label": "Reporting",
+          "priority": "positioning",
+          "weight": 45,
+          "patterns": [
+            "reporting",
+            "management reporting",
+            "dashboard",
+            "analytics"
+          ]
+        }
+      ],
+      "keywords": [
+        "business development",
+        "origination",
+        "sourcing",
+        "pipeline",
+        "partnership",
+        "client relationship",
+        "commercial growth",
+        "operations",
+        "process improvement",
+        "workflow",
+        "controls",
+        "automation",
+        "operational",
+        "financial modelling",
+        "financial modeling",
+        "valuation model",
+        "lbo",
+        "dcf",
+        "forecasting",
+        "valuation",
+        "enterprise value",
+        "ev/ebitda",
+        "comparable companies",
+        "precedent transactions",
+        "market research",
+        "market mapping",
+        "market analysis",
+        "competitive analysis",
+        "performance monitoring",
+        "kpi",
+        "dashboard",
+        "management reporting",
+        "portfolio monitoring",
+        "variance analysis",
+        "stakeholder management",
+        "senior stakeholders",
+        "cross-functional",
+        "client-facing",
+        "presentation",
+        "reporting",
+        "management reporting",
+        "dashboard",
+        "analytics"
+      ]
+    },
+    "families": {
+      "investment": {
+        "action": {
+          "weak": "Supported",
+          "analyst": "Analyzed",
+          "associate": "Executed",
+          "senior": "Led",
+          "unknown": "Analyzed"
+        },
+        "object": "investment and transaction analysis",
+        "outcome": "supporting deal evaluation and senior review"
+      },
+      "business_development": {
+        "action": {
+          "weak": "Supported",
+          "analyst": "Built",
+          "associate": "Managed",
+          "senior": "Led",
+          "unknown": "Built"
+        },
+        "object": "commercial pipeline and business development activity",
+        "outcome": "supporting growth, conversion, and stakeholder engagement"
+      },
+      "operations": {
+        "action": {
+          "weak": "Supported",
+          "analyst": "Improved",
+          "associate": "Streamlined",
+          "senior": "Led",
+          "unknown": "Improved"
+        },
+        "object": "operational and reporting workflows",
+        "outcome": "improving clarity, control, and execution consistency"
+      },
+      "technology": {
+        "action": {
+          "weak": "Applied",
+          "analyst": "Applied",
+          "associate": "Developed",
+          "senior": "Led",
+          "unknown": "Applied"
+        },
+        "object": "data and analytical workflows",
+        "outcome": "improving insight generation and decision support"
+      },
+      "risk_compliance": {
+        "action": {
+          "weak": "Supported",
+          "analyst": "Reviewed",
+          "associate": "Managed",
+          "senior": "Oversaw",
+          "unknown": "Reviewed"
+        },
+        "object": "risk, compliance, and control activity",
+        "outcome": "strengthening governance and execution quality"
+      },
+      "finance_reporting": {
+        "action": {
+          "weak": "Prepared",
+          "analyst": "Prepared",
+          "associate": "Developed",
+          "senior": "Managed",
+          "unknown": "Prepared"
+        },
+        "object": "financial reporting and analysis",
+        "outcome": "supporting management visibility and business planning"
+      },
+      "general": {
+        "action": {
+          "weak": "Supported",
+          "analyst": "Delivered",
+          "associate": "Managed",
+          "senior": "Led",
+          "unknown": "Delivered"
+        },
+        "object": "relevant business activity",
+        "outcome": "supporting execution quality and stakeholder needs"
+      }
+    },
+    "scoring": {
+      "familyRoleMatch": 35,
+      "keywordMatch": 6,
+      "metricEvidence": 6,
+      "toolEvidence": 4,
+      "senioritySignal": {
+        "analyst": 4,
+        "associate": 6,
+        "senior": 8
+      },
+      "weakOpeningPenalty": -3,
+      "missingOutcomePenalty": -4
+    }
+  },
+  "rewriteSafetyPolicy": [
+    "Every rewritten bullet must be traceable to one evidenceUnit.source.",
+    "Metrics, tools, companies, dates, locations and named stakeholders may be preserved but not invented.",
+    "Ownership language can only increase to led/owned/oversaw when the source or role context already implies ownership.",
+    "Missing metrics create a prompt or a conservative wording choice; they never create fabricated numbers.",
+    "Non-English evidence should be preserved unless a language-specific rewrite family exists.",
+    "If candidate identity confidence is low, Emily confirms the name before application submission.",
+    "If experience AST confidence is low, show original CV preview rather than a reconstructed CV.",
+    "The tailored document should rank the most role-relevant evidence first instead of preserving noisy source order.",
+    "Section order is planned from the evidence profile: experienced candidates lead with experience, lower-confidence or education-led profiles keep education prominent."
+  ]
+}

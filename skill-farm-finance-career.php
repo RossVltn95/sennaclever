@@ -2728,6 +2728,31 @@ class Senna_Careers
             );
         }
 
+        $should_load_phase4_assets = $page_has_premium_frontend
+            || is_singular('jobs')
+            || is_page('role-sffc')
+            || isset($_GET['community_tab']);
+
+        if ($should_load_phase4_assets) {
+            $phase4_css = SFFC_PLUGIN_DIR . 'assets/css/strategy-dashboard-premium.css';
+            $phase4_js = SFFC_PLUGIN_DIR . 'assets/js/strategy-dashboard.js';
+
+            wp_enqueue_style(
+                'sffc-strategy-dashboard',
+                SFFC_PLUGIN_URL . 'assets/css/strategy-dashboard-premium.css',
+                array(),
+                file_exists($phase4_css) ? filemtime($phase4_css) : SFFC_VERSION
+            );
+
+            wp_enqueue_script(
+                'sffc-strategy-dashboard',
+                SFFC_PLUGIN_URL . 'assets/js/strategy-dashboard.js',
+                array('jquery', 'jquery-ui-draggable', 'jquery-ui-droppable'),
+                file_exists($phase4_js) ? filemtime($phase4_js) : SFFC_VERSION,
+                true
+            );
+        }
+
         if (class_exists('SFFC_Recruiter_Manager') && did_action('wp') && (is_singular(SFFC_Recruiter_Manager::POST_TYPE) || is_post_type_archive(SFFC_Recruiter_Manager::POST_TYPE))) {
             wp_enqueue_style(
                 'sffc-recruiter-profile',
