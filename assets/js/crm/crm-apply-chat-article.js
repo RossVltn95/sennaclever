@@ -671,6 +671,12 @@
                 (payload.pages && payload.pages.length))
           ) || currentCvPageCount;
         file.__sffcLiteParsePayload = payload;
+        if (payload && payload.structured) {
+          file.__sffcStructuredCvParse = payload.structured;
+          currentCvStructuredParse = normalizeServiceStructuredCvParse(
+            payload.structured
+          );
+        }
         return text;
       })
       .catch(function (error) {
@@ -23986,6 +23992,7 @@
     var guestWelcomeShown = false;
     var activePath = "";
     var capturedCvText = "";
+    var currentCvStructuredParse = null;
     var applyCvAnalysis = null;
     var recruiterOutreachBrief = {};
     var promptReplyWasTyped = false;
@@ -108168,6 +108175,253 @@
       return dedupeList(warnings);
     }
 
+    function normalizeServiceStructuredCvParse(payload) {
+      var source = payload || {};
+      if (!source || source.ok === false) {
+        return null;
+      }
+      return {
+        ok: source.ok !== false,
+        parser: cleanMessageText(source.parser || ""),
+        profile: source.profile || {},
+        sections: Array.isArray(source.sections) ? source.sections : [],
+        experience: Array.isArray(source.experience) ? source.experience : [],
+        education: Array.isArray(source.education) ? source.education : [],
+        skills: Array.isArray(source.skills) ? source.skills : [],
+        projects: Array.isArray(source.projects) ? source.projects : [],
+        lines: Array.isArray(source.lines) ? source.lines : [],
+        metadata: source.metadata || {},
+      };
+    }
+
+    function getCurrentStructuredCvParse() {
+      if (
+        currentCvStructuredParse &&
+        (currentCvStructuredParse.experience.length ||
+          currentCvStructuredParse.education.length ||
+          currentCvStructuredParse.skills.length ||
+          currentCvStructuredParse.sections.length)
+      ) {
+        return currentCvStructuredParse;
+      }
+      if (currentCvFile && currentCvFile.__sffcStructuredCvParse) {
+        currentCvStructuredParse = normalizeServiceStructuredCvParse(
+          currentCvFile.__sffcStructuredCvParse
+        );
+        return currentCvStructuredParse;
+      }
+      return null;
+    }
+
+    function buildCvSectionEntryFromStructuredExperience(entry) {
+      var role = cleanMessageText(
+        (entry && (entry.role || entry.title || entry.jobTitle)) || ""
+      );
+      var company = cleanMessageText((entry && entry.company) || "");
+      var dates = cleanMessageText((entry && entry.dates) || "");
+      var location = cleanMessageText((entry && entry.location) || "");
+      var heading = cleanMessageText(
+        [role, company].filter(Boolean).join(company && role ? " at " : "")
+      );
+      var lines = dedupeList(
+        [role, company, dates, location]
+          .concat((entry && entry.lines) || [])
+          .map(cleanMessageText)
+          .filter(Boolean)
+      );
+      var bullets = dedupeList(
+        ((entry && entry.bullets) || [])
+          .map(stripCvBulletPrefix)
+          .map(cleanMessageText)
+          .filter(function (line) {
+            return (
+              line &&
+              !looksLikeCvPureDateRangeLine(line) &&
+              !looksLikeDetectedCompanyName(line)
+            );
+          })
+      );
+      return {
+        heading: heading || role || company,
+        lines: lines,
+        bullets: bullets,
+        parserSource: "structured_service",
+      };
+    }
+
+    function buildCvSectionEntryFromStructuredEducation(entry) {
+      var school = cleanMessageText((entry && entry.school) || "");
+      var degree = cleanMessageText((entry && entry.degree) || "");
+      var dates = cleanMessageText((entry && entry.dates) || "");
+      var gpa = cleanMessageText((entry && entry.gpa) || "");
+      var heading = cleanMessageText([school, degree].filter(Boolean).join(" - "));
+      return {
+        heading: heading || school || degree,
+        lines: dedupeList(
+          [school, degree, dates, gpa]
+            .concat((entry && entry.details) || [])
+            .map(cleanMessageText)
+            .filter(Boolean)
+        ),
+        bullets: [],
+        parserSource: "structured_service",
+      };
+    }
+
+    function buildCvSectionsFromStructuredParse(structured) {
+      var sections = [];
+      var profile = (structured && structured.profile) || {};
+      var summary = cleanMessageText(profile.summary || "");
+      var experienceEntries = ((structured && structured.experience) || [])
+        .map(buildCvSectionEntryFromStructuredExperience)
+        .filter(function (entry) {
+          return (
+            entry &&
+            (entry.heading ||
+              ((entry.lines || []).length && (entry.bullets || []).length))
+          );
+        });
+      var educationEntries = ((structured && structured.education) || [])
+        .map(buildCvSectionEntryFromStructuredEducation)
+        .filter(function (entry) {
+          return entry && (entry.heading || (entry.lines || []).length);
+        });
+      var skillItems = dedupeList(
+        ((structured && structured.skills) || [])
+          .map(cleanMessageText)
+          .filter(Boolean)
+      );
+      var projectEntries = ((structured && structured.projects) || [])
+        .map(function (project) {
+          var name = cleanMessageText((project && project.name) || "");
+          var dates = cleanMessageText((project && project.dates) || "");
+          var bullets = dedupeList(
+            ((project && project.bullets) || [])
+              .map(stripCvBulletPrefix)
+              .map(cleanMessageText)
+              .filter(Boolean)
+          );
+          return {
+            heading: name,
+            lines: dedupeList([name, dates].concat(bullets).filter(Boolean)),
+            bullets: bullets,
+            parserSource: "structured_service",
+          };
+        })
+        .filter(function (entry) {
+          return entry && (entry.heading || (entry.bullets || []).length);
+        });
+
+      if (summary) {
+        sections.push({
+          key: "summary",
+          title: "Professional Summary",
+          track: "main",
+          items: [summary],
+          entries: [],
+          parserSource: "structured_service",
+        });
+      }
+      if (experienceEntries.length) {
+        sections.push({
+          key: "experience",
+          title: "Work Experience",
+          track: "main",
+          items: dedupeList(
+            experienceEntries.reduce(function (list, entry) {
+              return list.concat(entry.lines || []).concat(entry.bullets || []);
+            }, [])
+          ),
+          entries: experienceEntries,
+          parserSource: "structured_service",
+        });
+      }
+      if (educationEntries.length) {
+        sections.push({
+          key: "education",
+          title: "Education",
+          track: "main",
+          items: dedupeList(
+            educationEntries.reduce(function (list, entry) {
+              return list.concat(entry.lines || []);
+            }, [])
+          ),
+          entries: educationEntries,
+          parserSource: "structured_service",
+        });
+      }
+      if (skillItems.length) {
+        sections.push({
+          key: "skills",
+          title: "Skills",
+          track: "main",
+          items: skillItems,
+          entries: [],
+          parserSource: "structured_service",
+        });
+      }
+      if (projectEntries.length) {
+        sections.push({
+          key: "projects",
+          title: "Projects",
+          track: "main",
+          items: dedupeList(
+            projectEntries.reduce(function (list, entry) {
+              return list.concat(entry.lines || []);
+            }, [])
+          ),
+          entries: projectEntries,
+          parserSource: "structured_service",
+        });
+      }
+      return sections;
+    }
+
+    function mergeStructuredCvSectionsWithFallback(structuredSections, fallbackSections) {
+      var merged = [];
+      var structuredKeys = {};
+      (structuredSections || []).forEach(function (section) {
+        if (!section || !section.key) {
+          return;
+        }
+        structuredKeys[section.key] = true;
+        merged.push(section);
+      });
+      (fallbackSections || []).forEach(function (section) {
+        var key = cleanMessageText(section && section.key);
+        var hasStructuredEquivalent =
+          key &&
+          (structuredKeys[key] ||
+            (/^experience/i.test(key) && structuredKeys.experience) ||
+            (/^education$/i.test(key) && structuredKeys.education) ||
+            (/^skills$/i.test(key) && structuredKeys.skills));
+        if (!hasStructuredEquivalent) {
+          merged.push(section);
+        }
+      });
+      return merged;
+    }
+
+    function mergeCvHeaderWithStructuredProfile(headerModel, profile) {
+      var merged = Object.assign({}, headerModel || {});
+      var structuredProfile = profile || {};
+      [
+        ["name", "name"],
+        ["email", "email"],
+        ["phone", "phone"],
+        ["linkedin", "linkedin"],
+        ["location", "location"],
+      ].forEach(function (pair) {
+        var target = pair[0];
+        var source = pair[1];
+        var value = cleanMessageText(structuredProfile[source] || "");
+        if (value && (!merged[target] || target === "linkedin")) {
+          merged[target] = value;
+        }
+      });
+      return merged;
+    }
+
     function buildControlledTailoredCvModel(
       analysis,
       matchedKeywords,
@@ -108176,10 +108430,22 @@
       var config = options || {};
       var rawText = String(capturedCvText || "");
       var text = cleanMessageText(rawText);
-      var sections = text ? parseCvSectionsFromText(rawText) : [];
+      var parsedTextSections = text ? parseCvSectionsFromText(rawText) : [];
+      var structuredCv = getCurrentStructuredCvParse();
+      var structuredSections = buildCvSectionsFromStructuredParse(structuredCv);
+      var sections = structuredSections.length
+        ? mergeStructuredCvSectionsWithFallback(
+            structuredSections,
+            parsedTextSections
+          )
+        : parsedTextSections;
       var headerModel = text
         ? buildCvHeaderModel(rawText, sections, { allowRoleFallback: false })
         : null;
+      headerModel = mergeCvHeaderWithStructuredProfile(
+        headerModel,
+        structuredCv && structuredCv.profile
+      );
       var candidateName = cleanMessageText(
         (headerModel && headerModel.name) ||
           applyOnboardingFullName ||
@@ -115651,6 +115917,7 @@
       currentCvFile = null;
       currentCvPreviewAsset = null;
       currentCvPageCount = 0;
+      currentCvStructuredParse = null;
       capturedCvText = "";
       commercialApplyQueueActivated = false;
       commercialApplyQueueDetailsMode = true;
@@ -115777,6 +116044,7 @@
       currentCvFile = null;
       currentCvPreviewAsset = null;
       currentCvPageCount = 0;
+      currentCvStructuredParse = null;
       capturedCvText = "";
       commercialApplyQueueActivated = false;
       commercialApplyQueueDetailsMode = true;
@@ -115886,6 +116154,7 @@
       currentCvFile = null;
       currentCvPreviewAsset = null;
       currentCvPageCount = 0;
+      currentCvStructuredParse = null;
       capturedCvText = "";
       commercialApplyQueueActivated = false;
       commercialApplyQueueDetailsMode = true;
@@ -115994,6 +116263,7 @@
       currentCvFile = null;
       currentCvPreviewAsset = null;
       currentCvPageCount = 0;
+      currentCvStructuredParse = null;
       capturedCvText = "";
       commercialApplyQueueActivated = false;
       commercialApplyQueueDetailsMode = true;
@@ -116066,6 +116336,7 @@
       currentCvFile = null;
       currentCvPreviewAsset = null;
       currentCvPageCount = 0;
+      currentCvStructuredParse = null;
       capturedCvText = "";
       commercialApplyQueueActivated = false;
       commercialApplyQueueDetailsMode = false;
@@ -116128,6 +116399,7 @@
       currentCvFile = null;
       currentCvPreviewAsset = null;
       currentCvPageCount = 0;
+      currentCvStructuredParse = null;
       capturedCvText = "";
       commercialApplyQueueActivated = false;
       commercialApplyQueueDetailsMode = false;
@@ -121181,6 +121453,7 @@
                 currentCvFile = null;
                 currentCvPreviewAsset = null;
                 currentCvPageCount = 0;
+                currentCvStructuredParse = null;
                 capturedCvText = "";
                 var updatedCvRequest = getUpdatedCvRequestLine();
                 botMessage(
@@ -121213,6 +121486,7 @@
                   currentCvFile = null;
                   currentCvPreviewAsset = null;
                   currentCvPageCount = 0;
+                  currentCvStructuredParse = null;
                   capturedCvText = "";
                   var updatedCvRequest = getUpdatedCvRequestLine();
                   botMessage(
@@ -136742,6 +137016,7 @@
       currentCvFile = null;
       currentCvPreviewAsset = null;
       currentCvPageCount = 0;
+      currentCvStructuredParse = null;
       capturedCvText = "";
       applyCvAnalysis = null;
       jobSearchCvEnrichmentPromise = null;
@@ -140320,6 +140595,7 @@
       tailoredCvGrammarReviewPendingSignature = "";
       currentCvPreviewAsset = null;
       currentCvPageCount = 0;
+      currentCvStructuredParse = null;
       capturedCvText = "";
       if (!isSuccessFactorsAdminTestEnabled()) {
         commercialApplyQueueInitialized = false;

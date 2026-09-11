@@ -10,7 +10,8 @@
     "@llamaindex/liteparse": "^2.14.2",
     "express": "^5.1.0",
     "harper.js": "^2.10.0",
-    "multer": "^2.0.2"
+    "multer": "^2.0.2",
+    "resume-parser-ats": "^1.2.3"
   },
   "engines": {
     "node": ">=20"
