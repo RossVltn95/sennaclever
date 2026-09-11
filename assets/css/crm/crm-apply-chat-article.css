@@ -18125,7 +18125,7 @@ body.sffc-crm-apply-chat-lock {
 }
 
 .sffc-crm-apply-chat .sffc-crm-apply-chat__tailored-cv-suggestion.is-quality {
-  border-left-color: #dc2626 !important;
+  border-left-color: #7c3aed !important;
 }
 
 .sffc-crm-apply-chat .sffc-crm-apply-chat__tailored-cv-suggestion.is-structure {
@@ -18235,9 +18235,17 @@ body.sffc-crm-apply-chat-lock {
 .sffc-crm-apply-chat .sffc-crm-apply-chat__tailored-cv-highlight.is-quality {
   background: linear-gradient(
     transparent 58%,
-    rgba(254, 202, 202, 0.48) 58%
+    rgba(221, 214, 254, 0.5) 58%
   ) !important;
-  box-shadow: inset 0 -2px 0 rgba(220, 38, 38, 0.72) !important;
+  box-shadow: inset 0 -2px 0 rgba(124, 58, 237, 0.72) !important;
+}
+
+.sffc-crm-apply-chat .sffc-crm-apply-chat__tailored-cv-problem-mark {
+  padding: 0 1px !important;
+  border-radius: 2px !important;
+  background: rgba(221, 214, 254, 0.72) !important;
+  color: inherit !important;
+  box-shadow: inset 0 -2px 0 rgba(124, 58, 237, 0.9) !important;
 }
 
 .sffc-crm-apply-chat .sffc-crm-apply-chat__tailored-cv-highlight.is-structure {

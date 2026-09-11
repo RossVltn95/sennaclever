@@ -107892,14 +107892,14 @@
       });
       return Object.keys(groups)
         .map(function (group) {
-          var items = dedupeListByKey(groups[group], getCvTailoringSkillKey).slice(
-            0,
-            group === "Additional" ? 5 : 8
-          );
+          var items = dedupeListByKey(groups[group], getCvTailoringSkillKey);
+          if (!config.full) {
+            items = items.slice(0, group === "Additional" ? 5 : 8);
+          }
           return items.length ? group + ": " + items.join(", ") : "";
         })
         .filter(Boolean)
-        .slice(0, config.full ? 6 : 3);
+        .slice(0, config.full ? Object.keys(groups).length : 3);
     }
 
     function looksLikeCvTailoringEducationLine(line) {
@@ -107959,7 +107959,7 @@
         (sections || []).reduce(function (list, section) {
           return list.concat((section && section.items) || []);
         }, []),
-        config.full ? 14 : 6
+        config.full ? Number.MAX_SAFE_INTEGER : 6
       ).filter(function (line) {
         return (
           looksLikeCvTailoringEducationLine(line) &&
@@ -107967,7 +107967,7 @@
           !isCvBulletLine(line)
         );
       });
-      return lines.slice(0, config.full ? 6 : 3).map(function (line) {
+      return lines.slice(0, config.full ? lines.length : 3).map(function (line) {
         return {
           heading: line,
           dates: getCvTailoringDateRangeText(line),
@@ -108031,7 +108031,7 @@
             looksLikeTailoredCvEducationEntry(entry)
           );
         })
-        .slice(0, config.full ? 6 : 3);
+        .slice(0, config.full ? entries.length : 3);
       if (!entries.length) {
         entries = inferCvTailoringEducationEntriesFromAllSections(
           sections,
@@ -108199,7 +108199,7 @@
       var allExperienceEntries = text ? getExperienceEntries(sections) : [];
       var rankedEntries = text
         ? config.full
-          ? allExperienceEntries.slice(0, 8)
+          ? allExperienceEntries
           : pickRelevantExperienceEntries(analysis || {}, sections, 3)
         : [];
       if (
@@ -108215,7 +108215,7 @@
         rankedEntries = getAllRelevantExperienceEntries(
           analysis || {},
           sections
-        ).slice(0, 6);
+        );
       }
       if (
         text &&
@@ -108399,28 +108399,31 @@
               modelTitle || (analysis && analysis.experience_title) || roleTitle
             );
           }
+          var rewrittenBullets = dedupeList(sourceBullets)
+            .map(function (bullet) {
+              return rewriteCvEvidenceBullet(
+                bullet,
+                targetKeywords,
+                context.role || (entry && entry.heading) || ""
+              );
+            })
+            .filter(function (bullet) {
+              return bullet && cleanMessageText(bullet.rewritten || "");
+            })
+            .sort(function (left, right) {
+              return (
+                (Number(right && right.relevanceScore) || 0) -
+                (Number(left && left.relevanceScore) || 0)
+              );
+            });
+          if (!config.full) {
+            rewrittenBullets = rewrittenBullets.slice(0, 4);
+          }
           return {
             role: resolvedMeta.role,
             company: resolvedMeta.company,
             dates: resolvedDates,
-            bullets: dedupeList(sourceBullets)
-              .map(function (bullet) {
-                return rewriteCvEvidenceBullet(
-                  bullet,
-                  targetKeywords,
-                  context.role || (entry && entry.heading) || ""
-                );
-              })
-              .filter(function (bullet) {
-                return bullet && cleanMessageText(bullet.rewritten || "");
-              })
-              .sort(function (left, right) {
-                return (
-                  (Number(right && right.relevanceScore) || 0) -
-                  (Number(left && left.relevanceScore) || 0)
-                );
-              })
-              .slice(0, config.full ? 8 : 4),
+            bullets: rewrittenBullets,
           };
         })
         .filter(function (entry) {
@@ -108480,8 +108483,10 @@
             })
             .filter(function (bullet) {
               return bullet && cleanMessageText(bullet.rewritten || "");
-            })
-            .slice(0, 3);
+            });
+          if (!config.full) {
+            preservedBullets = preservedBullets.slice(0, 3);
+          }
           if (preservedBullets.length) {
             rewrittenEntries.push({
               role: sanitizeTailoredCvRenderedRole(context.role) || context.role,
@@ -108528,21 +108533,21 @@
       var projectItems = getTailoredCvSectionItems(
         sections,
         ["projects", "highlights"],
-        config.full ? 10 : 3
+        config.full ? 40 : 3
       ).map(function (line) {
         return rewriteTailoredCvSectionLine(line, targetKeywords, modelTitle);
       });
       var awardItems = getTailoredCvSectionItems(
         sections,
         ["awards"],
-        config.full ? 8 : 2
+        config.full ? 30 : 2
       ).map(function (line) {
         return rewriteTailoredCvSectionLine(line, targetKeywords, modelTitle);
       });
       var languageItems = getTailoredCvSectionItems(
         sections,
         ["languages"],
-        config.full ? 8 : 2
+        config.full ? 20 : 2
       );
       var skillItems = buildCvTailoringSkillGroups(
         sections,
@@ -108555,17 +108560,17 @@
           .concat(
             ((profile && profile.qualifications) || []).slice(
               0,
-              config.full ? 6 : 4
+              config.full ? ((profile && profile.qualifications) || []).length : 4
             )
           )
           .concat(
             getTailoredCvSectionItems(
               sections,
               ["certifications"],
-              config.full ? 6 : 2
+              config.full ? 30 : 2
             )
           )
-      ).slice(0, config.full ? 10 : 4);
+      ).slice(0, config.full ? Number.MAX_SAFE_INTEGER : 4);
       var summarySource = cleanMessageText(
         profileItems[0] || (profile && profile.summaryText) || ""
       );
@@ -108673,8 +108678,10 @@
                 })
                 .filter(function (bullet) {
                   return bullet && cleanMessageText(bullet.rewritten || "");
-                })
-                .slice(0, config.full ? 8 : 4);
+                });
+              if (!config.full) {
+                fallbackBullets = fallbackBullets.slice(0, 4);
+              }
               return fallbackBullets.length
                 ? {
                     role: getTailoredCvFallbackExperienceLabel(modelTitle),
@@ -108746,8 +108753,10 @@
             })
             .filter(function (bullet) {
               return bullet && cleanMessageText(bullet.rewritten || "");
-            })
-            .slice(0, 3);
+            });
+          if (!config.full) {
+            bulletsToPreserve = bulletsToPreserve.slice(0, 3);
+          }
           if (bulletsToPreserve.length) {
             rewrittenEntries.push({
               role: sanitizeTailoredCvRenderedRole(roleLine) || roleLine,
@@ -108809,8 +108818,8 @@
         targetKeywords,
         summarySource
       );
-      if (model.summary.length > (config.full ? 760 : 420)) {
-        model.summary = model.summary.slice(0, config.full ? 757 : 417) + "...";
+      if (!config.full && model.summary.length > 420) {
+        model.summary = model.summary.slice(0, 417) + "...";
       }
       model.validationWarnings = validateCvTailoredDocumentModel(model);
       return model;
@@ -109503,7 +109512,7 @@
           }
         });
       });
-      (source.skills || []).slice(0, 5).forEach(function (item, index) {
+      (source.skills || []).forEach(function (item, index) {
         if (item) {
           grammarSuggestion = getTailoredCvGrammarSuggestion(
             "skills." + index
@@ -109534,7 +109543,7 @@
             : "Some source CV sections were hard to parse, so the document stays editable.",
         });
       }
-      return suggestions.slice(0, 12);
+      return suggestions;
     }
 
     function getTailoredCvSuggestionForPath(suggestions, path) {
@@ -109614,7 +109623,7 @@
           )
         : "";
       return (
-        ' contenteditable="plaintext-only" spellcheck="true" role="textbox" tabindex="0" data-sffc-tailored-cv-field="' +
+        ' contenteditable="plaintext-only" spellcheck="false" role="textbox" tabindex="0" data-sffc-tailored-cv-field="' +
         escapeHtml(path || "") +
         (suggestion
           ? '" data-sffc-tailored-cv-review-id="' +
@@ -109639,6 +109648,26 @@
         '" aria-label="' +
         escapeHtml(label || "CV field") +
         '"'
+      );
+    }
+
+    function renderTailoredCvFieldContent(value, suggestion) {
+      var text = String(value || "");
+      var problem = cleanMessageText(suggestion && suggestion.problemText);
+      var index;
+      if (!problem) {
+        return escapeHtml(text);
+      }
+      index = text.indexOf(problem);
+      if (index === -1) {
+        return escapeHtml(text);
+      }
+      return (
+        escapeHtml(text.slice(0, index)) +
+        '<mark class="sffc-crm-apply-chat__tailored-cv-problem-mark">' +
+        escapeHtml(text.slice(index, index + problem.length)) +
+        "</mark>" +
+        escapeHtml(text.slice(index + problem.length))
       );
     }
 
@@ -109700,7 +109729,7 @@
         '"' +
         getTailoredCvEditableAttributes(path, label, suggestion) +
         ">" +
-        escapeHtml(value || "") +
+        renderTailoredCvFieldContent(value || "", suggestion) +
         "</span>" +
         inlineSuggestion +
         "</" +
@@ -109749,7 +109778,7 @@
     function renderTailoredCvSideSection(title, items) {
       var safeItems = dedupeList(
         (items || []).map(cleanMessageText).filter(Boolean)
-      ).slice(0, 8);
+      );
       if (!safeItems.length) {
         return "";
       }
@@ -109765,7 +109794,7 @@
     function renderTailoredCvMainListSection(title, items) {
       var safeItems = dedupeList(
         (items || []).map(cleanMessageText).filter(Boolean)
-      ).slice(0, 8);
+      );
       if (!safeItems.length) {
         return "";
       }
@@ -109952,7 +109981,7 @@
         function (item) {
           return getCvTailoringSkillKey(item && item.value);
         }
-      ).slice(0, 14);
+      );
       if (!safeItems.length) {
         return "";
       }
@@ -110093,11 +110122,10 @@
           return Object.assign({}, entry, {
             role: role,
             company: company,
-            bullets: bullets.slice(0, 6),
+            bullets: bullets,
           });
         })
-        .filter(Boolean)
-        .slice(0, 8);
+        .filter(Boolean);
     }
 
     function finalizeTailoredCvDocumentModel(model) {
@@ -110118,23 +110146,23 @@
           function (item) {
             return getCvTailoringSkillKey(item);
           }
-        ).slice(0, 8),
+        ),
         qualifications: dedupeList(
           (source.qualifications || []).map(cleanMessageText).filter(Boolean)
-        ).slice(0, 8),
+        ),
         projects: dedupeList(
           (source.projects || []).map(cleanMessageText).filter(function (item) {
             return item && !isCvTailoringKeywordSoup(item);
           })
-        ).slice(0, 6),
+        ),
         awards: dedupeList(
           (source.awards || []).map(cleanMessageText).filter(function (item) {
             return item && !isCvTailoringKeywordSoup(item);
           })
-        ).slice(0, 6),
+        ),
         languages: dedupeList(
           (source.languages || []).map(cleanMessageText).filter(Boolean)
-        ).slice(0, 6),
+        ),
       });
       finalized.validationWarnings = validateCvTailoredDocumentModel(finalized);
       finalized.documentQuality = getTailoredCvDocumentQuality(finalized);
