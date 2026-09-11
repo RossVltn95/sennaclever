@@ -20725,6 +20725,7 @@
     );
     var editedTailoredCvModel = null;
     var editedTailoredCvDirty = false;
+    var activeTailoredCvStyle = "classic";
     var tailoredCvReviewDismissed = {};
     var tailoredCvReviewAccepted = {};
     var liveDraftAutoScrollUntil = 0;
@@ -109125,6 +109126,64 @@
       });
     }
 
+    function getTailoredCvStyleOptions() {
+      return [
+        {
+          key: "classic",
+          label: isArabicChat() ? "كلاسيكي" : "Classic",
+        },
+        {
+          key: "executive",
+          label: isArabicChat() ? "تنفيذي" : "Executive",
+        },
+        {
+          key: "sidebar",
+          label: isArabicChat() ? "جانبي" : "Sidebar",
+        },
+        {
+          key: "compact",
+          label: isArabicChat() ? "مكثف" : "Compact",
+        },
+      ];
+    }
+
+    function normalizeTailoredCvStyle(style) {
+      var clean = cleanMessageText(style || "").toLowerCase();
+      return getTailoredCvStyleOptions().some(function (item) {
+        return item.key === clean;
+      })
+        ? clean
+        : "classic";
+    }
+
+    function renderTailoredCvStyleSwitcher(activeStyle) {
+      var active = normalizeTailoredCvStyle(activeStyle);
+      return (
+        '<div class="sffc-crm-apply-chat__tailored-cv-style-switcher" role="group" aria-label="' +
+        escapeHtml(isArabicChat() ? "نمط السيرة" : "CV style") +
+        '">' +
+        '<span class="sffc-crm-apply-chat__tailored-cv-style-label">' +
+        escapeHtml(isArabicChat() ? "النمط" : "Style") +
+        "</span>" +
+        getTailoredCvStyleOptions()
+          .map(function (item) {
+            return (
+              '<button type="button" class="' +
+              (item.key === active ? "is-active" : "") +
+              '" data-sffc-tailored-cv-style-option="' +
+              escapeHtml(item.key) +
+              '" aria-pressed="' +
+              (item.key === active ? "true" : "false") +
+              '">' +
+              escapeHtml(item.label) +
+              "</button>"
+            );
+          })
+          .join("") +
+        "</div>"
+      );
+    }
+
     function getTailoredCvEditableAttributes(path, label, suggestion) {
       var reviewText = suggestion
         ? cleanMessageText(
@@ -109772,8 +109831,11 @@
       return (
         '<div class="sffc-crm-apply-chat__tailored-cv-preview' +
         (config.expanded ? " is-expanded" : "") +
-        '" aria-label="Tailored CV preview" data-sffc-tailored-cv-editor>' +
+        '" aria-label="Tailored CV preview" data-sffc-tailored-cv-editor data-sffc-tailored-cv-style="' +
+        escapeHtml(normalizeTailoredCvStyle(activeTailoredCvStyle)) +
+        '">' +
         '<div class="sffc-crm-apply-chat__tailored-cv-editor-bar">' +
+        renderTailoredCvStyleSwitcher(activeTailoredCvStyle) +
         '<span class="sffc-crm-apply-chat__tailored-cv-editor-status" data-sffc-tailored-cv-edit-status>' +
         escapeHtml(isArabicChat() ? "جاهز للتحرير" : "Editable") +
         "</span>" +
@@ -109815,12 +109877,12 @@
             )
           : "") +
         (educationHtml
-          ? '<section class="sffc-crm-apply-chat__tailored-cv-doc-section"><div class="sffc-crm-apply-chat__tailored-cv-sec-head">Education</div>' +
+          ? '<section class="sffc-crm-apply-chat__tailored-cv-doc-section is-education"><div class="sffc-crm-apply-chat__tailored-cv-sec-head">Education</div>' +
             educationHtml +
             "</section>"
           : "") +
         (experienceHtml
-          ? '<section class="sffc-crm-apply-chat__tailored-cv-doc-section"><div class="sffc-crm-apply-chat__tailored-cv-sec-head">Work Experience</div>' +
+          ? '<section class="sffc-crm-apply-chat__tailored-cv-doc-section is-experience"><div class="sffc-crm-apply-chat__tailored-cv-sec-head">Work Experience</div>' +
             experienceHtml +
             "</section>"
           : "") +
@@ -139522,12 +139584,43 @@
     }
 
     root.addEventListener("click", function (event) {
+      var styleButton = event.target.closest
+        ? event.target.closest("[data-sffc-tailored-cv-style-option]")
+        : null;
       var accept = event.target.closest
         ? event.target.closest("[data-sffc-tailored-cv-review-accept]")
         : null;
       var dismiss = event.target.closest
         ? event.target.closest("[data-sffc-tailored-cv-review-dismiss]")
         : null;
+      if (styleButton && root.contains(styleButton)) {
+        var editor = styleButton.closest("[data-sffc-tailored-cv-editor]");
+        var selectedStyle = normalizeTailoredCvStyle(
+          styleButton.getAttribute("data-sffc-tailored-cv-style-option") || ""
+        );
+        var status = editor
+          ? editor.querySelector("[data-sffc-tailored-cv-edit-status]")
+          : null;
+        event.preventDefault();
+        activeTailoredCvStyle = selectedStyle;
+        if (editor) {
+          editor.setAttribute("data-sffc-tailored-cv-style", selectedStyle);
+          editor
+            .querySelectorAll("[data-sffc-tailored-cv-style-option]")
+            .forEach(function (button) {
+              var isActive =
+                button.getAttribute("data-sffc-tailored-cv-style-option") ===
+                selectedStyle;
+              button.classList.toggle("is-active", isActive);
+              button.setAttribute("aria-pressed", isActive ? "true" : "false");
+            });
+          editor.classList.add("has-edits");
+        }
+        if (status) {
+          status.textContent = isArabicChat() ? "تم تغيير النمط" : "Style updated";
+        }
+        return;
+      }
       if (accept && root.contains(accept)) {
         event.preventDefault();
         resolveTailoredCvInlineSuggestion(accept, true);

@@ -17959,8 +17959,59 @@ body.sffc-crm-apply-chat-lock {
   margin: 0 auto 12px !important;
   display: flex !important;
   align-items: center !important;
-  justify-content: flex-end !important;
+  justify-content: space-between !important;
   gap: 10px !important;
+  flex-wrap: wrap !important;
+}
+
+.sffc-crm-apply-chat .sffc-crm-apply-chat__tailored-cv-style-switcher {
+  box-sizing: border-box !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  padding: 3px !important;
+  gap: 3px !important;
+  border: 1px solid #d8dee8 !important;
+  border-radius: 8px !important;
+  background: #f8fafc !important;
+}
+
+.sffc-crm-apply-chat .sffc-crm-apply-chat__tailored-cv-style-label {
+  padding: 0 7px !important;
+  color: #64748b !important;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+    "Segoe UI", sans-serif !important;
+  font-size: 11px !important;
+  font-weight: 850 !important;
+  line-height: 1 !important;
+}
+
+.sffc-crm-apply-chat .sffc-crm-apply-chat__tailored-cv-style-switcher button {
+  min-height: 25px !important;
+  padding: 4px 8px !important;
+  border: 0 !important;
+  border-radius: 6px !important;
+  background: transparent !important;
+  color: #475569 !important;
+  cursor: pointer !important;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+    "Segoe UI", sans-serif !important;
+  font-size: 11.5px !important;
+  font-weight: 850 !important;
+  line-height: 1.1 !important;
+  letter-spacing: 0 !important;
+  white-space: nowrap !important;
+}
+
+.sffc-crm-apply-chat .sffc-crm-apply-chat__tailored-cv-style-switcher button:hover {
+  background: #e8eef7 !important;
+  color: #0f172a !important;
+}
+
+.sffc-crm-apply-chat .sffc-crm-apply-chat__tailored-cv-style-switcher button.is-active {
+  background: #111827 !important;
+  color: #ffffff !important;
 }
 
 .sffc-crm-apply-chat .sffc-crm-apply-chat__tailored-cv-editor-status {
@@ -18236,6 +18287,144 @@ body.sffc-crm-apply-chat-lock {
   background: #ffffff !important;
 }
 
+.sffc-crm-apply-chat .sffc-crm-apply-chat__tailored-cv-preview[data-sffc-tailored-cv-style="executive"] .sffc-crm-apply-chat__tailored-cv-sheet {
+  padding: 48px 58px 66px !important;
+  color: #111827 !important;
+  font-family: Inter, Arial, Helvetica, sans-serif !important;
+}
+
+.sffc-crm-apply-chat .sffc-crm-apply-chat__tailored-cv-preview[data-sffc-tailored-cv-style="executive"] .sffc-crm-apply-chat__tailored-cv-header {
+  text-align: left !important;
+}
+
+.sffc-crm-apply-chat .sffc-crm-apply-chat__tailored-cv-preview[data-sffc-tailored-cv-style="executive"] .sffc-crm-apply-chat__tailored-cv-name {
+  color: #111827 !important;
+  font-family: Inter, Arial, Helvetica, sans-serif !important;
+  font-size: 27px !important;
+  font-weight: 850 !important;
+  text-transform: none !important;
+}
+
+.sffc-crm-apply-chat .sffc-crm-apply-chat__tailored-cv-preview[data-sffc-tailored-cv-style="executive"] .sffc-crm-apply-chat__tailored-cv-contact-line,
+.sffc-crm-apply-chat .sffc-crm-apply-chat__tailored-cv-preview[data-sffc-tailored-cv-style="executive"] .sffc-crm-apply-chat__tailored-cv-summary-text,
+.sffc-crm-apply-chat .sffc-crm-apply-chat__tailored-cv-preview[data-sffc-tailored-cv-style="executive"] .sffc-crm-apply-chat__tailored-cv-entry-head,
+.sffc-crm-apply-chat .sffc-crm-apply-chat__tailored-cv-preview[data-sffc-tailored-cv-style="executive"] .sffc-crm-apply-chat__tailored-cv-entry-sub,
+.sffc-crm-apply-chat .sffc-crm-apply-chat__tailored-cv-preview[data-sffc-tailored-cv-style="executive"] .sffc-crm-apply-chat__tailored-cv-bullets,
+.sffc-crm-apply-chat .sffc-crm-apply-chat__tailored-cv-preview[data-sffc-tailored-cv-style="executive"] .sffc-crm-apply-chat__tailored-cv-skills-list {
+  font-family: Inter, Arial, Helvetica, sans-serif !important;
+}
+
+.sffc-crm-apply-chat .sffc-crm-apply-chat__tailored-cv-preview[data-sffc-tailored-cv-style="executive"] .sffc-crm-apply-chat__tailored-cv-top-rule {
+  border-top: 3px solid #111827 !important;
+}
+
+.sffc-crm-apply-chat .sffc-crm-apply-chat__tailored-cv-preview[data-sffc-tailored-cv-style="executive"] .sffc-crm-apply-chat__tailored-cv-sec-head {
+  border-bottom: 2px solid #111827 !important;
+  color: #111827 !important;
+  font-family: Inter, Arial, Helvetica, sans-serif !important;
+  font-size: 12px !important;
+  font-weight: 900 !important;
+  letter-spacing: 0.11em !important;
+}
+
+.sffc-crm-apply-chat .sffc-crm-apply-chat__tailored-cv-preview[data-sffc-tailored-cv-style="executive"] .sffc-crm-apply-chat__tailored-cv-summary-text {
+  text-align: left !important;
+}
+
+.sffc-crm-apply-chat .sffc-crm-apply-chat__tailored-cv-preview[data-sffc-tailored-cv-style="sidebar"] .sffc-crm-apply-chat__tailored-cv-sheet {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) minmax(178px, 0.38fr) !important;
+  column-gap: 28px !important;
+  align-items: start !important;
+  padding: 44px 52px 60px !important;
+  font-family: Inter, Arial, Helvetica, sans-serif !important;
+}
+
+.sffc-crm-apply-chat .sffc-crm-apply-chat__tailored-cv-preview[data-sffc-tailored-cv-style="sidebar"] .sffc-crm-apply-chat__tailored-cv-header,
+.sffc-crm-apply-chat .sffc-crm-apply-chat__tailored-cv-preview[data-sffc-tailored-cv-style="sidebar"] .sffc-crm-apply-chat__tailored-cv-top-rule,
+.sffc-crm-apply-chat .sffc-crm-apply-chat__tailored-cv-preview[data-sffc-tailored-cv-style="sidebar"] .sffc-crm-apply-chat__tailored-cv-summary-text {
+  grid-column: 1 / -1 !important;
+}
+
+.sffc-crm-apply-chat .sffc-crm-apply-chat__tailored-cv-preview[data-sffc-tailored-cv-style="sidebar"] .sffc-crm-apply-chat__tailored-cv-header {
+  text-align: left !important;
+}
+
+.sffc-crm-apply-chat .sffc-crm-apply-chat__tailored-cv-preview[data-sffc-tailored-cv-style="sidebar"] .sffc-crm-apply-chat__tailored-cv-name,
+.sffc-crm-apply-chat .sffc-crm-apply-chat__tailored-cv-preview[data-sffc-tailored-cv-style="sidebar"] .sffc-crm-apply-chat__tailored-cv-contact-line,
+.sffc-crm-apply-chat .sffc-crm-apply-chat__tailored-cv-preview[data-sffc-tailored-cv-style="sidebar"] .sffc-crm-apply-chat__tailored-cv-sec-head,
+.sffc-crm-apply-chat .sffc-crm-apply-chat__tailored-cv-preview[data-sffc-tailored-cv-style="sidebar"] .sffc-crm-apply-chat__tailored-cv-summary-text,
+.sffc-crm-apply-chat .sffc-crm-apply-chat__tailored-cv-preview[data-sffc-tailored-cv-style="sidebar"] .sffc-crm-apply-chat__tailored-cv-entry-head,
+.sffc-crm-apply-chat .sffc-crm-apply-chat__tailored-cv-preview[data-sffc-tailored-cv-style="sidebar"] .sffc-crm-apply-chat__tailored-cv-entry-sub,
+.sffc-crm-apply-chat .sffc-crm-apply-chat__tailored-cv-preview[data-sffc-tailored-cv-style="sidebar"] .sffc-crm-apply-chat__tailored-cv-bullets,
+.sffc-crm-apply-chat .sffc-crm-apply-chat__tailored-cv-preview[data-sffc-tailored-cv-style="sidebar"] .sffc-crm-apply-chat__tailored-cv-skills-list {
+  font-family: Inter, Arial, Helvetica, sans-serif !important;
+}
+
+.sffc-crm-apply-chat .sffc-crm-apply-chat__tailored-cv-preview[data-sffc-tailored-cv-style="sidebar"] .sffc-crm-apply-chat__tailored-cv-name {
+  color: #0f172a !important;
+  font-size: 26px !important;
+  font-weight: 900 !important;
+  text-transform: none !important;
+}
+
+.sffc-crm-apply-chat .sffc-crm-apply-chat__tailored-cv-preview[data-sffc-tailored-cv-style="sidebar"] .sffc-crm-apply-chat__tailored-cv-top-rule {
+  border-top: 2px solid #2563eb !important;
+}
+
+.sffc-crm-apply-chat .sffc-crm-apply-chat__tailored-cv-preview[data-sffc-tailored-cv-style="sidebar"] .sffc-crm-apply-chat__tailored-cv-summary-text {
+  text-align: left !important;
+}
+
+.sffc-crm-apply-chat .sffc-crm-apply-chat__tailored-cv-preview[data-sffc-tailored-cv-style="sidebar"] .sffc-crm-apply-chat__tailored-cv-doc-section.is-experience,
+.sffc-crm-apply-chat .sffc-crm-apply-chat__tailored-cv-preview[data-sffc-tailored-cv-style="sidebar"] .sffc-crm-apply-chat__tailored-cv-doc-section.is-projects {
+  grid-column: 1 !important;
+}
+
+.sffc-crm-apply-chat .sffc-crm-apply-chat__tailored-cv-preview[data-sffc-tailored-cv-style="sidebar"] .sffc-crm-apply-chat__tailored-cv-doc-section.is-education,
+.sffc-crm-apply-chat .sffc-crm-apply-chat__tailored-cv-preview[data-sffc-tailored-cv-style="sidebar"] .sffc-crm-apply-chat__tailored-cv-doc-section.is-skills,
+.sffc-crm-apply-chat .sffc-crm-apply-chat__tailored-cv-preview[data-sffc-tailored-cv-style="sidebar"] .sffc-crm-apply-chat__tailored-cv-doc-section.is-languages {
+  grid-column: 2 !important;
+  padding: 13px 14px !important;
+  border: 1px solid #dbeafe !important;
+  border-radius: 8px !important;
+  background: #f8fbff !important;
+}
+
+.sffc-crm-apply-chat .sffc-crm-apply-chat__tailored-cv-preview[data-sffc-tailored-cv-style="sidebar"] .sffc-crm-apply-chat__tailored-cv-sec-head {
+  border-bottom-color: #2563eb !important;
+  color: #1d4ed8 !important;
+  font-size: 11px !important;
+}
+
+.sffc-crm-apply-chat .sffc-crm-apply-chat__tailored-cv-preview[data-sffc-tailored-cv-style="compact"] .sffc-crm-apply-chat__tailored-cv-sheet {
+  padding: 34px 48px 46px !important;
+  font-size: 13.2px !important;
+  line-height: 1.25 !important;
+}
+
+.sffc-crm-apply-chat .sffc-crm-apply-chat__tailored-cv-preview[data-sffc-tailored-cv-style="compact"] .sffc-crm-apply-chat__tailored-cv-header {
+  margin-bottom: 12px !important;
+}
+
+.sffc-crm-apply-chat .sffc-crm-apply-chat__tailored-cv-preview[data-sffc-tailored-cv-style="compact"] .sffc-crm-apply-chat__tailored-cv-name {
+  font-size: 22px !important;
+}
+
+.sffc-crm-apply-chat .sffc-crm-apply-chat__tailored-cv-preview[data-sffc-tailored-cv-style="compact"] .sffc-crm-apply-chat__tailored-cv-top-rule {
+  margin-bottom: 10px !important;
+}
+
+.sffc-crm-apply-chat .sffc-crm-apply-chat__tailored-cv-preview[data-sffc-tailored-cv-style="compact"] .sffc-crm-apply-chat__tailored-cv-summary-text,
+.sffc-crm-apply-chat .sffc-crm-apply-chat__tailored-cv-preview[data-sffc-tailored-cv-style="compact"] .sffc-crm-apply-chat__tailored-cv-doc-section,
+.sffc-crm-apply-chat .sffc-crm-apply-chat__tailored-cv-preview[data-sffc-tailored-cv-style="compact"] .sffc-crm-apply-chat__tailored-cv-entry {
+  margin-bottom: 8px !important;
+}
+
+.sffc-crm-apply-chat .sffc-crm-apply-chat__tailored-cv-preview[data-sffc-tailored-cv-style="compact"] .sffc-crm-apply-chat__tailored-cv-bullets {
+  margin-top: 3px !important;
+}
+
 .sffc-crm-apply-chat .sffc-crm-apply-chat__tailored-cv-document-card .sffc-crm-apply-chat__tailored-cv-name {
   font-size: 24px !important;
 }
@@ -18303,6 +18492,19 @@ body.sffc-crm-apply-chat-lock {
 
   .sffc-crm-apply-chat .sffc-crm-apply-chat__tailored-cv-document-card .sffc-crm-apply-chat__tailored-cv-doc-section {
     margin-bottom: 14px !important;
+  }
+
+  .sffc-crm-apply-chat .sffc-crm-apply-chat__tailored-cv-preview[data-sffc-tailored-cv-style="sidebar"] .sffc-crm-apply-chat__tailored-cv-sheet {
+    display: block !important;
+  }
+
+  .sffc-crm-apply-chat .sffc-crm-apply-chat__tailored-cv-preview[data-sffc-tailored-cv-style="sidebar"] .sffc-crm-apply-chat__tailored-cv-doc-section.is-education,
+  .sffc-crm-apply-chat .sffc-crm-apply-chat__tailored-cv-preview[data-sffc-tailored-cv-style="sidebar"] .sffc-crm-apply-chat__tailored-cv-doc-section.is-skills,
+  .sffc-crm-apply-chat .sffc-crm-apply-chat__tailored-cv-preview[data-sffc-tailored-cv-style="sidebar"] .sffc-crm-apply-chat__tailored-cv-doc-section.is-languages {
+    padding: 0 !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
   }
 }
 
