@@ -109019,6 +109019,127 @@
       );
     }
 
+    function getTailoredCvWordCount(value) {
+      return cleanMessageText(value || "")
+        .split(/\s+/)
+        .filter(Boolean).length;
+    }
+
+    function hasTailoredCvJoinedWordIssue(value) {
+      var text = cleanMessageText(value || "");
+      return (
+        /\b(?:theteam|gpsand|andentropy|overallrisk|portfolioby|reducingthe|timeof|investmentand|clientsand|withfinancial|offinancial|analyzingfinancial|analysingfinancial|sectorssuch|theinvestment|andanaverage|technicals?skills)\b/i.test(
+          text
+        ) ||
+        /[a-z](?:and|with|for|from|to|of|in|on|by|the|a|an)[A-Z]/.test(
+          text
+        )
+      );
+    }
+
+    function hasTailoredCvArticleIssue(value) {
+      var text = cleanMessageText(value || "");
+      return (
+        /\ba\s+[aeiou]/i.test(text) ||
+        /\ban\s+[bcdfghjklmnpqrstvwxyz]/i.test(text)
+      );
+    }
+
+    function hasTailoredCvRepeatedWordIssue(value) {
+      return /\b([a-z][a-z'-]{2,})\s+\1\b/i.test(
+        cleanMessageText(value || "")
+      );
+    }
+
+    function hasTailoredCvPunctuationIssue(original, rewritten) {
+      var before = cleanMessageText(original || "");
+      var after = cleanMessageText(rewritten || "");
+      if (!before || !after || before === after) {
+        return false;
+      }
+      return (
+        /[,;:]\S/.test(before) ||
+        /\s[,.;:]/.test(before) ||
+        (/^[a-z]/.test(before) && /^[A-Z]/.test(after)) ||
+        (!/[.!?]$/.test(before) && /[.!?]$/.test(after))
+      );
+    }
+
+    function hasTailoredCvWhitespaceRepair(original, rewritten) {
+      var before = cleanMessageText(original || "");
+      var after = cleanMessageText(rewritten || "");
+      if (!before || !after) {
+        return false;
+      }
+      return (
+        hasTailoredCvJoinedWordIssue(before) ||
+        Math.abs(before.length - after.length) <= 16 &&
+          before.replace(/\s+/g, "") === after.replace(/\s+/g, "")
+      );
+    }
+
+    function getTailoredCvRewriteReview(original, rewritten) {
+      var before = cleanMessageText(original || "");
+      var after = cleanMessageText(rewritten || "");
+      var beforeWords = getTailoredCvWordCount(before);
+      var afterWords = getTailoredCvWordCount(after);
+      if (hasTailoredCvWhitespaceRepair(before, after)) {
+        return {
+          type: "rewrite",
+          title: isArabicChat() ? "إصلاح المسافات" : "Spacing fixed",
+          detail: isArabicChat()
+            ? "تم فصل الكلمات الملتصقة حتى تصبح الجملة قابلة للقراءة."
+            : "Joined words were separated so the sentence reads cleanly.",
+        };
+      }
+      if (
+        hasTailoredCvArticleIssue(before) ||
+        hasTailoredCvRepeatedWordIssue(before)
+      ) {
+        return {
+          type: "rewrite",
+          title: isArabicChat() ? "تصحيح نحوي" : "Grammar issue fixed",
+          detail: isArabicChat()
+            ? "تم تنظيف خطأ نحوي أو تكرار بدون تغيير معنى الدليل."
+            : "A grammar or repeated-word issue was cleaned up without changing the evidence.",
+        };
+      }
+      if (hasTailoredCvPunctuationIssue(before, after)) {
+        return {
+          type: "rewrite",
+          title: isArabicChat() ? "تنظيف علامات الترقيم" : "Punctuation cleaned up",
+          detail: isArabicChat()
+            ? "تم تحسين علامات الترقيم والحروف الكبيرة لقراءة أكثر احترافية."
+            : "Punctuation and capitalization were cleaned up for a more professional read.",
+        };
+      }
+      if (beforeWords >= 34 && afterWords <= beforeWords - 5) {
+        return {
+          type: "rewrite",
+          title: isArabicChat() ? "اختصار النقطة" : "Bullet tightened",
+          detail: isArabicChat()
+            ? "تم تقليل الحشو حتى تكون النقطة أسرع وأسهل في القراءة."
+            : "Extra wording was reduced so the bullet is easier to scan.",
+        };
+      }
+      if (afterWords > beforeWords + 4) {
+        return {
+          type: "rewrite",
+          title: isArabicChat() ? "توضيح الأثر" : "Impact clarified",
+          detail: isArabicChat()
+            ? "تمت إضافة سياق مهني أوضح مع الحفاظ على نفس الدليل."
+            : "The point was made clearer while preserving the same source evidence.",
+        };
+      }
+      return {
+        type: "rewrite",
+        title: isArabicChat() ? "تحسين صياغة السيرة" : "CV wording polished",
+        detail: isArabicChat()
+          ? "تم تحسين الجملة لتبدو طبيعية ومناسبة للسيرة الذاتية."
+          : "The sentence was polished so it sounds natural in a CV.",
+      };
+    }
+
     function buildTailoredCvReviewSuggestions(model) {
       var suggestions = [];
       var source = model || {};
@@ -109058,16 +109179,16 @@
             bulletIndex +
             ".rewritten";
           if (original && rewritten && original !== rewritten) {
+            var rewriteReview = getTailoredCvRewriteReview(
+              original,
+              rewritten
+            );
             hasRewriteSuggestion = true;
             addTailoredCvReviewSuggestion(suggestions, {
-              type: "rewrite",
+              type: rewriteReview.type,
               path: path,
-              title: isArabicChat()
-                ? "صياغة أقوى"
-                : "Stronger CV wording",
-              detail: isArabicChat()
-                ? "تم تحويل الدليل إلى جملة أوضح مع الحفاظ على معنى السيرة الأصلية."
-                : "Rewritten from the original evidence while preserving the same claim.",
+              title: rewriteReview.title,
+              detail: rewriteReview.detail,
             });
           } else if (((bullet && bullet.changes) || []).length) {
             addTailoredCvReviewSuggestion(suggestions, {

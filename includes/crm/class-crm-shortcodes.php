@@ -41056,6 +41056,7 @@ CRITICAL INSTRUCTIONS:
                 'pdfWorker' => 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js',
                 'mammothScriptUrl' => 'https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js',
                 'liteParseEndpoint' => $this->get_liteparse_endpoint(),
+                'liteParseReviewEndpoint' => $this->get_liteparse_review_endpoint(),
                 'liteParseToken' => $this->get_liteparse_public_token(),
                 'cvIntelligenceOntologyUrl' => file_exists(SFFC_PLUGIN_DIR . 'assets/data/cv-intelligence-ontology.json')
                     ? SFFC_PLUGIN_URL . 'assets/data/cv-intelligence-ontology.json?ver=' . (string) filemtime(SFFC_PLUGIN_DIR . 'assets/data/cv-intelligence-ontology.json')
@@ -42282,6 +42283,7 @@ CRITICAL INSTRUCTIONS:
                 'pdfWorker' => 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js',
                 'mammothScriptUrl' => 'https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js',
                 'liteParseEndpoint' => $this->get_liteparse_endpoint(),
+                'liteParseReviewEndpoint' => $this->get_liteparse_review_endpoint(),
                 'liteParseToken' => $this->get_liteparse_public_token(),
                 'cvIntelligenceOntologyUrl' => file_exists(SFFC_PLUGIN_DIR . 'assets/data/cv-intelligence-ontology.json')
                     ? SFFC_PLUGIN_URL . 'assets/data/cv-intelligence-ontology.json?ver=' . (string) filemtime(SFFC_PLUGIN_DIR . 'assets/data/cv-intelligence-ontology.json')
@@ -91901,6 +91903,20 @@ HTML;
             }
 
             return esc_url_raw($endpoint);
+        }
+
+        private function get_liteparse_review_endpoint()
+        {
+            $endpoint = $this->get_liteparse_endpoint();
+            if ($endpoint === '') {
+                return '';
+            }
+
+            if (preg_match('#/parse/?$#', $endpoint)) {
+                return esc_url_raw(preg_replace('#/parse/?$#', '/review-text', $endpoint));
+            }
+
+            return esc_url_raw(rtrim($endpoint, '/') . '/review-text');
         }
 
         private function get_liteparse_public_token()

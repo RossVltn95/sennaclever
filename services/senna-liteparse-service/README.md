@@ -1,6 +1,7 @@
 # Senna LiteParse Service
 
-Small HTTP wrapper around `@llamaindex/liteparse` for CV extraction.
+Small HTTP wrapper around `@llamaindex/liteparse` for CV extraction and
+`harper.js` for offline grammar review.
 
 It is intentionally separate from the WordPress plugin so native parser
 dependencies stay out of the plugin zip.
@@ -9,6 +10,7 @@ dependencies stay out of the plugin zip.
 
 - `GET /health`
 - `POST /parse` with multipart field `file`
+- `POST /review-text` with JSON body `{ "text": "..." }`
 
 `/parse` returns:
 
@@ -22,6 +24,26 @@ dependencies stay out of the plugin zip.
 }
 ```
 
+`/review-text` returns:
+
+```json
+{
+  "ok": true,
+  "engine": "harper",
+  "dialect": "american",
+  "matches": [
+    {
+      "start": 8,
+      "end": 9,
+      "problemText": "a",
+      "kind": "Miscellaneous",
+      "message": "Incorrect indefinite article.",
+      "suggestions": [{ "kind": "replace", "replacement": "an" }]
+    }
+  ]
+}
+```
+
 ## Railway Variables
 
 - `CORS_ORIGIN=https://joinsenna.com`
@@ -30,6 +52,8 @@ dependencies stay out of the plugin zip.
 - `LITEPARSE_OCR_LANGUAGE=eng`
 - `LITEPARSE_MAX_PAGES=20`
 - `LITEPARSE_TIMEOUT_SECONDS=20`
+- `HARPER_DIALECT=american` optional, supports `american`, `british`, `canadian`, `australian`
+- `HARPER_MAX_TEXT_LENGTH=20000`
 
 ## WordPress Variables
 

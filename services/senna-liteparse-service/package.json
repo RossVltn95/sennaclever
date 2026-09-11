@@ -9,6 +9,7 @@
   "dependencies": {
     "@llamaindex/liteparse": "^2.14.2",
     "express": "^5.1.0",
+    "harper.js": "^2.10.0",
     "multer": "^2.0.2"
   },
   "engines": {

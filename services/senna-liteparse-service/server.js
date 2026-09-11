@@ -1,6 +1,8 @@
 import express from "express";
 import multer from "multer";
 import { LiteParse } from "@llamaindex/liteparse";
+import { binary } from "harper.js/binary";
+import { Dialect, LocalLinter, SuggestionKind } from "harper.js";
 
 process.on("uncaughtException", (error) => {
   console.error("uncaughtException", error);
@@ -21,6 +23,8 @@ const upload = multer({
 const port = Number(process.env.PORT || 3000);
 const allowedOrigin = String(process.env.CORS_ORIGIN || "*").trim() || "*";
 const token = String(process.env.LITEPARSE_TOKEN || "").trim();
+const harperDialect = String(process.env.HARPER_DIALECT || "american").toLowerCase();
+const harperMaxTextLength = Number(process.env.HARPER_MAX_TEXT_LENGTH || 20000);
 const parser = new LiteParse({
   outputFormat: "json",
   ocrEnabled: process.env.LITEPARSE_OCR_ENABLED !== "0",
@@ -28,6 +32,16 @@ const parser = new LiteParse({
   maxPages: Number(process.env.LITEPARSE_MAX_PAGES || 20),
   parseTimeout: Number(process.env.LITEPARSE_TIMEOUT_SECONDS || 20),
   poolSize: Number(process.env.LITEPARSE_POOL_SIZE || 1),
+});
+const harperDialectMap = {
+  american: Dialect.American,
+  british: Dialect.British,
+  canadian: Dialect.Canadian,
+  australian: Dialect.Australian,
+};
+const harperLinter = new LocalLinter({
+  binary,
+  dialect: harperDialectMap[harperDialect] || Dialect.American,
 });
 
 function setCorsHeaders(req, res) {
@@ -67,6 +81,37 @@ function normalizeParseResult(result) {
   };
 }
 
+function normalizeHarperSuggestion(suggestion) {
+  if (!suggestion) {
+    return null;
+  }
+  return {
+    kind:
+      suggestion.kind() === SuggestionKind.Remove ? "remove" : "replace",
+    replacement: String(suggestion.get_replacement_text() || ""),
+  };
+}
+
+function normalizeHarperLint(lint, text) {
+  const span = lint.span();
+  const start = Number(span?.start || 0);
+  const end = Number(span?.end || start);
+  const suggestions = Array.from(lint.suggestions ? lint.suggestions() : [])
+    .map(normalizeHarperSuggestion)
+    .filter(Boolean)
+    .slice(0, 5);
+  return {
+    start,
+    end,
+    problemText: String(
+      lint.get_problem_text ? lint.get_problem_text() : text.slice(start, end)
+    ),
+    kind: String(lint.lint_kind_pretty ? lint.lint_kind_pretty() : lint.lint_kind?.() || "Grammar"),
+    message: String(lint.message ? lint.message() : ""),
+    suggestions,
+  };
+}
+
 app.use((req, res, next) => {
   setCorsHeaders(req, res);
   if (req.method === "OPTIONS") {
@@ -75,11 +120,13 @@ app.use((req, res, next) => {
   }
   next();
 });
+app.use(express.json({ limit: "256kb" }));
 
 app.get("/health", (req, res) => {
   res.json({
     ok: true,
     parser: "liteparse",
+    grammar: "harper",
     ocrEnabled: process.env.LITEPARSE_OCR_ENABLED !== "0",
   });
 });
@@ -100,6 +147,44 @@ app.post("/parse", requireToken, upload.single("file"), async (req, res) => {
       message: error && error.message ? error.message : String(error),
     });
   }
+});
+
+app.post("/review-text", requireToken, async (req, res) => {
+  try {
+    const text = String(req.body?.text || "").slice(0, harperMaxTextLength);
+    if (!text.trim()) {
+      res.status(400).json({ ok: false, error: "missing_text" });
+      return;
+    }
+
+    const lints = await harperLinter.lint(text);
+    res.json({
+      ok: true,
+      engine: "harper",
+      dialect: harperDialectMap[harperDialect] ? harperDialect : "american",
+      matches: lints.map((lint) => normalizeHarperLint(lint, text)),
+    });
+  } catch (error) {
+    res.status(500).json({
+      ok: false,
+      error: "review_failed",
+      message: error && error.message ? error.message : String(error),
+    });
+  }
+});
+
+async function shutdown() {
+  try {
+    await harperLinter.dispose();
+  } catch (error) {}
+}
+
+process.on("SIGTERM", () => {
+  shutdown().finally(() => process.exit(0));
+});
+
+process.on("SIGINT", () => {
+  shutdown().finally(() => process.exit(0));
 });
 
 const server = app.listen(port, "0.0.0.0", () => {
