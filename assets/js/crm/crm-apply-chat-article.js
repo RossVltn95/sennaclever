@@ -109146,9 +109146,14 @@
       var problem = cleanMessageText(match && match.problemText);
       var suggestion =
         ((match && match.suggestions) || []).find(function (item) {
-          return item && cleanMessageText(item.replacement || "");
+          return (
+            item &&
+            (cleanMessageText(item.replacement || "") ||
+              cleanMessageText(item.kind || "") === "remove")
+          );
         }) || null;
       var replacement = cleanMessageText(suggestion && suggestion.replacement);
+      var action = cleanMessageText(suggestion && suggestion.kind);
       var detailParts = [];
 
       if (!message && !kind) {
@@ -109172,6 +109177,7 @@
         detail: detailParts.join(" · ") || message || kind,
         problemText: problem,
         replacement: replacement,
+        replacementKind: action,
       };
     }
 
@@ -109185,6 +109191,9 @@
         path: path,
         title: review.title,
         detail: review.detail,
+        problemText: review.problemText,
+        replacement: review.replacement,
+        replacementKind: review.replacementKind,
       };
     }
 
@@ -109618,6 +109627,12 @@
             escapeHtml(suggestion.title || "") +
             '" data-sffc-tailored-cv-review-detail="' +
             escapeHtml(suggestion.detail || "") +
+            '" data-sffc-tailored-cv-review-problem="' +
+            escapeHtml(suggestion.problemText || "") +
+            '" data-sffc-tailored-cv-review-replacement="' +
+            escapeHtml(suggestion.replacement || "") +
+            '" data-sffc-tailored-cv-review-replacement-kind="' +
+            escapeHtml(suggestion.replacementKind || "") +
             '" data-sffc-tailored-cv-review-tooltip="' +
             escapeHtml(reviewText)
           : "") +
@@ -139959,6 +139974,19 @@
       var field = wrapper
         ? wrapper.querySelector('[data-sffc-tailored-cv-review-id="' + id + '"]')
         : null;
+      var problem = cleanMessageText(
+        field ? field.getAttribute("data-sffc-tailored-cv-review-problem") : ""
+      );
+      var replacement = cleanMessageText(
+        field
+          ? field.getAttribute("data-sffc-tailored-cv-review-replacement")
+          : ""
+      );
+      var replacementKind = cleanMessageText(
+        field
+          ? field.getAttribute("data-sffc-tailored-cv-review-replacement-kind")
+          : ""
+      );
       if (!id) {
         return false;
       }
@@ -139968,6 +139996,24 @@
         tailoredCvReviewDismissed[id] = true;
       }
       if (field) {
+        if (
+          accepted &&
+          problem &&
+          (replacement || replacementKind === "remove")
+        ) {
+          field.textContent = String(field.textContent || "").replace(
+            problem,
+            replacement
+          );
+          setTailoredCvModelPath(
+            field.getAttribute("data-sffc-tailored-cv-field") || "",
+            field.textContent || ""
+          );
+          editedTailoredCvDirty = true;
+          tailoredCvGrammarReviewsByPath = {};
+          tailoredCvGrammarReviewSignature = "";
+          tailoredCvGrammarReviewPendingSignature = "";
+        }
         field.classList.remove(
           "sffc-crm-apply-chat__tailored-cv-highlight",
           "is-rewrite",
@@ -139980,6 +140026,9 @@
         field.removeAttribute("data-sffc-tailored-cv-review-label");
         field.removeAttribute("data-sffc-tailored-cv-review-title");
         field.removeAttribute("data-sffc-tailored-cv-review-detail");
+        field.removeAttribute("data-sffc-tailored-cv-review-problem");
+        field.removeAttribute("data-sffc-tailored-cv-review-replacement");
+        field.removeAttribute("data-sffc-tailored-cv-review-replacement-kind");
         field.removeAttribute("data-sffc-tailored-cv-review-tooltip");
         field.removeAttribute("title");
       }
