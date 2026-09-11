@@ -44048,7 +44048,7 @@ CRITICAL INSTRUCTIONS:
             global $wpdb;
 
             $installed_version = (string) get_option('sffc_crm_application_tasks_schema_version', '');
-            if ($installed_version === '1') {
+            if ($installed_version === '2') {
                 return;
             }
             if (!function_exists('dbDelta')) {
@@ -44101,7 +44101,7 @@ CRITICAL INSTRUCTIONS:
             ) $charset_collate;";
 
             dbDelta($sql);
-            update_option('sffc_crm_application_tasks_schema_version', '1', false);
+            update_option('sffc_crm_application_tasks_schema_version', '2', false);
         }
 
         private function get_crm_application_worker_token()
@@ -44887,54 +44887,72 @@ CRITICAL INSTRUCTIONS:
                 wp_send_json_error(['message' => __('Invalid worker token.', 'senna-finance')], 403);
             }
 
-            global $wpdb;
-            $this->maybe_create_crm_application_tasks_table();
-            $table = $wpdb->prefix . 'sffc_crm_application_tasks';
-            $worker_id = sanitize_text_field(wp_unslash((string) ($_POST['worker_id'] ?? 'sffc-worker')));
-            $stale_cutoff = date('Y-m-d H:i:s', current_time('timestamp') - 20 * MINUTE_IN_SECONDS);
-            $task = $wpdb->get_row(
-                $wpdb->prepare(
-                    "SELECT * FROM {$table} WHERE status = %s OR (status = %s AND locked_at < %s) ORDER BY created_at ASC LIMIT 1",
-                    'queued',
-                    'processing',
-                    $stale_cutoff
-                ),
-                ARRAY_A
-            );
+            try {
+                global $wpdb;
+                $this->maybe_create_crm_application_tasks_table();
+                $table = $wpdb->prefix . 'sffc_crm_application_tasks';
+                $worker_id = sanitize_text_field(wp_unslash((string) ($_POST['worker_id'] ?? 'sffc-worker')));
+                $stale_cutoff = date('Y-m-d H:i:s', current_time('timestamp') - 20 * MINUTE_IN_SECONDS);
+                $task = $wpdb->get_row(
+                    $wpdb->prepare(
+                        "SELECT * FROM {$table} WHERE status = %s OR (status = %s AND locked_at < %s) ORDER BY created_at ASC LIMIT 1",
+                        'queued',
+                        'processing',
+                        $stale_cutoff
+                    ),
+                    ARRAY_A
+                );
 
-            if (!is_array($task) || empty($task['id'])) {
-                wp_send_json_success(['task' => null]);
+                if ($wpdb->last_error !== '') {
+                    wp_send_json_error([
+                        'message' => __('Could not query application tasks.', 'senna-finance'),
+                        'database_error' => sanitize_text_field($wpdb->last_error),
+                    ], 500);
+                }
+
+                if (!is_array($task) || empty($task['id'])) {
+                    wp_send_json_success(['task' => null]);
+                }
+
+                $updated = $wpdb->query(
+                    $wpdb->prepare(
+                        "UPDATE {$table}
+                         SET status = %s, worker_id = %s, locked_at = %s, updated_at = %s
+                         WHERE id = %d AND (status = %s OR (status = %s AND locked_at < %s))",
+                        'processing',
+                        $worker_id,
+                        current_time('mysql'),
+                        current_time('mysql'),
+                        (int) $task['id'],
+                        'queued',
+                        'processing',
+                        $stale_cutoff
+                    )
+                );
+
+                if ($updated === false || $wpdb->last_error !== '') {
+                    wp_send_json_error([
+                        'message' => __('Could not lock application task.', 'senna-finance'),
+                        'database_error' => sanitize_text_field($wpdb->last_error),
+                    ], 500);
+                }
+                if ((int) $updated === 0) {
+                    wp_send_json_success(['task' => null]);
+                }
+
+                $task['status'] = 'processing';
+                $task['worker_id'] = $worker_id;
+                $task['payload'] = is_string($task['payload'] ?? '') ? json_decode((string) $task['payload'], true) : [];
+                $task['result_payload'] = is_string($task['result_payload'] ?? '') ? json_decode((string) $task['result_payload'], true) : [];
+
+                wp_send_json_success(['task' => $task]);
+            } catch (Throwable $exception) {
+                error_log('SFFC application worker claim failed: ' . $exception->getMessage());
+                wp_send_json_error([
+                    'message' => __('Application worker claim failed.', 'senna-finance'),
+                    'error' => sanitize_text_field($exception->getMessage()),
+                ], 500);
             }
-
-            $updated = $wpdb->query(
-                $wpdb->prepare(
-                    "UPDATE {$table}
-                     SET status = %s, worker_id = %s, locked_at = %s, updated_at = %s
-                     WHERE id = %d AND (status = %s OR (status = %s AND locked_at < %s))",
-                    'processing',
-                    $worker_id,
-                    current_time('mysql'),
-                    current_time('mysql'),
-                    (int) $task['id'],
-                    'queued',
-                    'processing',
-                    $stale_cutoff
-                )
-            );
-
-            if ($updated === false) {
-                wp_send_json_error(['message' => __('Could not lock application task.', 'senna-finance')], 500);
-            }
-            if ((int) $updated === 0) {
-                wp_send_json_success(['task' => null]);
-            }
-
-            $task['status'] = 'processing';
-            $task['worker_id'] = $worker_id;
-            $task['payload'] = is_string($task['payload'] ?? '') ? json_decode((string) $task['payload'], true) : [];
-            $task['result_payload'] = is_string($task['result_payload'] ?? '') ? json_decode((string) $task['result_payload'], true) : [];
-
-            wp_send_json_success(['task' => $task]);
         }
 
         public function ajax_crm_application_worker_get_task()
