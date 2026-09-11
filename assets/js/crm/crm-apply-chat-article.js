@@ -44126,10 +44126,9 @@
         '">' +
         (visible
           ? renderApplyResultsPreviewLoader(
-              uiText(
-                "Preparing employer page preview...",
-                "جار تجهيز معاينة صفحة جهة العمل..."
-              )
+              isArabicChat()
+                ? "جار تجهيز معاينة صفحة جهة العمل..."
+                : "Preparing employer page preview..."
             )
           : "") +
         "</div>"
