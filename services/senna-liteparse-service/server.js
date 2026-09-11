@@ -2,6 +2,14 @@ import express from "express";
 import multer from "multer";
 import { LiteParse } from "@llamaindex/liteparse";
 
+process.on("uncaughtException", (error) => {
+  console.error("uncaughtException", error);
+});
+
+process.on("unhandledRejection", (error) => {
+  console.error("unhandledRejection", error);
+});
+
 const app = express();
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -94,6 +102,11 @@ app.post("/parse", requireToken, upload.single("file"), async (req, res) => {
   }
 });
 
-app.listen(port, () => {
+const server = app.listen(port, "0.0.0.0", () => {
   console.log(`Senna LiteParse service listening on ${port}`);
+});
+
+server.on("error", (error) => {
+  console.error("server error", error);
+  process.exitCode = 1;
 });
