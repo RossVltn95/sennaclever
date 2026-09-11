@@ -18120,8 +18120,24 @@ body.sffc-crm-apply-chat-lock {
   border-left-color: #0d9488 !important;
 }
 
-.sffc-crm-apply-chat .sffc-crm-apply-chat__tailored-cv-suggestion.is-keyword {
+.sffc-crm-apply-chat .sffc-crm-apply-chat__tailored-cv-suggestion.is-grammar {
+  border-left-color: #dc2626 !important;
+}
+
+.sffc-crm-apply-chat .sffc-crm-apply-chat__tailored-cv-suggestion.is-spelling {
+  border-left-color: #f59e0b !important;
+}
+
+.sffc-crm-apply-chat .sffc-crm-apply-chat__tailored-cv-suggestion.is-punctuation {
   border-left-color: #2563eb !important;
+}
+
+.sffc-crm-apply-chat .sffc-crm-apply-chat__tailored-cv-suggestion.is-clarity {
+  border-left-color: #7c3aed !important;
+}
+
+.sffc-crm-apply-chat .sffc-crm-apply-chat__tailored-cv-suggestion.is-keyword {
+  border-left-color: #0ea5e9 !important;
 }
 
 .sffc-crm-apply-chat .sffc-crm-apply-chat__tailored-cv-suggestion.is-quality {
@@ -18224,12 +18240,44 @@ body.sffc-crm-apply-chat-lock {
   box-shadow: inset 0 -2px 0 rgba(13, 148, 136, 0.75) !important;
 }
 
+.sffc-crm-apply-chat .sffc-crm-apply-chat__tailored-cv-highlight.is-grammar {
+  background: linear-gradient(
+    transparent 58%,
+    rgba(254, 202, 202, 0.46) 58%
+  ) !important;
+  box-shadow: inset 0 -2px 0 rgba(220, 38, 38, 0.78) !important;
+}
+
+.sffc-crm-apply-chat .sffc-crm-apply-chat__tailored-cv-highlight.is-spelling {
+  background: linear-gradient(
+    transparent 58%,
+    rgba(253, 230, 138, 0.52) 58%
+  ) !important;
+  box-shadow: inset 0 -2px 0 rgba(245, 158, 11, 0.82) !important;
+}
+
+.sffc-crm-apply-chat .sffc-crm-apply-chat__tailored-cv-highlight.is-punctuation {
+  background: linear-gradient(
+    transparent 58%,
+    rgba(191, 219, 254, 0.44) 58%
+  ) !important;
+  box-shadow: inset 0 -2px 0 rgba(37, 99, 235, 0.78) !important;
+}
+
+.sffc-crm-apply-chat .sffc-crm-apply-chat__tailored-cv-highlight.is-clarity {
+  background: linear-gradient(
+    transparent 58%,
+    rgba(221, 214, 254, 0.48) 58%
+  ) !important;
+  box-shadow: inset 0 -2px 0 rgba(124, 58, 237, 0.76) !important;
+}
+
 .sffc-crm-apply-chat .sffc-crm-apply-chat__tailored-cv-highlight.is-keyword {
   background: linear-gradient(
     transparent 58%,
-    rgba(147, 197, 253, 0.34) 58%
+    rgba(186, 230, 253, 0.42) 58%
   ) !important;
-  box-shadow: inset 0 -2px 0 rgba(37, 99, 235, 0.7) !important;
+  box-shadow: inset 0 -2px 0 rgba(14, 165, 233, 0.78) !important;
 }
 
 .sffc-crm-apply-chat .sffc-crm-apply-chat__tailored-cv-highlight.is-quality {
@@ -18245,6 +18293,26 @@ body.sffc-crm-apply-chat-lock {
   border-radius: 2px !important;
   background: rgba(221, 214, 254, 0.72) !important;
   color: inherit !important;
+  box-shadow: inset 0 -2px 0 rgba(124, 58, 237, 0.9) !important;
+}
+
+.sffc-crm-apply-chat .sffc-crm-apply-chat__tailored-cv-highlight.is-grammar .sffc-crm-apply-chat__tailored-cv-problem-mark {
+  background: rgba(254, 202, 202, 0.72) !important;
+  box-shadow: inset 0 -2px 0 rgba(220, 38, 38, 0.9) !important;
+}
+
+.sffc-crm-apply-chat .sffc-crm-apply-chat__tailored-cv-highlight.is-spelling .sffc-crm-apply-chat__tailored-cv-problem-mark {
+  background: rgba(253, 230, 138, 0.78) !important;
+  box-shadow: inset 0 -2px 0 rgba(245, 158, 11, 0.9) !important;
+}
+
+.sffc-crm-apply-chat .sffc-crm-apply-chat__tailored-cv-highlight.is-punctuation .sffc-crm-apply-chat__tailored-cv-problem-mark {
+  background: rgba(191, 219, 254, 0.74) !important;
+  box-shadow: inset 0 -2px 0 rgba(37, 99, 235, 0.9) !important;
+}
+
+.sffc-crm-apply-chat .sffc-crm-apply-chat__tailored-cv-highlight.is-clarity .sffc-crm-apply-chat__tailored-cv-problem-mark {
+  background: rgba(221, 214, 254, 0.76) !important;
   box-shadow: inset 0 -2px 0 rgba(124, 58, 237, 0.9) !important;
 }
 

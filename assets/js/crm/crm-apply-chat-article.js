@@ -109002,6 +109002,39 @@
       return "is-rewrite";
     }
 
+    function getTailoredCvReviewClassForSuggestion(suggestion) {
+      var safe = suggestion || {};
+      var type = cleanMessageText(safe.type || "");
+      var baseClass = getTailoredCvReviewClassForType(type);
+      var text = cleanMessageText(
+        [
+          safe.kind,
+          safe.title,
+          safe.detail,
+          safe.problemText,
+          safe.replacementKind,
+        ]
+          .filter(Boolean)
+          .join(" ")
+      ).toLowerCase();
+      if (type === "keyword" || type === "structure") {
+        return baseClass;
+      }
+      if (/\b(?:spell|spelling|typo|typographical|unknown word)\b/.test(text)) {
+        return baseClass + " is-spelling";
+      }
+      if (/\b(?:punctuation|comma|period|full stop|apostrophe|colon|semicolon)\b/.test(text)) {
+        return baseClass + " is-punctuation";
+      }
+      if (/\b(?:grammar|article|agreement|tense|repeated|word choice)\b/.test(text)) {
+        return baseClass + " is-grammar";
+      }
+      if (/\b(?:clarity|readability|wordy|concise|tightened|scan|style|passive)\b/.test(text)) {
+        return baseClass + " is-clarity";
+      }
+      return baseClass;
+    }
+
     function getTailoredCvReviewLabel(type) {
       if (isArabicChat()) {
         if (type === "keyword") return "كلمات الدور";
@@ -109025,7 +109058,7 @@
         Object.assign({}, safe, {
           id: id,
           label: getTailoredCvReviewLabel(safe.type),
-          className: getTailoredCvReviewClassForType(safe.type),
+          className: getTailoredCvReviewClassForSuggestion(safe),
           accepted: Boolean(tailoredCvReviewAccepted[id]),
         })
       );
@@ -109179,6 +109212,7 @@
       }
       return {
         type: "quality",
+        kind: kind,
         path: range && range.path,
         title: kind
           ? kind + (message ? ": " + message : "")
@@ -109198,6 +109232,7 @@
       return {
         type: review.type || "quality",
         path: path,
+        kind: review.kind,
         title: review.title,
         detail: review.detail,
         problemText: review.problemText,
