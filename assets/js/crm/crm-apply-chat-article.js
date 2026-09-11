@@ -20855,6 +20855,7 @@
     var editedTailoredCvModel = null;
     var editedTailoredCvDirty = false;
     var activeTailoredCvStyle = "classic";
+    var activeTailoredCvSelectionField = null;
     var tailoredCvReviewDismissed = {};
     var tailoredCvReviewAccepted = {};
     var tailoredCvGrammarReviewsByPath = {};
@@ -113196,6 +113197,25 @@
       editedTailoredCvDirty = true;
     }
 
+    function setTailoredCvModelRichField(path, html) {
+      if (!editedTailoredCvModel || !path) {
+        return;
+      }
+      if (!editedTailoredCvModel._richFields) {
+        editedTailoredCvModel._richFields = {};
+      }
+      editedTailoredCvModel._richFields[path] = String(html || "");
+      editedTailoredCvDirty = true;
+    }
+
+    function getTailoredCvModelRichField(path) {
+      return editedTailoredCvModel &&
+        editedTailoredCvModel._richFields &&
+        editedTailoredCvModel._richFields[path]
+        ? String(editedTailoredCvModel._richFields[path] || "")
+        : "";
+    }
+
     function getTailoredCvReviewId(path, type) {
       return cleanMessageText([type || "review", path || ""].join(":"))
         .toLowerCase()
@@ -113858,6 +113878,76 @@
       );
     }
 
+    function renderTailoredCvFormattingToolbar() {
+      return (
+        '<div class="sffc-crm-apply-chat__tailored-cv-format-toolbar" data-sffc-tailored-cv-format-toolbar hidden aria-label="' +
+        escapeHtml(isArabicChat() ? "تنسيق السيرة" : "CV text formatting") +
+        '">' +
+        '<button type="button" data-sffc-tailored-cv-format-command="bold" aria-label="' +
+        escapeHtml(isArabicChat() ? "غامق" : "Bold") +
+        '"><strong>B</strong></button>' +
+        '<button type="button" data-sffc-tailored-cv-format-command="italic" aria-label="' +
+        escapeHtml(isArabicChat() ? "مائل" : "Italic") +
+        '"><em>I</em></button>' +
+        '<span class="sffc-crm-apply-chat__tailored-cv-format-divider"></span>' +
+        [
+          ["#111827", isArabicChat() ? "أسود" : "Black"],
+          ["#0f766e", isArabicChat() ? "أخضر" : "Teal"],
+          ["#2563eb", isArabicChat() ? "أزرق" : "Blue"],
+          ["#b91c1c", isArabicChat() ? "أحمر" : "Red"],
+        ]
+          .map(function (item) {
+            return (
+              '<button type="button" class="sffc-crm-apply-chat__tailored-cv-color-swatch" data-sffc-tailored-cv-format-command="foreColor" data-sffc-tailored-cv-format-value="' +
+              escapeHtml(item[0]) +
+              '" aria-label="' +
+              escapeHtml(item[1]) +
+              '" title="' +
+              escapeHtml(item[1]) +
+              '"><span style="background:' +
+              escapeHtml(item[0]) +
+              '"></span></button>'
+            );
+          })
+          .join("") +
+        "</div>"
+      );
+    }
+
+    function renderTailoredCvSaveControls() {
+      return (
+        '<div class="sffc-crm-apply-chat__tailored-cv-save-controls">' +
+        '<button type="button" class="sffc-crm-apply-chat__tailored-cv-save" data-sffc-tailored-cv-save>' +
+        escapeHtml(isArabicChat() ? "حفظ السيرة" : "Save CV") +
+        "</button>" +
+        '<span class="sffc-crm-apply-chat__tailored-cv-editor-status" data-sffc-tailored-cv-edit-status>' +
+        escapeHtml(isArabicChat() ? "جاهز للتحرير" : "Editable") +
+        "</span>" +
+        "</div>"
+      );
+    }
+
+    function renderTailoredCvEntryMoveControls(entryIndex) {
+      return (
+        '<span class="sffc-crm-apply-chat__tailored-cv-entry-tools" contenteditable="false">' +
+        '<button type="button" data-sffc-tailored-cv-entry-move="up" data-sffc-tailored-cv-entry-index="' +
+        escapeHtml(String(entryIndex)) +
+        '" aria-label="' +
+        escapeHtml(isArabicChat() ? "حرّك الخبرة للأعلى" : "Move experience up") +
+        '" title="' +
+        escapeHtml(isArabicChat() ? "للأعلى" : "Move up") +
+        '">↑</button>' +
+        '<button type="button" data-sffc-tailored-cv-entry-move="down" data-sffc-tailored-cv-entry-index="' +
+        escapeHtml(String(entryIndex)) +
+        '" aria-label="' +
+        escapeHtml(isArabicChat() ? "حرّك الخبرة للأسفل" : "Move experience down") +
+        '" title="' +
+        escapeHtml(isArabicChat() ? "للأسفل" : "Move down") +
+        '">↓</button>' +
+        "</span>"
+      );
+    }
+
     function getTailoredCvEditableAttributes(path, label, suggestion) {
       var reviewText = suggestion
         ? cleanMessageText(
@@ -113871,7 +113961,7 @@
           )
         : "";
       return (
-        ' contenteditable="plaintext-only" spellcheck="false" role="textbox" tabindex="0" data-sffc-tailored-cv-field="' +
+        ' contenteditable="true" spellcheck="true" role="textbox" tabindex="0" data-sffc-tailored-cv-field="' +
         escapeHtml(path || "") +
         (suggestion
           ? '" data-sffc-tailored-cv-review-id="' +
@@ -113899,10 +113989,59 @@
       );
     }
 
-    function renderTailoredCvFieldContent(value, suggestion) {
+    function sanitizeTailoredCvRichHtml(html) {
+      var container;
+      var allowedTags = {
+        B: true,
+        STRONG: true,
+        I: true,
+        EM: true,
+        SPAN: true,
+        FONT: true,
+        BR: true,
+      };
+      if (!html || typeof document === "undefined") {
+        return "";
+      }
+      container = document.createElement("div");
+      container.innerHTML = String(html || "");
+      Array.prototype.slice
+        .call(container.querySelectorAll("*"))
+        .forEach(function (node) {
+          var tag = node.tagName;
+          var replacement;
+          var color;
+          Array.prototype.slice.call(node.attributes || []).forEach(function (attr) {
+            var name = attr && attr.name ? attr.name.toLowerCase() : "";
+            if (name !== "style" && name !== "color") {
+              node.removeAttribute(attr.name);
+            }
+          });
+          if (!allowedTags[tag]) {
+            replacement = document.createTextNode(node.textContent || "");
+            node.parentNode.replaceChild(replacement, node);
+            return;
+          }
+          color =
+            node.getAttribute("color") ||
+            (node.style && node.style.color ? node.style.color : "");
+          node.removeAttribute("color");
+          node.removeAttribute("style");
+          if (color && /^#[0-9a-f]{3,6}$/i.test(color)) {
+            node.style.color = color;
+          }
+        });
+      return container.innerHTML;
+    }
+
+    function renderTailoredCvFieldContent(value, suggestion, path) {
       var text = String(value || "");
+      var richHtml = !suggestion ? getTailoredCvModelRichField(path) : "";
       var problem = cleanMessageText(suggestion && suggestion.problemText);
       var index;
+      if (richHtml) {
+        return sanitizeTailoredCvRichHtml(richHtml) || escapeHtml(text);
+      }
       if (!problem) {
         return escapeHtml(text);
       }
@@ -113977,7 +114116,7 @@
         '"' +
         getTailoredCvEditableAttributes(path, label, suggestion) +
         ">" +
-        renderTailoredCvFieldContent(value || "", suggestion) +
+        renderTailoredCvFieldContent(value || "", suggestion, path) +
         "</span>" +
         inlineSuggestion +
         "</" +
@@ -114122,6 +114261,7 @@
               suggestions
             )
           : "") +
+        renderTailoredCvEntryMoveControls(entryIndex) +
         "</div>" +
         (sub
           ? '<div class="sffc-crm-apply-chat__tailored-cv-entry-sub">' +
@@ -114539,9 +114679,8 @@
         '">' +
         '<div class="sffc-crm-apply-chat__tailored-cv-editor-bar">' +
         renderTailoredCvStyleSwitcher(activeTailoredCvStyle) +
-        '<span class="sffc-crm-apply-chat__tailored-cv-editor-status" data-sffc-tailored-cv-edit-status>' +
-        escapeHtml(isArabicChat() ? "جاهز للتحرير" : "Editable") +
-        "</span>" +
+        renderTailoredCvFormattingToolbar() +
+        renderTailoredCvSaveControls() +
         "</div>" +
         '<div class="sffc-crm-apply-chat__tailored-cv-document-viewport">' +
         '<div class="sffc-crm-apply-chat__tailored-cv-sheet">' +
@@ -145442,6 +145581,7 @@
         return false;
       }
       setTailoredCvModelPath(path, field.textContent || "");
+      setTailoredCvModelRichField(path, field.innerHTML || "");
       if (status) {
         status.textContent = isArabicChat() ? "تم الحفظ" : "Saved";
       }
@@ -145450,6 +145590,162 @@
       tailoredCvGrammarReviewPendingSignature = "";
       if (editor) {
         editor.classList.add("has-edits");
+      }
+      return true;
+    }
+
+    function getTailoredCvSelectionField() {
+      var selection =
+        typeof window !== "undefined" && window.getSelection
+          ? window.getSelection()
+          : null;
+      var node;
+      var field;
+      if (!selection || !selection.rangeCount || selection.isCollapsed) {
+        return null;
+      }
+      node = selection.anchorNode;
+      field =
+        node && node.nodeType === 3
+          ? node.parentNode
+          : node && node.nodeType === 1
+          ? node
+          : null;
+      field = field && field.closest
+        ? field.closest("[data-sffc-tailored-cv-field]")
+        : null;
+      return field && root.contains(field) ? field : null;
+    }
+
+    function updateTailoredCvFormattingToolbar() {
+      var field = getTailoredCvSelectionField();
+      var toolbar = root.querySelector("[data-sffc-tailored-cv-format-toolbar]");
+      var range;
+      var rect;
+      if (!toolbar) {
+        return;
+      }
+      if (!field) {
+        toolbar.hidden = true;
+        activeTailoredCvSelectionField = null;
+        return;
+      }
+      activeTailoredCvSelectionField = field;
+      range = window.getSelection().getRangeAt(0);
+      rect = range.getBoundingClientRect();
+      toolbar.hidden = false;
+      toolbar.style.left =
+        Math.max(12, rect.left + rect.width / 2 - toolbar.offsetWidth / 2) +
+        "px";
+      toolbar.style.top = Math.max(12, rect.top - toolbar.offsetHeight - 10) + "px";
+    }
+
+    function applyTailoredCvFormattingCommand(command, value) {
+      var field = activeTailoredCvSelectionField || getTailoredCvSelectionField();
+      var status = field
+        ? field
+            .closest("[data-sffc-tailored-cv-editor]")
+            .querySelector("[data-sffc-tailored-cv-edit-status]")
+        : null;
+      if (!field || !command || typeof document.execCommand !== "function") {
+        return false;
+      }
+      field.focus();
+      document.execCommand(command, false, value || null);
+      syncTailoredCvEditableField(field);
+      if (status) {
+        status.textContent = isArabicChat() ? "تم تحديث التنسيق" : "Formatting saved";
+      }
+      updateTailoredCvFormattingToolbar();
+      return true;
+    }
+
+    function saveTailoredCvEditor(editor) {
+      var status = editor
+        ? editor.querySelector("[data-sffc-tailored-cv-edit-status]")
+        : null;
+      if (!editor) {
+        return false;
+      }
+      editor
+        .querySelectorAll("[data-sffc-tailored-cv-field]")
+        .forEach(syncTailoredCvEditableField);
+      editor.classList.add("has-edits");
+      if (status) {
+        status.textContent = isArabicChat() ? "تم حفظ السيرة" : "CV saved";
+      }
+      return true;
+    }
+
+    function moveTailoredCvExperienceEntry(button) {
+      var editor = button ? button.closest("[data-sffc-tailored-cv-editor]") : null;
+      var index = Number(
+        button ? button.getAttribute("data-sffc-tailored-cv-entry-index") : -1
+      );
+      var direction = button
+        ? button.getAttribute("data-sffc-tailored-cv-entry-move")
+        : "";
+      var entries = editedTailoredCvModel && editedTailoredCvModel.entries;
+      var nextIndex = direction === "up" ? index - 1 : index + 1;
+      var moved;
+      var richFields;
+      if (
+        !editor ||
+        !Array.isArray(entries) ||
+        !Number.isFinite(index) ||
+        index < 0 ||
+        nextIndex < 0 ||
+        nextIndex >= entries.length
+      ) {
+        return false;
+      }
+      saveTailoredCvEditor(editor);
+      moved = entries[index];
+      entries[index] = entries[nextIndex];
+      entries[nextIndex] = moved;
+      richFields = editedTailoredCvModel._richFields || {};
+      Object.keys(richFields).forEach(function (key) {
+        var fromPrefix = "entries." + index + ".";
+        var toPrefix = "entries." + nextIndex + ".";
+        var tempPrefix = "__sffc_moved_entry__.";
+        if (key.indexOf(fromPrefix) === 0) {
+          richFields[tempPrefix + key.slice(fromPrefix.length)] = richFields[key];
+          delete richFields[key];
+        }
+      });
+      Object.keys(richFields).forEach(function (key) {
+        var toPrefix = "entries." + nextIndex + ".";
+        var fromPrefix = "entries." + index + ".";
+        if (key.indexOf(toPrefix) === 0) {
+          richFields[fromPrefix + key.slice(toPrefix.length)] = richFields[key];
+          delete richFields[key];
+        }
+      });
+      Object.keys(richFields).forEach(function (key) {
+        var tempPrefix = "__sffc_moved_entry__.";
+        var toPrefix = "entries." + nextIndex + ".";
+        if (key.indexOf(tempPrefix) === 0) {
+          richFields[toPrefix + key.slice(tempPrefix.length)] = richFields[key];
+          delete richFields[key];
+        }
+      });
+      editedTailoredCvDirty = true;
+      tailoredCvGrammarReviewsByPath = {};
+      tailoredCvGrammarReviewSignature = "";
+      tailoredCvGrammarReviewPendingSignature = "";
+      editor.outerHTML = renderProfessionalTailoredCvDocument(editedTailoredCvModel, {
+        expanded: editor.classList.contains("is-expanded"),
+        skipGrammarReview: true,
+      });
+      editor = root.querySelector("[data-sffc-tailored-cv-editor]");
+      if (editor) {
+        editor.classList.add("has-edits");
+        var status = editor.querySelector("[data-sffc-tailored-cv-edit-status]");
+        if (status) {
+          status.textContent = isArabicChat()
+            ? "تم تحريك الخبرة"
+            : "Experience moved";
+        }
       }
       return true;
     }
@@ -145561,6 +145857,33 @@
       var dismiss = event.target.closest
         ? event.target.closest("[data-sffc-tailored-cv-review-dismiss]")
         : null;
+      var formatButton = event.target.closest
+        ? event.target.closest("[data-sffc-tailored-cv-format-command]")
+        : null;
+      var saveButton = event.target.closest
+        ? event.target.closest("[data-sffc-tailored-cv-save]")
+        : null;
+      var moveButton = event.target.closest
+        ? event.target.closest("[data-sffc-tailored-cv-entry-move]")
+        : null;
+      if (formatButton && root.contains(formatButton)) {
+        event.preventDefault();
+        applyTailoredCvFormattingCommand(
+          formatButton.getAttribute("data-sffc-tailored-cv-format-command") || "",
+          formatButton.getAttribute("data-sffc-tailored-cv-format-value") || ""
+        );
+        return;
+      }
+      if (saveButton && root.contains(saveButton)) {
+        event.preventDefault();
+        saveTailoredCvEditor(saveButton.closest("[data-sffc-tailored-cv-editor]"));
+        return;
+      }
+      if (moveButton && root.contains(moveButton)) {
+        event.preventDefault();
+        moveTailoredCvExperienceEntry(moveButton);
+        return;
+      }
       if (styleButton && root.contains(styleButton)) {
         var editor = styleButton.closest("[data-sffc-tailored-cv-editor]");
         var selectedStyle = normalizeTailoredCvStyle(
@@ -145598,6 +145921,19 @@
         event.preventDefault();
         resolveTailoredCvInlineSuggestion(dismiss, false);
       }
+    });
+
+    root.addEventListener("mousedown", function (event) {
+      var formatButton = event.target.closest
+        ? event.target.closest("[data-sffc-tailored-cv-format-command]")
+        : null;
+      if (formatButton && root.contains(formatButton)) {
+        event.preventDefault();
+      }
+    });
+
+    document.addEventListener("selectionchange", function () {
+      window.setTimeout(updateTailoredCvFormattingToolbar, 0);
     });
 
     root.addEventListener("input", function (event) {
