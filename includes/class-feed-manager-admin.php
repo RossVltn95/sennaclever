@@ -191,8 +191,8 @@ class SFFC_Feed_Manager_Admin {
                         </tr>
                     </thead>
                     <tbody id="aggregator-feeds-list">
-                        <?php $this->render_workday_feeds('job_aggregator', '', 'dubai_feeds'); ?>
-                        <?php $this->render_xml_feeds('job_aggregator', '', 'dubai_feeds'); ?>
+                        <?php $this->render_workday_feeds('job_aggregator', '', ['dubai_feeds', 'saudi_feeds']); ?>
+                        <?php $this->render_xml_feeds('job_aggregator', '', ['dubai_feeds', 'saudi_feeds']); ?>
                     </tbody>
                 </table>
 
@@ -219,6 +219,32 @@ class SFFC_Feed_Manager_Admin {
                     <tbody id="dubai-feeds-list">
                         <?php $this->render_workday_feeds('', 'dubai_feeds'); ?>
                         <?php $this->render_xml_feeds('', 'dubai_feeds'); ?>
+                    </tbody>
+                </table>
+
+                <h2 style="margin-top:28px;">Saudi Feeds</h2>
+                <div class="sffc-progressive-fetch" data-feed-target="#saudi-feeds-list" data-feed-label="Saudi Feeds">
+                    <button type="button" class="button button-primary sffc-fetch-section-feeds">Fetch All Saudi Feeds</button>
+                    <button type="button" class="button sffc-stop-section-fetch" disabled>Stop</button>
+                    <div class="sffc-progressive-fetch__status" aria-live="polite">Ready to fetch this section.</div>
+                    <div class="sffc-progressive-fetch__bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+                        <span></span>
+                    </div>
+                </div>
+                <table class="wp-list-table widefat fixed striped">
+                    <thead>
+                        <tr>
+                            <th width="3%"><input type="checkbox" id="select-all-saudi-feeds" /></th>
+                            <th width="17%">Source</th>
+                            <th width="40%">Feed URL</th>
+                            <th width="10%">Status</th>
+                            <th width="10%">Roles</th>
+                            <th width="20%">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="saudi-feeds-list">
+                        <?php $this->render_workday_feeds('', 'saudi_feeds'); ?>
+                        <?php $this->render_xml_feeds('', 'saudi_feeds'); ?>
                     </tbody>
                 </table>
                 
@@ -878,6 +904,7 @@ class SFFC_Feed_Manager_Admin {
     
     private function render_workday_feeds($source_type_filter = '', $feed_group_filter = '', $exclude_feed_group_filter = '') {
         $feeds = $this->get_workday_feeds();
+        $excluded_feed_groups = array_filter(array_map('sanitize_key', (array) $exclude_feed_group_filter));
         
         foreach ($feeds as $key => $feed) {
             $source_type = $feed['source_type'] ?? $this->get_workday_feed_source_type($key, $feed);
@@ -885,7 +912,7 @@ class SFFC_Feed_Manager_Admin {
             if ($feed_group_filter !== '' && $feed_group !== $feed_group_filter) {
                 continue;
             }
-            if ($exclude_feed_group_filter !== '' && $feed_group === $exclude_feed_group_filter) {
+            if (!empty($excluded_feed_groups) && in_array($feed_group, $excluded_feed_groups, true)) {
                 continue;
             }
             if ($source_type_filter !== '' && $source_type !== $source_type_filter) {
@@ -917,6 +944,7 @@ class SFFC_Feed_Manager_Admin {
     
     private function render_xml_feeds($source_type_filter = '', $feed_group_filter = '', $exclude_feed_group_filter = '') {
         $feeds = $this->get_xml_feeds();
+        $excluded_feed_groups = array_filter(array_map('sanitize_key', (array) $exclude_feed_group_filter));
         
         foreach ($feeds as $key => $feed) {
             $source_type = $feed['source_type'] ?? '';
@@ -924,7 +952,7 @@ class SFFC_Feed_Manager_Admin {
             if ($feed_group_filter !== '' && $feed_group !== $feed_group_filter) {
                 continue;
             }
-            if ($exclude_feed_group_filter !== '' && $feed_group === $exclude_feed_group_filter) {
+            if (!empty($excluded_feed_groups) && in_array($feed_group, $excluded_feed_groups, true)) {
                 continue;
             }
             if ($feed_group_filter === '') {

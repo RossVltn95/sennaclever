@@ -173,10 +173,85 @@ function normalizeProfile(profile, fallbackText) {
   };
 }
 
-const MONTH_PATTERN =
-  "(?:jan|january|feb|february|mar|march|apr|april|may|jun|june|jul|july|aug|august|sep|sept|september|oct|october|nov|november|dec|december)";
+const DATE_MONTH_ALIASES = {
+  jan: 1,
+  january: 1,
+  janvier: 1,
+  gennaio: 1,
+  enero: 1,
+  januar: 1,
+  feb: 2,
+  february: 2,
+  fevrier: 2,
+  février: 2,
+  febbraio: 2,
+  febrero: 2,
+  februar: 2,
+  mar: 3,
+  march: 3,
+  mars: 3,
+  marzo: 3,
+  märz: 3,
+  maerz: 3,
+  apr: 4,
+  april: 4,
+  avril: 4,
+  aprile: 4,
+  abril: 4,
+  may: 5,
+  mai: 5,
+  maggio: 5,
+  mayo: 5,
+  jun: 6,
+  june: 6,
+  juin: 6,
+  giugno: 6,
+  junio: 6,
+  juni: 6,
+  jul: 7,
+  july: 7,
+  juillet: 7,
+  luglio: 7,
+  julio: 7,
+  juli: 7,
+  aug: 8,
+  august: 8,
+  aout: 8,
+  août: 8,
+  agosto: 8,
+  sep: 9,
+  sept: 9,
+  september: 9,
+  septembre: 9,
+  settembre: 9,
+  septiembre: 9,
+  okt: 10,
+  oct: 10,
+  october: 10,
+  octobre: 10,
+  ottobre: 10,
+  octubre: 10,
+  oktober: 10,
+  nov: 11,
+  november: 11,
+  novembre: 11,
+  noviembre: 11,
+  dec: 12,
+  december: 12,
+  decembre: 12,
+  décembre: 12,
+  dicembre: 12,
+  diciembre: 12,
+  dezember: 12,
+};
+const MONTH_PATTERN = `(?:${Object.keys(DATE_MONTH_ALIASES)
+  .sort((left, right) => right.length - left.length)
+  .map((month) => month.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))
+  .join("|")})`;
+const PRESENT_DATE_PATTERN =
+  /\b(?:present|current|now|ongoing|to date|till date|today|oggi|attuale|actualidad|présent|presentement|présentement|heute|aktuell|bis heute)\b|(?:حتى الآن|حاليا|حالياً|الآن)/i;
 const DATE_RANGE_REGEX = new RegExp(
-  `(?:${MONTH_PATTERN}\\.?\\s*,?\\s*)?\\d{2,4}\\s*(?:-|–|—|to)\\s*(?:present|current|now|(?:${MONTH_PATTERN}\\.?\\s*,?\\s*)?\\d{2,4})`,
+  `(?:${MONTH_PATTERN}\\.?\\s*,?\\s*)?\\d{2,4}\\s*(?:-|–|—|to|until|au|à|bis|حتى)\\s*(?:present|current|now|oggi|attuale|actualidad|(?:${MONTH_PATTERN}\\.?\\s*,?\\s*)?\\d{2,4})`,
   "i"
 );
 const SINGLE_DATE_REGEX = new RegExp(`(?:${MONTH_PATTERN}\\.?\\s*,?\\s*)?\\d{4}`, "i");
@@ -190,16 +265,266 @@ function looksLikeLocation(value) {
   );
 }
 
+function normalizeDateDigits(value) {
+  const arabicIndic = "٠١٢٣٤٥٦٧٨٩";
+  const easternArabic = "۰۱۲۳۴۵۶۷۸۹";
+  return String(value || "").replace(/[٠-٩۰-۹]/g, (char) => {
+    const arabicIndex = arabicIndic.indexOf(char);
+    if (arabicIndex !== -1) return String(arabicIndex);
+    const easternIndex = easternArabic.indexOf(char);
+    return easternIndex !== -1 ? String(easternIndex) : char;
+  });
+}
+
+function normalizeCvDateText(value) {
+  return cleanText(normalizeDateDigits(value))
+    .toLowerCase()
+    .replace(/[–—−]/g, "-")
+    .replace(/\s+(?:to|until|au|à|bis|حتى)\s+/gi, " - ")
+    .replace(/\b(?:present day|to date|till date|today|now|current|ongoing|oggi|attuale|actualidad|présent|presentement|présentement|heute|aktuell|bis heute)\b/gi, "present")
+    .replace(/(?:حتى الآن|حاليا|حالياً|الآن)/g, "present")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function normalizeTwoDigitYear(year) {
+  const numeric = Number(year);
+  if (!Number.isFinite(numeric)) return 0;
+  if (numeric >= 100) return numeric;
+  return numeric <= 35 ? 2000 + numeric : 1900 + numeric;
+}
+
+function normalizeCvDatePoint(point, preferEnd) {
+  const raw = normalizeCvDateText(point);
+  let match;
+  if (!raw) return null;
+  if (PRESENT_DATE_PATTERN.test(raw) || raw === "present") {
+    const now = new Date();
+    return {
+      year: now.getFullYear(),
+      month: now.getMonth() + 1,
+      precision: "current",
+      isCurrent: true,
+      raw,
+    };
+  }
+  match = raw.match(/\b(0?[1-9]|1[0-2])\s*[/.-]\s*(\d{2}|19\d{2}|20\d{2})\b/);
+  if (match) {
+    return {
+      year: normalizeTwoDigitYear(match[2]),
+      month: Number(match[1]),
+      precision: "month",
+      isCurrent: false,
+      raw,
+    };
+  }
+  match = raw.match(/\b(19\d{2}|20\d{2})\s*[/.-]\s*(0?[1-9]|1[0-2])\b/);
+  if (match) {
+    return {
+      year: Number(match[1]),
+      month: Number(match[2]),
+      precision: "month",
+      isCurrent: false,
+      raw,
+    };
+  }
+  match = raw.match(new RegExp(`\\b(${MONTH_PATTERN})\\.?\\s*,?\\s*(\\d{2}|19\\d{2}|20\\d{2})\\b`, "i"));
+  if (match && DATE_MONTH_ALIASES[match[1]]) {
+    return {
+      year: normalizeTwoDigitYear(match[2]),
+      month: DATE_MONTH_ALIASES[match[1]],
+      precision: "month",
+      isCurrent: false,
+      raw,
+    };
+  }
+  match = raw.match(new RegExp(`\\b(\\d{2}|19\\d{2}|20\\d{2})\\s+(${MONTH_PATTERN})\\.?\\b`, "i"));
+  if (match && DATE_MONTH_ALIASES[match[2]]) {
+    return {
+      year: normalizeTwoDigitYear(match[1]),
+      month: DATE_MONTH_ALIASES[match[2]],
+      precision: "month",
+      isCurrent: false,
+      raw,
+    };
+  }
+  match = raw.match(/\b(19\d{2}|20\d{2})\b/);
+  if (match) {
+    return {
+      year: Number(match[1]),
+      month: preferEnd ? 12 : 1,
+      precision: "year",
+      isCurrent: false,
+      raw,
+    };
+  }
+  return null;
+}
+
+function getCvDateTokenPattern() {
+  return new RegExp(
+    [
+      "\\b(?:0?[1-9]|1[0-2])\\s*[/.-]\\s*(?:\\d{2}|19\\d{2}|20\\d{2})\\b",
+      "\\b(?:19\\d{2}|20\\d{2})\\s*[/.-]\\s*(?:0?[1-9]|1[0-2])\\b",
+      `\\b(?:${MONTH_PATTERN})\\.?\\s*,?\\s*(?:\\d{2}|19\\d{2}|20\\d{2})\\b`,
+      `\\b(?:\\d{2}|19\\d{2}|20\\d{2})\\s+(?:${MONTH_PATTERN})\\.?\\b`,
+      "\\b(?:19\\d{2}|20\\d{2})\\b",
+      "\\bpresent\\b",
+    ].join("|"),
+    "gi"
+  );
+}
+
+function findCvDateTokens(value) {
+  const normalized = normalizeCvDateText(value);
+  const tokens = [];
+  const pattern = getCvDateTokenPattern();
+  let match;
+  while ((match = pattern.exec(normalized))) {
+    const token = cleanText(match[0]);
+    const parsed = normalizeCvDatePoint(token, tokens.length > 0);
+    if (!parsed) continue;
+    tokens.push({
+      token,
+      startIndex: match.index,
+      endIndex: match.index + token.length,
+      parsed,
+    });
+  }
+  return { normalized, tokens };
+}
+
+function getCvDateOrderValue(point) {
+  return point && point.year && point.month ? point.year * 12 + point.month : 0;
+}
+
+function getCvDateDurationMonths(range) {
+  if (!range?.start || !range?.end) return 0;
+  return Math.max(
+    1,
+    (range.end.year - range.start.year) * 12 + (range.end.month - range.start.month) + 1
+  );
+}
+
+function getCvDateConfidence(start, end, source) {
+  let score = source === "explicit_start_end" ? 0.92 : 0.72;
+  if (start?.precision === "month") score += 0.08;
+  if (end?.precision === "month" || end?.precision === "current") score += 0.08;
+  if (start?.precision === "year" || end?.precision === "year") score -= 0.12;
+  if (!start || !end) score -= 0.35;
+  return Math.max(0, Math.min(0.98, Number(score.toFixed(2))));
+}
+
+function normalizeCvDateRange(input) {
+  const dates = cleanText(input?.dates || input?.date || "");
+  const startDate = cleanText(input?.startDate || input?.start_date || "");
+  const endDate = cleanText(input?.endDate || input?.end_date || "");
+  let start = startDate ? normalizeCvDatePoint(startDate, false) : null;
+  let end = endDate ? normalizeCvDatePoint(endDate, true) : null;
+  let rawMatched = cleanText([startDate, endDate].filter(Boolean).join(" - "));
+  let source = start || end ? "explicit_start_end" : "";
+  let issues = [];
+
+  if (!start && !end) {
+    const found = findCvDateTokens(dates);
+    const tokens = found.tokens;
+    if (!tokens.length) return null;
+    source = "dates_text";
+    if (tokens.length === 1) {
+      start = tokens[0].parsed.isCurrent ? null : normalizeCvDatePoint(tokens[0].token, false);
+      end = tokens[0].parsed.isCurrent
+        ? tokens[0].parsed
+        : PRESENT_DATE_PATTERN.test(found.normalized)
+        ? normalizeCvDatePoint("present", true)
+        : normalizeCvDatePoint(tokens[0].token, true);
+      issues.push("single_date");
+      rawMatched = tokens[0].token;
+    } else {
+      const first = tokens.find((token) => !token.parsed.isCurrent) || tokens[0];
+      const last = tokens[tokens.length - 1];
+      start = normalizeCvDatePoint(first.token, false);
+      end = normalizeCvDatePoint(last.token, true);
+      rawMatched = cleanText(found.normalized.slice(first.startIndex, last.endIndex));
+    }
+  } else if (start && !end) {
+    end = PRESENT_DATE_PATTERN.test(dates)
+      ? normalizeCvDatePoint("present", true)
+      : normalizeCvDatePoint(startDate, true);
+    issues.push("missing_end_date");
+  } else if (!start && end && !end.isCurrent) {
+    start = {
+      year: end.year,
+      month: Math.max(1, end.month - 3),
+      precision: "inferred",
+      isCurrent: false,
+      raw: end.raw,
+    };
+    issues.push("missing_start_date");
+  }
+
+  if (!start || !end) return null;
+  if (getCvDateOrderValue(end) < getCvDateOrderValue(start)) {
+    const swap = start;
+    start = end;
+    end = swap;
+    issues.push("swapped_range_order");
+  }
+  const durationMonths = getCvDateDurationMonths({ start, end });
+  if (durationMonths > 720) issues.push("very_long_duration");
+  return {
+    start,
+    end,
+    isCurrent: !!end.isCurrent,
+    raw: dates || rawMatched,
+    rawMatched: rawMatched || dates,
+    durationMonths,
+    durationYears: Number((durationMonths / 12).toFixed(1)),
+    confidence: getCvDateConfidence(start, end, source),
+    source,
+    issues,
+  };
+}
+
+function calculateNonOverlappingExperienceMonths(entries) {
+  const intervals = (Array.isArray(entries) ? entries : [])
+    .map((entry) => entry?.dateRange)
+    .filter((range) => range?.start && range?.end)
+    .map((range) => ({
+      start: getCvDateOrderValue(range.start),
+      end: getCvDateOrderValue(range.end),
+    }))
+    .filter((range) => range.start && range.end && range.end >= range.start)
+    .sort((left, right) => left.start - right.start);
+  const merged = [];
+  intervals.forEach((range) => {
+    const last = merged[merged.length - 1];
+    if (!last || range.start > last.end + 1) {
+      merged.push({ ...range });
+      return;
+    }
+    last.end = Math.max(last.end, range.end);
+  });
+  return merged.reduce((sum, range) => sum + Math.max(0, range.end - range.start + 1), 0);
+}
+
 function extractDateRange(value) {
   const clean = cleanText(value);
   const range = clean.match(DATE_RANGE_REGEX);
   if (range) return cleanText(range[0]);
+  const normalized = normalizeCvDateRange({ dates: clean });
+  if (normalized?.rawMatched) return normalized.rawMatched;
   const single = clean.match(SINGLE_DATE_REGEX);
   return single ? cleanText(single[0]) : "";
 }
 
 function removeDateRange(value) {
-  return cleanText(String(value || "").replace(DATE_RANGE_REGEX, " ").replace(/\s{2,}/g, " "));
+  const clean = String(value || "");
+  const normalized = normalizeCvDateRange({ dates: clean });
+  const withoutNormalized =
+    normalized?.rawMatched && normalized.rawMatched.length >= 4
+      ? clean.replace(normalized.rawMatched, " ")
+      : clean;
+  return cleanText(withoutNormalized.replace(DATE_RANGE_REGEX, " ").replace(/\s{2,}/g, " "));
 }
 
 function splitLineByColumns(rawLine) {
@@ -480,16 +805,25 @@ function normalizeParserExperienceEntry(entry, parserSource) {
   const role = cleanText(entry?.role || entry?.title || entry?.jobTitle);
   const company = cleanText(entry?.company);
   const dates = cleanText(entry?.dates || entry?.date);
+  const startDate = cleanText(entry?.startDate || entry?.start_date);
+  const endDate = cleanText(entry?.endDate || entry?.end_date);
   const location = cleanText(entry?.location);
   const bullets = normalizeStringList(entry?.bullets || entry?.descriptions || []);
+  const dateRange = normalizeCvDateRange({ dates, startDate, endDate });
+  const durationMonths = dateRange?.durationMonths || 0;
   return {
     type: "experience",
     role,
     title: role,
     company,
     dates,
-    startDate: cleanText(entry?.startDate || entry?.start_date),
-    endDate: cleanText(entry?.endDate || entry?.end_date),
+    startDate,
+    endDate,
+    dateRange,
+    months: durationMonths,
+    years: durationMonths ? Number((durationMonths / 12).toFixed(1)) : 0,
+    dateConfidence: dateRange?.confidence || 0,
+    dateIssues: dateRange?.issues || [],
     location,
     bullets,
     lines: normalizeStringList(
@@ -560,6 +894,52 @@ function mergeEducationEntries(primary, secondary, parserSource) {
     });
   });
   return merged;
+}
+
+function buildExperienceTimelineSummary(entries, pyresumeYears) {
+  const timeline = (Array.isArray(entries) ? entries : [])
+    .filter((entry) => entry && (entry.role || entry.company || entry.dates))
+    .map((entry) => ({
+      role: entry.role || entry.title || "",
+      company: entry.company || "",
+      dates: entry.dates || "",
+      startDate: entry.startDate || "",
+      endDate: entry.endDate || "",
+      dateRange: entry.dateRange || null,
+      durationMonths: Number(entry.months || 0) || 0,
+      durationYears: Number(entry.years || 0) || 0,
+      isCurrent: !!(entry.dateRange && entry.dateRange.isCurrent),
+      dateConfidence: Number(entry.dateConfidence || 0) || 0,
+      parserSource: entry.parserSource || "",
+    }))
+    .sort((left, right) => {
+      const leftCurrent = left.isCurrent ? 1 : 0;
+      const rightCurrent = right.isCurrent ? 1 : 0;
+      if (leftCurrent !== rightCurrent) return rightCurrent - leftCurrent;
+      const leftEnd = getCvDateOrderValue(left.dateRange?.end);
+      const rightEnd = getCvDateOrderValue(right.dateRange?.end);
+      return rightEnd - leftEnd;
+    });
+  const totalMonths = calculateNonOverlappingExperienceMonths(timeline);
+  const current = timeline.find((entry) => entry.isCurrent) || timeline[0] || null;
+  return {
+    timeline,
+    totalExperienceMonths: totalMonths,
+    totalExperienceYears: totalMonths
+      ? Number((totalMonths / 12).toFixed(1))
+      : Number(pyresumeYears || 0) || 0,
+    currentRoleMonths: current?.isCurrent ? Number(current.durationMonths || 0) || 0 : 0,
+    datedEntryCount: timeline.filter((entry) => entry.dateRange).length,
+    dateConfidence:
+      timeline.length && timeline.some((entry) => entry.dateRange)
+        ? Number(
+            (
+              timeline.reduce((sum, entry) => sum + Number(entry.dateConfidence || 0), 0) /
+              timeline.length
+            ).toFixed(2)
+          )
+        : 0,
+  };
 }
 
 function mergeProfiles(primary, secondary) {
@@ -713,6 +1093,10 @@ async function parseStructuredResumeEnsembleFromUpload(file, fallbackText) {
       pyresumeOk ? pyresumeResult.experience : [],
       "ensemble"
     );
+    const experienceSummary = buildExperienceTimelineSummary(
+      experience,
+      pyresumeResult?.metadata?.yearsExperience
+    );
     const education = mergeEducationEntries(
       atsOk ? atsResult.education : [],
       pyresumeOk ? pyresumeResult.education : [],
@@ -731,6 +1115,7 @@ async function parseStructuredResumeEnsembleFromUpload(file, fallbackText) {
       profile,
       sections: atsOk ? atsResult.sections || [] : [],
       experience,
+      experienceTimeline: experienceSummary.timeline,
       education,
       skills,
       projects: atsOk ? atsResult.projects || [] : [],
@@ -739,7 +1124,14 @@ async function parseStructuredResumeEnsembleFromUpload(file, fallbackText) {
         ats: atsResult?.metadata || {},
         pyresume: pyresumeResult?.metadata || {},
         yearsExperience:
-          Number(pyresumeResult?.metadata?.yearsExperience || 0) || 0,
+          experienceSummary.totalExperienceYears ||
+          Number(pyresumeResult?.metadata?.yearsExperience || 0) ||
+          0,
+        totalExperienceMonths: experienceSummary.totalExperienceMonths,
+        totalExperienceYears: experienceSummary.totalExperienceYears,
+        currentRoleMonths: experienceSummary.currentRoleMonths,
+        datedExperienceCount: experienceSummary.datedEntryCount,
+        dateConfidence: experienceSummary.dateConfidence,
       },
       parsers: [
         {
@@ -812,7 +1204,279 @@ app.use((req, res, next) => {
   }
   next();
 });
-app.use(express.json({ limit: "256kb" }));
+app.use(express.json({ limit: "1mb" }));
+
+let skillExtractorModulePromise = null;
+let skillExtractorInstancePromise = null;
+const skillExtractorTimeoutMs = Math.max(
+  1000,
+  Number(process.env.SKILL_EXTRACTOR_TIMEOUT_MS || 6500)
+);
+
+function withTimeout(promise, timeoutMs, label) {
+  let timer = null;
+  return Promise.race([
+    promise,
+    new Promise((_, reject) => {
+      timer = setTimeout(() => {
+        reject(new Error(label || "operation_timeout"));
+      }, timeoutMs);
+    }),
+  ]).finally(() => {
+    if (timer) clearTimeout(timer);
+  });
+}
+
+function getSkillExtractorModule() {
+  if (!skillExtractorModulePromise) {
+    skillExtractorModulePromise = import("skill-extractor");
+  }
+  return skillExtractorModulePromise;
+}
+
+async function getSkillExtractorInstance() {
+  if (!skillExtractorInstancePromise) {
+    skillExtractorInstancePromise = getSkillExtractorModule().then((module) => {
+      if (!module || !module.SkillExtractor) {
+        throw new Error("skill_extractor_missing_export");
+      }
+      return new module.SkillExtractor({
+        quantized: process.env.SKILL_EXTRACTOR_QUANTIZED === "1",
+      });
+    });
+  }
+  return skillExtractorInstancePromise;
+}
+
+function normalizeSkillLabel(value) {
+  return cleanText(value)
+    .toLowerCase()
+    .replace(/[’']/g, "")
+    .replace(/&/g, " and ")
+    .replace(/[^a-z0-9+#./\s-]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function dedupeSkillLabels(values) {
+  const seen = new Set();
+  return (Array.isArray(values) ? values : [])
+    .map(normalizeSkillLabel)
+    .filter(Boolean)
+    .filter((value) => {
+      if (seen.has(value)) return false;
+      seen.add(value);
+      return true;
+    });
+}
+
+function getStructuredCvSkillText(structured) {
+  const source = structured || {};
+  const experience = Array.isArray(source.experience) ? source.experience : [];
+  const education = Array.isArray(source.education) ? source.education : [];
+  const projects = Array.isArray(source.projects) ? source.projects : [];
+  return cleanText(
+    []
+      .concat(source.skills || [])
+      .concat(source.profile?.summary || "")
+      .concat(
+        experience.map((entry) =>
+          [
+            entry?.role,
+            entry?.title,
+            entry?.company,
+            ...(Array.isArray(entry?.bullets) ? entry.bullets : []),
+          ].join(" ")
+        )
+      )
+      .concat(
+        education.map((entry) =>
+          [entry?.degree, entry?.school, ...(Array.isArray(entry?.details) ? entry.details : [])].join(
+            " "
+          )
+        )
+      )
+      .concat(
+        projects.map((entry) =>
+          [entry?.name, ...(Array.isArray(entry?.bullets) ? entry.bullets : [])].join(" ")
+        )
+      )
+      .join(" ")
+  );
+}
+
+function getStructuredCvYears(structured) {
+  const metadata = structured?.metadata || {};
+  return (
+    Number(metadata.totalExperienceYears || 0) ||
+    Number(metadata.yearsExperience || 0) ||
+    Number(metadata.total_experience_years || 0) ||
+    0
+  );
+}
+
+async function extractHrSkills(text, options = {}) {
+  const clean = cleanText(text).slice(0, Number(options.maxLength || 45000));
+  if (!clean) return { skills: [], engine: "none", error: "" };
+  try {
+    const extractor = await withTimeout(
+      getSkillExtractorInstance(),
+      skillExtractorTimeoutMs,
+      "skill_extractor_load_timeout"
+    );
+    const skills = await withTimeout(
+      extractor.extract(clean, Number(options.threshold || 0.5)),
+      skillExtractorTimeoutMs,
+      "skill_extractor_timeout"
+    );
+    return { skills: dedupeSkillLabels(skills), engine: "skill-extractor", error: "" };
+  } catch (error) {
+    try {
+      const module = await getSkillExtractorModule();
+      const extractor = new module.SkillExtractor({
+        quantized: process.env.SKILL_EXTRACTOR_QUANTIZED === "1",
+      });
+      const candidates = extractor.candidates(clean).map((candidate) => candidate.skill);
+      return {
+        skills: dedupeSkillLabels(candidates).slice(0, 80),
+        engine: "skill-extractor-candidates",
+        error: error && error.message ? error.message : String(error),
+      };
+    } catch (fallbackError) {
+      return {
+        skills: [],
+        engine: "failed",
+        error:
+          (fallbackError && fallbackError.message ? fallbackError.message : String(fallbackError)) ||
+          (error && error.message ? error.message : String(error)),
+      };
+    }
+  }
+}
+
+function extractJobExperienceRequirement(text) {
+  const clean = cleanText(text).toLowerCase();
+  const patterns = [
+    /\b(?:minimum|min\.?|at least|no less than|over|more than)\s+(\d{1,2})\+?\s*(?:years?|yrs?)\b.{0,90}\b(?:experience|exp)\b/i,
+    /\b(\d{1,2})\s*[-–—]\s*(\d{1,2})\+?\s*(?:years?|yrs?)\b.{0,90}\b(?:experience|exp)\b/i,
+    /\b(\d{1,2})\+?\s*(?:years?|yrs?)\b.{0,90}\b(?:experience|exp)\b/i,
+    /\b(\d{1,2})\+?\s*(?:years?|yrs?)\b.{0,60}\b(?:required|requirement|minimum|min\.?|mandatory|essential|needed)\b/i,
+    /\b(?:experience|exp)\b.{0,60}\b(?:of|:)?\s*(\d{1,2})\+?\s*(?:years?|yrs?)\b/i,
+  ];
+  let best = { min: 0, max: 0, required: false, preferred: false, confidence: 0, raw: "" };
+  patterns.forEach((pattern) => {
+    const match = clean.match(pattern);
+    if (!match) return;
+    const min = Number(match[1] || 0) || 0;
+    const max = Number(match[2] || 0) || min;
+    if (!min || min > 40) return;
+    const raw = cleanText(match[0] || "");
+    const context = cleanText(
+      clean.slice(Math.max(0, match.index - 90), Math.min(clean.length, match.index + raw.length + 110))
+    );
+    const preferred = /\b(?:preferred|desirable|nice to have|advantage|ideally|plus|bonus)\b/i.test(
+      context
+    );
+    const required =
+      !preferred ||
+      /\b(?:require|requires|required|must|minimum|min\.?|mandatory|essential|need(?:ed|s)?|should have)\b/i.test(
+        context
+      );
+    const confidence = required ? 0.92 : 0.68;
+    if (min > best.min || (min === best.min && confidence > best.confidence)) {
+      best = { min, max: Math.max(min, max), required, preferred, confidence, raw };
+    }
+  });
+  return best;
+}
+
+function inferJobSeniority(text) {
+  const clean = cleanText(text).toLowerCase();
+  if (/\b(?:chief|cfo|ceo|coo|cto|partner|vp|vice president|head of|director)\b/.test(clean)) {
+    return { level: 5, label: "executive" };
+  }
+  if (/\b(?:senior manager|lead manager|principal|senior|lead)\b/.test(clean)) {
+    return { level: 4, label: "senior" };
+  }
+  if (/\b(?:manager|management|supervisor|team lead)\b/.test(clean)) {
+    return { level: 3, label: "manager" };
+  }
+  if (/\b(?:associate|analyst|officer|specialist|consultant)\b/.test(clean)) {
+    return { level: 2, label: "mid" };
+  }
+  if (/\b(?:intern|graduate|entry level|junior|trainee)\b/.test(clean)) {
+    return { level: 1, label: "junior" };
+  }
+  return { level: 0, label: "" };
+}
+
+function inferCvSeniority(structured, text) {
+  const entries = Array.isArray(structured?.experience) ? structured.experience : [];
+  const current = entries.find((entry) => entry?.dateRange?.isCurrent) || entries[0] || {};
+  const haystack = cleanText([current.role, current.title, text].join(" "));
+  return inferJobSeniority(haystack);
+}
+
+function calculateSkillCoverage(cvSkills, jobSkills) {
+  const cvSet = new Set(dedupeSkillLabels(cvSkills));
+  const job = dedupeSkillLabels(jobSkills);
+  const matched = job.filter((skill) => cvSet.has(skill));
+  const missing = job.filter((skill) => !cvSet.has(skill));
+  return {
+    matched,
+    missing,
+    score: job.length ? Math.round((matched.length / job.length) * 100) : 55,
+  };
+}
+
+function evaluateYearsFit(candidateYears, requirement) {
+  const years = Number(candidateYears || 0) || 0;
+  const min = Number(requirement?.min || 0) || 0;
+  if (!min) {
+    return { status: "unknown", score: 55, candidateYears: years, requiredYears: 0, deficit: 0 };
+  }
+  const deficit = Math.max(0, min - years);
+  if (years >= min) {
+    return { status: "qualified", score: 100, candidateYears: years, requiredYears: min, deficit: 0 };
+  }
+  if (deficit <= 1 || years >= min * 0.8) {
+    return {
+      status: "stretch",
+      score: Math.max(58, Math.round((years / Math.max(min, 1)) * 100)),
+      candidateYears: years,
+      requiredYears: min,
+      deficit,
+    };
+  }
+  return {
+    status: "underqualified",
+    score: Math.max(10, Math.round((years / Math.max(min, 1)) * 100)),
+    candidateYears: years,
+    requiredYears: min,
+    deficit,
+  };
+}
+
+function buildJobText(job) {
+  return cleanText(
+    [
+      job?.title,
+      job?.company,
+      job?.location,
+      job?.seniority,
+      job?.sector,
+      job?.description,
+      job?.description_preview,
+      job?.description_html,
+      job?.job_description,
+      job?.requirements,
+      job?.responsibilities,
+      job?.snippet,
+      job?.excerpt,
+      job?.content,
+    ].join(" ")
+  );
+}
 
 app.get("/health", (req, res) => {
   res.json({
@@ -821,9 +1485,126 @@ app.get("/health", (req, res) => {
       ? "liteparse+resume-parser-ats+pyresume"
       : "liteparse+resume-parser-ats",
     grammar: "harper",
+    jobMatching: "skill-extractor",
     pyresumeEnabled,
     ocrEnabled: process.env.LITEPARSE_OCR_ENABLED !== "0",
   });
+});
+
+app.post("/match-job", requireToken, async (req, res) => {
+  try {
+    const body = req.body || {};
+    const job = body.job || {};
+    const structured = body.cvStructured || body.structured || {};
+    const cvText = cleanText(
+      body.cvText || body.resumeText || body.text || getStructuredCvSkillText(structured)
+    );
+    const jobText = buildJobText(job);
+    if (!cvText && !getStructuredCvSkillText(structured)) {
+      res.status(400).json({ ok: false, error: "missing_cv_text" });
+      return;
+    }
+    if (!jobText) {
+      res.status(400).json({ ok: false, error: "missing_job_text" });
+      return;
+    }
+
+    const [cvSkillResult, jobSkillResult] = await Promise.all([
+      extractHrSkills([cvText, getStructuredCvSkillText(structured)].join(" "), {
+        threshold: 0.48,
+      }),
+      extractHrSkills(jobText, { threshold: 0.5 }),
+    ]);
+    const structuredSkills = dedupeSkillLabels(structured?.skills || []);
+    const cvSkills = dedupeSkillLabels(
+      structuredSkills.concat(cvSkillResult.skills || [])
+    );
+    const jobSkills = dedupeSkillLabels(jobSkillResult.skills || []);
+    const coverage = calculateSkillCoverage(cvSkills, jobSkills);
+    const experienceRequirement = extractJobExperienceRequirement(jobText);
+    const candidateYears =
+      Number(body.cvYears || 0) || getStructuredCvYears(structured) || 0;
+    const experienceFit = evaluateYearsFit(candidateYears, experienceRequirement);
+    const jobSeniority = inferJobSeniority([job?.title, jobText].join(" "));
+    const cvSeniority = inferCvSeniority(structured, cvText);
+    const seniorityFit =
+      jobSeniority.level && cvSeniority.level
+        ? Math.max(0, 100 - Math.abs(jobSeniority.level - cvSeniority.level) * 22)
+        : 55;
+    const titleText = cleanText([job?.title, job?.seniority].join(" ")).toLowerCase();
+    const cvTitleText = cleanText(
+      [
+        structured?.experience?.[0]?.role,
+        structured?.experience?.[0]?.title,
+        structured?.profile?.summary,
+      ].join(" ")
+    ).toLowerCase();
+    const titleTokens = dedupeSkillLabels(titleText.split(/\s+/)).filter(
+      (token) => token.length > 2
+    );
+    const cvTitleTokens = new Set(
+      dedupeSkillLabels(cvTitleText.split(/\s+/)).filter((token) => token.length > 2)
+    );
+    const titleOverlap = titleTokens.filter((token) => cvTitleTokens.has(token));
+    const titleScore = titleTokens.length
+      ? Math.min(100, Math.round((titleOverlap.length / titleTokens.length) * 100) + 20)
+      : 55;
+    const fitScore = Math.max(
+      0,
+      Math.min(
+        100,
+        Math.round(
+          coverage.score * 0.42 +
+            experienceFit.score * 0.24 +
+            seniorityFit * 0.18 +
+            titleScore * 0.16
+        )
+      )
+    );
+    const fitBand =
+      experienceFit.status === "underqualified" && experienceFit.deficit > 1
+        ? "weak"
+        : fitScore >= 78
+        ? "strong"
+        : fitScore >= 58
+        ? "consider"
+        : "weak";
+
+    res.json({
+      ok: true,
+      engine: "skill-extractor",
+      fitScore,
+      fitBand,
+      matchedSkills: coverage.matched.slice(0, 30),
+      missingSkills: coverage.missing.slice(0, 30),
+      cvSkills: cvSkills.slice(0, 80),
+      jobSkills: jobSkills.slice(0, 80),
+      skillCoverageScore: coverage.score,
+      experienceRequirement,
+      experienceFit,
+      seniorityFit: {
+        score: Math.round(seniorityFit),
+        cv: cvSeniority,
+        job: jobSeniority,
+      },
+      titleFit: {
+        score: Math.round(titleScore),
+        matchedTerms: titleOverlap.slice(0, 12),
+      },
+      diagnostics: {
+        cvSkillEngine: cvSkillResult.engine,
+        jobSkillEngine: jobSkillResult.engine,
+        cvSkillError: cvSkillResult.error,
+        jobSkillError: jobSkillResult.error,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({
+      ok: false,
+      error: "job_match_failed",
+      message: error && error.message ? error.message : String(error),
+    });
+  }
 });
 
 app.post("/parse", requireToken, upload.single("file"), async (req, res) => {

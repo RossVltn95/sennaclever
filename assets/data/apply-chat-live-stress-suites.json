@@ -241,6 +241,18 @@
       { "category": "parallel_search", "message": "find another role but don't lose this application" },
       { "category": "application_resume", "message": "go back to the application" },
       { "category": "application_resume", "message": "continue from the exact step you stopped at" }
+    ],
+    "phase1_conversation_turn_ownership": [
+      { "category": "job_search", "message": "show me private credit analyst roles in Dubai" },
+      { "category": "role_reference", "message": "open the first one" },
+      { "category": "cv_role_question_no_cv", "message": "how does my CV compare with this role?" },
+      { "category": "salary_question_during_prompt", "message": "what salary should I expect for this role?" },
+      { "category": "company_question_during_prompt", "message": "who is the company and what do they do?" },
+      { "category": "duplicate_prompt_complaint", "message": "you already asked me for my CV" },
+      { "category": "application_pause", "message": "stop, don't submit anything yet" },
+      { "category": "application_status", "message": "what is happening with the application right now?" },
+      { "category": "application_resume", "message": "continue from where you stopped" },
+      { "category": "support_contact", "message": "how do I contact customer support?" }
     ]
   }
 }

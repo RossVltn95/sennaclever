@@ -12,7 +12,8 @@
     "express": "^5.1.0",
     "harper.js": "^2.10.0",
     "multer": "^2.0.2",
-    "resume-parser-ats": "^1.2.3"
+    "resume-parser-ats": "^1.2.3",
+    "skill-extractor": "^0.2.0"
   },
   "engines": {
     "node": ">=20"

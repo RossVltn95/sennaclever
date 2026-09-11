@@ -458,6 +458,13 @@ async function collectStateOnce(page, label) {
         };
       })
       .filter((item) => item.visible);
+    const audit = Array.isArray(window.__sffcApplyChatConversationAudit)
+      ? window.__sffcApplyChatConversationAudit.slice(-40)
+      : [];
+    const latestAudit = window.__sffcApplyChatConversationAuditLatest || null;
+    const ownerConflicts = audit.filter((entry) => entry && entry.type === "turn_owner_conflict");
+    const emittedOutputs = audit.filter((entry) => entry && entry.type === "emily_output_emitted");
+    const scheduledOutputs = audit.filter((entry) => entry && entry.type === "emily_output_scheduled");
     return {
       label: stateLabel,
       url: location.href,
@@ -490,6 +497,14 @@ async function collectStateOnce(page, label) {
         document.querySelector(".sffc-crm-apply-chat textarea, .sffc-crm-apply-chat input[type='text']")?.getAttribute("placeholder") ||
         "",
       bodyTextTail: visibleText(document.body).slice(-2200),
+      conversationAuditTail: audit,
+      latestConversationAudit: latestAudit,
+      conversationOwnerConflictCount: ownerConflicts.length,
+      conversationOutputSummary: {
+        scheduled: scheduledOutputs.length,
+        emitted: emittedOutputs.length,
+        latestTurnEmitted: latestAudit && latestAudit.responseCount ? latestAudit.responseCount : 0,
+      },
     };
   }, label);
   const screenshot = path.join(outputDir, `${safeName(label)}.png`);
@@ -530,6 +545,24 @@ function analyseWeaknesses(steps, consoleMessages, pageErrors, failedRequests) {
     if (state.layoutIssues && state.layoutIssues.length) issues.push({ label: state.label, issue: "Element-level layout overflow detected.", details: state.layoutIssues });
     if (state.routeSelectorCount > 0) issues.push({ label: state.label, issue: "Route selector is visible in apply chat." });
     if (state.membershipTextVisible) issues.push({ label: state.label, issue: "Membership/paying-user internal copy is visible." });
+    if (state.conversationOwnerConflictCount > 0) {
+      issues.push({
+        label: state.label,
+        issue: "Multiple conversation owners attempted to handle the same turn.",
+        details: (state.conversationAuditTail || []).filter((entry) => entry && entry.type === "turn_owner_conflict"),
+      });
+    }
+    if (
+      state.latestConversationAudit &&
+      Number(state.latestConversationAudit.responseCount || 0) > 2 &&
+      !/(card|results|workspace|application queue)/i.test(state.latestConversationAudit.kind || "")
+    ) {
+      issues.push({
+        label: state.label,
+        issue: "Emily emitted more than two plain responses for the latest turn.",
+        responseCount: state.latestConversationAudit.responseCount,
+      });
+    }
     if (/\bthe this role\b|\bSelected role\s*Senna\b/i.test(state.bodyTextTail || "")) {
       issues.push({ label: state.label, issue: "Placeholder role text is visible as if it were a real selected role." });
     }

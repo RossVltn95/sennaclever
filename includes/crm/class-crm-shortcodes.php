@@ -41057,6 +41057,7 @@ CRITICAL INSTRUCTIONS:
                 'mammothScriptUrl' => 'https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js',
                 'liteParseEndpoint' => $this->get_liteparse_endpoint(),
                 'liteParseReviewEndpoint' => $this->get_liteparse_review_endpoint(),
+                'liteParseJobMatchEndpoint' => $this->get_liteparse_job_match_endpoint(),
                 'liteParseToken' => $this->get_liteparse_public_token(),
                 'cvIntelligenceOntologyUrl' => file_exists(SFFC_PLUGIN_DIR . 'assets/data/cv-intelligence-ontology.json')
                     ? SFFC_PLUGIN_URL . 'assets/data/cv-intelligence-ontology.json?ver=' . (string) filemtime(SFFC_PLUGIN_DIR . 'assets/data/cv-intelligence-ontology.json')
@@ -41469,29 +41470,29 @@ CRITICAL INSTRUCTIONS:
                                     </span>
                                 </div>
                                 <div class="sffc-crm-apply-chat__app-rail-group">
-                                    <button type="button" class="sffc-crm-apply-chat__app-rail-button is-active" data-sffc-apply-chat-rail-view="chat" aria-label="<?php esc_attr_e('Chat', 'senna-finance'); ?>">
+                                    <button type="button" class="sffc-crm-apply-chat__app-rail-button is-active" data-sffc-apply-chat-rail-view="chat" aria-label="<?php esc_attr_e('New search', 'senna-finance'); ?>">
                                         <span class="sffc-crm-apply-chat__app-rail-button-icon" aria-hidden="true">
                                             <svg viewBox="0 0 24 24" fill="none"><path d="M5 6.75C5 5.7835 5.7835 5 6.75 5H17.25C18.2165 5 19 5.7835 19 6.75V14.25C19 15.2165 18.2165 16 17.25 16H10.4L6.85 18.75V16H6.75C5.7835 16 5 15.2165 5 14.25V6.75Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
                                         </span>
-                                        <span class="sffc-crm-apply-chat__app-rail-button-label"><?php esc_html_e('Chat', 'senna-finance'); ?></span>
+                                        <span class="sffc-crm-apply-chat__app-rail-button-label"><?php esc_html_e('New search', 'senna-finance'); ?></span>
                                     </button>
-                                    <button type="button" class="sffc-crm-apply-chat__app-rail-button" data-sffc-apply-chat-rail-view="tracked" aria-label="<?php esc_attr_e('Tracked Jobs', 'senna-finance'); ?>">
+                                    <button type="button" class="sffc-crm-apply-chat__app-rail-button" data-sffc-apply-chat-rail-view="tracked" aria-label="<?php esc_attr_e('Applications', 'senna-finance'); ?>">
                                         <span class="sffc-crm-apply-chat__app-rail-button-icon" aria-hidden="true">
                                             <svg viewBox="0 0 24 24" fill="none"><path d="M5 7.25C5 6.55964 5.55964 6 6.25 6H17.75C18.4404 6 19 6.55964 19 7.25V9.75C19 10.4404 18.4404 11 17.75 11H6.25C5.55964 11 5 10.4404 5 9.75V7.25Z" stroke="currentColor" stroke-width="1.8"/><path d="M5 14.25C5 13.5596 5.55964 13 6.25 13H17.75C18.4404 13 19 13.5596 19 14.25V16.75C19 17.4404 18.4404 18 17.75 18H6.25C5.55964 18 5 17.4404 5 16.75V14.25Z" stroke="currentColor" stroke-width="1.8"/></svg>
                                         </span>
-                                        <span class="sffc-crm-apply-chat__app-rail-button-label"><?php esc_html_e('Tracked Jobs', 'senna-finance'); ?></span>
+                                        <span class="sffc-crm-apply-chat__app-rail-button-label"><?php esc_html_e('Applications', 'senna-finance'); ?></span>
                                     </button>
-                                    <button type="button" class="sffc-crm-apply-chat__app-rail-button" data-sffc-apply-chat-rail-view="intros" aria-label="<?php esc_attr_e('Intros', 'senna-finance'); ?>" data-sffc-apply-chat-membership-gated="1">
+                                    <button type="button" class="sffc-crm-apply-chat__app-rail-button" data-sffc-apply-chat-rail-view="intros" aria-label="<?php esc_attr_e('Saved roles', 'senna-finance'); ?>" data-sffc-apply-chat-membership-gated="1">
                                         <span class="sffc-crm-apply-chat__app-rail-button-icon" aria-hidden="true">
                                             <svg viewBox="0 0 24 24" fill="none"><path d="M5 12.2h5.2l2.1-2.6 2.2 4.2 1.8-2.2H19" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M7.2 7.2h9.6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M7.2 17h6.4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
                                         </span>
-                                        <span class="sffc-crm-apply-chat__app-rail-button-label"><?php esc_html_e('Intros', 'senna-finance'); ?></span>
+                                        <span class="sffc-crm-apply-chat__app-rail-button-label"><?php esc_html_e('Saved roles', 'senna-finance'); ?></span>
                                     </button>
-                                    <button type="button" class="sffc-crm-apply-chat__app-rail-button" data-sffc-apply-chat-rail-view="sent" aria-label="<?php esc_attr_e('Sent', 'senna-finance'); ?>" data-sffc-apply-chat-membership-gated="1">
+                                    <button type="button" class="sffc-crm-apply-chat__app-rail-button" data-sffc-apply-chat-rail-view="sent" aria-label="<?php esc_attr_e('Career plan', 'senna-finance'); ?>" data-sffc-apply-chat-membership-gated="1">
                                         <span class="sffc-crm-apply-chat__app-rail-button-icon" aria-hidden="true">
                                             <svg viewBox="0 0 24 24" fill="none"><path d="M5 7.5 12 12l7-4.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M6.75 6h10.5C18.2165 6 19 6.7835 19 7.75v8.5c0 .9665-.7835 1.75-1.75 1.75H6.75C5.7835 18 5 17.2165 5 16.25v-8.5C5 6.7835 5.7835 6 6.75 6Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
                                         </span>
-                                        <span class="sffc-crm-apply-chat__app-rail-button-label"><?php esc_html_e('Sent', 'senna-finance'); ?></span>
+                                        <span class="sffc-crm-apply-chat__app-rail-button-label"><?php esc_html_e('Career plan', 'senna-finance'); ?></span>
                                     </button>
                                 </div>
                                 <div class="sffc-crm-apply-chat__app-rail-spacer"></div>
@@ -41504,7 +41505,7 @@ CRITICAL INSTRUCTIONS:
 
                             <aside class="sffc-crm-apply-chat__lists-panel" data-sffc-apply-chat-lists-panel hidden aria-hidden="true">
                                 <div class="sffc-crm-apply-chat__lists-head">
-                                    <strong><?php esc_html_e('Tracked Jobs', 'senna-finance'); ?></strong>
+                                    <strong><?php esc_html_e('Applications', 'senna-finance'); ?></strong>
                                 </div>
                                 <div class="sffc-crm-apply-chat__lists-stack" data-sffc-apply-chat-lists-stack>
                                     <button type="button" class="sffc-crm-apply-chat__list-card is-highlighted" data-sffc-apply-chat-list-card="matching_cv">
@@ -41547,7 +41548,7 @@ CRITICAL INSTRUCTIONS:
                                     <div class="sffc-crm-apply-chat__lists-results-head">
                                         <button type="button" class="sffc-crm-apply-chat__lists-results-back" data-sffc-apply-chat-lists-back><?php esc_html_e('Back', 'senna-finance'); ?></button>
                                         <div class="sffc-crm-apply-chat__lists-results-copy">
-                                            <strong data-sffc-apply-chat-lists-title><?php esc_html_e('Tracked Jobs', 'senna-finance'); ?></strong>
+                                            <strong data-sffc-apply-chat-lists-title><?php esc_html_e('Applications', 'senna-finance'); ?></strong>
                                             <p data-sffc-apply-chat-lists-description><?php esc_html_e('Submitted and saved roles will appear here.', 'senna-finance'); ?></p>
                                         </div>
                                     </div>
@@ -41560,7 +41561,7 @@ CRITICAL INSTRUCTIONS:
                                     <div class="sffc-crm-apply-chat__desk-title">
                                         <div class="sffc-crm-apply-chat__desk-avatar"><img src="https://media.joinsenna.com/2026/01/sennaLogoOfficial.png" alt="MENA Careers" data-sffc-apply-chat-desk-avatar-img></div>
                                         <div>
-                                            <strong data-sffc-apply-chat-desk-name><?php esc_html_e('MENA Careers', 'senna-finance'); ?></strong>
+                                            <strong data-sffc-apply-chat-desk-name><?php esc_html_e('Emily', 'senna-finance'); ?></strong>
                                             <?php if (!empty($role_context)) : ?>
                                                 <small class="sffc-crm-apply-chat__desk-role"><?php echo esc_html($role_context); ?></small>
                                             <?php endif; ?>
@@ -42284,6 +42285,7 @@ CRITICAL INSTRUCTIONS:
                 'mammothScriptUrl' => 'https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js',
                 'liteParseEndpoint' => $this->get_liteparse_endpoint(),
                 'liteParseReviewEndpoint' => $this->get_liteparse_review_endpoint(),
+                'liteParseJobMatchEndpoint' => $this->get_liteparse_job_match_endpoint(),
                 'liteParseToken' => $this->get_liteparse_public_token(),
                 'cvIntelligenceOntologyUrl' => file_exists(SFFC_PLUGIN_DIR . 'assets/data/cv-intelligence-ontology.json')
                     ? SFFC_PLUGIN_URL . 'assets/data/cv-intelligence-ontology.json?ver=' . (string) filemtime(SFFC_PLUGIN_DIR . 'assets/data/cv-intelligence-ontology.json')
@@ -42593,29 +42595,29 @@ CRITICAL INSTRUCTIONS:
                                     </span>
                                 </div>
                                 <div class="sffc-crm-apply-chat__app-rail-group">
-                                    <button type="button" class="sffc-crm-apply-chat__app-rail-button is-active" data-sffc-apply-chat-rail-view="chat" aria-label="<?php esc_attr_e('Chat', 'senna-finance'); ?>">
+                                    <button type="button" class="sffc-crm-apply-chat__app-rail-button is-active" data-sffc-apply-chat-rail-view="chat" aria-label="<?php esc_attr_e('New search', 'senna-finance'); ?>">
                                         <span class="sffc-crm-apply-chat__app-rail-button-icon" aria-hidden="true">
                                             <svg viewBox="0 0 24 24" fill="none"><path d="M5 6.75C5 5.7835 5.7835 5 6.75 5H17.25C18.2165 5 19 5.7835 19 6.75V14.25C19 15.2165 18.2165 16 17.25 16H10.4L6.85 18.75V16H6.75C5.7835 16 5 15.2165 5 14.25V6.75Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
                                         </span>
-                                        <span class="sffc-crm-apply-chat__app-rail-button-label"><?php esc_html_e('Chat', 'senna-finance'); ?></span>
+                                        <span class="sffc-crm-apply-chat__app-rail-button-label"><?php esc_html_e('New search', 'senna-finance'); ?></span>
                                     </button>
-                                    <button type="button" class="sffc-crm-apply-chat__app-rail-button" data-sffc-apply-chat-rail-view="tracked" aria-label="<?php esc_attr_e('Tracked Jobs', 'senna-finance'); ?>">
+                                    <button type="button" class="sffc-crm-apply-chat__app-rail-button" data-sffc-apply-chat-rail-view="tracked" aria-label="<?php esc_attr_e('Applications', 'senna-finance'); ?>">
                                         <span class="sffc-crm-apply-chat__app-rail-button-icon" aria-hidden="true">
                                             <svg viewBox="0 0 24 24" fill="none"><path d="M5 7.25C5 6.55964 5.55964 6 6.25 6H17.75C18.4404 6 19 6.55964 19 7.25V9.75C19 10.4404 18.4404 11 17.75 11H6.25C5.55964 11 5 10.4404 5 9.75V7.25Z" stroke="currentColor" stroke-width="1.8"/><path d="M5 14.25C5 13.5596 5.55964 13 6.25 13H17.75C18.4404 13 19 13.5596 19 14.25V16.75C19 17.4404 18.4404 18 17.75 18H6.25C5.55964 18 5 17.4404 5 16.75V14.25Z" stroke="currentColor" stroke-width="1.8"/></svg>
                                         </span>
-                                        <span class="sffc-crm-apply-chat__app-rail-button-label"><?php esc_html_e('Tracked Jobs', 'senna-finance'); ?></span>
+                                        <span class="sffc-crm-apply-chat__app-rail-button-label"><?php esc_html_e('Applications', 'senna-finance'); ?></span>
                                     </button>
-                                    <button type="button" class="sffc-crm-apply-chat__app-rail-button" data-sffc-apply-chat-rail-view="intros" aria-label="<?php esc_attr_e('Intros', 'senna-finance'); ?>" data-sffc-apply-chat-membership-gated="1">
+                                    <button type="button" class="sffc-crm-apply-chat__app-rail-button" data-sffc-apply-chat-rail-view="intros" aria-label="<?php esc_attr_e('Saved roles', 'senna-finance'); ?>" data-sffc-apply-chat-membership-gated="1">
                                         <span class="sffc-crm-apply-chat__app-rail-button-icon" aria-hidden="true">
                                             <svg viewBox="0 0 24 24" fill="none"><path d="M5 12.2h5.2l2.1-2.6 2.2 4.2 1.8-2.2H19" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M7.2 7.2h9.6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M7.2 17h6.4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
                                         </span>
-                                        <span class="sffc-crm-apply-chat__app-rail-button-label"><?php esc_html_e('Intros', 'senna-finance'); ?></span>
+                                        <span class="sffc-crm-apply-chat__app-rail-button-label"><?php esc_html_e('Saved roles', 'senna-finance'); ?></span>
                                     </button>
-                                    <button type="button" class="sffc-crm-apply-chat__app-rail-button" data-sffc-apply-chat-rail-view="sent" aria-label="<?php esc_attr_e('Sent', 'senna-finance'); ?>" data-sffc-apply-chat-membership-gated="1">
+                                    <button type="button" class="sffc-crm-apply-chat__app-rail-button" data-sffc-apply-chat-rail-view="sent" aria-label="<?php esc_attr_e('Career plan', 'senna-finance'); ?>" data-sffc-apply-chat-membership-gated="1">
                                         <span class="sffc-crm-apply-chat__app-rail-button-icon" aria-hidden="true">
                                             <svg viewBox="0 0 24 24" fill="none"><path d="M5 7.5 12 12l7-4.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M6.75 6h10.5C18.2165 6 19 6.7835 19 7.75v8.5c0 .9665-.7835 1.75-1.75 1.75H6.75C5.7835 18 5 17.2165 5 16.25v-8.5C5 6.7835 5.7835 6 6.75 6Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
                                         </span>
-                                        <span class="sffc-crm-apply-chat__app-rail-button-label"><?php esc_html_e('Sent', 'senna-finance'); ?></span>
+                                        <span class="sffc-crm-apply-chat__app-rail-button-label"><?php esc_html_e('Career plan', 'senna-finance'); ?></span>
                                     </button>
                                 </div>
                                 <div class="sffc-crm-apply-chat__app-rail-spacer"></div>
@@ -42628,7 +42630,7 @@ CRITICAL INSTRUCTIONS:
 
                             <aside class="sffc-crm-apply-chat__lists-panel" data-sffc-apply-chat-lists-panel hidden aria-hidden="true">
                                 <div class="sffc-crm-apply-chat__lists-head">
-                                    <strong><?php esc_html_e('Tracked Jobs', 'senna-finance'); ?></strong>
+                                    <strong><?php esc_html_e('Applications', 'senna-finance'); ?></strong>
                                 </div>
                                 <div class="sffc-crm-apply-chat__lists-stack" data-sffc-apply-chat-lists-stack>
                                     <button type="button" class="sffc-crm-apply-chat__list-card is-highlighted" data-sffc-apply-chat-list-card="matching_cv">
@@ -42671,7 +42673,7 @@ CRITICAL INSTRUCTIONS:
                                     <div class="sffc-crm-apply-chat__lists-results-head">
                                         <button type="button" class="sffc-crm-apply-chat__lists-results-back" data-sffc-apply-chat-lists-back><?php esc_html_e('Back', 'senna-finance'); ?></button>
                                         <div class="sffc-crm-apply-chat__lists-results-copy">
-                                            <strong data-sffc-apply-chat-lists-title><?php esc_html_e('Tracked Jobs', 'senna-finance'); ?></strong>
+                                            <strong data-sffc-apply-chat-lists-title><?php esc_html_e('Applications', 'senna-finance'); ?></strong>
                                             <p data-sffc-apply-chat-lists-description><?php esc_html_e('Submitted and saved roles will appear here.', 'senna-finance'); ?></p>
                                         </div>
                                     </div>
@@ -42684,7 +42686,7 @@ CRITICAL INSTRUCTIONS:
                                     <div class="sffc-crm-apply-chat__desk-title">
                                         <div class="sffc-crm-apply-chat__desk-avatar"><img src="https://media.joinsenna.com/2026/01/sennaLogoOfficial.png" alt="MENA Careers" data-sffc-apply-chat-desk-avatar-img></div>
                                         <div>
-                                            <strong data-sffc-apply-chat-desk-name><?php esc_html_e('MENA Careers', 'senna-finance'); ?></strong>
+                                            <strong data-sffc-apply-chat-desk-name><?php esc_html_e('Emily', 'senna-finance'); ?></strong>
                                             <?php if (!empty($role_context)) : ?>
                                                 <small class="sffc-crm-apply-chat__desk-role"><?php echo esc_html($role_context); ?></small>
                                             <?php endif; ?>
@@ -53257,6 +53259,14 @@ CRITICAL INSTRUCTIONS:
             if (is_array($matching_role_keywords)) {
                 $matching_role_keywords = implode(', ', array_filter(array_map('sanitize_text_field', $matching_role_keywords)));
             }
+            $matching_role_description = wp_strip_all_tags((string) (
+                $matching_role['description']
+                ?? $matching_role['job_description']
+                ?? $matching_role['description_preview']
+                ?? $matching_role['content_snippet']
+                ?? $matching_role['excerpt']
+                ?? ''
+            ));
 
             return [
                 'id' => (int) ($matching_role['id'] ?? $matching_role['post_id'] ?? $matching_role['wp_post_id'] ?? 0),
@@ -53273,6 +53283,8 @@ CRITICAL INSTRUCTIONS:
                 'salary_max' => isset($matching_role['salary_max']) ? (int) $matching_role['salary_max'] : 0,
                 'salary_currency' => sanitize_text_field((string) ($matching_role['salary_currency'] ?? '')),
                 'snippet' => sanitize_text_field((string) ($matching_role['content_snippet'] ?? $matching_role['excerpt'] ?? $matching_role['description_preview'] ?? '')),
+                'description' => sanitize_textarea_field($matching_role_description),
+                'description_preview' => sanitize_text_field((string) ($matching_role['description_preview'] ?? $matching_role_description)),
                 'keywords' => sanitize_text_field((string) $matching_role_keywords),
                 'logo' => esc_url_raw((string) ($matching_role['company_logo'] ?? '')),
                 'recruiter' => sanitize_text_field((string) ($matching_role['recruiter_name'] ?? '')),
@@ -91919,6 +91931,20 @@ HTML;
             return esc_url_raw(rtrim($endpoint, '/') . '/review-text');
         }
 
+        private function get_liteparse_job_match_endpoint()
+        {
+            $endpoint = $this->get_liteparse_endpoint();
+            if ($endpoint === '') {
+                return '';
+            }
+
+            if (preg_match('#/parse/?$#', $endpoint)) {
+                return esc_url_raw(preg_replace('#/parse/?$#', '/match-job', $endpoint));
+            }
+
+            return esc_url_raw(rtrim($endpoint, '/') . '/match-job');
+        }
+
         private function get_liteparse_public_token()
         {
             $token = defined('SFFC_LITEPARSE_PUBLIC_TOKEN') ? SFFC_LITEPARSE_PUBLIC_TOKEN : getenv('SFFC_LITEPARSE_PUBLIC_TOKEN');
@@ -92228,7 +92254,7 @@ HTML;
             <section class="sffc-crm-apply-chat__membership" data-sffc-apply-chat-membership>
                 <div class="sffc-crm-apply-chat__membership-head">
                     <small><?php esc_html_e('Subscription options', 'senna-finance'); ?></small>
-                    <strong><?php esc_html_e('Choose How MENA Careers Should Run Your Search', 'senna-finance'); ?></strong>
+                    <strong><?php esc_html_e('Choose how Senna should run your search', 'senna-finance'); ?></strong>
                     <p><?php esc_html_e('Pick the level that fits how hands-off you want the search to be. You can switch plans any time.', 'senna-finance'); ?></p>
                 </div>
                 <section class="sffc-crm-apply-chat__membership-intake" data-sffc-apply-chat-membership-intake>

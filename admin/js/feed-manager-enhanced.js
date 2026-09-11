@@ -19,6 +19,14 @@ jQuery(document).ready(function($) {
         $('#aggregator-feeds-list .feed-checkbox[data-type="xml"]').prop('checked', $(this).prop('checked'));
     });
 
+    $('#select-all-dubai-feeds').on('change', function() {
+        $('#dubai-feeds-list .feed-checkbox').prop('checked', $(this).prop('checked'));
+    });
+
+    $('#select-all-saudi-feeds').on('change', function() {
+        $('#saudi-feeds-list .feed-checkbox').prop('checked', $(this).prop('checked'));
+    });
+
     ensureProgressiveFetchControls();
     
     // Edit feed

@@ -67,6 +67,26 @@ const forbidden = [
     label: "Old generic cover-letter help filler",
     pattern: /I can help write it[\s\S]{0,120}tighten it so it sounds targeted and credible/,
   },
+  {
+    label: "Robotic direct CV command",
+    pattern: /"Send me your CV| "Send your CV| "Send me the CV| "Send the CV/,
+  },
+  {
+    label: "Casual positive emphasis filler",
+    pattern: /I know, right|Love that/,
+  },
+  {
+    label: "Awkward firstly phrasing",
+    pattern: /Firstly, can I get/,
+  },
+  {
+    label: "Old managed-service completion burst",
+    pattern: /All set up! I'll get everything prepared on my side/,
+  },
+  {
+    label: "Repeated vague check filler",
+    pattern: /Let me just check one more thing/,
+  },
 ];
 
 const required = [
@@ -80,7 +100,7 @@ const required = [
   "function getContextualSocialReply(",
   "Keep finding me roles",
   "Just this role",
-  "contact recruiters for you",
+  "approach relevant recruiters",
   "function looksLikeCareerDecisionQuestion(",
   "function looksLikeRecruiterNonResponseQuestion(",
   "function looksLikeMisroutedSearchComplaint(",
@@ -195,7 +215,7 @@ if (!/data-sffc-apply-results-selected-next="original">Jump to application/.test
   failures.push("Guest Jump to application must use original/direct application route");
 }
 
-if (!/data-sffc-apply-results-selected-next="tailored">Apply with Tailored CV/.test(source)) {
+if (!/data-sffc-apply-results-selected-next="tailored">Tailor CV/.test(source)) {
   failures.push("Tailored CV button must use explicit tailored route");
 }
 
@@ -286,7 +306,7 @@ if (/source\.viewUrl[\s\S]{0,120}applicationUrl|applicationUrl[\s\S]{0,120}sourc
 }
 
 const actualResultsBody = getFunctionBody("renderActualJobPostSearchResults");
-if (!/var displayQuery = normalizeApplyChatJobSearchQuery\(query \|\| ""\)/.test(actualResultsBody)) {
+if (!/var displayQuery = normalizeApplyChatJobSearchQuery\(\s*query \|\| ""\s*\)/.test(actualResultsBody)) {
   failures.push("Actual job results must normalize command text before rendering the search input");
 }
 if (/escapeHtml\(query \|\| ""\)/.test(actualResultsBody)) {
@@ -304,7 +324,7 @@ if (/var itemApplicationUrl = cleanMessageText\(/.test(source)) {
 }
 
 const jobsWorkspaceBody = getFunctionBody("renderJobsWorkspaceHtml");
-if (!/var displayQuery = normalizeApplyChatJobSearchQuery\(jobsWorkspaceSearchQuery \|\| ""\)/.test(jobsWorkspaceBody)) {
+if (!/var displayQuery = normalizeApplyChatJobSearchQuery\(\s*jobsWorkspaceSearchQuery \|\| ""\s*\)/.test(jobsWorkspaceBody)) {
   failures.push("Jobs workspace must normalize command text before filtering and rendering");
 }
 if (/escapeHtml\(jobsWorkspaceSearchQuery \|\| ""\)/.test(jobsWorkspaceBody)) {
@@ -312,7 +332,7 @@ if (/escapeHtml\(jobsWorkspaceSearchQuery \|\| ""\)/.test(jobsWorkspaceBody)) {
 }
 
 const queueCardBody = getFunctionBody("renderCommercialApplyQueueCard");
-if (!/var displayQuery = normalizeApplyChatJobSearchQuery\(jobsWorkspaceSearchQuery \|\| ""\)/.test(queueCardBody)) {
+if (!/var displayQuery = normalizeApplyChatJobSearchQuery\(\s*jobsWorkspaceSearchQuery \|\| ""\s*\)/.test(queueCardBody)) {
   failures.push("Apply results queue must normalize command text before filtering and rendering");
 }
 if (/escapeHtml\(jobsWorkspaceSearchQuery \|\| ""\)/.test(queueCardBody)) {

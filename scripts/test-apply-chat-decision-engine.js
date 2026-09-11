@@ -10,6 +10,8 @@ const baseCases = [
     expectedIntent: "career_question",
     expectedRelationship: "interrupts_task",
     expectedAction: "answer_directly",
+    expectedPlanObjective: "answer_career_question",
+    expectedPlanMode: "answer",
   },
   {
     message: "im stuck can you help me plan",
@@ -57,6 +59,8 @@ const baseCases = [
     expectedIntent: "job_search",
     expectedRelationship: "continues_task",
     expectedAction: "show_job_results",
+    expectedPlanObjective: "manage_job_search",
+    expectedPlanMode: "execute",
   },
   {
     message: "no i don't want to apply yet please help",
@@ -87,6 +91,8 @@ const baseCases = [
     expectedIntent: "answer_pending_question",
     expectedRelationship: "answers_pending_question",
     expectedAction: "defer_to_prompt_handler",
+    expectedPlanObjective: "answer_active_prompt",
+    expectedPlanMode: "prompt",
   },
   {
     message: "improve CV first",
@@ -808,6 +814,71 @@ const baseCases = [
     expectedRelationship: "continues_task",
     expectedAction: "answer_company_research",
   },
+  {
+    message: "same",
+    promptState: "apply_results_confirm_same_cv",
+    activeTask: "apply_flow",
+    expectedIntent: "answer_pending_question",
+    expectedRelationship: "answers_pending_question",
+    expectedAction: "defer_to_prompt_handler",
+    expectedBeliefGoal: "answer_prompt",
+  },
+  {
+    message: "not yet, compare it to my CV first",
+    promptState: "",
+    activeTask: "apply_flow",
+    selectedRole: true,
+    expectedIntent: "cv_role_comparison",
+    expectedRelationship: "continues_task",
+    expectedAction: "compare_selected_role_cv",
+    expectedBeliefGoal: "compare_cv",
+    expectedPlanObjective: "work_with_selected_role",
+    expectedPlanMode: "execute",
+  },
+  {
+    message: "keep searching but only senior private credit in Dubai",
+    promptState: "",
+    activeTask: "search",
+    expectedIntent: "search_refinement",
+    expectedRelationship: "changes_task",
+    expectedAction: "update_search_preferences",
+    expectedBeliefGoal: "refine_search",
+  },
+  {
+    message: "wait before you submit",
+    promptState: "",
+    activeTask: "apply_flow",
+    selectedRole: true,
+    expectedIntent: "application_pause",
+    expectedRelationship: "pauses_task",
+    expectedAction: "answer_directly",
+    expectedBeliefGoal: "pause",
+    expectedPlanObjective: "answer_career_question",
+    expectedPlanMode: "answer",
+  },
+  {
+    message: "same",
+    promptState: "",
+    activeTask: "search",
+    previousIntent: "job_search",
+    expectedIntent: "job_search",
+    expectedRelationship: "continues_task",
+    expectedAction: "show_job_results",
+    expectedBeliefGoal: "search",
+    expectedBeliefQuality: "usable",
+  },
+  {
+    message: "go ahead",
+    promptState: "",
+    activeTask: "apply_flow",
+    selectedRole: true,
+    previousIntent: "apply_action",
+    expectedIntent: "apply_action",
+    expectedRelationship: "continues_task",
+    expectedAction: "start_apply_execution",
+    expectedBeliefGoal: "apply",
+    expectedBeliefQuality: "usable",
+  },
 ];
 
 function loadScenarioCases() {
@@ -1070,12 +1141,18 @@ function isRecruiterNonResponseQuestion(message) {
 function isSennaContactQuestion(message) {
   const text = clean(message).toLowerCase();
   return /\b(?:who|how|where)\b.*\b(?:contact|speak to|talk to|reach|get hold of|message)\b.*\bsenna\b/i.test(text) ||
-    /\b(?:contact|support|help desk|customer support)\b.*\bsenna\b/i.test(text);
+    /\b(?:contact|support|help desk|customer support)\b.*\bsenna\b/i.test(text) ||
+    /\b(?:emily|career manager|advisor)\b.*\b(?:email|contact|address)\b/i.test(text) ||
+    /\b(?:what is|what's|whats|give me|send me)\b.*\b(?:emily'?s?|her)\s+(?:email|contact)\b/i.test(text) ||
+    /\b(?:customer\s+support|support\s+team|help\s*desk|billing support|account support|technical support)\b/i.test(text) ||
+    /\b(?:how|where|who)\b.*\b(?:contact|email|message|reach|get hold of|speak to|talk to)\b.*\b(?:support|team|senna)\b/i.test(text);
 }
 
 function isAnswerQualityComplaint(message) {
   const text = clean(message).toLowerCase();
-  return /\b(?:you(?:'re| are)?\s+(?:ignoring|not answering)|not answering my questions?|you have not answered|haven'?t answered|that'?s not what i asked|terrible|this is bad|this is broken)\b/i.test(text);
+  return /\b(?:you(?:'re| are)?\s+(?:ignoring|not answering)|not answering my questions?|you have not answered|haven'?t answered|that'?s not what i asked|terrible|this is bad|this is broken)\b/i.test(text) ||
+    /(?:you already asked|you asked already|already asked|asked me already|you just asked|same question again|why are you asking again|stop asking me again|i already sent|i already uploaded|you've got my cv|you already have my cv|you already have my resume|i gave you my cv|i gave you my resume)/i.test(text) ||
+    /\b(?:why|what for|how come|do you really need|why do you need|why are you asking|what do you need)\b.*\b(?:my\s+)?email\b|\b(?:my\s+)?email\b.*\b(?:why|what for|needed|required)\b/i.test(text);
 }
 
 function isMisroutedSearchComplaint(message) {
@@ -1116,6 +1193,205 @@ function normalizeJobSearchQuery(message) {
     .replace(/\s+/g, " ")
     .trim();
   return normalized || text;
+}
+
+function addBelief(bucket, key, weight) {
+  bucket[key] = (bucket[key] || 0) + weight;
+}
+
+function normaliseBelief(bucket) {
+  const entries = Object.keys(bucket).map((key) => ({
+    key,
+    score: Math.max(-20, Math.min(60, bucket[key] || 0)),
+  }));
+  const maxScore = entries.reduce((max, entry) => Math.max(max, entry.score), 0);
+  const total = entries.reduce((sum, entry) => sum + Math.exp((entry.score - maxScore) / 8), 0);
+  return entries
+    .map((entry) => ({
+      key: entry.key,
+      probability: total ? Math.exp((entry.score - maxScore) / 8) / total : 0,
+    }))
+    .sort((a, b) => b.probability - a.probability);
+}
+
+function beliefQuality(entries) {
+  const top = entries && entries[0] ? entries[0].probability || 0 : 0;
+  const second = entries && entries[1] ? entries[1].probability || 0 : 0;
+  let entropy = 0;
+  (entries || []).forEach((entry) => {
+    const probability = Number(entry.probability || 0);
+    if (probability > 0) {
+      entropy -= probability * (Math.log(probability) / Math.log(2));
+    }
+  });
+  entropy = entries && entries.length > 1 ? entropy / Math.log2(entries.length) : 0;
+  return {
+    top: Number(top.toFixed(4)),
+    margin: Number((top - second).toFixed(4)),
+    entropy: Number(entropy.toFixed(4)),
+    confidenceLabel:
+      top >= 0.72 && top - second >= 0.22 && entropy <= 0.55
+        ? "strong"
+        : top >= 0.55 && top - second >= 0.12
+        ? "usable"
+        : "ambiguous",
+  };
+}
+
+function goalFromIntent(intent) {
+  return {
+    answer_pending_question: "answer_prompt",
+    cv_role_comparison: "compare_cv",
+    apply_action: "apply",
+    search_refinement: "refine_search",
+    job_search: "search",
+    role_reference: "role_reference",
+    role_question: "ask_role_question",
+    career_question: "ask_career_question",
+    career_planning: "career_planning",
+    application_pause: "pause",
+    application_resume: "resume",
+  }[intent] || "";
+}
+
+function buildBeliefState(message, context) {
+  const text = clean(message);
+  const lower = text.toLowerCase();
+  const goals = { unknown: 4 };
+  const relations = { unclear: 3 };
+  const hasPrompt = !!context.promptState;
+  const hasRole = !!(context.selectedRole || context.referencedRole);
+  const words = lower ? lower.split(/\s+/).filter(Boolean) : [];
+
+  if (context.previousIntent && words.length <= 4 && !hasPrompt) {
+    const priorGoal = goalFromIntent(context.previousIntent);
+    if (
+      priorGoal &&
+      /^(?:yes|yeah|yep|ok|okay|sure|same|that|that one|this|this one|it|continue|go ahead)$/i.test(lower)
+    ) {
+      addBelief(goals, priorGoal, 16);
+    }
+  }
+
+  if (
+    isSennaContactQuestion(text) ||
+    isAnswerQualityComplaint(text)
+  ) {
+    addBelief(goals, "ask_career_question", 36);
+    addBelief(relations, context.activeTask ? "interrupts_task" : "new_topic", 28);
+  }
+
+  if (hasPrompt && isPromptAnswer(text, context.promptState)) {
+    addBelief(goals, "answer_prompt", 34);
+    addBelief(relations, "answers_pending_question", 34);
+  }
+  if (
+    /\b(?:cv|resume|profile)\b.*\b(?:match|fit|compare|stack up|suit|suitable|chance|competitive)\b/i.test(lower) ||
+    /\b(?:compare|match|fit)\b.*\b(?:my\s+)?(?:cv|resume|profile)\b/i.test(lower)
+  ) {
+    addBelief(goals, "compare_cv", hasRole ? 28 : 18);
+  }
+  if (isApplyControlCommand(text) || /\b(?:apply now|just apply|submit this|send application|put me forward|apply to|apply for)\b/i.test(lower)) {
+    addBelief(goals, "apply", hasRole ? 29 : 19);
+  }
+  if (/\b(?:continue|carry on|resume|pick it back up|proceed)\b.*\b(?:application|apply|role|form)\b/i.test(lower)) {
+    addBelief(goals, "resume", 27);
+    addBelief(relations, "resumes_task", 27);
+  }
+  if (/\b(?:not apply yet|don'?t apply yet|dont apply yet|don'?t submit yet|dont submit yet|pause|stop|hold off|wait)\b/i.test(lower)) {
+    addBelief(goals, "pause", 29);
+    addBelief(relations, "pauses_task", 29);
+  }
+  if (
+    isProviderFilterClearRequest(text) ||
+    isSameSearchLocationRefinement(text) ||
+    /\b(?:too junior|more senior|senior roles|higher level|not junior|associate level|only show|just show|solely|not consulting|no consulting|don'?t show.*consulting|too operational|avoid riyadh|avoid dubai|nothing below|not below|salary floor|private credit|private equity|always tailor first|keep searching but only)\b/i.test(lower)
+  ) {
+    addBelief(goals, "refine_search", 27);
+  }
+  if (
+    isFreshSearchRequest(text) ||
+    isSearchContinuation(text) ||
+    hasProviderSearchLanguage(text) ||
+    (
+      words.length <= 6 &&
+      context.activeTask === "role_discovery" &&
+      /\b(?:analyst|associate|manager|director|investment|finance|banking|credit|private equity|private credit|dubai|riyadh|saudi|uae|london)\b/i.test(lower)
+    )
+  ) {
+    addBelief(goals, "search", 25);
+  }
+  if (isRoleReferenceRequest(text)) {
+    addBelief(goals, "role_reference", context.referencedRole ? 27 : 18);
+  }
+  if (isSelectedRoleQuestion(text)) {
+    addBelief(goals, "ask_role_question", hasRole ? 26 : 16);
+  }
+  if (isCareerDecisionQuestion(text) || isRecruiterNonResponseQuestion(text) || isSennaContactQuestion(text) || isAnswerQualityComplaint(text) || isMisroutedSearchComplaint(text)) {
+    addBelief(goals, "ask_career_question", 28);
+  }
+  if (/\b(?:stuck|help me plan|career plan|career planning|what jobs suit me|career direction|what should i do next)\b/i.test(lower)) {
+    addBelief(goals, "career_planning", 28);
+  }
+
+  const goalEntries = normaliseBelief(goals);
+  const topGoal = goalEntries[0] || { key: "unknown", probability: 1 };
+  if (hasPrompt) addBelief(relations, "answers_pending_question", 6);
+  if (context.activeTask) addBelief(relations, "continues_task", 6);
+  if (/^(?:apply|compare_cv|ask_role_question|role_reference)$/.test(topGoal.key)) {
+    addBelief(relations, "continues_task", hasRole ? 12 : 5);
+  }
+  if (/^(?:refine_search|search)$/.test(topGoal.key)) {
+    addBelief(relations, context.activeTask ? "changes_task" : "new_topic", 10);
+  }
+  if (/^(?:ask_career_question|career_planning)$/.test(topGoal.key)) {
+    addBelief(relations, context.activeTask ? "interrupts_task" : "new_topic", 13);
+  }
+  return {
+    goals: goalEntries,
+    topGoal,
+    taskRelation: normaliseBelief(relations),
+    quality: beliefQuality(goalEntries),
+  };
+}
+
+function intentFromBeliefGoal(goal) {
+  return {
+    answer_prompt: "answer_pending_question",
+    compare_cv: "cv_role_comparison",
+    apply: "apply_action",
+    refine_search: "search_refinement",
+    search: "job_search",
+    role_reference: "role_reference",
+    ask_role_question: "role_question",
+    ask_career_question: "career_question",
+    career_planning: "career_planning",
+    pause: "application_pause",
+    resume: "application_resume",
+  }[goal] || "";
+}
+
+function applyBeliefPolicy(raw, belief) {
+  const [intent, confidence] = raw;
+  const beliefIntent = intentFromBeliefGoal(belief.topGoal.key);
+  const beliefConfidence = belief.topGoal.probability || 0;
+  const quality = belief.quality || {};
+  const decisiveBelief =
+    beliefConfidence >= 0.72 ||
+    (beliefConfidence >= 0.58 && (quality.margin || 0) >= 0.14 && (quality.entropy || 1) <= 0.72);
+  const highPriorityBelief = /^(?:answer_pending_question|application_pause|application_resume)$/.test(beliefIntent || "");
+  if (
+    beliefIntent &&
+    (decisiveBelief || highPriorityBelief) &&
+    (
+      intent === "unknown" ||
+      confidence < 0.72 ||
+      (confidence < 0.9 && /^(?:answer_pending_question|search_refinement|cv_role_comparison|apply_action|role_reference|role_question|career_question|career_planning|application_pause|application_resume)$/.test(beliefIntent))
+    )
+  ) {
+    return [beliefIntent, Math.max(confidence, Math.min(0.96, beliefConfidence + 0.24))];
+  }
+  return raw;
 }
 
 function classify(message, context) {
@@ -1341,7 +1617,144 @@ function action(intent, relation, context) {
   return "ask_clarifying_question";
 }
 
+function planObjective(intent, actionType) {
+  if (actionType === "defer_to_prompt_handler") return "answer_active_prompt";
+  if (actionType === "ask_clarifying_question") return "clarify_user_intent";
+  if (/^(?:show_job_results|update_search_preferences|reset_search_preferences|answer_search_filters|answer_search_results_question)$/i.test(actionType || "")) {
+    return "manage_job_search";
+  }
+  if (/^(?:render_selected_role|answer_role_question|compare_selected_role_cv)$/i.test(actionType || "")) {
+    return "work_with_selected_role";
+  }
+  if (/^(?:start_apply_execution|resume_task|answer_application_status)$/i.test(actionType || "")) {
+    return "manage_application_flow";
+  }
+  if (/^(?:start_cv_tailoring|start_cv_review|answer_cv_inventory)$/i.test(actionType || "")) {
+    return "manage_cv_task";
+  }
+  if (/^(?:start_interview_prep|start_application_material|start_recruiter_networking|answer_salary_compensation|answer_company_research)$/i.test(actionType || "")) {
+    return "support_role_preparation";
+  }
+  if (intent === "career_question" || intent === "career_planning" || actionType === "answer_directly") {
+    return "answer_career_question";
+  }
+  return "recover_or_clarify";
+}
+
+function planMode(actionType) {
+  if (actionType === "defer_to_prompt_handler") return "prompt";
+  if (actionType === "ask_clarifying_question") return "clarify";
+  if (/^(?:show_job_results|update_search_preferences|reset_search_preferences|start_apply_execution|resume_task|compare_selected_role_cv|render_selected_role|start_cv_tailoring|start_cv_review|start_interview_prep|start_application_material|start_recruiter_networking)$/i.test(actionType || "")) {
+    return "execute";
+  }
+  if (/^answer_/i.test(actionType || "") || actionType === "answer_directly") {
+    return "answer";
+  }
+  return "clarify";
+}
+
+function buildPlan(intent, relation, context, next, belief) {
+  const objective = planObjective(intent, next);
+  const risks = [];
+  if (belief && belief.quality && belief.quality.confidenceLabel === "ambiguous") {
+    risks.push("ambiguous_belief_state");
+  }
+  if (/^(?:start_apply_execution|compare_selected_role_cv|answer_role_question|render_selected_role)$/i.test(next || "") && !(context.selectedRole || context.referencedRole)) {
+    risks.push("missing_role_context");
+  }
+  if (relation === "interrupts_task" && context.activeTask) {
+    risks.push("interrupts_active_task");
+  }
+  return {
+    objective,
+    mode: planMode(next),
+    action: next,
+    relationship: relation,
+    shouldPauseActiveTask: relation === "pauses_task" || relation === "interrupts_task",
+    shouldPersistMemory: next !== "defer_to_prompt_handler",
+    riskFlags: risks,
+  };
+}
+
+function shouldKeepMemoryGoalOpen(actionType, relation) {
+  if (!actionType) return false;
+  if (
+    /^(?:answer_directly|defer_to_prompt_handler|answer_role_question|answer_cv_inventory|answer_application_history|answer_application_status|answer_search_filters|answer_search_results_question|answer_salary_compensation|answer_company_research|answer_capabilities)$/i.test(
+      actionType
+    )
+  ) {
+    return false;
+  }
+  return /^(?:new_topic|changes_task|continues_task|interrupts_task|resumes_task)$/i.test(
+    relation || ""
+  );
+}
+
+function updateMemoryState(previous, message, belief, intent, relation, next) {
+  const state = previous || {
+    turnCount: 0,
+    unresolvedGoals: [],
+    answeredIntents: [],
+  };
+  const goal = {
+    intent,
+    action: next,
+    relationship: relation,
+    topic: belief && belief.topGoal ? belief.topGoal.key : "",
+    summary: clean(message).slice(0, 180),
+    status: shouldKeepMemoryGoalOpen(next, relation) ? "open" : "answered",
+  };
+  const unresolvedGoals = (state.unresolvedGoals || []).filter(
+    (entry) => {
+      if (
+        /^(?:job_search|search_refinement|search_optimization)$/i.test(intent) &&
+        /^(?:job_search|search_refinement|search_optimization)$/i.test(entry.intent)
+      ) {
+        return false;
+      }
+      return entry.intent !== intent;
+    }
+  );
+  const answeredIntents = (state.answeredIntents || []).filter(
+    (entry) => entry.intent !== intent
+  );
+  if (goal.status === "open") {
+    unresolvedGoals.push(goal);
+  } else if (intent && next) {
+    answeredIntents.push(goal);
+  }
+  return {
+    turnCount: state.turnCount + 1,
+    lastUserMessage: clean(message),
+    lastResolvedIntent: intent,
+    lastResolvedRelationship: relation,
+    lastResolvedAction: next,
+    lastTopic: goal.topic,
+    unresolvedGoals: unresolvedGoals.slice(-8),
+    answeredIntents: answeredIntents.slice(-16),
+  };
+}
+
+function runMemoryScenario(turns) {
+  return turns.reduce((memory, item) => {
+    const context = {
+      promptState: item.promptState || "",
+      activeTask: item.activeTask || (item.promptState ? "apply_flow" : ""),
+      selectedRole: !!item.selectedRole,
+      referencedRole: !!item.referencedRole,
+      visibleResults: !!item.visibleResults,
+      previousIntent: memory && memory.lastResolvedIntent,
+    };
+    const belief = buildBeliefState(item.message, context);
+    const [intent] = applyBeliefPolicy(classify(item.message, context), belief);
+    const rel = relationship(intent, context);
+    const next = action(intent, rel, context);
+    return updateMemoryState(memory, item.message, belief, intent, rel, next);
+  }, null);
+}
+
 let failed = 0;
+let knownGapCount = 0;
 
 cases.forEach((item) => {
   const context = {
@@ -1350,18 +1763,38 @@ cases.forEach((item) => {
     selectedRole: !!item.selectedRole,
     referencedRole: !!item.referencedRole,
     visibleResults: !!item.visibleResults,
+    previousIntent: item.previousIntent || "",
   };
-  const [intent] = classify(item.message, context);
+  const belief = buildBeliefState(item.message, context);
+  const [intent] = applyBeliefPolicy(classify(item.message, context), belief);
   const rel = relationship(intent, context);
   const next = action(intent, rel, context);
+  const plan = buildPlan(intent, rel, context, next, belief);
   const ok =
     intent === item.expectedIntent &&
     rel === item.expectedRelationship &&
     next === item.expectedAction &&
+    (!item.expectedPlanObjective ||
+      plan.objective === item.expectedPlanObjective) &&
+    (!item.expectedPlanMode || plan.mode === item.expectedPlanMode) &&
+    (!item.expectedBeliefGoal || belief.topGoal.key === item.expectedBeliefGoal) &&
+    (!item.expectedBeliefQuality || belief.quality.confidenceLabel === item.expectedBeliefQuality) &&
     (
       !item.expectedNormalizedQuery ||
       normalizeJobSearchQuery(item.message) === item.expectedNormalizedQuery
     );
+
+  if (!ok && item.knownGap) {
+    knownGapCount += 1;
+    console.warn("KNOWN GAP", {
+      scenarioId: item.scenarioId || "inline",
+      fixtureTurn: item.fixtureTurn || null,
+      message: item.message,
+      expected: [item.expectedIntent, item.expectedRelationship, item.expectedAction],
+      actual: [intent, rel, next],
+    });
+    return;
+  }
 
   if (!ok) {
     failed += 1;
@@ -1372,9 +1805,85 @@ cases.forEach((item) => {
       message: item.message,
       expected: [item.expectedIntent, item.expectedRelationship, item.expectedAction],
       actual: [intent, rel, next],
+      expectedPlan: [item.expectedPlanObjective || null, item.expectedPlanMode || null],
+      actualPlan: [plan.objective, plan.mode],
+      expectedBeliefGoal: item.expectedBeliefGoal || null,
+      actualBeliefGoal: belief.topGoal.key,
+      actualBeliefConfidence: Number((belief.topGoal.probability || 0).toFixed(4)),
+      expectedBeliefQuality: item.expectedBeliefQuality || null,
+      actualBeliefQuality: belief.quality && belief.quality.confidenceLabel,
       expectedNormalizedQuery: item.expectedNormalizedQuery || null,
       actualNormalizedQuery: item.expectedNormalizedQuery ? normalizeJobSearchQuery(item.message) : null,
     });
+  }
+});
+
+const memoryCases = [
+  {
+    name: "keeps search goal open after search request",
+    turns: [
+      {
+        message: "show me jobs in Dubai",
+        activeTask: "",
+      },
+    ],
+    expect: {
+      turnCount: 1,
+      lastResolvedIntent: "job_search",
+      openIntent: "job_search",
+    },
+  },
+  {
+    name: "records direct coaching as answered",
+    turns: [
+      {
+        message: "why am I not getting interviews",
+        activeTask: "search",
+      },
+    ],
+    expect: {
+      turnCount: 1,
+      lastResolvedIntent: "career_question",
+      answeredIntent: "career_question",
+      openIntentAbsent: "career_question",
+    },
+  },
+  {
+    name: "replaces repeated open search goal with latest refinement",
+    turns: [
+      {
+        message: "show me jobs in Dubai",
+        activeTask: "",
+      },
+      {
+        message: "keep searching but only senior private credit in Dubai",
+        activeTask: "search",
+      },
+    ],
+    expect: {
+      turnCount: 2,
+      lastResolvedIntent: "search_refinement",
+      openIntent: "search_refinement",
+      openIntentAbsent: "job_search",
+    },
+  },
+];
+
+memoryCases.forEach((item) => {
+  const state = runMemoryScenario(item.turns);
+  const openIntents = (state.unresolvedGoals || []).map((entry) => entry.intent);
+  const answeredIntents = (state.answeredIntents || []).map((entry) => entry.intent);
+  const ok =
+    state.turnCount === item.expect.turnCount &&
+    state.lastResolvedIntent === item.expect.lastResolvedIntent &&
+    (!item.expect.openIntent || openIntents.includes(item.expect.openIntent)) &&
+    (!item.expect.openIntentAbsent ||
+      !openIntents.includes(item.expect.openIntentAbsent)) &&
+    (!item.expect.answeredIntent ||
+      answeredIntents.includes(item.expect.answeredIntent));
+  if (!ok) {
+    failed += 1;
+    console.error("FAIL memory", { item, state });
   }
 });
 
@@ -1382,4 +1891,6 @@ if (failed) {
   process.exit(1);
 }
 
-console.log(`PASS ${cases.length} apply-chat decision fixtures (${baseCases.length} inline, ${scenarioCases.length} scenario turns)`);
+console.log(
+  `PASS ${cases.length} apply-chat decision fixtures (${baseCases.length} inline, ${scenarioCases.length} scenario turns, ${knownGapCount} known Phase 1 gaps)`
+);

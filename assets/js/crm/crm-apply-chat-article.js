@@ -13920,10 +13920,10 @@
           : "ممتاز. أرسلي الـCV وأقدر أستخدمه كنقطة بداية واضحة: إما نراجعه على دور محدد أو نستعمله لتضييق البحث بشكل أذكى.";
       }
       return targetSummary
-        ? "Good. If you send the CV, I can review it specifically against " +
+        ? "Good. If you share the CV, I can review it specifically against " +
             escapeHtml(targetSummary) +
             " rather than doing a vague generic check, and show you quickly where the signal is strong and where it still needs tightening."
-        : "Good. Send the CV and I can use it as a proper starting point, either against one role or to tighten the wider search more intelligently.";
+        : "Good. Share the CV and I can use it as a proper starting point, either against one role or to tighten the wider search more intelligently.";
     }
 
     if (intent === "location_constraint" && hasLocationTopic) {
@@ -19676,24 +19676,24 @@
         searchFocus +
         " from what I can see in " +
         cvProfile +
-        ". Send me your CV, or just tell me the roles and locations you want me to work with."
+        ". Share your CV when you are ready, or tell me the roles and locations you want me to prioritise."
       );
     }
     if (cvProfile) {
       return (
         "Your background looks strongest around " +
         cvProfile +
-        ". Send me your CV, or tell me the sort of roles you want me to narrow in on."
+        ". Share your CV when you are ready, or tell me the role types you want me to narrow in on."
       );
     }
     if (searchFocus) {
       return (
         "Got it. You're mainly looking at " +
         searchFocus +
-        ". Send me your CV, or give me the roles and locations you want me to keep in play."
+        ". Share your CV when you are ready, or give me the roles and locations you want kept in play."
       );
     }
-    return "Send me your CV, or tell me the roles and locations you want me to work with, and I'll narrow it from there.";
+    return "Share your CV when you are ready, or tell me the roles and locations you want me to work with, and I'll narrow it from there.";
   }
 
   function getCandidateAwareCvPrompt() {
@@ -19706,7 +19706,7 @@
       : "";
 
     return (
-      "Send me your CV and I'll look at how clearly it lines up with " +
+      "Share your CV and I'll look at how clearly it lines up with " +
       escapeHtml(roleHint) +
       matchedFocus +
       "."
@@ -19877,22 +19877,22 @@
       getSharedJobSearchMatchesReady()
     ) {
       return pickVariant("positive_emphasis_followup_matches", [
-        "I know, right. If you want, we can keep going and tighten the shortlist even more.",
+        "Good, the shortlist is starting to land. We can tighten it further from here.",
         "I know. We can keep going from here and sharpen the shortlist further.",
         "Glad it is landing. If you want, give me another role, sector, or location and I'll tighten it again.",
       ]);
     }
     if (getSharedActivePath() === "job_search") {
       return pickVariant("positive_emphasis_followup_search", [
-        "I know, right. Let's keep going.",
-        "I know. Let's keep this moving.",
-        "Glad it's landing. Let's keep going.",
+        "Good, we can keep going from here.",
+        "That gives us something useful to work with.",
+        "Glad it's landing. I'll keep the next step focused.",
       ]);
     }
     return pickVariant("positive_emphasis_followup_generic", [
-      "I know, right. Let's keep going.",
-      "Glad that's landing. Let's keep moving.",
-      "Love that. Let's keep going.",
+      "Good, we can keep going from here.",
+      "Glad that's landing. I'll keep the next step focused.",
+      "That gives us a useful direction to work from.",
     ]);
   }
 
@@ -20063,19 +20063,19 @@
       return pickVariant("search_followup_with_focus", [
         "From what you've said, you're mainly looking at " +
           focus +
-          ". Send me your CV, or tell me the roles and locations you want me to keep in play.",
+          ". Share your CV when you are ready, or tell me the roles and locations you want kept in play.",
         "So far, it sounds like you're mainly looking at " +
           focus +
-          ". Send me your CV, or tell me what else I should keep in play.",
+          ". Share your CV when you are ready, or tell me what else I should keep in play.",
         "From what you've told me, the focus is " +
           focus +
-          ". Send me your CV, or tell me what else should stay in the mix.",
+          ". Share your CV when you are ready, or tell me what else should stay in the mix.",
       ]);
     }
     return pickVariant("search_followup_generic", [
-      "Send me your CV, or tell me the roles and locations you want me to keep in play.",
-      "Send me your CV, or tell me the roles and locations you want in the mix.",
-      "Send me your CV, or tell me what roles and locations you want me to work with.",
+      "Share your CV when you are ready, or tell me the roles and locations you want kept in play.",
+      "Share your CV when you are ready, or tell me the roles and locations you want in the mix.",
+      "Share your CV when you are ready, or tell me what roles and locations you want me to work with.",
     ]);
   }
 
@@ -20089,7 +20089,7 @@
       : "";
 
     return (
-      "Send me your CV and I'll look at how clearly it lines up with " +
+      "Share your CV and I'll look at how clearly it lines up with " +
       escapeHtml(roleHint) +
       focus +
       "."
@@ -21003,9 +21003,9 @@
       managedServiceWelcomeSent = true;
       sendManagedServiceSignupEmail("welcome").finally(function () {
         botMessage(
-          "All set up! I'll get everything prepared on my side and will start submitting applications and reaching out to recruiters. Do you have any questions in the meantime?",
+          "All set up. I’ll prepare the search profile, start working through suitable applications, and handle recruiter outreach where it fits. Do you have any questions before I get started?",
           humanComposeDelay(
-            "All set up. I'll get everything prepared.",
+            "All set up. I’ll prepare the search profile.",
             1100,
             2200
           ),
@@ -24079,6 +24079,8 @@
     var candidateRoleProfileCacheValue = null;
     var cvRoleMatchSingleCacheKey = "";
     var cvRoleMatchSingleCacheValue = null;
+    var liteParseJobMatchCache = {};
+    var liteParseJobMatchPending = {};
     var editorialReasoningBlocksCacheKey = "";
     var editorialReasoningBlocksCacheValue = null;
     var roleRecruiterPreviewCacheKey = "";
@@ -24112,6 +24114,8 @@
     var promptMeta = null;
     var applyResultsSameCvPromptKey = "";
     var promptAskCounts = {};
+    var promptSlotRegistry = {};
+    var promptSlotHistory = [];
     var roleEntryLauncherRunId = 0;
     var guestWelcomeShown = false;
     var activePath = "";
@@ -24168,8 +24172,19 @@
     var humanFollowUpProgressTimers = [];
     var emilyResponseSerial = 0;
     var responseWatchdogTimer = 0;
+    var liveTailoringRunToken = 0;
+    var pendingEmilyOutputTimers = [];
+    var emilyOutputGeneration = 0;
+    var conversationTurnTextOutputCount = 0;
+    var conversationTurnCardOutputCount = 0;
+    var conversationTurnAuditLog = [];
+    var conversationTurnAuditSeq = 0;
+    var conversationOutputSeq = 0;
+    var conversationCurrentTurnAudit = null;
+    var conversationTurnOwner = "";
     var applyTailoringAwaitingProceed = false;
     var applyTailoringProceedAsked = false;
+    var applyTailoringSequenceComplete = false;
     var applyCvReviewSkipped = false;
     var applyNeedsCoverLetter = "";
     var applicationAssessment = null;
@@ -26089,7 +26104,7 @@
         tab_support: "Expert Notes",
         original_title: "Your uploaded profile will appear here",
         original_body:
-          "Upload your CV and MENA Careers will assess what your profile currently proves for this role.",
+          "Add your CV and Senna will assess what your profile currently proves for this role.",
         draft_title: "Your Career Assessment will appear here",
         draft_body:
           "Start the assessment to see role fit, CV positioning, LinkedIn gaps, credibility blockers, and any certifications or experience that may strengthen your case.",
@@ -26106,7 +26121,7 @@
         cover_ready: "Draft ready to review",
         open: "Open",
         membership_kicker: "Subscription options",
-        membership_title: "Choose How MENA Careers Should Run Your Search",
+        membership_title: "Choose how Senna should run your search",
         membership_body:
           "Pick the level that fits how hands-off you want the search to be. You can switch plans any time.",
         cover_fallback_title: "Your cover letter will appear here",
@@ -27227,11 +27242,182 @@
           item.salary,
           item.salary_currency,
           item.snippet,
+          item.description_preview,
+          item.description_html,
+          item.description,
+          item.full_description,
+          item.job_description,
+          item.content,
+          item.excerpt,
+          item.requirements,
+          item.responsibilities,
           keywordText.join(" "),
           item.recruiter,
           item.recruiter_title,
         ].join(" ")
       ).toLowerCase();
+    }
+
+    function getLiteParseJobMatchEndpoint() {
+      var config = getConfig();
+      var endpoint = cleanMessageText(config.liteParseJobMatchEndpoint || "");
+      var base = cleanMessageText(config.liteParseEndpoint || "");
+      if (endpoint) {
+        return endpoint;
+      }
+      if (!base) {
+        return "";
+      }
+      if (/\/parse\/?$/i.test(base)) {
+        return base.replace(/\/parse\/?$/i, "/match-job");
+      }
+      return base.replace(/\/+$/, "") + "/match-job";
+    }
+
+    function getLiteParseJobMatchCacheKey(item) {
+      return [
+        buildMatchingItemSignature(item || {}),
+        cleanMessageText(cvRoleMatchProfileCacheKey || ""),
+        cleanMessageText(cvRoleMatchProfileCvOnlyCacheKey || ""),
+        cleanMessageText(
+          currentCvFile && currentCvFile.name ? currentCvFile.name : ""
+        ),
+      ].join("::");
+    }
+
+    function normalizeLiteParseJobMatchResult(payload) {
+      if (!payload || payload.ok === false) {
+        return null;
+      }
+      return {
+        ok: true,
+        engine: cleanMessageText(payload.engine || "skill-extractor"),
+        fitScore: Math.max(0, Math.min(100, Number(payload.fitScore || 0) || 0)),
+        fitBand: cleanMessageText(payload.fitBand || ""),
+        matchedSkills: dedupeList(
+          (payload.matchedSkills || []).map(cleanMessageText).filter(Boolean)
+        ),
+        missingSkills: dedupeList(
+          (payload.missingSkills || []).map(cleanMessageText).filter(Boolean)
+        ),
+        jobSkills: dedupeList(
+          (payload.jobSkills || []).map(cleanMessageText).filter(Boolean)
+        ),
+        cvSkills: dedupeList(
+          (payload.cvSkills || []).map(cleanMessageText).filter(Boolean)
+        ),
+        skillCoverageScore:
+          Math.max(0, Math.min(100, Number(payload.skillCoverageScore || 0))) ||
+          0,
+        experienceFit: payload.experienceFit || null,
+        experienceRequirement: payload.experienceRequirement || null,
+        seniorityFit: payload.seniorityFit || null,
+        titleFit: payload.titleFit || null,
+      };
+    }
+
+    function buildLiteParseJobMatchPayload(item, cvProfile) {
+      var structured = getCurrentStructuredCvParse
+        ? getCurrentStructuredCvParse()
+        : null;
+      var profile = cvProfile || buildCvRoleMatchProfile({ cvOnly: true }) || {};
+      return {
+        cvText: cleanMessageText(capturedCvText || ""),
+        cvStructured: structured || {},
+        cvYears: Number((profile && profile.years) || 0) || 0,
+        job: {
+          id: (item && (item.id || item.wp_post_id || item.post_id)) || "",
+          title: (item && item.title) || "",
+          company: (item && item.company) || "",
+          location: (item && item.location) || "",
+          sector: (item && item.sector) || "",
+          seniority: (item && item.seniority) || "",
+          snippet: (item && item.snippet) || "",
+          excerpt: (item && item.excerpt) || "",
+          description: (item && item.description) || "",
+          description_preview: (item && item.description_preview) || "",
+          description_html: (item && item.description_html) || "",
+          job_description: (item && item.job_description) || "",
+          requirements: (item && item.requirements) || "",
+          responsibilities: (item && item.responsibilities) || "",
+          content: (item && item.content) || "",
+        },
+      };
+    }
+
+    function getCachedLiteParseJobMatch(item) {
+      var key = getLiteParseJobMatchCacheKey(item || {});
+      return key && liteParseJobMatchCache[key]
+        ? liteParseJobMatchCache[key]
+        : null;
+    }
+
+    function requestLiteParseJobMatch(item, cvProfile) {
+      var endpoint = getLiteParseJobMatchEndpoint();
+      var key = getLiteParseJobMatchCacheKey(item || {});
+      var config = getConfig();
+      if (!endpoint || !key || !item || typeof window.fetch !== "function") {
+        return Promise.resolve(null);
+      }
+      if (liteParseJobMatchCache[key]) {
+        return Promise.resolve(liteParseJobMatchCache[key]);
+      }
+      if (liteParseJobMatchPending[key]) {
+        return liteParseJobMatchPending[key];
+      }
+      liteParseJobMatchPending[key] = window
+        .fetch(endpoint, {
+          method: "POST",
+          headers: Object.assign(
+            { "Content-Type": "application/json" },
+            config.liteParseToken
+              ? { Authorization: "Bearer " + String(config.liteParseToken || "") }
+              : {}
+          ),
+          body: JSON.stringify(buildLiteParseJobMatchPayload(item, cvProfile)),
+        })
+        .then(function (response) {
+          if (!response || !response.ok) {
+            throw new Error("LiteParse job match failed.");
+          }
+          return response.json();
+        })
+        .then(function (payload) {
+          var normalized = normalizeLiteParseJobMatchResult(payload);
+          if (normalized) {
+            liteParseJobMatchCache[key] = normalized;
+            cvRoleMatchSingleCacheKey = "";
+            cvRoleMatchSingleCacheValue = null;
+            cvRoleMatchesCacheKey = "";
+            cvRoleMatchesCacheValue = [];
+            matchingRolesFilterCacheKey = "";
+            matchingRolesFilterCacheValue = [];
+            matchingRolesHtmlCacheKey = "";
+            topMatchingRolesPreviewHtmlCacheKey = "";
+          }
+          return normalized;
+        })
+        .catch(function () {
+          return null;
+        })
+        .finally(function () {
+          delete liteParseJobMatchPending[key];
+        });
+      return liteParseJobMatchPending[key];
+    }
+
+    function hydrateLiteParseJobMatchesForItems(items, options) {
+      var list = (Array.isArray(items) ? items : []).filter(Boolean);
+      var limit = Math.max(1, Math.min(20, Number((options && options.limit) || 8)));
+      var profile = buildCvRoleMatchProfile({ cvOnly: true }) || {};
+      if (!getLiteParseJobMatchEndpoint() || !list.length) {
+        return Promise.resolve([]);
+      }
+      return Promise.all(
+        list.slice(0, limit).map(function (item) {
+          return requestLiteParseJobMatch(item, profile);
+        })
+      );
     }
 
     function buildMatchingRecruiterHaystack(item) {
@@ -28003,6 +28189,16 @@
           var specificityScore = Number(
             (matchEntry && matchEntry.specificityScore) || 0
           );
+          var requirementFit =
+            (matchEntry && matchEntry.requirementFit) || {
+              status: "unknown",
+              shouldShow: true,
+            };
+          var serviceJobMatch = matchEntry && matchEntry.serviceJobMatch;
+          var serviceExperienceFit =
+            serviceJobMatch && serviceJobMatch.experienceFit
+              ? serviceJobMatch.experienceFit
+              : null;
           var overlap = (matchEntry && matchEntry.overlap) || {};
           var componentScores = (matchEntry && matchEntry.componentScores) || {};
           var strongSkillCount = getStrongCvSkillOverlap(
@@ -28068,7 +28264,18 @@
             ((overlap.qualifications || []).length ? 4 : 0) +
             (locationMatched ? 4 : 0) -
             ((matchEntry && matchEntry.missing) || []).length * 2 -
-            (hardWeakSignal ? 16 : 0);
+            (hardWeakSignal ? 16 : 0) -
+            (requirementFit.status === "underqualified" ? 22 : 0) -
+            (requirementFit.status === "stretch" ? 4 : 0) +
+            (requirementFit.status === "qualified" ? 5 : 0) +
+            (serviceJobMatch && serviceJobMatch.fitScore
+              ? Number(serviceJobMatch.fitScore || 0) * 0.12
+              : 0) -
+            (serviceExperienceFit &&
+            serviceExperienceFit.status === "underqualified" &&
+            Number(serviceExperienceFit.deficit || 0) > 1
+              ? 18
+              : 0);
           rankingScore = hasCvProfileSignals
             ? profileScore + Math.min(32, searchScore) * 0.65
             : searchScore;
@@ -28082,6 +28289,7 @@
             rankingScore: rankingScore,
             locationMatched: locationMatched,
             hardWeakSignal: hardWeakSignal,
+            requirementFit: requirementFit,
           };
         })
         .filter(function (entry) {
@@ -28098,6 +28306,25 @@
             (overlap.qualifications || []).length
           );
           if (entry.hardWeakSignal) {
+            return false;
+          }
+          if (
+            hasCvProfileSignals &&
+            entry.requirementFit &&
+            entry.requirementFit.status === "underqualified" &&
+            entry.requirementFit.deficit > 1
+          ) {
+            return false;
+          }
+          if (
+            hasCvProfileSignals &&
+            entry.match &&
+            entry.match.serviceJobMatch &&
+            entry.match.serviceJobMatch.experienceFit &&
+            entry.match.serviceJobMatch.experienceFit.status ===
+              "underqualified" &&
+            Number(entry.match.serviceJobMatch.experienceFit.deficit || 0) > 1
+          ) {
             return false;
           }
           if (
@@ -28135,6 +28362,17 @@
             var specificityScore = Number(
               (matchEntry && matchEntry.specificityScore) || 0
             );
+            var requirementFit =
+              (matchEntry && matchEntry.requirementFit) || {
+                status: "unknown",
+                shouldShow: true,
+                deficit: 0,
+              };
+            var serviceJobMatch = matchEntry && matchEntry.serviceJobMatch;
+            var serviceExperienceFit =
+              serviceJobMatch && serviceJobMatch.experienceFit
+                ? serviceJobMatch.experienceFit
+                : null;
             var locationBonus = 0;
             var familyBonus = 0;
             var haystack = buildMatchingRoleHaystack(item);
@@ -28164,7 +28402,18 @@
                 matchScore +
                 specificityScore * 0.35 +
                 familyBonus +
-                locationBonus,
+                locationBonus -
+                (requirementFit.status === "underqualified" ? 22 : 0) -
+                (requirementFit.status === "stretch" ? 4 : 0) +
+                (serviceJobMatch && serviceJobMatch.fitScore
+                  ? Number(serviceJobMatch.fitScore || 0) * 0.12
+                  : 0) -
+                (serviceExperienceFit &&
+                serviceExperienceFit.status === "underqualified" &&
+                Number(serviceExperienceFit.deficit || 0) > 1
+                  ? 18
+                  : 0),
+              requirementFit: requirementFit,
             };
           })
           .sort(function (left, right) {
@@ -28184,6 +28433,25 @@
             return;
           }
           if (id && seenIds[id]) {
+            return;
+          }
+          if (
+            hasCvProfileSignals &&
+            entry.requirementFit &&
+            entry.requirementFit.status === "underqualified" &&
+            entry.requirementFit.deficit > 1
+          ) {
+            return;
+          }
+          if (
+            hasCvProfileSignals &&
+            entry.match &&
+            entry.match.serviceJobMatch &&
+            entry.match.serviceJobMatch.experienceFit &&
+            entry.match.serviceJobMatch.experienceFit.status ===
+              "underqualified" &&
+            Number(entry.match.serviceJobMatch.experienceFit.deficit || 0) > 1
+          ) {
             return;
           }
           if (
@@ -28595,8 +28863,22 @@
         20
       );
       var families = inferCvRoleFamilies(evidenceText, skills, role);
-      var range = parseCvMatchDateRange(dates || evidenceText);
-      var months = Math.min(180, getCvMatchDurationMonths(range));
+      var serviceRange =
+        entry &&
+        entry.dateRange &&
+        entry.dateRange.start &&
+        entry.dateRange.end
+          ? entry.dateRange
+          : null;
+      var range = serviceRange || parseCvMatchDateRange(dates || evidenceText);
+      var months =
+        Number(
+          (entry &&
+            (entry.months ||
+              entry.durationMonths ||
+              (entry.dateRange && entry.dateRange.durationMonths))) ||
+            0
+        ) || getCvMatchDurationMonths(range);
       return {
         role: role,
         company: company,
@@ -28614,6 +28896,8 @@
         skills: skills,
         parserSource: parserSource,
         confidence: Number((entry && entry.confidence) || 0) || 0,
+        dateConfidence: Number((entry && entry.dateConfidence) || 0) || 0,
+        dateIssues: (entry && entry.dateIssues) || [],
         sourceIndex: index,
       };
     }
@@ -30292,7 +30576,7 @@
                   .join(" at ")
             ),
             dateRange: range,
-            months: Math.min(180, getCvMatchDurationMonths(range)),
+            months: getCvMatchDurationMonths(range),
             recencyWeight: getCvMatchRecencyWeight(range),
             seniorityLevel: inferCvRoleSeniorityLevel(role),
             isInternship: /\b(?:intern|internship|apprentice|trainee)\b/i.test(
@@ -30582,6 +30866,126 @@
       return best;
     }
 
+    function extractRoleExperienceRequirement(text) {
+      var clean = cleanMessageText(text || "").toLowerCase();
+      var patterns = [
+        /\b(?:minimum|min\.?|at least|no less than|over|more than)\s+(\d{1,2})\+?\s*(?:years?|yrs?)\b.{0,80}\b(?:experience|exp)\b/i,
+        /\b(\d{1,2})\s*[-–—]\s*(\d{1,2})\+?\s*(?:years?|yrs?)\b.{0,80}\b(?:experience|exp)\b/i,
+        /\b(\d{1,2})\+?\s*(?:years?|yrs?)\b.{0,80}\b(?:experience|exp)\b/i,
+        /\b(\d{1,2})\+?\s*(?:years?|yrs?)\b.{0,50}\b(?:required|requirement|minimum|min\.?|mandatory|essential|needed)\b/i,
+        /\b(?:experience|exp)\b.{0,50}\b(?:of|:)?\s*(\d{1,2})\+?\s*(?:years?|yrs?)\b/i,
+      ];
+      var best = {
+        min: 0,
+        max: 0,
+        required: false,
+        preferred: false,
+        confidence: 0,
+        raw: "",
+      };
+      patterns.forEach(function (pattern) {
+        var match = clean.match(pattern);
+        var raw;
+        var min;
+        var max;
+        var context;
+        var isRequired;
+        var isPreferred;
+        var confidence;
+        if (!match) {
+          return;
+        }
+        raw = cleanMessageText(match[0] || "");
+        min = parseInt(match[1], 10) || 0;
+        max = match[2] ? parseInt(match[2], 10) || 0 : 0;
+        if (!min || min > 40) {
+          return;
+        }
+        if (max && max < min) {
+          max = 0;
+        }
+        context = cleanMessageText(
+          clean.slice(
+            Math.max(0, match.index - 80),
+            Math.min(clean.length, match.index + raw.length + 90)
+          )
+        );
+        isRequired =
+          /\b(?:require|requires|required|requirement|must|minimum|min\.?|at least|mandatory|essential|need(?:ed|s)?|should have|you have|candidate has)\b/i.test(
+            context
+          );
+        isPreferred =
+          /\b(?:preferred|desirable|nice to have|advantage|ideally|plus|bonus)\b/i.test(
+            context
+          );
+        confidence = isRequired ? 0.92 : isPreferred ? 0.68 : 0.76;
+        if (
+          min > Number(best.min || 0) ||
+          (min === Number(best.min || 0) && confidence > best.confidence)
+        ) {
+          best = {
+            min: min,
+            max: max || min,
+            required: isRequired || !isPreferred,
+            preferred: isPreferred,
+            confidence: confidence,
+            raw: raw,
+          };
+        }
+      });
+      return best.min ? best : { min: 0, max: 0, required: false, preferred: false, confidence: 0, raw: "" };
+    }
+
+    function evaluateCvYearsAgainstRoleRequirement(candidateYears, requirement) {
+      var years = Number(candidateYears || 0) || 0;
+      var min = Number((requirement && requirement.min) || 0) || 0;
+      var max = Number((requirement && requirement.max) || 0) || 0;
+      var deficit;
+      if (!min) {
+        return {
+          status: "unknown",
+          score: 55,
+          candidateYears: years,
+          requiredYears: 0,
+          deficit: 0,
+          shouldShow: true,
+          label: "",
+        };
+      }
+      deficit = Math.max(0, min - years);
+      if (years >= min) {
+        return {
+          status: "qualified",
+          score: max && years > max + 3 ? 78 : 100,
+          candidateYears: years,
+          requiredYears: min,
+          deficit: 0,
+          shouldShow: true,
+          label: "Meets the visible years requirement",
+        };
+      }
+      if (deficit <= 1 || years >= min * 0.8) {
+        return {
+          status: "stretch",
+          score: Math.max(58, Math.round(100 * (years / Math.max(min, 1)))),
+          candidateYears: years,
+          requiredYears: min,
+          deficit: deficit,
+          shouldShow: true,
+          label: "Slightly below the visible years requirement",
+        };
+      }
+      return {
+        status: "underqualified",
+        score: Math.max(10, Math.round(100 * (years / Math.max(min, 1)))),
+        candidateYears: years,
+        requiredYears: min,
+        deficit: deficit,
+        shouldShow: false,
+        label: "Below the visible years requirement",
+      };
+    }
+
     function buildCvExpectedExperienceRange(roleProfile) {
       if ((roleProfile.minYears || 0) > 0 || (roleProfile.maxYears || 0) > 0) {
         return {
@@ -30619,13 +31023,27 @@
         profile,
         roleProfile.families
       );
+      var requirementFit = evaluateCvYearsAgainstRoleRequirement(
+        Math.max(relevantYears, Number((profile && profile.years) || 0) || 0),
+        roleProfile && roleProfile.experienceRequirement
+      );
       var score = 55;
       if (!relevantYears && !(profile && profile.years)) {
-        return { score: 20, relevantYears: 0, range: range };
+        return {
+          score: Math.min(20, requirementFit.score),
+          relevantYears: 0,
+          range: range,
+          requirementFit: requirementFit,
+        };
       }
       if (!range.min && !range.max) {
         score = relevantYears > 0 ? Math.min(100, 55 + relevantYears * 8) : 35;
-        return { score: score, relevantYears: relevantYears, range: range };
+        return {
+          score: score,
+          relevantYears: relevantYears,
+          range: range,
+          requirementFit: requirementFit,
+        };
       }
       if (relevantYears < range.min) {
         score = Math.max(
@@ -30640,7 +31058,19 @@
           Math.round(100 - (relevantYears - range.max) * 12)
         );
       }
-      return { score: score, relevantYears: relevantYears, range: range };
+      if (requirementFit.status === "stretch") {
+        score = Math.max(score, Math.min(72, requirementFit.score));
+      } else if (requirementFit.status === "underqualified") {
+        score = Math.min(score, requirementFit.score);
+      } else if (requirementFit.status === "qualified") {
+        score = Math.max(score, 88);
+      }
+      return {
+        score: score,
+        relevantYears: relevantYears,
+        range: range,
+        requirementFit: requirementFit,
+      };
     }
 
     function getCvRecencyScore(profile, roleProfile) {
@@ -30790,11 +31220,9 @@
               [role, company].filter(Boolean).join(company && role ? " at " : "")
             ),
             dateRange: range,
-            months: Math.min(
-              180,
-              Number((entry && entry.months) || 0) ||
-                getCvMatchDurationMonths(range)
-            ),
+            months:
+              Number((entry && (entry.months || entry.durationMonths)) || 0) ||
+              getCvMatchDurationMonths(range),
             recencyWeight:
               Number((entry && entry.recencyWeight) || 0) ||
               getCvMatchRecencyWeight(range),
@@ -31344,10 +31772,7 @@
         skills,
         cleanMessageText((item && item.title) || "")
       );
-      var rangeMatch = haystack.match(
-        /\b(\d{1,2})\s*[-–]\s*(\d{1,2})\s*(?:years?|yrs?)\b/i
-      );
-      var plusMatch = haystack.match(/\b(\d{1,2})\+?\s*(?:years?|yrs?)\b/i);
+      var experienceRequirement = extractRoleExperienceRequirement(haystack);
       var title = cleanMessageText((item && item.title) || "");
       var seniority = cleanMessageText((item && item.seniority) || "");
       candidateRoleProfileCacheValue = {
@@ -31362,17 +31787,10 @@
         qualifications: qualifications,
         skills: skills,
         roleTerms: tokenizeCvRoleTerms((item && item.title) || ""),
-        minYears: rangeMatch
-          ? parseInt(rangeMatch[1], 10) || 0
-          : plusMatch
-          ? parseInt(plusMatch[1], 10) || 0
-          : 0,
-        maxYears: rangeMatch ? parseInt(rangeMatch[2], 10) || 0 : 0,
-        yearsRequired: rangeMatch
-          ? parseInt(rangeMatch[1], 10) || 0
-          : plusMatch
-          ? parseInt(plusMatch[1], 10) || 0
-          : 0,
+        minYears: experienceRequirement.min || 0,
+        maxYears: experienceRequirement.max || 0,
+        yearsRequired: experienceRequirement.min || 0,
+        experienceRequirement: experienceRequirement,
         haystack: haystack,
       };
       candidateRoleProfileCacheKey = cacheKey;
@@ -31416,6 +31834,7 @@
       }
       var cvProfile = buildCvRoleMatchProfile();
       var roleProfile = buildCandidateRoleProfile(item);
+      var serviceJobMatch = getCachedLiteParseJobMatch(item);
       var familyOverlap = intersectNormalizedLabels(
         roleProfile.families,
         cvProfile.families
@@ -31442,6 +31861,10 @@
         );
       });
       var experienceFit = getCvExperienceFitScore(cvProfile, roleProfile);
+      var requirementFit = experienceFit.requirementFit || {
+        status: "unknown",
+        shouldShow: true,
+      };
       var recencyScore = getCvRecencyScore(cvProfile, roleProfile);
       var seniorityScore = getCvSeniorityFitScore(cvProfile, roleProfile);
       var careerFitScore = getCvCareerFitScore(
@@ -31527,6 +31950,25 @@
         experienceFit.score * 0.1 +
         locationScore * 0.05 +
         careerFitScore * 0.05;
+      if (serviceJobMatch && serviceJobMatch.ok) {
+        skillsScore = Math.max(
+          skillsScore,
+          Number(serviceJobMatch.skillCoverageScore || 0) || 0
+        );
+        score = score * 0.68 + Number(serviceJobMatch.fitScore || 0) * 0.32;
+        if (
+          serviceJobMatch.experienceFit &&
+          serviceJobMatch.experienceFit.status === "underqualified" &&
+          Number(serviceJobMatch.experienceFit.deficit || 0) > 1
+        ) {
+          score -= 16;
+        } else if (
+          serviceJobMatch.experienceFit &&
+          serviceJobMatch.experienceFit.status === "qualified"
+        ) {
+          score += 5;
+        }
+      }
       if (
         cvProfile.families.length >= 5 &&
         !titleOverlap.length &&
@@ -31569,6 +32011,11 @@
       if (seniorityScore <= 20) {
         score -= 10;
       }
+      if (requirementFit.status === "stretch") {
+        score -= 4;
+      } else if (requirementFit.status === "underqualified") {
+        score -= 18;
+      }
       if (experienceFit.relevantYears < Number(experienceFit.range.min || 0)) {
         missing.push(
           "Relevant experience for this lane looks closer to " +
@@ -31576,6 +32023,22 @@
             " years against a target nearer " +
             Number(experienceFit.range.min || 0).toFixed(1) +
             "+."
+        );
+      }
+      if (
+        roleProfile.yearsRequired > 0 &&
+        requirementFit.status === "underqualified"
+      ) {
+        missing.push(
+          "The role asks for around " +
+            Number(roleProfile.yearsRequired || 0)
+              .toFixed(1)
+              .replace(/\.0$/, "") +
+            "+ years; the CV shows closer to " +
+            Number(requirementFit.candidateYears || 0)
+              .toFixed(1)
+              .replace(/\.0$/, "") +
+            "."
         );
       }
 
@@ -31614,6 +32077,17 @@
             "."
         );
       }
+      if (
+        serviceJobMatch &&
+        serviceJobMatch.matchedSkills &&
+        serviceJobMatch.matchedSkills.length
+      ) {
+        whyMatches.push(
+          "The job description parser found overlap around " +
+            formatNaturalList(serviceJobMatch.matchedSkills.slice(0, 4)) +
+            "."
+        );
+      }
       if (qualificationOverlap.length) {
         whyMatches.push(
           "Your " +
@@ -31631,6 +32105,29 @@
           "The CV shows roughly " +
             experienceFit.relevantYears.toFixed(1) +
             " relevant years for this lane."
+        );
+      }
+      if (
+        roleProfile.yearsRequired > 0 &&
+        requirementFit.status === "qualified"
+      ) {
+        whyMatches.push(
+          "The CV meets the visible " +
+            Number(roleProfile.yearsRequired || 0)
+              .toFixed(1)
+              .replace(/\.0$/, "") +
+            "+ years signal in the role."
+        );
+      } else if (
+        roleProfile.yearsRequired > 0 &&
+        requirementFit.status === "stretch"
+      ) {
+        whyMatches.push(
+          "The CV is slightly below the visible " +
+            Number(roleProfile.yearsRequired || 0)
+              .toFixed(1)
+              .replace(/\.0$/, "") +
+            "+ years signal, so this is a role to consider rather than a clean match."
         );
       }
 
@@ -31707,6 +32204,18 @@
           "The role language points to " +
             formatNaturalList(roleProfile.qualifications.slice(0, 2)) +
             ", which is not clearly evidenced on the CV."
+        );
+      }
+      if (
+        serviceJobMatch &&
+        serviceJobMatch.missingSkills &&
+        serviceJobMatch.missingSkills.length &&
+        Number(serviceJobMatch.skillCoverageScore || 0) < 62
+      ) {
+        missing.push(
+          "The job description parser still sees gaps around " +
+            formatNaturalList(serviceJobMatch.missingSkills.slice(0, 3)) +
+            "."
         );
       }
       if (!locationMatched && roleProfile.location) {
@@ -31814,6 +32323,8 @@
         ).slice(0, 2),
         roleProfile: roleProfile,
         cvProfile: cvProfile,
+        requirementFit: requirementFit,
+        serviceJobMatch: serviceJobMatch || null,
         componentScores: {
           title: Math.round(titleScore),
           skills: Math.round(skillsScore),
@@ -32478,6 +32989,17 @@
         cleanMessageText((item && item.salary) || ""),
         cleanMessageText((item && item.sector) || ""),
         cleanMessageText((item && item.seniority) || ""),
+        cleanMessageText(
+          (item &&
+            (item.description ||
+              item.description_preview ||
+              item.description_html ||
+              item.full_description ||
+              item.job_description ||
+              item.requirements ||
+              item.snippet)) ||
+            ""
+        ).slice(0, 500),
         cleanMessageText((item && item.url) || ""),
         cleanMessageText((item && item.apply_url) || ""),
         cleanMessageText(
@@ -43368,7 +43890,7 @@
         return "For finance career creators, separate useful tactical advice from proof of outcomes. Check whether they show real process, role-specific nuance, and limits to their advice rather than relying only on credentials or confidence.";
       }
       if (/can i ask|question first|quick question|before that/i.test(lower)) {
-        return "Yes. Ask me what you need. I’ll answer it directly, then bring us back to the application search.";
+        return "Yes. Ask me what you need. I’ll answer it directly, then we’ll continue the application search.";
       }
       if (
         /^(?:hi|hello|hey|hiya|yo|salam|salaam|مرحبا|هلا|السلام عليكم)/i.test(
@@ -43390,15 +43912,15 @@
       ) {
         return currentCvFile || capturedCvText
           ? pickVariant("role_discovery_resume_application_with_cv", [
-              "Back to the selected role. Ask me what you want to check, or tell me to continue the application.",
+              "For the selected role, ask what you want to check or tell me to continue the application.",
               "I still have this role open. We can compare fit, adjust the CV, or continue applying.",
-              "Back on the application. Tell me what you want to verify before I move it forward.",
+              "For the application, tell me what you want to verify before I move it forward.",
             ])
           : getContextualCvRequestLine(context.role, "apply");
       }
       return currentCvFile || capturedCvText
         ? pickVariant("role_discovery_resume_search_with_cv", [
-            "Back to the search. Pick a result, or type the next role, sector, company, or market.",
+            "For the search, pick a result or type the next role, sector, company, or market.",
             "I’ll keep the search moving from " +
               focus +
               ". Choose a role above or change the criteria.",
@@ -43423,7 +43945,7 @@
       ) {
         clearResponseWatchdog();
         botMessage(
-          "Send me your CV and I'll compare it directly with this role before you apply.",
+          "Share your CV and I’ll compare it directly with this role before you apply.",
           humanComposeDelay(
             "Request CV for selected role fit check.",
             800,
@@ -45191,21 +45713,34 @@
           escapeHtml(snippet) +
           "</p>" +
           '<div class="sffc-crm-apply-results__actions">' +
+          '<button type="button" class="sffc-crm-apply-results__btn sffc-crm-apply-results__btn--review" data-sffc-apply-results-toggle-review="' +
+          escapeHtml(reviewKey) +
+          '" aria-expanded="false" aria-controls="' +
+          escapeHtml(panelId) +
+          '"' +
+          roleDataAttributes +
+          ">" +
+          escapeHtml(uiText("Review fit", "راجع الملاءمة")) +
+          "</button>" +
           '<button type="button" class="sffc-crm-apply-results__btn sffc-crm-apply-results__btn--primary" data-sffc-apply-results-apply-key="' +
           escapeHtml(reviewKey) +
           '"' +
           roleDataAttributes +
           ">" +
-          escapeHtml(uiText("Apply with Tailored CV", "قدّم بالسيرة المخصصة")) +
+          escapeHtml(uiText("Tailor CV", "خصص السيرة")) +
           "</button>" +
           '<button type="button" class="sffc-crm-apply-results__btn sffc-crm-apply-results__btn--secondary" data-sffc-apply-results-original-key="' +
           escapeHtml(reviewKey) +
           '"' +
           roleDataAttributes +
           ">" +
-          escapeHtml(
-            uiText("Continue with Original CV", "المتابعة بالسيرة الأصلية")
-          ) +
+          escapeHtml(uiText("Original CV", "السيرة الأصلية")) +
+          "</button>" +
+          '<button type="button" class="sffc-crm-apply-results__btn sffc-crm-apply-results__btn--save" data-sffc-apply-chat-queue-add="' +
+          escapeHtml(reviewKey) +
+          '">' +
+          '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 3h12v18l-6-4-6 4V3z"/></svg>' +
+          escapeHtml(uiText("Save", "حفظ")) +
           "</button>" +
           "</div>" +
           renderInlineApplicationReview(item, reviewKey, panelId) +
@@ -45278,6 +45813,11 @@
             getApplyResultsPersonalizationLabel()
         ) +
         "</div>" +
+        '<div class="sffc-crm-apply-results__group-title"><h3>' +
+        escapeHtml(uiText("Best matches", "أفضل المطابقات")) +
+        "</h3><span>" +
+        escapeHtml(uiText("Sorted by CV fit and role relevance", "مرتبة حسب ملاءمة السيرة والدور")) +
+        "</span></div>" +
         '<div class="sffc-crm-apply-results__list">' +
         displayItems.map(renderResult).join("") +
         "</div>" +
@@ -47476,9 +48016,9 @@
           ]);
         }
         return pickVariant("apply_discovery_opening_guest", [
-          "Upload your CV first and I’ll search live Middle East jobs against your actual skills and experience.",
+          "Start with your CV and I’ll search live Middle East jobs against your actual skills and experience.",
           "Start with your CV so I can judge fit properly, then I’ll use the role or market you entered as the starting brief.",
-          "Send your CV first. I’ll use your real background to decide which current roles are worth showing you.",
+          "Share your CV first. I’ll use your real background to decide which current roles are worth showing you.",
         ]);
       }
       var selectedRole = cleanMessageText(roleTitle || "this role");
@@ -48840,34 +49380,14 @@
         }
         return;
       }
-      botSequenceForCurrentTurn(
-        [
-          {
-            html: intro,
-            delay: humanComposeDelay(intro, 900, 1700),
-          },
-          {
-            html: renderJobListChatResultsHtml(items, listKey),
-            delay: humanComposeDelay(tailCopy, 900, 1600),
-            pause: humanReadDelay(intro, 280),
-          },
-          reasoningHtml
-            ? {
-                html: reasoningHtml,
-                delay: humanComposeDelay(
-                  cleanMessageText(reasoningHtml),
-                  850,
-                  1500
-                ),
-                pause: humanReadDelay(intro, 220),
-              }
-            : null,
-          {
-            html: tailCopy,
-            delay: humanComposeDelay(tailCopy, 850, 1500),
-            pause: humanReadDelay(intro, 220),
-          },
-        ].filter(Boolean),
+      botMessage(
+        intro +
+          renderJobListChatResultsHtml(items, listKey) +
+          (reasoningHtml || "") +
+          "<p>" +
+          escapeHtml(tailCopy) +
+          "</p>",
+        humanComposeDelay("Live job search results ready.", 1200, 2300),
         function () {
           if (!isMobileWorkspaceView()) {
             setRailView("chat");
@@ -52097,24 +52617,24 @@
       return composeSemanticReply("job_search_upload_prompt_line_dynamic", {
         opener: {
           direct: [
-            "Send me your CV first.",
-            "Start by sending me your CV.",
-            "Let's start with your CV.",
+            "Let’s start with your CV.",
+            "Start with your CV so I can judge fit properly.",
+            "Share your CV first so the search is based on your actual background.",
           ],
           warm: [
-            "Start by sending me your CV.",
-            "Send your CV over first.",
-            "Let's start with your CV.",
+            "Let’s start with your CV.",
+            "Start with your CV so I can keep this grounded.",
+            "Share your CV first and I’ll build the search around it.",
           ],
           measured: [
-            "Send me your CV first.",
             "Start with your CV.",
-            "Send your CV over first.",
+            "Share your CV first.",
+            "Let’s anchor this to your CV first.",
           ],
           sharp: [
-            "Send me your CV first.",
             "Start with your CV.",
-            "Send the CV over first.",
+            "Share your CV first.",
+            "Let’s anchor the search to the CV first.",
           ],
         },
         action: {
@@ -52798,10 +53318,10 @@
       }
       return composeSemanticReply("job_search_full_name_prompt_dynamic", {
         opener: {
-          direct: ["What full name should I use for this?"],
+          direct: ["What full name should I use on the search profile?"],
           warm: ["What name should I set this up under?"],
-          measured: ["What should I use as the name on this?"],
-          sharp: ["Which full name do you want me to use here?"],
+          measured: ["What name should appear on the search profile?"],
+          sharp: ["Which full name should I use here?"],
         },
       });
     }
@@ -52816,11 +53336,11 @@
       }
       return composeSemanticReply("job_search_email_prompt_dynamic", {
         opener: {
-          direct: ["Which email should I use for the test email?"],
-          warm: ["What's the best email to use from here?"],
-          measured: ["Where should I send the test email?"],
+          direct: ["Which email should I use for the setup email?"],
+          warm: ["What's the best email to use for updates from here?"],
+          measured: ["Where should I send the setup email?"],
           sharp: [
-            "What email do you want me to use so I can send the test through?",
+            "What email should I use so I can send the setup note through?",
           ],
         },
       });
@@ -56905,12 +57425,168 @@
     }
 
     function cancelPendingEmilyOutput() {
+      pendingEmilyOutputTimers.forEach(function (timer) {
+        if (timer) {
+          window.clearTimeout(timer);
+        }
+      });
+      pendingEmilyOutputTimers = [];
       if (typingTimer) {
         window.clearTimeout(typingTimer);
         typingTimer = 0;
       }
       removeTyping();
       botBusyUntil = Date.now();
+      emilyOutputGeneration += 1;
+      recordConversationAuditEvent("emily_output_cancelled", {
+        generation: emilyOutputGeneration,
+      });
+    }
+
+    function registerPendingEmilyOutputTimer(timer) {
+      if (!timer) {
+        return timer;
+      }
+      pendingEmilyOutputTimers.push(timer);
+      return timer;
+    }
+
+    function forgetPendingEmilyOutputTimer(timer) {
+      pendingEmilyOutputTimers = pendingEmilyOutputTimers.filter(function (
+        pendingTimer
+      ) {
+        return pendingTimer !== timer;
+      });
+    }
+
+    function getConversationAuditSnapshot() {
+      return {
+        turnSerial: applyChatUserTurnSerial,
+        step: cleanMessageText(step || ""),
+        promptState: cleanMessageText(promptState || ""),
+        activePath: cleanMessageText(activePath || ""),
+        owner: conversationTurnOwner || "",
+        botBusyUntil: botBusyUntil || 0,
+        responseSerial: emilyResponseSerial || 0,
+        hasTyping: !!(
+          messages && messages.querySelector("[data-sffc-apply-chat-typing]")
+        ),
+        pendingPrompt: !!promptState,
+      };
+    }
+
+    function recordConversationAuditEvent(type, details) {
+      var entry = Object.assign(
+        {
+          id: ++conversationTurnAuditSeq,
+          type: cleanMessageText(type || "event"),
+          createdAt: Date.now(),
+        },
+        getConversationAuditSnapshot(),
+        details || {}
+      );
+      conversationTurnAuditLog.push(entry);
+      conversationTurnAuditLog = conversationTurnAuditLog.slice(-240);
+      try {
+        window.__sffcApplyChatConversationAudit = conversationTurnAuditLog;
+        window.__sffcApplyChatConversationAuditLatest = entry;
+      } catch (error) {}
+      return entry;
+    }
+
+    function beginConversationTurnAudit(value) {
+      var hadPendingOutput = !!(
+        typingTimer ||
+        (pendingEmilyOutputTimers && pendingEmilyOutputTimers.length)
+      );
+      if (hadPendingOutput) {
+        cancelPendingEmilyOutput();
+      }
+      conversationTurnOwner = "";
+      conversationTurnTextOutputCount = 0;
+      conversationTurnCardOutputCount = 0;
+      conversationCurrentTurnAudit = recordConversationAuditEvent("user_turn", {
+        text: cleanMessageText(value || ""),
+        responseCount: 0,
+        scheduledOutputCount: 0,
+        cancelledPendingOutput: hadPendingOutput,
+      });
+      return conversationCurrentTurnAudit;
+    }
+
+    function markConversationTurnOwner(owner, details) {
+      var cleanOwner = cleanMessageText(owner || "");
+      if (!cleanOwner) {
+        return;
+      }
+      if (!conversationTurnOwner) {
+        conversationTurnOwner = cleanOwner;
+      } else if (conversationTurnOwner !== cleanOwner) {
+        recordConversationAuditEvent("turn_owner_conflict", {
+          existingOwner: conversationTurnOwner,
+          attemptedOwner: cleanOwner,
+          details: details || null,
+        });
+        return;
+      }
+      recordConversationAuditEvent("turn_owner", Object.assign({
+        owner: conversationTurnOwner,
+      }, details || {}));
+    }
+
+    function recordConversationScheduledOutput(kind, html, delay, pause) {
+      var text = cleanMessageText(html || "");
+      conversationOutputSeq += 1;
+      if (conversationCurrentTurnAudit) {
+        conversationCurrentTurnAudit.scheduledOutputCount =
+          Number(conversationCurrentTurnAudit.scheduledOutputCount || 0) + 1;
+      }
+      return recordConversationAuditEvent("emily_output_scheduled", {
+        outputId: conversationOutputSeq,
+        kind: cleanMessageText(kind || "message"),
+        text: text.slice(0, 220),
+        textLength: text.length,
+        delay: Number(delay || 0),
+        pause: Number(pause || 0),
+      });
+    }
+
+    function recordConversationEmittedOutput(kind, html) {
+      var text = cleanMessageText(html || "");
+      if (conversationCurrentTurnAudit) {
+        conversationCurrentTurnAudit.responseCount =
+          Number(conversationCurrentTurnAudit.responseCount || 0) + 1;
+      }
+      recordConversationAuditEvent("emily_output_emitted", {
+        kind: cleanMessageText(kind || "message"),
+        text: text.slice(0, 220),
+        textLength: text.length,
+        responseCount:
+          conversationCurrentTurnAudit &&
+          Number(conversationCurrentTurnAudit.responseCount || 0),
+      });
+    }
+
+    function getEmilyOutputKind(html, modifier) {
+      if (modifier === "system") {
+        return "system";
+      }
+      return containsHtml(html) ? "card" : "text";
+    }
+
+    function getConversationTurnOutputPacing(kind) {
+      if (kind === "card" || kind === "system") {
+        conversationTurnCardOutputCount += 1;
+        return 0;
+      }
+      conversationTurnTextOutputCount += 1;
+      if (conversationTurnTextOutputCount <= 2) {
+        return 0;
+      }
+      if (conversationTurnTextOutputCount === 3) {
+        return 700;
+      }
+      return Math.min(2600, 900 + conversationTurnTextOutputCount * 320);
     }
 
     function setApplyChatHumanTakeoverState(active) {
@@ -57225,6 +57901,7 @@
         window.clearTimeout(timerId);
       });
       liveDraftTimers = [];
+      liveTailoringRunToken += 1;
     }
 
     function setElementVisibility(node, isVisible, displayValue) {
@@ -57457,7 +58134,7 @@
           setElementVisibility(listsResults, true, "grid");
         }
         if (listsResultsTitle) {
-          listsResultsTitle.textContent = "Tracked Jobs";
+          listsResultsTitle.textContent = "Applications";
         }
         if (listsResultsDescription) {
           listsResultsDescription.textContent =
@@ -58091,6 +58768,7 @@
           if (
             applyTailoringAwaitingProceed &&
             !applyTailoringProceedAsked &&
+            applyTailoringSequenceComplete &&
             !isMobileWorkspaceView() &&
             workspaceState.activeTab === "draft" &&
             workspaceDraft.scrollTop > 16
@@ -58140,6 +58818,7 @@
       clearLiveDraftTimers();
       applyTailoringAwaitingProceed = false;
       applyTailoringProceedAsked = false;
+      applyTailoringSequenceComplete = false;
       coverLetterVariantSeed = "";
       workspaceState = {
         visible: false,
@@ -58194,6 +58873,7 @@
       if (
         applyTailoringAwaitingProceed &&
         !applyTailoringProceedAsked &&
+        applyTailoringSequenceComplete &&
         nextTab === "original"
       ) {
         applyTailoringProceedAsked = true;
@@ -58206,6 +58886,7 @@
       if (
         applyTailoringAwaitingProceed &&
         !applyTailoringProceedAsked &&
+        applyTailoringSequenceComplete &&
         isMobileWorkspaceView() &&
         previousTab === "original" &&
         workspaceState.activeTab === "original"
@@ -62993,9 +63674,13 @@
       };
     }
 
-    function scheduleLiveDraftFrame(delayMs, state, renderDraft) {
+    function scheduleLiveDraftFrame(delayMs, state, renderDraft, runToken) {
+      var expectedRunToken = runToken || liveTailoringRunToken;
       liveDraftTimers.push(
         window.setTimeout(function () {
+          if (expectedRunToken !== liveTailoringRunToken) {
+            return;
+          }
           renderDraft(state);
         }, Math.max(0, delayMs || 0))
       );
@@ -76460,7 +77145,26 @@
       );
     }
 
-    function runLiveTailoringSequence(analysis) {
+    function runLiveTailoringSequence(analysis, done) {
+      var runToken;
+
+      function finishTailoringAfter(delayMs) {
+        var timerId;
+        if (typeof done !== "function") {
+          return;
+        }
+        timerId = window.setTimeout(function () {
+          liveDraftTimers = liveDraftTimers.filter(function (pendingTimerId) {
+            return pendingTimerId !== timerId;
+          });
+          if (runToken !== liveTailoringRunToken) {
+            return;
+          }
+          done();
+        }, Math.max(0, delayMs || 0));
+        liveDraftTimers.push(timerId);
+      }
+
       function renderDraft(phase) {
         updateWorkspace({
           visible: true,
@@ -76474,6 +77178,7 @@
       }
 
       clearLiveDraftTimers();
+      runToken = liveTailoringRunToken;
       openWorkspaceTab("draft", {
         stage: "Tailoring CV",
         note: "I am rewriting the application version against this role using only evidence already in the CV.",
@@ -77047,6 +77752,7 @@
           },
           renderDraft
         );
+        finishTailoringAfter(currentDelay + randomBetween(900, 1400));
         return;
       }
 
@@ -77054,15 +77760,17 @@
         parseCvFile(currentCvFile)
           .then(function (text) {
             capturedCvText = normalizeStoredCvText(text);
-            runLiveTailoringSequence(analysis);
+            runLiveTailoringSequence(analysis, done);
           })
           .catch(function () {
             renderDraft("suggestions");
+            finishTailoringAfter(1200);
           });
         return;
       }
 
       renderDraft("suggestions");
+      finishTailoringAfter(1200);
     }
 
     function showEndChatPrompt() {
@@ -77384,6 +78092,74 @@
       queuedTypingState = { mode: "transfer" };
     }
 
+    function shouldReduceApplyChatMotion() {
+      return (
+        window.matchMedia &&
+        window.matchMedia("(prefers-reduced-motion: reduce)").matches
+      );
+    }
+
+    function typeEmilyPlainMessage(row, sourceText, finalHtml, onDone) {
+      var formatted;
+      var text;
+      var total;
+      var index = 0;
+      var startedAt;
+      var duration;
+      var stepTimer = 0;
+
+      if (!row || shouldReduceApplyChatMotion()) {
+        return false;
+      }
+      formatted = row.querySelector(".sffc-crm-apply-chat__formatted");
+      if (!formatted) {
+        return false;
+      }
+      text = String(sourceText || "").trim();
+      if (!text || text.length < 12) {
+        return false;
+      }
+      total = text.length;
+      duration = Math.max(520, Math.min(2400, total * 18));
+      startedAt = Date.now();
+      row.classList.add("is-revealing");
+      formatted.innerHTML = "";
+
+      function renderFrame() {
+        var elapsed;
+        var progress;
+        var nextIndex;
+
+        if (!row.isConnected) {
+          return;
+        }
+        elapsed = Date.now() - startedAt;
+        progress = Math.min(1, elapsed / duration);
+        nextIndex = Math.max(1, Math.floor(total * progress));
+        if (nextIndex !== index) {
+          index = nextIndex;
+          formatted.innerHTML = formatEmilyMessageHtml(text.slice(0, index));
+          scrollToLatest();
+        }
+        if (progress < 1) {
+          stepTimer = window.setTimeout(renderFrame, 24);
+          return;
+        }
+        if (stepTimer) {
+          window.clearTimeout(stepTimer);
+        }
+        formatted.innerHTML = finalHtml || formatEmilyMessageHtml(text);
+        row.classList.remove("is-revealing");
+        scrollToLatest();
+        if (typeof onDone === "function") {
+          onDone();
+        }
+      }
+
+      renderFrame();
+      return true;
+    }
+
     function botMessageNow(html, modifier, options) {
       if (
         applyChatHumanTakeoverActive &&
@@ -77391,6 +78167,7 @@
       ) {
         return;
       }
+      recordConversationEmittedOutput(getEmilyOutputKind(html, modifier), html);
       var row = document.createElement("div");
       var avatarHtml =
         modifier === "system"
@@ -77403,6 +78180,10 @@
         : '<div class="sffc-crm-apply-chat__formatted">' +
           formatEmilyMessageHtml(html) +
           "</div>";
+      var shouldTypePlainMessage =
+        modifier !== "system" &&
+        !containsHtml(html) &&
+        !(options && options.skipTypewriter);
       var skipChatLog = options && options.skipChatLog;
       var hasEditorialResults = containsEditorialResultsHtml(contentHtml);
       var hasJobResults = containsJobResultsHtml(contentHtml);
@@ -77449,6 +78230,25 @@
           "</div>";
       }
       messages.appendChild(row);
+      if (shouldTypePlainMessage) {
+        if (
+          !typeEmilyPlainMessage(
+            row,
+            html,
+            formatEmilyMessageHtml(html),
+            options && options.afterReveal
+          ) &&
+          options &&
+          typeof options.afterReveal === "function"
+        ) {
+          options.afterReveal();
+        }
+      } else if (modifier !== "system") {
+        row.classList.add("is-revealed");
+        if (options && typeof options.afterReveal === "function") {
+          options.afterReveal();
+        }
+      }
       playTone();
       if (hasWorkspaceCard || hasTailoredVersionCard) {
         pinWorkspaceCardScroll(row, options && options.pinDuration);
@@ -77480,6 +78280,12 @@
         return;
       }
       var now = Date.now();
+      var turnSerial = applyChatUserTurnSerial;
+      var generation = emilyOutputGeneration;
+      var kind = getEmilyOutputKind(html);
+      var pacing = getConversationTurnOutputPacing(kind);
+      var typingStartTimer = 0;
+      var messageTimer = 0;
       var wait =
         typeof delay === "number" ? delay : humanComposeDelay(html, 1100, 6800);
       var pause =
@@ -77487,22 +78293,57 @@
           ? pauseBefore
           : humanReadDelay(lastUserInputText, 500);
       var startAt = Math.max(
-        now + pause,
+        now + pause + pacing,
         botBusyUntil + randomTriangular(280, 1100, 420)
       );
       var typingState = queuedTypingState;
       queuedTypingState = null;
       botBusyUntil = startAt + wait;
+      recordConversationScheduledOutput(
+        kind,
+        html,
+        wait,
+        pause + pacing
+      );
 
-      window.setTimeout(function () {
-        showTyping(typingState);
-      }, Math.max(0, startAt - now));
-      typingTimer = window.setTimeout(function () {
-        botMessageNow(html);
-        if (typeof callback === "function") {
-          callback();
-        }
-      }, Math.max(0, startAt + wait - now));
+      typingStartTimer = registerPendingEmilyOutputTimer(
+        window.setTimeout(function () {
+          forgetPendingEmilyOutputTimer(typingStartTimer);
+          if (
+            generation !== emilyOutputGeneration ||
+            applyChatUserTurnSerial !== turnSerial
+          ) {
+            recordConversationAuditEvent("emily_output_dropped_stale_typing", {
+              scheduledTurnSerial: turnSerial,
+              currentTurnSerial: applyChatUserTurnSerial,
+            });
+            return;
+          }
+          showTyping(typingState);
+        }, Math.max(0, startAt - now))
+      );
+      messageTimer = registerPendingEmilyOutputTimer(
+        window.setTimeout(function () {
+          forgetPendingEmilyOutputTimer(messageTimer);
+          if (typingTimer === messageTimer) {
+            typingTimer = 0;
+          }
+          if (
+            generation !== emilyOutputGeneration ||
+            applyChatUserTurnSerial !== turnSerial
+          ) {
+            recordConversationAuditEvent("emily_output_dropped_stale_message", {
+              scheduledTurnSerial: turnSerial,
+              currentTurnSerial: applyChatUserTurnSerial,
+            });
+            return;
+          }
+          botMessageNow(html, null, {
+            afterReveal: callback,
+          });
+        }, Math.max(0, startAt + wait - now))
+      );
+      typingTimer = messageTimer;
     }
 
     function botSequence(items, done) {
@@ -77730,6 +78571,10 @@
     function armResponseWatchdog(stateSnapshot, stepSnapshot) {
       var serialAtStart = emilyResponseSerial;
       clearResponseWatchdog();
+      recordConversationAuditEvent("response_watchdog_armed", {
+        stateSnapshot: cleanMessageText(stateSnapshot || ""),
+        stepSnapshot: cleanMessageText(stepSnapshot || ""),
+      });
       responseWatchdogTimer = window.setTimeout(function checkForSilence() {
         if (applyChatHumanTakeoverActive) {
           responseWatchdogTimer = 0;
@@ -77755,6 +78600,11 @@
         if (!fallback || !fallback.html) {
           return;
         }
+        recordConversationAuditEvent("response_watchdog_fallback", {
+          stateSnapshot: cleanMessageText(stateSnapshot || ""),
+          stepSnapshot: cleanMessageText(stepSnapshot || ""),
+          fallback: cleanMessageText(fallback.html || "").slice(0, 220),
+        });
         botMessageNow(fallback.html);
         focusComposer(
           fallback.placeholder || getComposerPlaceholder("message")
@@ -78963,6 +79813,219 @@
       delete promptAskCounts[key];
     }
 
+    function getCanonicalPromptSlotId(state) {
+      var promptKey = cleanMessageText(state || "");
+      if (!promptKey) {
+        return "";
+      }
+      if (/cv_upload|apply_upload|job_search_upload|upload$/i.test(promptKey)) {
+        return "cv_upload";
+      }
+      if (/confirm_same_cv|same_cv/i.test(promptKey)) {
+        return "same_cv_confirmation";
+      }
+      if (
+        /collect_(?:full_)?name|confirm_(?:full_)?name|full_name|target_name/i.test(
+          promptKey
+        )
+      ) {
+        return "full_name";
+      }
+      if (
+        /collect_preferred_email|collect_email|account_email|test_email/i.test(
+          promptKey
+        )
+      ) {
+        return "preferred_email";
+      }
+      if (
+        /confirm_email|confirm_preferred_email|reuse_preferred_email|check_inbox|email_received/i.test(
+          promptKey
+        )
+      ) {
+        return "email_confirmation";
+      }
+      if (/security_code|verification_code/i.test(promptKey)) {
+        return "security_code";
+      }
+      if (/account_password|password/i.test(promptKey)) {
+        return "account_password";
+      }
+      if (/employer_question|employer_questions_bulk|successfactors_profile_/i.test(promptKey)) {
+        return "employer_answer";
+      }
+      if (/job_search_|recruiter_outreach_|member_desk_refine_/i.test(promptKey)) {
+        return "search_context";
+      }
+      if (/apply_|consultant_route|direct_apply/i.test(promptKey)) {
+        return "workflow_choice";
+      }
+      return "free_text";
+    }
+
+    function getPromptSlotLabel(slotId) {
+      if (slotId === "cv_upload") {
+        return "CV";
+      }
+      if (slotId === "same_cv_confirmation") {
+        return "same CV confirmation";
+      }
+      if (slotId === "full_name") {
+        return "full name";
+      }
+      if (slotId === "preferred_email") {
+        return "email";
+      }
+      if (slotId === "email_confirmation") {
+        return "email confirmation";
+      }
+      if (slotId === "security_code") {
+        return "security code";
+      }
+      if (slotId === "account_password") {
+        return "account password";
+      }
+      if (slotId === "employer_answer") {
+        return "employer answer";
+      }
+      if (slotId === "search_context") {
+        return "search context";
+      }
+      if (slotId === "workflow_choice") {
+        return "workflow choice";
+      }
+      return "reply";
+    }
+
+    function isPromptSlotResolved(slotId) {
+      var slot = cleanMessageText(slotId || "");
+      if (!slot) {
+        return false;
+      }
+      if (slot === "cv_upload") {
+        return hasApplyChatCvAvailable();
+      }
+      if (slot === "full_name") {
+        return !!cleanMessageText(applyOnboardingFullName || "");
+      }
+      if (slot === "preferred_email" || slot === "email_confirmation") {
+        return !!cleanMessageText(applyOnboardingPreferredEmail || "");
+      }
+      if (slot === "same_cv_confirmation") {
+        return !!(currentCvFile || capturedCvText || hasLoggedInSavedCv());
+      }
+      return false;
+    }
+
+    function recordPromptSlotEvent(type, slotId, details) {
+      var entry = Object.assign(
+        {
+          type: cleanMessageText(type || "slot_event"),
+          slotId: cleanMessageText(slotId || ""),
+          label: getPromptSlotLabel(slotId),
+          createdAt: Date.now(),
+          turnSerial: applyChatUserTurnSerial,
+        },
+        details || {}
+      );
+      promptSlotHistory.push(entry);
+      promptSlotHistory = promptSlotHistory.slice(-160);
+      recordConversationAuditEvent("prompt_slot_" + entry.type, entry);
+      try {
+        window.__sffcApplyChatPromptSlots = promptSlotRegistry;
+        window.__sffcApplyChatPromptSlotHistory = promptSlotHistory;
+      } catch (error) {}
+      return entry;
+    }
+
+    function markPromptSlotResolved(slotId, value) {
+      var slot = cleanMessageText(slotId || "");
+      var existing;
+      if (!slot) {
+        return null;
+      }
+      existing = promptSlotRegistry[slot] || { slotId: slot };
+      if (
+        existing &&
+        existing.status === "resolved" &&
+        cleanMessageText(existing.valuePreview || "") ===
+          cleanMessageText(value || "").slice(0, 160)
+      ) {
+        return existing;
+      }
+      promptSlotRegistry[slot] = Object.assign({}, existing, {
+        slotId: slot,
+        label: getPromptSlotLabel(slot),
+        status: "resolved",
+        resolvedAt: Date.now(),
+        resolvedTurnSerial: applyChatUserTurnSerial,
+        valuePreview: cleanMessageText(value || "").slice(0, 160),
+      });
+      return recordPromptSlotEvent("resolved", slot, {
+        valuePreview: cleanMessageText(value || "").slice(0, 160),
+      });
+    }
+
+    function syncPromptSlotResolutionFromState() {
+      if (hasApplyChatCvAvailable()) {
+        markPromptSlotResolved("cv_upload", getApplyResultsSelectedCvLabel());
+      }
+      if (cleanMessageText(applyOnboardingFullName || "")) {
+        markPromptSlotResolved("full_name", applyOnboardingFullName);
+      }
+      if (cleanMessageText(applyOnboardingPreferredEmail || "")) {
+        markPromptSlotResolved("preferred_email", applyOnboardingPreferredEmail);
+        markPromptSlotResolved("email_confirmation", applyOnboardingPreferredEmail);
+      }
+    }
+
+    function markPromptSlotAsked(state, meta) {
+      var promptKey = cleanMessageText(state || "");
+      var slot = getCanonicalPromptSlotId(promptKey);
+      var existing;
+      var now = Date.now();
+      if (!slot) {
+        return null;
+      }
+      syncPromptSlotResolutionFromState();
+      existing = promptSlotRegistry[slot] || { slotId: slot };
+      promptSlotRegistry[slot] = Object.assign({}, existing, {
+        slotId: slot,
+        label: getPromptSlotLabel(slot),
+        status: isPromptSlotResolved(slot) ? "resolved" : "asked",
+        promptState: promptKey,
+        askCount: Number(existing.askCount || 0) + 1,
+        firstAskedAt: existing.firstAskedAt || now,
+        lastAskedAt: now,
+        lastAskedTurnSerial: applyChatUserTurnSerial,
+        meta: meta || null,
+      });
+      recordPromptSlotEvent(
+        isPromptSlotResolved(slot) ? "asked_after_resolved" : "asked",
+        slot,
+        {
+          promptState: promptKey,
+          askCount: promptSlotRegistry[slot].askCount,
+          meta: meta || null,
+        }
+      );
+      return promptSlotRegistry[slot];
+    }
+
+    function shouldSuppressRepeatedPromptSlotAsk(slotId, windowMs) {
+      var slot = cleanMessageText(slotId || "");
+      var existing = slot ? promptSlotRegistry[slot] : null;
+      var age;
+      if (!existing || !existing.lastAskedAt) {
+        return false;
+      }
+      if (isPromptSlotResolved(slot)) {
+        return true;
+      }
+      age = Date.now() - Number(existing.lastAskedAt || 0);
+      return age >= 0 && age < (Number(windowMs) || 45000);
+    }
+
     function getPromptRecoveryLocationChoices() {
       var seed = [
         cleanMessageText(jobSearchPreferredLocation || ""),
@@ -79863,7 +80926,7 @@
     }
 
     function getPremiumApplyIntroSelectionPrompt() {
-      return "Choose Apply with Tailored CV, Continue with Original CV, or type a new search.";
+      return "Choose Tailor CV, Original CV, or type a new search.";
     }
 
     function getPremiumApplyIntroSelectedRole() {
@@ -79902,38 +80965,28 @@
         coverStatus: "Not started yet",
         activeTab: "original",
       });
-      botSequenceForCurrentTurn(
-        [
-          {
-            html: "I’ve got the role and your saved CV. Choose whether I should improve the CV for this role first, or apply with the current version.",
-            delay: humanComposeDelay("Premium role ready.", 900, 1700),
-          },
-          {
-            html: renderCommercialApplyQueueCard(
-              commercialApplyQueueItemsState,
-              {
-                active: false,
-                showButton: false,
-                eyebrow: "Selected role",
-                title: "Selected role",
-              }
-            ),
-            delay: humanComposeDelay("Selected role.", 450, 850),
-          },
-        ],
+      botMessage(
+        "I’ve got the role and your saved CV. Choose whether I should tailor the CV for this role first, or apply with the current version." +
+          renderCommercialApplyQueueCard(commercialApplyQueueItemsState, {
+            active: false,
+            showButton: false,
+            eyebrow: "Selected role",
+            title: "Selected role",
+          }),
+        humanComposeDelay("Premium selected role ready.", 900, 1700),
         function () {
           setPromptState(
             "premium_apply_intro_selected_role",
             {
               yes: function (value) {
                 startApplyResultsSelectedRoleFlow(selected.key, "tailored", {
-                  echoLabel: value || "Apply with Tailored CV",
+                  echoLabel: value || "Tailor CV",
                   directApplication: true,
                 });
               },
               no: function (value) {
                 startApplyResultsSelectedRoleFlow(selected.key, "original", {
-                  echoLabel: value || "Continue with Original CV",
+                  echoLabel: value || "Original CV",
                   directApplication: true,
                 });
               },
@@ -79945,7 +80998,7 @@
                   )
                 ) {
                   startApplyResultsSelectedRoleFlow(selected.key, "tailored", {
-                    echoLabel: value || "Apply with Tailored CV",
+                    echoLabel: value || "Tailor CV",
                     directApplication: true,
                   });
                   return;
@@ -79956,7 +81009,7 @@
                   )
                 ) {
                   startApplyResultsSelectedRoleFlow(selected.key, "original", {
-                    echoLabel: value || "Continue with Original CV",
+                    echoLabel: value || "Original CV",
                     directApplication: true,
                   });
                   return;
@@ -80094,25 +81147,10 @@
         rememberCommercialApplyQueueCatalogItems(
           commercialApplyQueueItemsState
         );
-        botSequenceForCurrentTurn(
-          [
-            {
-              html: "I’ve compared your CV with this role.",
-              delay: humanComposeDelay(
-                "I've compared your CV with this role.",
-                700,
-                1300
-              ),
-            },
-            {
-              html: renderApplyIntroApplicationInsightCard(assessment),
-              delay: humanComposeDelay(
-                "Your application fit is ready.",
-                650,
-                1100
-              ),
-            },
-          ],
+        botMessage(
+          "I’ve compared your CV with this role." +
+            renderApplyIntroApplicationInsightCard(assessment),
+          humanComposeDelay("Your application fit is ready.", 900, 1600),
           function () {
             askApplyResultsSelectedRoleNextStep(
               pendingApplyResultsSelection,
@@ -80126,26 +81164,12 @@
         askApplyIntroHardRequirementQuestion(hardBlocker);
         return;
       }
-      botSequenceForCurrentTurn(
-        [
-          {
-            html:
-              "I’ve compared your CV with the role. " + escapeHtml(diagnosis),
-            delay: humanComposeDelay(diagnosis, 1200, 2300),
-          },
-          {
-            html: renderApplyIntroApplicationInsightCard(assessment),
-            delay: humanComposeDelay(
-              "Your application fit is ready.",
-              650,
-              1100
-            ),
-          },
-          {
-            html: renderApplyQuickPathSelector(),
-            delay: humanComposeDelay("Choose the route scope.", 450, 850),
-          },
-        ],
+      botMessage(
+        "I’ve compared your CV with the role. " +
+          escapeHtml(diagnosis) +
+          renderApplyIntroApplicationInsightCard(assessment) +
+          renderApplyQuickPathSelector(),
+        humanComposeDelay("Choose the route scope.", 1200, 2300),
         function () {
           setPromptState(
             "apply_intro_route_choice",
@@ -81428,30 +82452,23 @@
             ? ", with more emphasis on fit."
             : ".");
       }
-      botSequenceForCurrentTurn(
-        [
-          {
-            html: introLine,
-            delay: humanComposeDelay(cleanMessageText(introLine), 900, 1600),
-          },
-          {
-            html: summaryLine,
-            delay: humanComposeDelay(cleanMessageText(summaryLine), 1400, 2400),
-          },
-          {
-            html:
-              ctaLine +
-              buildMembershipInlineActionRow(
-                getApplyIntroMembershipAccountType(),
-                isArabicChat() ? "أكملي التسجيل" : "Complete sign up"
-              ),
-            delay: humanComposeDelay(cleanMessageText(ctaLine), 1100, 1900),
-          },
-          {
-            html: afterLine,
-            delay: humanComposeDelay(cleanMessageText(afterLine), 3200, 4600),
-          },
-        ],
+      botMessage(
+        introLine +
+          " " +
+          summaryLine +
+          "<br><br>" +
+          ctaLine +
+          buildMembershipInlineActionRow(
+            getApplyIntroMembershipAccountType(),
+            isArabicChat() ? "أكملي التسجيل" : "Complete sign up"
+          ) +
+          "<br>" +
+          afterLine,
+        humanComposeDelay(
+          cleanMessageText([introLine, summaryLine, ctaLine, afterLine].join(" ")),
+          1800,
+          3400
+        ),
         function () {
           applySelectedPricingOption = getApplyIntroMembershipAccountType();
           setPromptState(
@@ -85008,25 +86025,13 @@
         visible: getAutoWorkspaceVisibility(),
       });
       if (!summary.total) {
-        botSequenceForCurrentTurn(
-          [
-            {
-              html: introLine,
-              delay: humanComposeDelay(cleanMessageText(introLine), 1600, 2800),
-            },
-            {
-              html: isArabicChat()
-                ? "لا أريد أن أزيف قوة المطابقة هنا. لا أرى بعد دفعة قوية بما يكفي على هذا الاتجاه، لذلك الأفضل أن أشد القيود أو أوسع الطريق المقابل."
-                : "I do not want to fake confidence here. I do not see a strong enough live batch on this direction yet, so the right move is to tighten the brief or widen the adjacent route.",
-              delay: humanComposeDelay(
-                isArabicChat()
-                  ? "لا أريد أن أزيف قوة المطابقة هنا."
-                  : "I do not want to fake confidence here.",
-                1800,
-                3200
-              ),
-            },
-          ],
+        botMessage(
+          introLine +
+            " " +
+            (isArabicChat()
+              ? "لا أريد أن أزيف قوة المطابقة هنا. لا أرى بعد دفعة قوية بما يكفي على هذا الاتجاه، لذلك الأفضل أن أشد القيود أو أوسع الطريق المقابل."
+              : "I do not want to fake confidence here. I do not see a strong enough live batch on this direction yet, so the right move is to tighten the brief or widen the adjacent route."),
+          humanComposeDelay(cleanMessageText(introLine), 1800, 3200),
           function () {
             beginJobSearchContinuityConversation("returning_member");
           }
@@ -85054,42 +86059,15 @@
         "matching_cv",
         { rankingMode: "CV fit" }
       );
-      botSequenceForCurrentTurn(
-        [
-          {
-            html: introLine,
-            delay: humanComposeDelay(cleanMessageText(introLine), 1500, 2600),
-          },
-          {
-            html: countLine,
-            delay: humanComposeDelay(cleanMessageText(countLine), 1500, 2600),
-            pause: humanReadDelay(cleanMessageText(introLine), 260),
-          },
-          {
-            html: mixLine,
-            delay: humanComposeDelay(cleanMessageText(mixLine), 1600, 2800),
-            pause: humanReadDelay(cleanMessageText(countLine), 260),
-          },
-          {
-            html: renderActualJobPostSearchResults(
-              summary.resultItems || [],
-              ""
-            ),
-            delay: humanComposeDelay("shortlist", 900, 1600),
-            pause: humanReadDelay(cleanMessageText(mixLine), 260),
-          },
-          reasoningHtml
-            ? {
-                html: reasoningHtml,
-                delay: humanComposeDelay(
-                  cleanMessageText(reasoningHtml),
-                  850,
-                  1500
-                ),
-                pause: humanReadDelay(cleanMessageText(mixLine), 220),
-              }
-            : null,
-        ].filter(Boolean),
+      botMessage(
+        introLine +
+          " " +
+          countLine +
+          " " +
+          mixLine +
+          renderActualJobPostSearchResults(summary.resultItems || [], "") +
+          (reasoningHtml || ""),
+        humanComposeDelay("Member search results ready.", 1500, 2800),
         function () {
           updateWorkspace({
             visible: true,
@@ -85688,30 +86666,25 @@
         botSequenceForCurrentTurn(
           [
             {
-              html: isArabicChat() ? "إيميلي هنا." : "Emily here.",
-              delay: humanComposeDelay("Emily here.", 1000, 1800),
-            },
-            {
               html: isArabicChat()
                 ? "سأتولى هذا معك."
-                : "I'll handle this with you.",
+                : "Emily here. I’ll handle this with you.",
               delay: humanComposeDelay(
-                "I'll handle this with you.",
+                "Emily here. I’ll handle this with you.",
                 1100,
                 2000
               ),
-              pause: humanReadDelay("Emily here.", 320),
             },
             {
               html: isArabicChat()
                 ? "أرسلِي الـCV أولاً. سأستخدمه مع هذا الدور حتى أقرر أفضل طريقة أساعدك بها."
-                : "Send me your CV first. I'll use that with this role so I can decide the best way to help you.",
+                : "Start with your CV so I can read this role against your actual background before we choose the best route.",
               delay: humanComposeDelay(
-                "Send me your CV first. I'll use that with this role so I can decide the best way to help you.",
+                "Start with your CV so I can read this role against your actual background before we choose the best route.",
                 1500,
                 2800
               ),
-              pause: humanReadDelay("I'll handle this with you.", 320),
+              pause: humanReadDelay("Emily here. I’ll handle this with you.", 320),
             },
           ],
           function () {
@@ -87369,6 +88342,13 @@
 
     function setPromptState(state, handlers, placeholder, meta) {
       var nextState = cleanMessageText(state || "");
+      var slotState = markPromptSlotAsked(nextState, meta || null);
+      recordConversationAuditEvent("prompt_state_set", {
+        nextPromptState: nextState,
+        slotId: slotState && slotState.slotId,
+        placeholder: cleanMessageText(placeholder || ""),
+        meta: meta || null,
+      });
       promptState = state || "";
       promptHandlers = handlers || null;
       promptPlaceholder = placeholder || promptPlaceholder;
@@ -87383,6 +88363,11 @@
     }
 
     function clearPromptState() {
+      if (promptState) {
+        recordConversationAuditEvent("prompt_state_clear", {
+          previousPromptState: cleanMessageText(promptState || ""),
+        });
+      }
       clearPromptAskCount(promptState);
       promptState = "";
       promptHandlers = null;
@@ -87490,7 +88475,10 @@
     function openQuestionDetour(afterReply, resumePrompt, seededQuestion) {
       function answerQuestion(questionValue) {
         var knowledgeIntent = detectIntent(questionValue);
-        var detourResumePrompt = getQuestionDetourResumePrompt(resumePrompt);
+        var detourResumePrompt = getQuestionAwareResumePrompt(
+          suspendedPromptContext && suspendedPromptContext.state,
+          resumePrompt
+        );
         var nextMessagePlaceholder = getComposerPlaceholder("message");
         var replyPlaceholder = getComposerPlaceholder("reply");
         var suspendedJobSearchPrompt = !!(
@@ -87536,8 +88524,8 @@
         ) {
           window.setTimeout(function () {
             botMessage(
-              detourResumePrompt,
-              humanComposeDelay(detourResumePrompt, 1800, 3600),
+              getQuestionAwareResumeHtml("", detourResumePrompt),
+              humanComposeDelay(detourResumePrompt, 900, 1800),
               function () {
                 if (!restoreSuspendedPrompt()) {
                   focusComposer(nextMessagePlaceholder);
@@ -87550,33 +88538,24 @@
           }, randomBetween(500, 1100));
           return;
         }
-        botSequenceForCurrentTurn(
-          [
-            {
-              html: getQuestionDetourAnswerAck(),
-              pause: humanReadDelay(questionValue, 450),
-              delay: humanComposeDelay(
-                cleanMessageText(getQuestionDetourAnswerAck()),
-                1500,
-                3200
-              ),
-            },
-            {
-              html: detourResumePrompt,
-              pause: humanReadDelay(
-                cleanMessageText(getQuestionDetourAnswerAck()),
-                420
-              ),
-              delay: humanComposeDelay(detourResumePrompt, 1800, 3600),
-            },
-          ],
+        botMessage(
+          getQuestionAwareResumeHtml(
+            getQuestionDetourAnswerAck(),
+            detourResumePrompt
+          ),
+          humanComposeDelay(
+            cleanMessageText(getQuestionDetourAnswerAck()),
+            1500,
+            3200
+          ),
           function () {
             if (!restoreSuspendedPrompt()) {
               focusComposer(nextMessagePlaceholder);
             } else {
               focusComposer(promptPlaceholder || replyPlaceholder);
             }
-          }
+          },
+          humanReadDelay(questionValue, 450)
         );
       }
 
@@ -87796,6 +88775,18 @@
       var questionTailIntent = "";
       if (!clean) {
         return "";
+      }
+      if (looksLikeDuplicatePromptComplaint(clean)) {
+        return "support_complaint";
+      }
+      if (looksLikeEmailPurposeQuestion(clean)) {
+        return "why_email";
+      }
+      if (
+        looksLikeEmilyDirectEmailQuestion(clean) ||
+        looksLikeCustomerSupportContactQuestion(clean)
+      ) {
+        return "support_contact";
       }
       if (sourceTextMentionsApplyControl(clean)) {
         return getApplyControlIntent(clean);
@@ -88956,7 +89947,8 @@
 
     function getSennaContactAnswer() {
       return (
-        "Yes. If this is about your Senna account, billing, an application issue, or something you want the team to check, use the site support/contact option from your dashboard.<br><br>" +
+        "Yes. If this is about your Senna account, billing, an application issue, or something you want the team to check, email <strong>support.team@joinsenna.com</strong>.<br><br>" +
+        "If you specifically need Emily, use <strong>emily.bradshaw@joinsenna.com</strong>.<br><br>" +
         "If it is about this chat or a role you are applying for, tell me the issue here and I can keep the context tied to the role, CV, and application state so the team does not get a vague support note."
       );
     }
@@ -90449,7 +91441,7 @@
         return getContextualSocialReply();
       }
       if (intent === "different_question") {
-        return "Yes. Ask it. I’ll answer directly, then bring us back to the application if needed.";
+        return "Yes. Ask it. I’ll answer directly, then we’ll continue the application if needed.";
       }
       if (intent === "special_request") {
         return "Understood. I’ll apply that change to the current step and keep the flow moving.";
@@ -90666,9 +91658,9 @@
       }
       if (intent === "positive_emphasis") {
         return pickVariant("positive_emphasis_reply", [
-          "I know, right. 👍",
+          "Good, that gives us a useful direction.",
           "Glad it's landing.",
-          "Love that. 👍",
+          "That is useful. I’ll keep the next step focused.",
         ]);
       }
 
@@ -94032,21 +95024,21 @@
         }
         return composeSemanticReply("cv_review_help_reply_dynamic", {
           opener: {
-            direct: ["Yes. Send the CV."],
+            direct: ["Yes. Share the CV here."],
             warm: ["Of course."],
             measured: ["Yes."],
             sharp: ["I can do that directly."],
           },
           action: {
             direct: [
-              "Send the CV and I’ll check how it reads against the role.",
+              "I’ll check how it reads against the role and show what needs tightening first.",
             ],
-            warm: ["Send the CV and I’ll show you what I would tighten first."],
+            warm: ["I’ll show you what I would tighten first."],
             measured: [
-              "Send it over and I will give you a practical view of what is working and what I would improve.",
+              "I will give you a practical view of what is working and what I would improve.",
             ],
             sharp: [
-              "Send the CV over and I'll tell you what is landing and what I would fix first.",
+              "I’ll tell you what is landing and what I would fix first.",
             ],
           },
         });
@@ -95590,7 +96582,7 @@
         }
         return pickVariant("skill_gap_help_reply", [
           "Quickest route is usually to compare your current CV against the roles you want and see what is not landing clearly yet.",
-          "Send me your CV or tell me the type of role you want, and I can help you spot the main gaps.",
+          "Share your CV or tell me the type of role you want, and I can help you spot the main gaps.",
           "The next step is to look at your background against the roles you are aiming for and work out what is missing, what transfers, and what needs stronger positioning.",
         ]);
       }
@@ -96195,13 +97187,13 @@
           },
           action: {
             direct: [
-              "Send me your CV and I can check how clearly your background lines up with this role before you take it further.",
+              "Share your CV and I can check how clearly your background lines up with this role before you take it further.",
             ],
             warm: [
               "to compare your CV against it and make sure the strongest parts of your background are coming through clearly.",
             ],
             measured: [
-              "send me your CV and I'll look at how well it maps to what the role is likely to care about.",
+              "share your CV and I'll look at how well it maps to what the role is likely to care about.",
             ],
             sharp: [
               "the first step is matching your background against what the role is actually asking for.",
@@ -98238,13 +99230,13 @@
         return pickVariant("cv_required_resume_prompt_paying", [
           (ctx.firstName ? ctx.firstName + ", " : "") +
             "I do not have an active CV saved in this chat yet. Upload it once and I’ll use it across the roles we review.",
-          "Send the CV you want me to use for this search. I’ll keep it attached so we do not keep restarting.",
+          "Add the CV you want me to use for this search. I’ll keep it attached so we do not keep restarting.",
           "I can keep the search moving, but the CV is what lets me rank the roles around your actual evidence.",
         ]);
       }
       return pickVariant("cv_required_resume_prompt_guest", [
         "Upload your CV when you want the search to become personal rather than just keyword-based.",
-        "Send your CV and I’ll use it to separate realistic matches from roles that only look right by title.",
+        "Add your CV and I’ll use it to separate realistic matches from roles that only look right by title.",
         "Once your CV is in, I can judge fit properly and keep the stronger roles in focus.",
         "You can keep searching without a CV, but upload it when you want me to assess the match properly.",
       ]);
@@ -99612,10 +100604,10 @@
 
       if (intent === "location_constraint") {
         var locationPrompt = conversationFacts.targetLocations.length
-          ? "Send me your CV or tell me which roles you want me to keep in mind across " +
+          ? "Share your CV or tell me which roles you want me to keep in mind across " +
             escapeHtml(formatFactList(conversationFacts.targetLocations)) +
             ", and I'll factor that in properly."
-          : "Send me your CV or tell me the markets you are targeting, and I'll factor that in properly.";
+          : "Share your CV or tell me the markets you are targeting, and I'll factor that in properly.";
         botMessage(
           answer +
             " " +
@@ -100143,18 +101135,40 @@
       );
     }
 
-    function handleWildcardSocialInput(intent, nextPlaceholder, sourceText) {
+    function getWildcardSocialReply(intent, sourceText) {
       if (
         intent === "gratitude" ||
         looksLikeGratitudeOnlyInput(sourceText || lastUserInputText)
       ) {
-        var gratitudeReply = getKnowledgeAnswer(
+        return getKnowledgeAnswer(
           "gratitude",
           sourceText || lastUserInputText
         );
+      }
+
+      if (intent === "social_check") {
+        return getContextualSocialReply();
+      }
+
+      if (intent === "greeting") {
+        return getContextualEmilyGreeting();
+      }
+
+      return "";
+    }
+
+    function handleWildcardSocialInput(intent, nextPlaceholder, sourceText) {
+      var reply = getWildcardSocialReply(intent, sourceText);
+      if (!reply) {
+        return false;
+      }
+      if (
+        intent === "gratitude" ||
+        looksLikeGratitudeOnlyInput(sourceText || lastUserInputText)
+      ) {
         botMessage(
-          gratitudeReply,
-          humanComposeDelay(gratitudeReply, 900, 1800),
+          reply,
+          humanComposeDelay(reply, 900, 1800),
           function () {
             focusComposer(getContextualReturnPlaceholder(nextPlaceholder));
           },
@@ -100163,35 +101177,17 @@
         return true;
       }
 
-      if (intent === "social_check") {
-        var socialReply = getContextualSocialReply();
-        botMessage(
-          socialReply,
-          humanComposeDelay(socialReply, 1800, 3600),
-          function () {
-            focusComposer(getContextualReturnPlaceholder(nextPlaceholder));
-          },
-          humanReadDelay(lastUserInputText, 450)
-        );
-        return true;
-      }
-
-      if (intent === "greeting") {
-        var greetingCopy = getContextualEmilyGreeting();
-        botMessage(
-          greetingCopy,
-          humanComposeDelay(greetingCopy, 1500, 3200),
-          function () {
-            focusComposer(
-              nextPlaceholder || "Ask Emily anything about your career"
-            );
-          },
-          humanReadDelay(lastUserInputText, 450)
-        );
-        return true;
-      }
-
-      return false;
+      botMessage(
+        reply,
+        humanComposeDelay(reply, 1500, 3600),
+        function () {
+          focusComposer(
+            nextPlaceholder || "Ask Emily anything about your career"
+          );
+        },
+        humanReadDelay(sourceText || lastUserInputText, 450)
+      );
+      return true;
     }
 
     function semanticPatternListMatches(clean, patterns) {
@@ -101235,12 +102231,12 @@
       if (botBusyUntil > Date.now() + 350) {
         botMessage(
           pickVariant("interruption_ack", [
-            "one sec — just finishing this thought.",
-            "hang on a sec — nearly there.",
-            "sec — let me finish this bit properly.",
+            "One moment, I’m finishing the current step.",
+            "Give me a moment, I’m just closing this part properly.",
+            "I’m nearly there. I’ll come back to your question next.",
           ]),
           humanComposeDelay(
-            "one sec — just finishing this thought.",
+            "One moment, I’m finishing the current step.",
             1200,
             2200
           ),
@@ -101263,10 +102259,20 @@
       if (typeof callback !== "function") {
         return 0;
       }
+      recordConversationAuditEvent("current_turn_timer_scheduled", {
+        delay: timerDelay,
+      });
       return window.setTimeout(function () {
         if (applyChatUserTurnSerial !== turnSerial) {
+          recordConversationAuditEvent("current_turn_timer_cancelled", {
+            scheduledTurnSerial: turnSerial,
+            currentTurnSerial: applyChatUserTurnSerial,
+          });
           return;
         }
+        recordConversationAuditEvent("current_turn_timer_fired", {
+          scheduledTurnSerial: turnSerial,
+        });
         callback();
       }, timerDelay);
     }
@@ -101423,6 +102429,233 @@
       );
     }
 
+    function looksLikeDuplicatePromptComplaint(value) {
+      var clean = normalizeCareerIntentText(
+        cleanMessageText(value || "")
+      ).toLowerCase();
+      if (!clean || clean.length > 220) {
+        return false;
+      }
+      return /(?:you already asked|you asked already|already asked|asked me already|you just asked|same question again|why are you asking again|stop asking me again|i already sent|i already uploaded|you've got my cv|you already have my cv|you already have my resume|i gave you my cv|i gave you my resume)/i.test(
+        clean
+      );
+    }
+
+    function looksLikeEmailPurposeQuestion(value) {
+      var clean = normalizeCareerIntentText(
+        cleanMessageText(value || "")
+      ).toLowerCase();
+      if (!clean || clean.length > 220) {
+        return false;
+      }
+      return /\b(?:why|what for|how come|do you really need|why do you need|why are you asking|what do you need)\b.*\b(?:my\s+)?email\b|\b(?:my\s+)?email\b.*\b(?:why|what for|needed|required)\b/i.test(
+        clean
+      );
+    }
+
+    function looksLikeEmilyDirectEmailQuestion(value) {
+      var clean = normalizeCareerIntentText(
+        cleanMessageText(value || "")
+      ).toLowerCase();
+      if (!clean || clean.length > 220) {
+        return false;
+      }
+      return /\b(?:emily|career manager|advisor)\b.*\b(?:email|contact|address)\b|\b(?:what is|what's|whats|give me|send me)\b.*\b(?:emily'?s?|her)\s+(?:email|contact)\b/i.test(
+        clean
+      );
+    }
+
+    function looksLikeCustomerSupportContactQuestion(value) {
+      var clean = normalizeCareerIntentText(
+        cleanMessageText(value || "")
+      ).toLowerCase();
+      if (!clean || clean.length > 240) {
+        return false;
+      }
+      return /\b(?:customer\s+support|support\s+team|help\s*desk|billing support|account support|technical support)\b|\b(?:how|where|who)\b.*\b(?:contact|email|message|reach|get hold of|speak to|talk to)\b.*\b(?:support|team|senna)\b/i.test(
+        clean
+      );
+    }
+
+    function looksLikeApplicationStatusQuestion(value) {
+      var clean = normalizeCareerIntentText(
+        cleanMessageText(value || "")
+      ).toLowerCase();
+      if (!clean || clean.length > 260) {
+        return false;
+      }
+      return /\b(?:where are we|what stage|what step|what is happening|what's happening|whats happening|what are we waiting for|what are you waiting for|have you submitted|did it submit|submitted yet|is it submitted|application status|what happens next|what is next|what's next|whats next)\b/i.test(
+        clean
+      );
+    }
+
+    function looksLikeCvVersionQuestion(value) {
+      var clean = normalizeCareerIntentText(
+        cleanMessageText(value || "")
+      ).toLowerCase();
+      if (!clean || clean.length > 240) {
+        return false;
+      }
+      return /\b(?:which|what)\b.*\b(?:cv|resume)\b.*\b(?:using|use|version|attached|current|original|tailored|newest|latest)\b|\b(?:are you using|using)\b.*\b(?:current|original|tailored|newest|latest)\b.*\b(?:cv|resume)\b/i.test(
+        clean
+      );
+    }
+
+    function getCurrentCvVersionStatusLine() {
+      var label = currentCvFile && currentCvFile.name
+        ? currentCvFile.name
+        : hasLoggedInSavedCv()
+        ? getLoggedInActiveCvLabel()
+        : capturedCvText
+        ? "the CV text you pasted"
+        : "";
+      var version = applyTailoringSequenceComplete
+        ? "the tailored application version"
+        : applyCvReviewSkipped
+        ? "the current CV without tailoring"
+        : editedTailoredCvModel || applyTailoringAwaitingProceed
+        ? "the tailored draft"
+        : label
+        ? "the current CV"
+        : "";
+      if (!label && !version) {
+        return "I do not have a readable CV attached to this flow yet.";
+      }
+      return (
+        "I’m using " +
+        escapeHtml(version || "the current CV") +
+        (label ? " from <strong>" + escapeHtml(label) + "</strong>" : "") +
+        ". I will not switch versions unless you ask me to."
+      );
+    }
+
+    function getApplicationStatusPreflightLine() {
+      var statusItems = commercialApplyQueueItemsState.length
+        ? commercialApplyQueueItemsState
+        : pendingApplyResultsSelection
+        ? [pendingApplyResultsSelection]
+        : [];
+      var item = statusItems.length
+        ? normalizeCommercialApplyQueueItem(statusItems[0], "Ready")
+        : null;
+      var roleLabel = item
+        ? cleanMessageText(
+            [
+              item.title || roleTitle || "this role",
+              item.company || roleCompany
+                ? "at " + (item.company || roleCompany)
+                : "",
+            ]
+              .filter(Boolean)
+              .join(" ")
+          )
+        : cleanMessageText(
+            [roleTitle || "", roleCompany ? "at " + roleCompany : ""]
+              .filter(Boolean)
+              .join(" ")
+          );
+      var stageLabel = cleanMessageText(
+        step ||
+          promptState ||
+          (commercialApplyQueueActivated ? "application running" : "")
+      );
+      if (!roleLabel && !commercialApplyQueueActivated) {
+        return getNoActiveApplicationStatusLine();
+      }
+      return (
+        "Current status: " +
+        (roleLabel
+          ? "we are working on <strong>" + escapeHtml(roleLabel) + "</strong>"
+          : "an application is in progress") +
+        ". Stage: <strong>" +
+        escapeHtml(stageLabel || "waiting for your next instruction") +
+        "</strong>. I have not marked it as submitted unless an employer confirmation has been received."
+      );
+    }
+
+    function getPromptResumeInlineSuffix() {
+      var resumePrompt = "";
+      if (!promptState) {
+        return "";
+      }
+      resumePrompt =
+        getPromptResumeAfterSideQuestion(promptState) ||
+        getPromptStateExplanation(promptState);
+      resumePrompt = cleanMessageText(resumePrompt || "");
+      if (!resumePrompt) {
+        return "";
+      }
+      return "<br><br><strong>Where we were:</strong> " +
+        escapeHtml(resumePrompt);
+    }
+
+    function getQuestionFirstPreflightAnswer(value) {
+      var clean = normalizeCareerIntentText(
+        cleanMessageText(value || "")
+      ).toLowerCase();
+      if (!clean) {
+        return "";
+      }
+      if (looksLikeApplicationStatusQuestion(clean)) {
+        return getApplicationStatusPreflightLine() + getPromptResumeInlineSuffix();
+      }
+      if (looksLikeCvVersionQuestion(clean)) {
+        return getCurrentCvVersionStatusLine() + getPromptResumeInlineSuffix();
+      }
+      if (looksLikeDuplicatePromptComplaint(clean)) {
+        if (hasApplyChatCvAvailable()) {
+          return (
+            "You’re right to call that out. I already have the CV context, so I should not ask for it again unless you want to replace it." +
+            getPromptResumeInlineSuffix()
+          );
+        }
+        return (
+          "You’re right to call that out. I may be repeating the setup step because I do not have a readable CV attached to this current application state yet. I’ll keep the current role in focus and only ask for the missing piece." +
+          getPromptResumeInlineSuffix()
+        );
+      }
+      if (looksLikeEmailPurposeQuestion(clean)) {
+        return (
+          "I need the email for application and service setup only: employer forms often require it, and it is where confirmations, signup information, and application updates can be sent. I will not treat that as permission to submit anything unless the next step is clear." +
+          getPromptResumeInlineSuffix()
+        );
+      }
+      if (looksLikeEmilyDirectEmailQuestion(clean)) {
+        return (
+          "Emily’s email is <strong>emily.bradshaw@joinsenna.com</strong>." +
+          getPromptResumeInlineSuffix()
+        );
+      }
+      if (looksLikeCustomerSupportContactQuestion(clean)) {
+        return (
+          "Customer support is <strong>support.team@joinsenna.com</strong>. If the question is about this role or application, you can also tell me here and I’ll keep the context attached." +
+          getPromptResumeInlineSuffix()
+        );
+      }
+      return "";
+    }
+
+    function handleQuestionFirstTurnPreflight(value) {
+      var answer = getQuestionFirstPreflightAnswer(value);
+      if (!answer) {
+        return false;
+      }
+      clearResponseWatchdog();
+      markConversationTurnOwner("question_first_preflight", {
+        promptState: cleanMessageText(promptState || ""),
+        step: cleanMessageText(step || ""),
+      });
+      botMessage(
+        answer,
+        humanComposeDelay(cleanMessageText(answer), 900, 1900),
+        function () {
+          focusComposer(promptPlaceholder || getComposerPlaceholder("reply"));
+        },
+        humanReadDelay(value, 360)
+      );
+      return true;
+    }
+
     function isPromptResumeControlReply(value, semantics, intent, state) {
       var clean = normalizeCareerIntentText(
         cleanMessageText(value || "")
@@ -101466,6 +102699,110 @@
         return details.message;
       }
       return getPromptStateExplanation(state);
+    }
+
+    function normalizeResumePromptCopy(value) {
+      return cleanMessageText(value || "")
+        .replace(/^back to (?:the )?/i, "")
+        .replace(/^the application:\s*/i, "For this application, ")
+        .replace(/^the next step:\s*/i, "For the next step, ")
+        .replace(/^Workday:\s*/i, "For Workday, ")
+        .replace(/^SuccessFactors:\s*/i, "For SuccessFactors, ")
+        .replace(/^employer verification step:\s*/i, "For employer verification, ")
+        .replace(/\s+/g, " ")
+        .trim();
+    }
+
+    function getQuestionAwareResumePrompt(state, fallback) {
+      var promptKey = String(state || "");
+      var fallbackText = normalizeResumePromptCopy(fallback || "");
+      var selected =
+        pendingApplyResultsSelection ||
+        careerConversationMemory.currentSelectedRole ||
+        null;
+      var role = normalizeCommercialApplyQueueItem(selected || {}, "Ready");
+      var roleLabel = cleanMessageText(
+        [
+          role.title || roleTitle || "",
+          role.company || roleCompany ? "at " + (role.company || roleCompany) : "",
+        ]
+          .filter(Boolean)
+          .join(" ")
+      );
+      if (promptKey === "apply_confirm_preferred_email") {
+        return "For the application setup, I still need you to confirm the email address you want me to use.";
+      }
+      if (promptKey === "apply_collect_preferred_email") {
+        return "For the application setup, send the email address you want attached to this application.";
+      }
+      if (promptKey === "apply_collect_full_name") {
+        return "For the application setup, send the full name you want me to use.";
+      }
+      if (
+        promptKey === "apply_employer_question" ||
+        promptKey === "apply_employer_questions_bulk"
+      ) {
+        return "For the employer form, answer the requested question and I’ll keep the application moving.";
+      }
+      if (
+        promptKey === "greenhouse_security_code" ||
+        promptKey === "commercial_apply_queue_verification_code"
+      ) {
+        return "For employer verification, paste the latest code from the application email.";
+      }
+      if (promptKey === "workday_account_route") {
+        return "For Workday, choose whether I should create a new employer-specific account or use your existing one.";
+      }
+      if (promptKey === "workday_account_password") {
+        return "For Workday, send the password for this employer account when you are ready.";
+      }
+      if (promptKey === "successfactors_account_route") {
+        return "For SuccessFactors, choose whether I should create a new employer-specific account or use your existing one.";
+      }
+      if (promptKey === "successfactors_account_password") {
+        return "For SuccessFactors, send the password for this employer account when you are ready.";
+      }
+      if (/^successfactors_profile_[a-z_]+$/.test(promptKey)) {
+        return "For the SuccessFactors profile, send the requested answer and I’ll attach it to this application.";
+      }
+      if (promptKey === "apply_results_selected_next_step") {
+        return (
+          "For " +
+          escapeHtml(roleLabel || "this role") +
+          ", choose whether to compare the CV, tailor it, or jump to the application."
+        );
+      }
+      if (promptKey === "show_issue_decision") {
+        return "For the CV review, tell me whether you want to review the first edit or keep the application moving.";
+      }
+      if (promptKey === "confirm_recent_role") {
+        return "For the CV edit, confirm whether I picked up the right recent role.";
+      }
+      if (promptKey === "apply_waiting_for_signup") {
+        return "For the managed search setup, tell me once the signup is complete and I’ll continue from there.";
+      }
+      if (promptKey === "apply_post_application_next") {
+        return "For the next step, choose whether to apply to more roles, assess your career, or track this application.";
+      }
+      if (promptKey.indexOf("job_search_") === 0) {
+        return fallbackText || getJobSearchPromptResumePrompt();
+      }
+      if (fallbackText) {
+        return fallbackText;
+      }
+      return normalizeResumePromptCopy(getPromptResumeAfterSideQuestion(promptKey));
+    }
+
+    function getQuestionAwareResumeHtml(answer, resumePrompt) {
+      var cleanResume = normalizeResumePromptCopy(resumePrompt || "");
+      if (!cleanResume) {
+        return answer || "";
+      }
+      return (
+        (answer || "") +
+        "<br><br><strong>Then we’ll continue from here:</strong> " +
+        escapeHtml(cleanResume)
+      );
     }
 
     function respondToPromptCourtesyOrResume(value, state, placeholder, mode) {
@@ -102032,10 +103369,9 @@
       if (promptKey === "show_issue_decision") {
         return {
           message: pickVariant("show_first_fix_nudge", [
-            "If you want, say yes and I'll show you the first fix. If not, that's fine too.",
-            "If you'd like, just say yes and I'll show you the first thing I'd change.",
-            "Say yes if you want me to show you the first fix. If not, we can leave it there.",
-            "If you want to see it, just say yes and I'll show you the first edit.",
+            "Tell me whether you want to review the first CV edit or keep the application moving.",
+            "I can show the first CV edit, or continue without reviewing it first.",
+            "Reply with review the edit or keep moving, and I’ll follow that route.",
           ]),
           placeholder: getComposerPlaceholder("reply"),
         };
@@ -103650,37 +104986,37 @@
         return getAskPreferredEmailPrompt();
       }
       if (promptKey === "apply_confirm_preferred_email") {
-        return "Back to the application: just confirm the email address you want used.";
+        return "For the application setup, confirm the email address you want me to use.";
       }
       if (
         promptKey === "apply_employer_question" ||
         promptKey === "apply_employer_questions_bulk"
       ) {
-        return "Back to the application: answer the employer question above and I’ll keep the form moving.";
+        return "For the employer form, answer the question above and I’ll keep the application moving.";
       }
       if (
         promptKey === "greenhouse_security_code" ||
         promptKey === "commercial_apply_queue_verification_code"
       ) {
-        return "Back to the employer verification step: paste the latest code from the application email.";
+        return "For employer verification, paste the latest code from the application email.";
       }
       if (promptKey === "workday_account_route") {
-        return "Back to Workday: choose whether I should create a new tenant-specific account or use your existing account.";
+        return "For Workday, choose whether I should create a new employer-specific account or use your existing one.";
       }
       if (promptKey === "workday_account_password") {
-        return "Back to Workday: send the password for this employer's Workday account.";
+        return "For Workday, send the password for this employer account when you are ready.";
       }
       if (promptKey === "successfactors_account_route") {
-        return "Back to SuccessFactors: choose whether I should create a new tenant-specific account or use your existing account.";
+        return "For SuccessFactors, choose whether I should create a new employer-specific account or use your existing one.";
       }
       if (promptKey === "successfactors_account_password") {
-        return "Back to SuccessFactors: send the password for this employer's SuccessFactors account.";
+        return "For SuccessFactors, send the password for this employer account when you are ready.";
       }
       if (/^successfactors_profile_[a-z_]+$/.test(promptKey)) {
-        return "Back to SuccessFactors: send the requested profile answer so I can queue the worker.";
+        return "For SuccessFactors, send the requested profile answer so I can queue the worker.";
       }
       if (promptKey === "apply_post_application_next") {
-        return "Back to the next step: apply to more roles, assess your career, or track this application.";
+        return "For the next step, choose whether to apply to more roles, assess your career, or track this application.";
       }
       if (String(promptKey || "").indexOf("job_search_") === 0) {
         return getJobSearchPromptResumePrompt();
@@ -103780,7 +105116,7 @@
         return "At this point the useful options are simple: apply to more similar roles while the search is warm, run the Career Assessment, or track this application.";
       }
       if (/can i ask|question first|quick question|before that/i.test(clean)) {
-        return "Yes. Ask me what you need, then I’ll bring us back to this step.";
+        return "Yes. Ask me what you need, then I’ll bring us back to the current step.";
       }
       return "";
     }
@@ -103788,13 +105124,14 @@
     function getPromptSlotSpec(state) {
       var promptKey = String(state || "");
       if (!promptKey) {
-        return { type: "none", strict: false };
+        return { slot: "", type: "none", strict: false };
       }
       if (/collect_full_name|full_name|target_name/i.test(promptKey)) {
         return {
+          slot: getCanonicalPromptSlotId(promptKey),
           type: "full_name",
           strict: true,
-          resume: getPromptResumeAfterSideQuestion(promptKey),
+          resume: getQuestionAwareResumePrompt(promptKey),
           placeholder: getSemanticPromptClarify(promptKey).placeholder,
         };
       }
@@ -103804,9 +105141,10 @@
         )
       ) {
         return {
+          slot: getCanonicalPromptSlotId(promptKey),
           type: "email",
           strict: true,
-          resume: getPromptResumeAfterSideQuestion(promptKey),
+          resume: getQuestionAwareResumePrompt(promptKey),
           placeholder: getSemanticPromptClarify(promptKey).placeholder,
         };
       }
@@ -103816,9 +105154,10 @@
         )
       ) {
         return {
+          slot: getCanonicalPromptSlotId(promptKey),
           type: "confirmation",
           strict: true,
-          resume: getPromptResumeAfterSideQuestion(promptKey),
+          resume: getQuestionAwareResumePrompt(promptKey),
           placeholder: getSemanticPromptClarify(promptKey).placeholder,
         };
       }
@@ -103827,9 +105166,10 @@
         promptKey === "commercial_apply_queue_verification_code"
       ) {
         return {
+          slot: getCanonicalPromptSlotId(promptKey),
           type: "security_code",
           strict: true,
-          resume: getPromptResumeAfterSideQuestion(promptKey),
+          resume: getQuestionAwareResumePrompt(promptKey),
           placeholder: getSemanticPromptClarify(promptKey).placeholder,
         };
       }
@@ -103838,25 +105178,28 @@
         promptKey === "successfactors_account_password"
       ) {
         return {
+          slot: getCanonicalPromptSlotId(promptKey),
           type: "password",
           strict: true,
-          resume: getPromptResumeAfterSideQuestion(promptKey),
+          resume: getQuestionAwareResumePrompt(promptKey),
           placeholder: getSemanticPromptClarify(promptKey).placeholder,
         };
       }
       if (/^successfactors_profile_[a-z_]+$/.test(promptKey)) {
         return {
+          slot: getCanonicalPromptSlotId(promptKey),
           type: "employer_answer",
           strict: true,
-          resume: getPromptResumeAfterSideQuestion(promptKey),
+          resume: getQuestionAwareResumePrompt(promptKey),
           placeholder: getSemanticPromptClarify(promptKey).placeholder,
         };
       }
       if (/employer_question|employer_questions_bulk/i.test(promptKey)) {
         return {
+          slot: getCanonicalPromptSlotId(promptKey),
           type: "employer_answer",
           strict: true,
-          resume: getPromptResumeAfterSideQuestion(promptKey),
+          resume: getQuestionAwareResumePrompt(promptKey),
           placeholder: getSemanticPromptClarify(promptKey).placeholder,
         };
       }
@@ -103866,9 +105209,10 @@
         )
       ) {
         return {
+          slot: getCanonicalPromptSlotId(promptKey),
           type: "workflow_choice",
           strict: isStrictPromptOwnedState(promptKey),
-          resume: getPromptResumeAfterSideQuestion(promptKey),
+          resume: getQuestionAwareResumePrompt(promptKey),
           placeholder: getSemanticPromptClarify(promptKey).placeholder,
         };
       }
@@ -103879,9 +105223,10 @@
         )
       ) {
         return {
+          slot: getCanonicalPromptSlotId(promptKey),
           type: "workflow_choice",
           strict: isStrictPromptOwnedState(promptKey),
-          resume: getPromptResumeAfterSideQuestion(promptKey),
+          resume: getQuestionAwareResumePrompt(promptKey),
           placeholder: getSemanticPromptClarify(promptKey).placeholder,
         };
       }
@@ -103889,16 +105234,18 @@
         /job_search_|recruiter_outreach_|member_desk_refine_/i.test(promptKey)
       ) {
         return {
+          slot: getCanonicalPromptSlotId(promptKey),
           type: "search_context",
           strict: isStrictPromptOwnedState(promptKey),
-          resume: getPromptResumeAfterSideQuestion(promptKey),
+          resume: getQuestionAwareResumePrompt(promptKey),
           placeholder: getSemanticPromptClarify(promptKey).placeholder,
         };
       }
       return {
+        slot: getCanonicalPromptSlotId(promptKey),
         type: "free_text",
         strict: isStrictPromptOwnedState(promptKey),
-        resume: getPromptResumeAfterSideQuestion(promptKey),
+        resume: getQuestionAwareResumePrompt(promptKey),
         placeholder: getComposerPlaceholder("reply"),
       };
     }
@@ -104010,8 +105357,55 @@
         return false;
       }
       if (resolvedIntent === "identity") {
-        handleIdentityQuestion(
-          promptPlaceholder || getComposerPlaceholder("reply")
+        answer = getKnowledgeAnswer("identity", value);
+        resumePrompt = getQuestionAwareResumePrompt(
+          promptKey,
+          (currentRoute.slot && currentRoute.slot.resume) ||
+            getPromptResumeAfterSideQuestion(promptKey)
+        );
+        clearResponseWatchdog();
+        botMessage(
+          getQuestionAwareResumeHtml(
+            answer ||
+              "I’m Emily, your MENA Careers advisor in this chat.",
+            resumePrompt
+          ),
+          humanComposeDelay("Emily identity answer.", 900, 1800),
+          function () {
+            focusComposer(
+              (currentRoute.slot && currentRoute.slot.placeholder) ||
+                promptPlaceholder ||
+                getComposerPlaceholder("reply")
+            );
+          },
+          humanReadDelay(value, 360)
+        );
+        return true;
+      }
+      if (
+        /^(?:gratitude|social_check|greeting)$/.test(
+          String(resolvedIntent || "")
+        ) ||
+        looksLikeGratitudeOnlyInput(value)
+      ) {
+        answer = getWildcardSocialReply(resolvedIntent, value);
+        resumePrompt = getQuestionAwareResumePrompt(
+          promptKey,
+          (currentRoute.slot && currentRoute.slot.resume) ||
+            getPromptResumeAfterSideQuestion(promptKey)
+        );
+        clearResponseWatchdog();
+        botMessage(
+          getQuestionAwareResumeHtml(answer, resumePrompt),
+          humanComposeDelay(answer, 900, 2000),
+          function () {
+            focusComposer(
+              (currentRoute.slot && currentRoute.slot.placeholder) ||
+                promptPlaceholder ||
+                getComposerPlaceholder("reply")
+            );
+          },
+          humanReadDelay(value, 360)
         );
         return true;
       }
@@ -104028,35 +105422,28 @@
       if (!answer) {
         answer = getRoleDiscoveryConversationAnswer(value, resolvedIntent);
       }
-      resumePrompt =
+      resumePrompt = getQuestionAwareResumePrompt(
+        promptKey,
         (currentRoute.slot && currentRoute.slot.resume) ||
-        getPromptResumeAfterSideQuestion(promptKey);
+          getPromptResumeAfterSideQuestion(promptKey)
+      );
       clearResponseWatchdog();
       if (!answer) {
         answer = isArabicChat()
           ? "أقدر أجاوبك على هذا، وبعدها أرجعنا للخطوة الحالية حتى لا يضيع التقديم."
           : "I can answer that and then bring us back to the current application step.";
       }
-      botSequenceForCurrentTurn(
-        [
-          {
-            html: answer,
-            pause: humanReadDelay(value, 420),
-            delay: humanComposeDelay(answer, 1100, 2600),
-          },
-          {
-            html: resumePrompt,
-            pause: humanReadDelay(answer, 320),
-            delay: humanComposeDelay(resumePrompt, 850, 1800),
-          },
-        ],
+      botMessage(
+        getQuestionAwareResumeHtml(answer, resumePrompt),
+        humanComposeDelay(answer, 1100, 2600),
         function () {
           focusComposer(
             (currentRoute.slot && currentRoute.slot.placeholder) ||
               promptPlaceholder ||
               getComposerPlaceholder("reply")
           );
-        }
+        },
+        humanReadDelay(value, 420)
       );
       return true;
     }
@@ -104119,33 +105506,30 @@
         clearResponseWatchdog();
         openQuestionDetour(
           getQuestionDetourIntro(),
-          getPromptResumeAfterSideQuestion(promptKey)
+          getQuestionAwareResumePrompt(
+            promptKey,
+            getPromptResumeAfterSideQuestion(promptKey)
+          )
         );
         return true;
       }
       answer = getGlobalSideQuestionAnswer(resolvedIntent, value, promptKey);
-      resumePrompt = getPromptResumeAfterSideQuestion(promptKey);
+      resumePrompt = getQuestionAwareResumePrompt(
+        promptKey,
+        getPromptResumeAfterSideQuestion(promptKey)
+      );
       clearResponseWatchdog();
       if (!answer) {
         openQuestionDetour(getQuestionDetourIntro(), resumePrompt, value);
         return true;
       }
-      botSequenceForCurrentTurn(
-        [
-          {
-            html: answer,
-            pause: humanReadDelay(value, 420),
-            delay: humanComposeDelay(answer, 1200, 2600),
-          },
-          {
-            html: resumePrompt,
-            pause: humanReadDelay(answer, 360),
-            delay: humanComposeDelay(resumePrompt, 900, 1900),
-          },
-        ],
+      botMessage(
+        getQuestionAwareResumeHtml(answer, resumePrompt),
+        humanComposeDelay(answer, 1200, 2600),
         function () {
           focusComposer(promptPlaceholder || getComposerPlaceholder("reply"));
-        }
+        },
+        humanReadDelay(value, 420)
       );
       return true;
     }
@@ -104176,6 +105560,11 @@
       var semanticResolution;
       var strictPromptOwnedState;
       var unifiedRoute;
+      recordConversationAuditEvent("prompt_reply_check", {
+        promptState: cleanMessageText(promptState || ""),
+        hasPromptHandlers: !!promptHandlers,
+        text: cleanMessageText(value || "").slice(0, 220),
+      });
       if (!promptState || !promptHandlers) {
         return false;
       }
@@ -104256,6 +105645,9 @@
       noHandler = promptHandlers && promptHandlers.no;
       otherHandler = promptHandlers && promptHandlers.other;
       questionHandler = promptHandlers && promptHandlers.question;
+      markConversationTurnOwner("prompt_handler", {
+        promptState: cleanMessageText(promptStateValue || ""),
+      });
 
       if (
         !/^(greenhouse_security_code|commercial_apply_queue_verification_code|greenhouse_test_full_name|greenhouse_test_email|greenhouse_test_confirm_email|greenhouse_test_phone|teamtailor_test_full_name|teamtailor_test_email|teamtailor_test_confirm_email|teamtailor_test_phone|workable_test_full_name|workable_test_email|workable_test_confirm_email|workable_test_phone|successfactors_test_full_name|successfactors_test_email|successfactors_test_confirm_email|workday_test_full_name|workday_test_email|workday_test_confirm_email|workday_account_password|successfactors_account_password|successfactors_profile_[a-z_]+|apply_account_email|apply_confirm_preferred_email|apply_collect_preferred_email|apply_collect_full_name|apply_employer_question|apply_employer_questions_bulk|apply_results_failure_fallback|apply_results_offline_collect_email)$/i.test(
@@ -105227,7 +106619,7 @@
             pickVariant("review_progress_reply", [
               "Still reading it through. I'm on the recent experience and the role requirements now.",
               "Still with it. I'm checking the recent experience against the brief before I call anything out.",
-              "Still looking. I just want to finish this first pass before I point you to the first fix.",
+              "Still looking. I’m checking the evidence before I recommend the next step.",
             ]),
             humanComposeDelay(
               "Still reading it through. I'm on the recent experience and the role requirements now.",
@@ -105569,13 +106961,13 @@
           "Hello, I'm Emily, your job search assistant. I can run a Career Assessment against the " +
             roleLabel +
             " role and show what I would tighten first across the CV, LinkedIn positioning, and candidate profile.",
-          "Hi, I'm Emily, your job search assistant. Send me the CV and I'll check it against the " +
+          "Hi, I'm Emily, your job search assistant. Start with the CV and I'll check it against the " +
             roleLabel +
             " brief properly.",
           "Hello, I'm Emily, your job search assistant. I can assess your profile against the " +
             roleLabel +
             " role and tell you where it is helping or weakening the application.",
-          "Hi, I'm Emily, your job search assistant. If you send me the CV, I'll read it against the " +
+          "Hi, I'm Emily, your job search assistant. If you share the CV, I'll read it against the " +
             roleLabel +
             " role and point out what needs strengthening.",
         ]);
@@ -105584,14 +106976,14 @@
       return pickVariant(key, [
         "Hello, I'm Emily, your job search assistant. I can help with the " +
           roleLabel +
-          " application. Start by sending me your CV and I'll assess it against the role.",
+          " application. Start with your CV and I'll assess it against the role.",
         "Hi, I'm Emily, your job search assistant. Before we send anything for the " +
           roleLabel +
-          " role, I need to look through the CV against the brief. Upload it and I'll take it from there.",
+          " role, I need to look through the CV against the brief. Add it here and I'll take it from there.",
         "Hello, I'm Emily, your job search assistant. If we're moving forward with the " +
           roleLabel +
           " role, the first step is for me to read the CV against the requirements.",
-        "Hi, I'm Emily, your job search assistant. Send me the CV for the " +
+        "Hi, I'm Emily, your job search assistant. Share the CV for the " +
           roleLabel +
           " role and I'll line it up with the brief before we do anything else.",
       ]);
@@ -105622,7 +107014,7 @@
       }
       if (roleTitle) {
         return (
-          "Upload your CV and I’ll check the fit for <strong>" +
+          "Add your CV and I’ll check the fit for <strong>" +
           escapeHtml(roleTitle) +
           "</strong>" +
           (roleCompany
@@ -105636,15 +107028,15 @@
         {
           opener: {
             direct: [
-              "Upload your CV and I’ll find roles that fit your background.",
+              "Start with your CV and I’ll find roles that fit your background.",
             ],
             warm: [
-              "Send me your CV and I’ll look for roles that make sense for you.",
+              "Share your CV and I’ll look for roles that make sense for you.",
             ],
             measured: [
               "Start with your CV and I’ll map it to suitable live roles.",
             ],
-            sharp: ["Send the CV and I’ll turn it into a focused role search."],
+            sharp: ["Share the CV and I’ll turn it into a focused role search."],
           },
           action: {
             direct: [
@@ -105855,10 +107247,10 @@
         "apply_skip_review_continue_dynamic_" + getRoleFamilyTone(),
         {
           opener: {
-            direct: ["Okay, I’ll skip the Career Assessment for now."],
+            direct: ["Understood, I’ll skip the Career Assessment for now."],
             warm: ["No problem, I won’t run the Career Assessment first."],
             measured: ["Understood, I’ll leave the Career Assessment for now."],
-            sharp: ["Fine, we’ll skip the Career Assessment."],
+            sharp: ["Understood, we’ll skip the Career Assessment."],
           },
           action: {
             direct: ["I’ll prepare the application route for this role."],
@@ -105900,7 +107292,7 @@
         "apply_tailoring_intro_dynamic_" + getRoleFamilyTone(),
         {
           opener: {
-            direct: ["Ok, I've assessed it.", "I've gone through it."],
+            direct: ["I’ve assessed it.", "I’ve gone through it."],
             warm: [
               "I've assessed the CV and profile against the role.",
               "I've checked it properly now.",
@@ -105913,16 +107305,16 @@
           },
           action: {
             direct: [
-              "Open the Career Assessment tab and I'll walk you through the main fixes.",
+              "I’ve put the main CV signals and changes into the Career Assessment area.",
             ],
             warm: [
-              "Open the Career Assessment tab and I'll show you the main changes I'd make.",
+              "I’ve laid out the changes I’d make before this goes into the application queue.",
             ],
             measured: [
-              "Open the Career Assessment tab and I'll take you through the strongest fixes first.",
+              "I’ve grouped the strongest signals, weaker points, and anything I still need to confirm.",
             ],
             sharp: [
-              "Open the Career Assessment tab and I'll show you what I would tighten.",
+              "I’ve marked what I would tighten before using this version.",
             ],
           },
         }
@@ -105959,10 +107351,10 @@
             sharp: ["Tell me what feels off first,"],
           },
           action: {
-            direct: ["and I'll adjust it before I move on."],
-            warm: ["and I'll fix that before I continue."],
-            measured: ["and I'll change it before I go further."],
-            sharp: ["and I'll tighten that before I carry on."],
+            direct: ["and I’ll adjust the draft before I move it on."],
+            warm: ["and I’ll update the draft before I continue."],
+            measured: ["and I’ll change the application version before I go further."],
+            sharp: ["and I’ll tighten the draft before I carry on."],
           },
         }
       );
@@ -106033,7 +107425,7 @@
         {
           opener: {
             direct: ["Once I prepare the application profile,"],
-            warm: ["I'm going to sort the profile out for the application."],
+            warm: ["Once the application version is ready,"],
             measured: ["Alongside the application profile,"],
             sharp: ["As I finish the application profile,"],
           },
@@ -106111,9 +107503,9 @@
         {
           opener: {
             direct: ["No problem.", "That's fine."],
-            warm: ["No worries.", "That's alright."],
+            warm: ["That's fine.", "That's alright."],
             measured: ["Understood.", "Fine."],
-            sharp: ["Right.", "Ok."],
+            sharp: ["Understood.", "Okay."],
           },
           action: {
             direct: [
@@ -106277,14 +107669,14 @@
         });
       }
       if (commercialApplyQueueDetailsMode) {
-        return "Firstly, can I get your full name?";
+        return "First, what full name should I use for the application?";
       }
       return composeSemanticReply("apply_full_name_prompt_dynamic", {
         opener: {
-          direct: ["What is your full name?"],
+          direct: ["What full name should I use for the application?"],
           warm: ["What full name should I use for the application?"],
           measured: ["What name should I put on the application?"],
-          sharp: ["Can you send me your full name first?"],
+          sharp: ["Which full name should I use here?"],
         },
       });
     }
@@ -106301,14 +107693,14 @@
         });
       }
       if (commercialApplyQueueDetailsMode) {
-        return "What email would you like to be reached at?";
+        return "Which email should I use for employer confirmations and updates?";
       }
       return composeSemanticReply("apply_preferred_email_prompt_dynamic", {
         opener: {
-          direct: ["What is your preferred email?"],
-          warm: ["What email would you like me to use?"],
+          direct: ["Which email should I use for this application?"],
+          warm: ["What email should I put on the application?"],
           measured: ["Which email should I put on the application?"],
-          sharp: ["What is the best email to use for this?"],
+          sharp: ["Which email should I use here?"],
         },
       });
     }
@@ -110240,7 +111632,34 @@
     }
 
     function renderApplyQuickPathSelector() {
-      return "";
+      if (isArabicChat()) {
+        return (
+          '<div class="sffc-crm-apply-chat__quick-route-chat" role="group" aria-label="Choose how Emily should proceed">' +
+          "<p>لدي فكرة يمكن أن تعمل بشكل أفضل.</p>" +
+          "<p>يمكنني البحث بنشاط عن أدوار مناسبة في " +
+          escapeHtml(roleLocation || "منطقتك المستهدفة") +
+          "، والتواصل مع مسؤولي التوظيف المناسبين، وتجهيز طلبات مخصصة نيابة عنك.</p>" +
+          "<p>أخبريني كيف ترغبين في المتابعة.</p>" +
+          '<div class="sffc-crm-apply-chat__quick-route-actions">' +
+          '<button type="button" class="sffc-crm-apply-chat__quick-route-action is-primary" data-sffc-apply-chat-quick-route-membership>نعم، سجّليني في الخدمة</button>' +
+          '<button type="button" class="sffc-crm-apply-chat__quick-route-action" data-sffc-apply-chat-quick-route-single>لا، قدّمي لهذا الدور فقط</button>' +
+          "</div>" +
+          "</div>"
+        );
+      }
+      return (
+        '<div class="sffc-crm-apply-chat__quick-route-chat" role="group" aria-label="Choose how Emily should proceed">' +
+        "<p>I have an idea that could work much better.</p>" +
+        "<p>I can actively source suitable roles in " +
+        escapeHtml(roleLocation || "your target location") +
+        ", approach relevant recruiters and submit tailored applications on your behalf.</p>" +
+        "<p>Let me know how you would like to proceed.</p>" +
+        '<div class="sffc-crm-apply-chat__quick-route-actions">' +
+        '<button type="button" class="sffc-crm-apply-chat__quick-route-action is-primary" data-sffc-apply-chat-quick-route-membership>Yes, sign me up to the service</button>' +
+        '<button type="button" class="sffc-crm-apply-chat__quick-route-action" data-sffc-apply-chat-quick-route-single>No, apply for this role only</button>' +
+        "</div>" +
+        "</div>"
+      );
     }
 
     function escapeCvOntologyRegex(value) {
@@ -112087,6 +113506,8 @@
       candidateRoleProfileCacheValue = null;
       cvRoleMatchSingleCacheKey = "";
       cvRoleMatchSingleCacheValue = null;
+      liteParseJobMatchCache = {};
+      liteParseJobMatchPending = {};
       editorialReasoningBlocksCacheKey = "";
       editorialReasoningBlocksCacheValue = null;
       roleRecruiterPreviewCacheKey = "";
@@ -114918,8 +116339,8 @@
         getComposerPlaceholder("reply");
       if (!hasApplyForMeSelectedJobContext()) {
         botMessage(
-          "Send me the role first and I’ll compare the CV against it properly.",
-          humanComposeDelay("Send me the role first.", 900, 1800),
+          "Choose or paste the role first and I’ll compare the CV against it properly.",
+          humanComposeDelay("Need role before comparison.", 900, 1800),
           function () {
             focusComposer("Paste the role or choose one from the results");
           }
@@ -114928,8 +116349,8 @@
       }
       if (!applyCvAnalysis) {
         botMessage(
-          "Upload the CV first and I’ll compare it against this role.",
-          humanComposeDelay("Upload the CV first.", 900, 1800),
+          "Add the CV first and I’ll compare it against this role.",
+          humanComposeDelay("Need CV before comparison.", 900, 1800),
           function () {
             if (uploadButton) {
               uploadButton.hidden = false;
@@ -117294,7 +118715,7 @@
       }
       if (!cleanMessageText(applyOnboardingFullName || "")) {
         botMessage(
-          "Firstly, can I get the candidate full name for this Workable test?",
+          "First, what candidate full name should I use for this Workable test?",
           humanComposeDelay("Need candidate name.", 700, 1400),
           function () {
             setPromptState(
@@ -117482,7 +118903,7 @@
       }
       if (!cleanMessageText(applyOnboardingFullName || "")) {
         botMessage(
-          "Firstly, can I get the candidate full name for this Greenhouse test?",
+          "First, what candidate full name should I use for this Greenhouse test?",
           humanComposeDelay("Need candidate name.", 700, 1400),
           function () {
             setPromptState(
@@ -119681,7 +121102,7 @@
       }
       if (!cleanMessageText(applyOnboardingFullName || "")) {
         botMessage(
-          "Firstly, can I get the candidate full name for this SuccessFactors test?",
+          "First, what candidate full name should I use for this SuccessFactors test?",
           humanComposeDelay("Need candidate name.", 700, 1400),
           function () {
             setPromptState(
@@ -119820,7 +121241,7 @@
       }
       if (!cleanMessageText(applyOnboardingFullName || "")) {
         botMessage(
-          "Firstly, can I get the candidate full name for this Workday test?",
+          "First, what candidate full name should I use for this Workday test?",
           humanComposeDelay("Need candidate name.", 700, 1400),
           function () {
             setPromptState(
@@ -121705,7 +123126,7 @@
       }
       if (!cleanMessageText(applyOnboardingFullName || "")) {
         botMessage(
-          "Firstly, can I get the candidate full name for this Teamtailor test?",
+          "First, what candidate full name should I use for this Teamtailor test?",
           humanComposeDelay("Need candidate name.", 700, 1400),
           function () {
             setPromptState(
@@ -122562,23 +123983,28 @@
           (opts.singleRoleOnly
             ? ""
             : '<div class="sffc-crm-apply-results__actions">' +
+              '<button type="button" class="sffc-crm-apply-results__btn sffc-crm-apply-results__btn--review" data-sffc-apply-results-toggle-review="' +
+              escapeHtml(key) +
+              '" aria-expanded="false" aria-controls="' +
+              escapeHtml(panelId) +
+              '"' +
+              roleDataAttributes +
+              ">" +
+              escapeHtml(uiText("Review fit", "راجع الملاءمة")) +
+              "</button>" +
               '<button type="button" class="sffc-crm-apply-results__btn sffc-crm-apply-results__btn--primary" data-sffc-apply-results-apply-key="' +
               escapeHtml(key) +
               '"' +
               roleDataAttributes +
               ">" +
-              escapeHtml(
-                uiText("Apply with Tailored CV", "قدّم بالسيرة المخصصة")
-              ) +
+              escapeHtml(uiText("Tailor CV", "خصص السيرة")) +
               "</button>" +
               '<button type="button" class="sffc-crm-apply-results__btn sffc-crm-apply-results__btn--secondary" data-sffc-apply-results-original-key="' +
               escapeHtml(key) +
               '"' +
               roleDataAttributes +
               ">" +
-              escapeHtml(
-                uiText("Continue with Original CV", "المتابعة بالسيرة الأصلية")
-              ) +
+              escapeHtml(uiText("Original CV", "السيرة الأصلية")) +
               "</button>" +
               (isQueued
                 ? '<button type="button" class="sffc-crm-apply-results__btn sffc-crm-apply-results__btn--save is-saved" data-sffc-apply-chat-queue-remove="' +
@@ -122706,6 +124132,21 @@
                 '%"></span></span>'
               : "") +
             "</div>") +
+        (opts.singleRoleOnly
+          ? ""
+          : '<div class="sffc-crm-apply-results__group-title"><h3>' +
+            escapeHtml(
+              activeTab === "shortlist"
+                ? uiText("Saved roles", "الأدوار المحفوظة")
+                : uiText("Best matches", "أفضل المطابقات")
+            ) +
+            "</h3><span>" +
+            escapeHtml(
+              activeTab === "shortlist"
+                ? uiText("Roles you have kept for review", "الأدوار التي حفظتها للمراجعة")
+                : uiText("Sorted by CV fit and role relevance", "مرتبة حسب ملاءمة السيرة والدور")
+            ) +
+            "</span></div>") +
         '<div class="sffc-crm-apply-results__list">' +
         (visibleItems.length
           ? visibleItems.map(renderResultCard).join("")
@@ -123131,18 +124572,18 @@
           "emily_no_cv_paying_" + cleanMessageText(reason || "general"),
           [
             prefix +
-              "I can keep this moving, but I do not have an active CV saved on this account yet. Upload it here and I’ll use it for " +
+              "I can keep this moving, but I do not have an active CV saved on this account yet. Add it here and I’ll use it for " +
               subject +
               ".",
             prefix +
-              "this role is selected. I just need the CV you want me to use before I prepare anything for " +
+              "this role is selected. I just need the CV version you want me to use before I prepare anything for " +
               subject +
               location +
               ".",
             prefix +
-              "I’ll preserve " +
+              "I’ll keep " +
               subject +
-              " while you send the CV. Once I have it, I can compare, tailor, or move straight into the application path.",
+              " in focus while you add the CV. Once I have it, I can compare, tailor, or move straight into the application path.",
           ]
         );
       }
@@ -123150,11 +124591,11 @@
         return pickVariant("emily_no_cv_guest_apply", [
           "I can start from " +
             subject +
-            ", but I need your CV before I prepare the application. Upload it here and I’ll keep this role selected.",
+            ", but I need your CV before I prepare the application. Add it here and I’ll keep this role selected.",
           "Before I touch the application for " +
             subject +
-            ", send the CV you want used. I’ll check the role-specific changes first.",
-          "Upload your CV and I’ll use it against " +
+            ", add the CV version you want used. I’ll check the role-specific changes first.",
+          "Add your CV and I’ll use it against " +
             subject +
             " before preparing the employer form.",
         ]);
@@ -123162,11 +124603,11 @@
       return pickVariant("emily_no_cv_guest_compare", [
         "I can compare your CV with " +
           subject +
-          ", but I need the CV first. Upload it here and I’ll keep the role in focus.",
-        "Send your CV and I’ll judge it against " +
+          ", but I need the CV first. Add it here and I’ll keep the role in focus.",
+        "Add your CV and I’ll judge it against " +
           subject +
           " directly, not as a generic review.",
-        "Upload the CV you want assessed and I’ll show what looks strong, what is unclear, and whether anything could block this application.",
+        "Add the CV you want assessed and I’ll show what looks strong, what is unclear, and whether anything could block this application.",
       ]);
     }
 
@@ -123346,8 +124787,8 @@
         return pickVariant("emily_application_start_original", [
           "I’ll use the current CV for " +
             subject +
-            " and start the employer route now. If the form asks for something only you can verify, I’ll pause there.",
-          "Okay, I’ll keep the CV as-is and begin the application for " +
+            " and start the employer route now. If the form asks for something only you can verify, I’ll pause and bring it back here.",
+          "Understood. I’ll keep the CV as-is and begin the application for " +
             subject +
             ". I’ll tell you exactly where I am as the employer form opens.",
           "I’ll move ahead with the original CV for " +
@@ -123359,7 +124800,7 @@
         "I’ll start from the tailored version for " +
           subject +
           " and move into the employer application route now.",
-        "Okay, I’ll use the tailored CV for " +
+        "Understood. I’ll use the tailored CV for " +
           subject +
           " and begin the application. I’ll flag anything that needs your approval before submission.",
         "I’ll carry the tailored CV into the application for " +
@@ -123415,7 +124856,7 @@
       var ctx = getEmilyVoiceContext(pendingApplyResultsSelection);
       var subject = escapeHtml(getEmilyRoleSubject(ctx));
       return pickVariant("emily_updated_cv_request", [
-        "Send the CV you want me to use for " +
+        "Add the CV you want me to use for " +
           subject +
           ". I’ll keep this role selected while you upload it.",
         "Okay. Upload or paste the version I should use for " +
@@ -125106,23 +126547,23 @@
         if (settings.afterComparison) {
           return (
             '<div class="sffc-crm-apply-chat__inline-action-row">' +
-            '<button type="button" class="sffc-crm-apply-chat__inline-action is-primary" data-sffc-apply-results-selected-next="tailored">Apply with Tailored CV</button>' +
-            '<button type="button" class="sffc-crm-apply-chat__inline-action" data-sffc-apply-results-selected-next="original">Continue with Original CV</button>' +
+            '<button type="button" class="sffc-crm-apply-chat__inline-action is-primary" data-sffc-apply-results-selected-next="tailored">Tailor CV</button>' +
+            '<button type="button" class="sffc-crm-apply-chat__inline-action" data-sffc-apply-results-selected-next="original">Original CV</button>' +
             "</div>"
           );
         }
         return (
           '<div class="sffc-crm-apply-chat__inline-action-row">' +
-          '<button type="button" class="sffc-crm-apply-chat__inline-action is-primary" data-sffc-apply-results-selected-next="tailored">Apply with Tailored CV</button>' +
+          '<button type="button" class="sffc-crm-apply-chat__inline-action is-primary" data-sffc-apply-results-selected-next="tailored">Tailor CV</button>' +
           '<button type="button" class="sffc-crm-apply-chat__inline-action" data-sffc-apply-results-selected-next="compare">Improve CV first</button>' +
-          '<button type="button" class="sffc-crm-apply-chat__inline-action" data-sffc-apply-results-selected-next="original">Continue with Original CV</button>' +
+          '<button type="button" class="sffc-crm-apply-chat__inline-action" data-sffc-apply-results-selected-next="original">Original CV</button>' +
           "</div>"
         );
       }
       if (settings.afterComparison) {
         return (
           '<div class="sffc-crm-apply-chat__inline-action-row">' +
-          '<button type="button" class="sffc-crm-apply-chat__inline-action is-primary" data-sffc-apply-results-selected-next="tailored">Prepare Tailored CV</button>' +
+          '<button type="button" class="sffc-crm-apply-chat__inline-action is-primary" data-sffc-apply-results-selected-next="tailored">Tailor CV</button>' +
           '<button type="button" class="sffc-crm-apply-chat__inline-action" data-sffc-apply-results-selected-next="original">Jump to application</button>' +
           "</div>"
         );
@@ -125153,6 +126594,7 @@
         selected ||
         pendingApplyResultsSelection ||
         getCurrentConversationDecisionSelectedRole();
+      var cvSlotState;
       if (source) {
         pendingApplyResultsSelection = normalizeCommercialApplyQueueItem(
           source,
@@ -125172,6 +126614,26 @@
       activePath = "apply_for_me";
       step = "apply_upload";
       clearPromptState();
+      if (shouldSuppressRepeatedPromptSlotAsk("cv_upload", 45000)) {
+        recordPromptSlotEvent("suppressed_duplicate_ask", "cv_upload", {
+          promptState: "apply_upload",
+          reason: cleanMessageText(reason || ""),
+        });
+        if (uploadButton) {
+          uploadButton.hidden = false;
+        }
+        input.disabled = false;
+        focusComposer("Upload your CV or paste it here");
+        return;
+      }
+      cvSlotState = markPromptSlotAsked("apply_upload", {
+        reason: cleanMessageText(reason || ""),
+        source: "askForCvBeforeSelectedRoleApplication",
+      });
+      recordConversationAuditEvent("cv_upload_prompt_request", {
+        slotId: cvSlotState && cvSlotState.slotId,
+        reason: cleanMessageText(reason || ""),
+      });
       botMessage(
         getContextualCvRequestLine(pendingApplyResultsSelection, reason),
         humanComposeDelay("Need CV for selected role.", 900, 1800),
@@ -125407,7 +126869,7 @@
           .then(function (ready) {
             if (!ready && !currentCvFile && !capturedCvText) {
               botMessage(
-                "I could not load the saved CV text into this chat session. Upload the CV here and I’ll continue with this selected role.",
+                "I could not load the saved CV text into this chat session. Add the CV here and I’ll continue with this selected role.",
                 humanComposeDelay("Saved CV unavailable.", 900, 1800),
                 function () {
                   if (uploadButton) {
@@ -125754,7 +127216,7 @@
           cleanChoice
         )
       ) {
-        echoPromptChoice("Continue with Original CV");
+        echoPromptChoice("Original CV");
         pendingApplyResultsSelection = Object.assign(
           {},
           pendingApplyResultsSelection || {},
@@ -125772,7 +127234,7 @@
         return;
       }
       if (/tailor|tailored|prepare|strengthen/.test(cleanChoice)) {
-        echoPromptChoice("Apply with Tailored CV");
+        echoPromptChoice("Tailor CV");
         pendingApplyResultsSelection = Object.assign(
           {},
           pendingApplyResultsSelection || {},
@@ -125821,7 +127283,7 @@
         askApplyResultsSameCvThenStart();
         return;
       }
-      echoPromptChoice("Apply with Tailored CV");
+      echoPromptChoice("Tailor CV");
       pendingApplyResultsSelection = Object.assign(
         {},
         pendingApplyResultsSelection || {},
@@ -130688,7 +132150,7 @@
               ])
             : pickVariant("emily_career_direct_fallback", [
                 "I can help with that. I’ll use the role, CV, and search context where it matters instead of giving you a generic answer.",
-                "Yes. Let’s treat that as a career question first, then come back to the application only if it still makes sense.",
+                "Yes. Let’s treat that as a career question first, then return to the application only if it still makes sense.",
                 "I can work through that with you. Give me the part that feels unclear and I’ll tie the answer back to your current search.",
               ]),
           humanComposeDelay("Career conversation fallback.", 900, 1800),
@@ -130961,6 +132423,11 @@
       var config = getEmilyDecisionEngineConfig();
       var decision;
       var validation;
+      recordConversationAuditEvent("decision_engine_check", {
+        enabled: !!config.enabled,
+        shadowMode: !!config.shadowMode,
+        text: cleanMessageText(value || "").slice(0, 220),
+      });
       if (!config.enabled) {
         return false;
       }
@@ -130994,6 +132461,13 @@
       ) {
         return false;
       }
+      markConversationTurnOwner("decision_engine", {
+        intent: cleanMessageText((decision.intent && decision.intent.type) || ""),
+        action: cleanMessageText(
+          (decision.nextAction && decision.nextAction.type) || ""
+        ),
+        confidence: Number(decision.intent.confidence || 0),
+      });
       return executeConversationDecision(decision, value);
     }
 
@@ -131140,9 +132614,7 @@
       }
       userMessage(
         opts.echoLabel ||
-          (mode === "original"
-            ? "Continue with Original CV"
-            : "Apply with Tailored CV")
+          (mode === "original" ? "Original CV" : "Tailor CV")
       );
       if (!hasApplyChatCvAvailable()) {
         askForCvBeforeSelectedRoleApplication(
@@ -131329,11 +132801,11 @@
         escapeHtml(fileName) +
         "</strong>" +
         "<span>" +
-        escapeHtml(
-          isArabicChat()
-            ? "جار تحسين الصياغة والكلمات والأدلة المرتبطة بالدور"
-            : "Transforming wording, keywords, and role evidence"
-        ) +
+          escapeHtml(
+            isArabicChat()
+              ? "جار تحسين الصياغة والكلمات والأدلة المرتبطة بالدور"
+              : "Building the tailored application version"
+          ) +
         "</span>" +
         "</div>" +
         '<div class="sffc-crm-apply-chat__tailoring-step-dots" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>' +
@@ -131350,13 +132822,13 @@
         '<div class="sffc-crm-apply-chat__tailoring-sequence-copy">' +
         "<strong>" +
         (isArabicChat()
-          ? "<span>تحليل سيرتك الذاتية</span><span>تحسين العنوان والبيانات</span><span>تحديث الخبرة</span><span>إضافة كلمات مناسبة</span><span>إبراز المهارات الأساسية</span>"
-          : "<span>Analyzing your CV</span><span>Fixing your header</span><span>Updating your experience</span><span>Adding relevant keywords</span><span>Adding key skills</span>") +
+          ? "<span>قراءة متطلبات الدور</span><span>مطابقة الأدلة الموجودة في الـCV</span><span>إعادة ضبط الملخص</span><span>تقوية نقاط الخبرة</span><span>مراجعة الدقة النهائية</span>"
+          : "<span>Reading the role requirements</span><span>Checking evidence already in your CV</span><span>Reframing the profile summary</span><span>Tightening relevant experience</span><span>Running the final evidence check</span>") +
         "</strong>" +
         "<p>" +
         (isArabicChat()
-          ? "<span>فهم خلفيتك ومطابقتها مع متطلبات الدور.</span><span>تحسين المسمى وبيانات التواصل والتموضع الافتتاحي.</span><span>جعل أثر خبرتك أوضح وأكثر صلة.</span><span>إظهار مصطلحات الدور عندما تدعمها سيرتك.</span><span>إبراز القدرات التي سيبحث عنها صاحب العمل.</span>"
-          : "<span>Understanding your background and matching it to the role.</span><span>Improving your title, contact details and opening positioning.</span><span>Making your impact clearer and more relevant.</span><span>Surfacing terms from the role where your CV supports them.</span><span>Highlighting capabilities the employer will scan for.</span>") +
+          ? "<span>أحدد ما يطلبه صاحب العمل أولاً.</span><span>لا أضيف شيئاً لا يدعمه الـCV.</span><span>أجعل التموضع الافتتاحي أوضح.</span><span>أقدّم الدليل الأقوى في مكان أسرع ملاحظة.</span><span>أراجع النسخة حتى تبقى دقيقة ومناسبة للدور.</span>"
+          : "<span>I’m identifying what the employer is asking for.</span><span>I’m not adding claims the CV cannot support.</span><span>I’m making the opening positioning clearer.</span><span>I’m moving the strongest evidence into easier view.</span><span>I’m checking the final version for accuracy and role fit.</span>") +
         "</p>" +
         '<div class="sffc-crm-apply-chat__tailoring-progress-track"><span></span></div>' +
         "</div>" +
@@ -132526,41 +133998,20 @@
       clearPromptState();
 
       if (isReviewOnlyLauncher) {
-        botSequenceForCurrentTurn(
-          [
-            {
-              html: "I’ve reviewed the CV and matched it against live roles.",
-              pause: 150,
-              delay: 250,
-            },
-            {
-              html:
-                "Best current fit: <strong>" +
-                escapeHtml(report.title) +
-                "</strong>" +
-                (report.company ? " at " + escapeHtml(report.company) : "") +
-                ". <strong>" +
-                escapeHtml(report.scoreLabel) +
-                "</strong>.",
-              pause: 150,
-              delay: 350,
-            },
-            {
-              html: reviewCardHtml,
-              pause: 150,
-              delay: 350,
-            },
-            {
-              html:
-                "Start here: " +
-                escapeHtml(
-                  report.suggestions[0] ||
-                    "make the strongest relevant proof easier to find."
-                ),
-              pause: 150,
-              delay: 450,
-            },
-          ],
+        botMessage(
+          "I’ve reviewed the CV and matched it against live roles. Best current fit: <strong>" +
+            escapeHtml(report.title) +
+            "</strong>" +
+            (report.company ? " at " + escapeHtml(report.company) : "") +
+            ". <strong>" +
+            escapeHtml(report.scoreLabel) +
+            "</strong>.<br><br>Start here: " +
+            escapeHtml(
+              report.suggestions[0] ||
+                "make the strongest relevant proof easier to find."
+            ) +
+            reviewCardHtml,
+          humanComposeDelay("Profile review summary.", 900, 1700),
           function () {
             focusComposer("Ask what to fix first");
           }
@@ -132568,74 +134019,23 @@
         return;
       }
 
-      botSequenceForCurrentTurn(
-        [
-          {
-            html: "I’ve finished the first Career Assessment.",
-            pause: humanReadDelay(lastUserInputText, 700),
-            delay: humanComposeDelay(
-              "I’ve finished the first Career Assessment.",
-              900,
-              1800
-            ),
-          },
-          {
-            html:
-              "My read: <strong>" +
-              escapeHtml(report.scoreLabel) +
-              "</strong> for " +
-              escapeHtml(report.title) +
-              ".",
-            pause: humanReadDelay(
-              "I’ve finished the first Career Assessment.",
-              500
-            ),
-            delay: humanComposeDelay(
-              "My read is " + report.scoreLabel + " for this role.",
-              1500,
-              3000
-            ),
-          },
-          {
-            html:
-              "The strongest evidence is " +
-              escapeHtml(
-                report.strongEvidence[0] ||
-                  "already visible, but it needs to land faster."
-              ),
-            pause: humanReadDelay(report.scoreLabel, 450),
-            delay: humanComposeDelay(
-              "The strongest evidence is already visible, but it needs to land faster.",
-              1800,
-              3600
-            ),
-          },
-          {
-            html: reviewCardHtml,
-            pause: humanReadDelay(
-              "The strongest evidence is already visible.",
-              500
-            ),
-            delay: 450,
-          },
-          {
-            html:
-              "Before you apply, I would start with this: " +
-              escapeHtml(
-                report.suggestions[0] ||
-                  "make the most relevant profile proof easier to find."
-              ),
-            pause: humanReadDelay(
-              "The strongest evidence is already visible.",
-              500
-            ),
-            delay: humanComposeDelay(
-              "Before you apply, I would start by making the most relevant proof easier to find.",
-              1900,
-              3800
-            ),
-          },
-        ],
+      botMessage(
+        "I’ve finished the first Career Assessment. My read: <strong>" +
+          escapeHtml(report.scoreLabel) +
+          "</strong> for " +
+          escapeHtml(report.title) +
+          ". The strongest evidence is " +
+          escapeHtml(
+            report.strongEvidence[0] ||
+              "already visible, but it needs to land faster."
+          ) +
+          "<br><br>Before you apply, I would start with this: " +
+          escapeHtml(
+            report.suggestions[0] ||
+              "make the most relevant profile proof easier to find."
+          ) +
+          reviewCardHtml,
+        humanComposeDelay("Career Assessment summary.", 1200, 2300),
         function () {
           focusComposer("Ask what to improve first");
         }
@@ -132672,64 +134072,26 @@
       uploadButton.hidden = true;
       clearPromptState();
 
-      botSequenceForCurrentTurn(
-        [
-          {
-            html: "I’ve finished the Career Assessment for recruiter outreach.",
-            pause: humanReadDelay(lastUserInputText, 700),
-            delay: humanComposeDelay(
-              "I’ve finished the Career Assessment for recruiter outreach.",
-              900,
-              1800
-            ),
-          },
-          {
-            html:
-              "My read: <strong>" +
-              escapeHtml(report.scoreLabel) +
-              "</strong>. The profile is strongest where it proves " +
-              escapeHtml(
-                report.strongEvidence[0] ||
-                  "relevant experience clearly and quickly."
-              ),
-            pause: humanReadDelay("I’ve finished the Career Assessment.", 500),
-            delay: humanComposeDelay(
-              "My read is ready. The profile is strongest where it proves relevant experience clearly.",
-              1500,
-              3200
-            ),
-          },
-          {
-            html:
-              "Before outreach, I would tighten this first: " +
-              escapeHtml(
-                report.suggestions[0] ||
-                  "make the most relevant proof easier for a recruiter to see."
-              ),
-            pause: humanReadDelay(report.scoreLabel, 450),
-            delay: humanComposeDelay(
-              "Before outreach, I would tighten the most relevant proof first.",
-              1800,
-              3600
-            ),
-          },
-          {
-            html: targetContext
-              ? "I’ve kept your target firms saved for the outreach path: <strong>" +
-                escapeHtml(targetContext) +
-                "</strong>."
-              : "Next I would use this review to decide which recruiter path is worth pursuing.",
-            pause: humanReadDelay(
-              "Before outreach, I would tighten this first.",
-              500
-            ),
-            delay: humanComposeDelay(
-              "Next I would use this review to decide which recruiter path is worth pursuing.",
-              1600,
-              3200
-            ),
-          },
-        ],
+      botMessage(
+        "I’ve finished the Career Assessment for recruiter outreach. My read: <strong>" +
+          escapeHtml(report.scoreLabel) +
+          "</strong>. The profile is strongest where it proves " +
+          escapeHtml(
+            report.strongEvidence[0] ||
+              "relevant experience clearly and quickly."
+          ) +
+          "<br><br>Before outreach, I would tighten this first: " +
+          escapeHtml(
+            report.suggestions[0] ||
+              "make the most relevant proof easier for a recruiter to see."
+          ) +
+          "<br><br>" +
+          (targetContext
+            ? "I’ve kept your target firms saved for the outreach path: <strong>" +
+              escapeHtml(targetContext) +
+              "</strong>."
+            : "Next I would use this review to decide which recruiter path is worth pursuing."),
+        humanComposeDelay("Recruiter outreach Career Assessment summary.", 1300, 2600),
         function () {
           askRecruiterOutreachBriefQuestion("role");
         }
@@ -133728,6 +135090,8 @@
       }
 
       function askTailoringProceedQuestion() {
+        clearLiveDraftTimers();
+        applyTailoringSequenceComplete = true;
         removeWorkingTailoringPreviewCards();
         clearPromptState();
         openWorkspaceTab("draft", {
@@ -133736,7 +135100,7 @@
           cvStatus: "Tailored version ready",
         });
         var reviewCopy =
-          "I've finished tailoring your CV. You can expand the preview below, and I’ll move it into the application queue next.";
+          "I’ve finished the tailored version. Review the draft if you want to check the changes; next I’ll prepare the application queue.";
         botMessage(
           renderCvTailoringPreviewCard("done"),
           humanComposeDelay("Tailored CV preview ready", 450, 850),
@@ -133756,7 +135120,7 @@
       }
 
       window.__sffcAskApplyProceedAfterTailoring = function () {
-        if (!applyTailoringAwaitingProceed) {
+        if (!applyTailoringAwaitingProceed || !applyTailoringSequenceComplete) {
           return;
         }
         applyTailoringAwaitingProceed = false;
@@ -133770,6 +135134,7 @@
         clearPromptState();
         applyCvReviewSkipped = false;
         applyNeedsCoverLetter = "";
+        applyTailoringSequenceComplete = false;
         updateWorkspace({
           visible: getAutoWorkspaceVisibility(),
           activeTab: "draft",
@@ -133780,33 +135145,26 @@
           note: "I am rewriting the application version around the evidence already present in the CV and the requirements detected from the role.",
         });
         botMessage(
-          "Ok, I’ll tailor the CV to this role using only evidence already in the CV.",
+          "Understood. I’ll tailor the CV to this role using only evidence that is already in your CV.",
           humanComposeDelay(
-            "Ok, I’ll tailor the CV to this role using only evidence already in the CV.",
+            "Understood. I’ll tailor the CV to this role using only evidence that is already in your CV.",
             1000,
             1900
           ),
           function () {
-            botMessage(
-              renderCvTailoringPreviewCard("working"),
-              humanComposeDelay("Transforming CV", 350, 700),
-              function () {
-                applyTailoringAwaitingProceed = true;
-                applyTailoringProceedAsked = false;
-                runLiveTailoringSequence(applyCvAnalysis || analysis || {});
-                window.setTimeout(function () {
-                  if (
-                    applyTailoringAwaitingProceed &&
-                    !applyTailoringProceedAsked &&
-                    typeof window.__sffcAskApplyProceedAfterTailoring ===
-                      "function"
-                  ) {
-                    applyTailoringProceedAsked = true;
-                    window.__sffcAskApplyProceedAfterTailoring();
-                  }
-                }, 9000);
+            applyTailoringAwaitingProceed = true;
+            applyTailoringProceedAsked = false;
+            runLiveTailoringSequence(applyCvAnalysis || analysis || {}, function () {
+              applyTailoringSequenceComplete = true;
+              if (
+                applyTailoringAwaitingProceed &&
+                !applyTailoringProceedAsked &&
+                typeof window.__sffcAskApplyProceedAfterTailoring === "function"
+              ) {
+                applyTailoringProceedAsked = true;
+                window.__sffcAskApplyProceedAfterTailoring();
               }
-            );
+            });
           }
         );
       }
@@ -133819,9 +135177,9 @@
         applyCvReviewSkipped = true;
         applyNeedsCoverLetter = "no";
         var currentCvCopy = pickVariant("quick_insights_continue_current_cv", [
-          "Okay. I’ll use the current CV and keep the application moving, with the weaker points treated as known risk rather than blockers.",
-          "I’ll continue with the CV as it is. I’ll still keep an eye on the issues above if the employer form asks for related evidence.",
-          "Understood. I won’t force a rewrite first. I’ll use the current CV and move into the application path.",
+          "Understood. I’ll use the current CV and move straight into the application route.",
+          "I’ll continue with the CV as it is and keep the application moving.",
+          "Understood. I’ll keep this as the application version and move on from here.",
         ]);
         botMessage(
           currentCvCopy,
@@ -136828,9 +138186,9 @@
               persisted
                 ? "Saved. I’ve added " +
                     (item.title ? cleanMessageText(item.title) : "this role") +
-                    " to Tracked Jobs."
+                    " to Applications."
                 : "Saved for this chat. Sign in to keep it in your full application tracker.",
-              humanComposeDelay("Role saved to Tracked Jobs.", 900, 1800),
+              humanComposeDelay("Role saved to Applications.", 900, 1800),
               function () {
                 setRailView("tracked");
                 focusComposer(
@@ -138302,7 +139660,7 @@
           if (!analysed) {
             if (isOperationalMetaQuestion(value)) {
               botMessage(
-                "I need the email the employer should use for this application and any Greenhouse confirmation. Send the address you want on the application.",
+                "I need the email the employer should use for this application and any portal confirmation. Put the address here and I’ll keep it attached to this role.",
                 humanComposeDelay(
                   "I need the email the employer should use for this application.",
                   1200,
@@ -138318,11 +139676,11 @@
             botMessage(
               isArabicChat()
                 ? "أرسلي لي عنوان البريد الكامل الذي تريدينني أن أستخدمه هنا."
-                : "Send me the full email address you want me to use here.",
+                : "Please enter the full email address you want used here.",
               humanComposeDelay(
                 isArabicChat()
                   ? "أرسلي لي عنوان البريد الكامل الذي تريدينني أن أستخدمه هنا."
-                  : "Send me the full email address you want me to use here.",
+                  : "Please enter the full email address you want used here.",
                 1800,
                 3600
               ),
@@ -138491,7 +139849,7 @@
           if (!extractedName) {
             if (isOperationalMetaQuestion(value)) {
               botMessage(
-                "I need the name exactly as it should appear on the employer application. Send it as first name and last name.",
+                "I need the name exactly as it should appear on the employer application. First name and last name is enough.",
                 humanComposeDelay(
                   "I need the name exactly as it should appear on the employer application.",
                   1200,
@@ -140531,49 +141889,54 @@
         ),
       });
 
-      // Add the recruiter matches preview after CV analysis (with "Recruiters Hiring for Your Profile" title)
-      var matchPreviewAfterCv = buildTopMatchingRolesPreviewHtml(
-        filterMatchingRoles().slice(0, hasPremiumAccess ? 5 : 3),
-        { includeActions: true, footerHtml: "" }
-      );
-      if (matchPreviewAfterCv) {
-        sequence.push({
-          html:
-            '<div class="sffc-crm-apply-chat__formatted"><p>' +
-            escapeHtml(
-              isArabicChat()
-                ? "هنا جهات التوظيف التي توظّف لملفك:"
-                : "Here are recruiters hiring for your profile:"
-            ) +
-            "</p></div>" +
-            matchPreviewAfterCv,
-          delay: humanJobSearchComposeDelay(
-            "Here are recruiters hiring for your profile",
-            1200,
-            2200
-          ),
-          pause: 300,
-        });
-      }
+      hydrateLiteParseJobMatchesForItems(
+        filterMatchingRoles().slice(0, hasPremiumAccess ? 8 : 5),
+        { limit: hasPremiumAccess ? 8 : 5 }
+      ).finally(function () {
+        // Add the recruiter matches preview after CV analysis (with "Recruiters Hiring for Your Profile" title)
+        var matchPreviewAfterCv = buildTopMatchingRolesPreviewHtml(
+          filterMatchingRoles().slice(0, hasPremiumAccess ? 5 : 3),
+          { includeActions: true, footerHtml: "" }
+        );
+        if (matchPreviewAfterCv) {
+          sequence.push({
+            html:
+              '<div class="sffc-crm-apply-chat__formatted"><p>' +
+              escapeHtml(
+                isArabicChat()
+                  ? "هنا جهات التوظيف التي توظّف لملفك:"
+                  : "Here are recruiters hiring for your profile:"
+              ) +
+              "</p></div>" +
+              matchPreviewAfterCv,
+            delay: humanJobSearchComposeDelay(
+              "Here are recruiters hiring for your profile",
+              1200,
+              2200
+            ),
+            pause: 300,
+          });
+        }
 
-      botSequenceForCurrentTurn(sequence, function () {
-        jobSearchUploadIntroShown = false;
-        if (jobSearchLaunchMode === "fresh_matches") {
+        botSequenceForCurrentTurn(sequence, function () {
+          jobSearchUploadIntroShown = false;
+          if (jobSearchLaunchMode === "fresh_matches") {
+            jobSearchLaunchMode = "";
+            showLoggedInMemberSearchResults();
+            return;
+          }
+          if (handleLoggedInMemberSeededIntent()) {
+            jobSearchLaunchMode = "";
+            return;
+          }
+          if (getConfig().isLoggedIn && hasReturningConversationMemory()) {
+            jobSearchLaunchMode = "";
+            showLoggedInMemberSearchKickoff();
+            return;
+          }
           jobSearchLaunchMode = "";
-          showLoggedInMemberSearchResults();
-          return;
-        }
-        if (handleLoggedInMemberSeededIntent()) {
-          jobSearchLaunchMode = "";
-          return;
-        }
-        if (getConfig().isLoggedIn && hasReturningConversationMemory()) {
-          jobSearchLaunchMode = "";
-          showLoggedInMemberSearchKickoff();
-          return;
-        }
-        jobSearchLaunchMode = "";
-        scheduleForCurrentUserTurn(nextQuestion, randomBetween(180, 340));
+          scheduleForCurrentUserTurn(nextQuestion, randomBetween(180, 340));
+        });
       });
     }
 
@@ -140762,7 +142125,7 @@
       step = "apply_upload";
       applyCvReviewSkipped = true;
       clearPromptState();
-      echoPromptChoice("Continue with Original CV");
+      echoPromptChoice("Original CV");
       askApplyResultsSameCvThenStart();
       return true;
     }
@@ -140779,7 +142142,7 @@
         /^(?:stop|pause|wait|hold off|not yet|cancel|continue|resume|proceed)$/.test(
           clean
         ) ||
-        /\b(?:wait stop|stop again|don'?t submit yet|dont submit yet|pause before submission|continue filling the form|continue from|go back to the application)\b/.test(
+        /\b(?:wait stop|stop again|don'?t submit yet|dont submit yet|pause before submission|continue filling the form|continue from|go back to (?:the )?application)\b/.test(
           clean
         ) ||
         looksLikeApplicationStatusQuestion(clean)
@@ -141701,9 +143064,9 @@
                 "أصبح عندي ما يكفي لأعطيك قراءة فعلية.",
               ])
             : pickVariant("analysis_first_read", [
-                "Okay, I can see it more clearly now.",
+                "I can see it more clearly now.",
                 "I have a much better feel for it now.",
-                "Okay, the main thing is coming through now.",
+                "The main thing is coming through now.",
                 "I have enough to give you a proper view now.",
                 "I have gone through the parts that matter most.",
                 "This is a lot clearer now.",
@@ -141712,14 +143075,14 @@
           delay: humanComposeDelay(
             isArabicChat()
               ? "أصبح عندي ما يكفي لأعطيك قراءة مفيدة."
-              : "Okay, I have read enough to give you a useful view.",
+              : "I have read enough to give you a useful view.",
             1200,
             2600
           ),
         },
         {
           html:
-            (isArabicChat()
+            ((isArabicChat()
               ? pickVariant("analysis_fit_signal_ar", [
                   "أرى أن لديك حالة حقيقية لهذا الدور " +
                     escapeHtml(roleTitle) +
@@ -141738,26 +143101,27 @@
                   "There is a fair reason to look at this role.",
                   "I would keep going with this.",
                 ])) +
-            " " +
-            (isArabicChat()
-              ? pickVariant("analysis_caution_ar", [
-                  "مع ذلك، سأرتب الصياغة قبل أن يخرج أي شيء.",
-                  "المشكلة ليست في خلفيتك، بل في أن بعض أقوى الإشارات لا تظهر بسرعة كافية.",
-                  "وجدت عدة نقاط قابلة للإصلاح قد تضعف القراءة إذا مر القارئ بسرعة.",
-                  "الخبرة موجودة، لكن بعض قيمتها لا تهبط بوضوح بعد.",
-                ])
-              : pickVariant("analysis_caution", [
-                  "I would still tidy it up before sending it.",
-                  "The issue is not your background. It is that some of the strongest bits are coming through a little too quietly.",
-                  "I found " +
-                    issueCopy +
-                    " fixable points that could weaken it if someone reads quickly.",
-                  "Someone skimming it could miss the fit a bit too easily.",
-                  "The experience is there, but some of it is getting lost.",
-                  "I would definitely sharpen it before it goes anywhere.",
-                ])),
+              " " +
+              (isArabicChat()
+                ? pickVariant("analysis_caution_ar", [
+                    "مع ذلك، سأرتب الصياغة قبل أن يخرج أي شيء.",
+                    "المشكلة ليست في خلفيتك، بل في أن بعض أقوى الإشارات لا تظهر بسرعة كافية.",
+                    "وجدت عدة نقاط قابلة للإصلاح قد تضعف القراءة إذا مر القارئ بسرعة.",
+                    "الخبرة موجودة، لكن بعض قيمتها لا تهبط بوضوح بعد.",
+                  ])
+                : pickVariant("analysis_caution", [
+                    "I would still tidy it up before sending it.",
+                    "The issue is not your background. It is that some of the strongest bits are coming through a little too quietly.",
+                    "I found " +
+                      issueCopy +
+                      " fixable points that could weaken it if someone reads quickly.",
+                    "Someone skimming it could miss the fit a bit too easily.",
+                    "The experience is there, but some of it is getting lost.",
+                    "I would definitely sharpen it before it goes anywhere.",
+                  ])) +
+              (improveCopy ? " " + escapeHtml(improveCopy) : "")),
           pause: humanReadDelay(
-            "Okay, I have read enough to give you a useful view.",
+            "I have read enough to give you a useful view.",
             650
           ),
           delay: humanComposeDelay(
@@ -141768,16 +143132,6 @@
             6200
           ),
         },
-        improveCopy
-          ? {
-              html: escapeHtml(improveCopy),
-              pause: humanReadDelay(
-                "Good news: I can see a real case for you in this role, but I would not send this version untouched.",
-                620
-              ),
-              delay: humanComposeDelay(improveCopy, 2200, 4600),
-            }
-          : null,
         {
           html:
             pickVariant("analysis_strength", [
@@ -141812,7 +143166,8 @@
               "That needs to come through with less effort from the reader.",
               "We can make it feel more direct without overdoing it.",
               "A few wording changes would make a big difference.",
-            ]),
+            ]) +
+            (confirmationCopy ? " " + escapeHtml(confirmationCopy) : ""),
           pause: humanReadDelay("That sounds worth working on.", 600),
           delay: humanComposeDelay(
             "There is a useful base here. I just need to help you make the evidence easier to spot.",
@@ -141820,44 +143175,17 @@
             5200
           ),
         },
-        confirmationCopy
-          ? {
-              html: escapeHtml(confirmationCopy),
-              pause: humanReadDelay(
-                "There is a useful base here. I just need to help you make the evidence easier to spot.",
-                500
-              ),
-              delay: humanComposeDelay(confirmationCopy, 2000, 4200),
-            }
-          : null,
         {
-          html: pickVariant("analysis_brief_pause", [
-            "Let me just check one more thing.",
-            "Give me a second, I want to check what someone is likely to read first.",
-            "Let me look at the first fix before I show you.",
-            "Give me a moment, I want to be fair to the CV before I point anything out.",
-            "I'm just checking whether this is more about wording or missing detail.",
-            "One moment. I want to show you something useful, not just pick at the line.",
+          html: pickVariant("analysis_permission", [
+            "Would you like me to show the first edit I would make before applying?",
+            "I can show the first change I would make, or keep the application moving.",
+            "Would you like to review the first CV change with me?",
+            "Do you want to see where I would start, or should I move on?",
           ]),
           pause: humanReadDelay(
             "There is a useful base here. I just need to help you make the evidence easier to spot.",
-            650
+            500
           ),
-          delay: humanComposeDelay(
-            "Let me just check one more thing.",
-            1000,
-            2400
-          ),
-        },
-        {
-          html: pickVariant("analysis_permission", [
-            "Would it help if I showed you the first bit I would fix?",
-            "Would you like me to show you where I would start?",
-            "Want me to show you the first thing I'd change? It's very fixable.",
-            "Would you like to look at the first edit with me?",
-            "I can show you the first place I'd tighten up, if you'd like.",
-          ]),
-          pause: humanReadDelay("Let me just check one more thing.", 500),
           delay: humanComposeDelay(
             "Do you want me to show you the first part I would fix before you apply?",
             1900,
@@ -141872,13 +143200,13 @@
           window.setTimeout(function () {
             botMessage(
               pickVariant("decline_continue_reply", [
-                "That's okay. I would still be careful before sending this version, but we can always pick it up again later.",
-                "That's completely fine. If you apply as it is, just know the proof points may not land as well as they could.",
-                "Of course. I would still strengthen that first line before sending, but you can come back whenever you're ready.",
-                "No worries. The role still looks worth considering, I just would not send this version without a closer edit.",
+                "Understood. I would still be careful before sending this version, but we can pick it up again later.",
+                "That is fine. If you apply as it is, the proof points may not land as clearly as they could.",
+                "Of course. I would still strengthen the application version before sending, but we can leave it there for now.",
+                "Understood. The role still looks worth considering; I just would not send this exact version without a closer edit.",
               ]),
               humanComposeDelay(
-                "That's okay. I would still be careful before sending this version, but we can pick it up again whenever you come back.",
+                "Understood. I would still be careful before sending this version, but we can pick it up again later.",
                 2200,
                 5200
               )
@@ -142100,16 +143428,15 @@
               openQuestionDetour(
                 getQuestionDetourIntro(),
                 getQuestionDetourResumePrompt(
-                  "After that, just tell me whether you'd like me to show you the first fix."
+                  "After that, tell me whether you want to review the first CV edit or keep moving."
                 )
               );
             },
             other: function (value) {
               var showFixNudge = pickVariant("show_first_fix_nudge", [
-                "If you want, say yes and I'll show you the first fix. If not, that's fine too.",
-                "If you'd like, just say yes and I'll show you the first thing I'd change.",
-                "Say yes if you want me to show you the first fix. If not, we can leave it there.",
-                "If you want to see it, just say yes and I'll show you the first edit.",
+                "Tell me whether you want to review the first CV edit or keep the application moving.",
+                "I can show the first CV edit, or continue without reviewing it first.",
+                "Reply with review the edit or keep moving, and I’ll follow that route.",
               ]);
               botMessage(
                 showFixNudge,
@@ -144246,9 +145573,9 @@
           return;
         }
         botMessage(
-          "Send me your CV and I'll compare it directly with the role before you apply.",
+          "Share your CV and I’ll compare it directly with the role before you apply.",
           humanComposeDelay(
-            "Send me your CV and I'll compare it directly with the role before you apply.",
+            "Share your CV and I’ll compare it directly with the role before you apply.",
             700,
             1300
           )
@@ -144543,18 +145870,17 @@
             .querySelectorAll("[data-sffc-apply-results-review-panel]")
             .forEach(function (panel) {
               var owningCard = panel.closest(".sffc-crm-apply-results__result");
-              var toggle = owningCard
-                ? owningCard.querySelector(
-                    "[data-sffc-apply-results-toggle-review]"
-                  )
-                : null;
               if (panel !== reviewPanel) {
                 panel.hidden = true;
                 if (owningCard) {
                   owningCard.classList.remove("is-expanded");
                 }
-                if (toggle) {
-                  toggle.setAttribute("aria-expanded", "false");
+                if (owningCard) {
+                  owningCard
+                    .querySelectorAll("[data-sffc-apply-results-toggle-review]")
+                    .forEach(function (toggle) {
+                      toggle.setAttribute("aria-expanded", "false");
+                    });
                 }
               }
             });
@@ -144563,11 +145889,15 @@
           reviewPanel.hidden = !isExpanded;
           if (reviewCard) {
             reviewCard.classList.toggle("is-expanded", isExpanded);
+            reviewCard
+              .querySelectorAll("[data-sffc-apply-results-toggle-review]")
+              .forEach(function (toggle) {
+                toggle.setAttribute(
+                  "aria-expanded",
+                  isExpanded ? "true" : "false"
+                );
+              });
           }
-          applyResultsReviewToggle.setAttribute(
-            "aria-expanded",
-            isExpanded ? "true" : "false"
-          );
           if (isExpanded) {
             hydrateApplyResultsReviewPanel(reviewPanel);
           }
@@ -145010,7 +146340,7 @@
         }
         applicationWorkerQueue.disabled = true;
         botMessage(
-          "Okay. I’ll capture the employer-required details first, then queue this for the Senna application worker.",
+          "Understood. I’ll capture the employer-required details first, then queue this for the Senna application worker.",
           humanComposeDelay("Checking required employer answers.", 900, 1800),
           function () {
             if (typeof ensureApplicationAnswers !== "function") {
@@ -146085,6 +147415,7 @@
       resetCvFacts();
       applyCvAnalysis = null;
       currentCvFile = file;
+      markPromptSlotResolved("cv_upload", file.name);
       editedTailoredCvModel = null;
       editedTailoredCvDirty = false;
       tailoredCvReviewDismissed = {};
@@ -146923,7 +148254,7 @@
           },
           {
             html: pickVariant("file_final_check", [
-              "Let me just check one more thing.",
+              "One more pass on the role requirements.",
               "One more check. I don't want to miss an obvious requirement.",
               "One second. I'm checking the requirements section properly.",
               "One moment, I'm checking the brief one more time before I give you a view.",
@@ -146934,7 +148265,7 @@
               550
             ),
             delay: humanComposeDelay(
-              "Let me just check one more thing.",
+              "One more pass on the role requirements.",
               1100,
               2600
             ),
@@ -147003,6 +148334,7 @@
 
       input.value = "";
       userMessage(value);
+      beginConversationTurnAudit(value);
 
       window.setTimeout(function () {
         mergeConversationFacts(value);
@@ -147103,6 +148435,10 @@
           return;
         }
 
+        if (handleQuestionFirstTurnPreflight(value)) {
+          return;
+        }
+
         if (
           handleWildcardSocialInput(
             detectIntent(value),
@@ -147144,6 +148480,9 @@
         }
 
         if (activePath === "member_desk") {
+          markConversationTurnOwner("member_desk", {
+            step: cleanMessageText(step || ""),
+          });
           clearResponseWatchdog();
           if (handleStandaloneMemberDeskReply(value)) {
             return;
@@ -147151,6 +148490,9 @@
         }
 
         if (step === "choice") {
+          markConversationTurnOwner("legacy_step_choice", {
+            step: cleanMessageText(step || ""),
+          });
           if (maybeHandleOffScriptInput(value)) {
             clearResponseWatchdog();
             return;
@@ -147165,14 +148507,23 @@
             humanReadDelay(lastUserInputText, 500)
           );
         } else if (step === "reviewing") {
+          markConversationTurnOwner("legacy_step_reviewing", {
+            step: cleanMessageText(step || ""),
+          });
           clearResponseWatchdog();
           handleReviewInterruption(value);
         } else if (
           step === "profile_review_complete" ||
           step === "recruiter_outreach_review_complete"
         ) {
+          markConversationTurnOwner("legacy_step_profile_review_followup", {
+            step: cleanMessageText(step || ""),
+          });
           handleProfileReviewFollowUp(value);
         } else if (step === "recruiter_outreach_submitted") {
+          markConversationTurnOwner("legacy_step_recruiter_outreach", {
+            step: cleanMessageText(step || ""),
+          });
           clearResponseWatchdog();
           sendHumanHandoffRequest(
             "Additional recruiter outreach context\n\n" +
@@ -147203,6 +148554,9 @@
               );
             });
         } else if (step === "apply_role_discovery_upload") {
+          markConversationTurnOwner("legacy_step_apply_role_discovery_upload", {
+            step: cleanMessageText(step || ""),
+          });
           if (maybeHandleRoleDiscoveryConversationInput(value)) {
             return;
           }
@@ -147220,6 +148574,7 @@
           input.disabled = true;
           step = "apply_intro_analysis";
           capturedCvText = normalizeStoredCvText(value);
+          markPromptSlotResolved("cv_upload", value);
           fetchCvAnalysis(capturedCvText)
             .then(function (analysis) {
               mergeCvFacts(analysis || {});
@@ -147238,12 +148593,18 @@
               focusComposer("Upload your CV or paste it here");
             });
         } else if (step === "apply_role_discovery_select") {
+          markConversationTurnOwner("legacy_step_apply_role_discovery_select", {
+            step: cleanMessageText(step || ""),
+          });
           if (maybeHandleRoleDiscoveryConversationInput(value)) {
             return;
           }
           clearResponseWatchdog();
           searchApplyForMeRoleDiscoveryByQuery(value);
         } else if (step === "apply_upload") {
+          markConversationTurnOwner("legacy_step_apply_upload", {
+            step: cleanMessageText(step || ""),
+          });
           if (maybeHandleOffScriptInput(value)) {
             clearResponseWatchdog();
             return;
@@ -147274,6 +148635,7 @@
           uploadButton.hidden = true;
           input.disabled = true;
           capturedCvText = normalizeStoredCvText(value);
+          markPromptSlotResolved("cv_upload", value);
           botSequenceForCurrentTurn(
             [
               {
@@ -147303,6 +148665,9 @@
             }
           );
         } else if (step === "apply_intro_upload") {
+          markConversationTurnOwner("legacy_step_apply_intro_upload", {
+            step: cleanMessageText(step || ""),
+          });
           if (maybeHandleOffScriptInput(value)) {
             clearResponseWatchdog();
             return;
@@ -147325,6 +148690,7 @@
           uploadButton.hidden = true;
           input.disabled = true;
           capturedCvText = normalizeStoredCvText(value);
+          markPromptSlotResolved("cv_upload", value);
           if (!hasPremiumMemberChatAccess()) {
             botMessageNow(renderApplyIntroAnalysisProgressCard());
           }
@@ -147347,6 +148713,9 @@
               focusComposer("Upload your CV or paste it here");
             });
         } else if (step === "job_search_upload") {
+          markConversationTurnOwner("legacy_step_job_search_upload", {
+            step: cleanMessageText(step || ""),
+          });
           if (maybeHandleOffScriptInput(value)) {
             clearResponseWatchdog();
             return;
@@ -147372,16 +148741,26 @@
           uploadButton.hidden = true;
           input.disabled = true;
           capturedCvText = normalizeStoredCvText(value);
+          markPromptSlotResolved("cv_upload", value);
           continueJobSearchAfterCvUpload();
         } else if (step === "apply_intro_questions") {
+          markConversationTurnOwner("legacy_step_apply_intro_questions", {
+            step: cleanMessageText(step || ""),
+          });
           clearResponseWatchdog();
           focusComposer(getComposerPlaceholder("reply"));
         } else if (step === "job_search_questions") {
+          markConversationTurnOwner("legacy_step_job_search_questions", {
+            step: cleanMessageText(step || ""),
+          });
           if (handleOngoingJobSearchConversation(value)) {
             clearResponseWatchdog();
             return;
           }
         } else if (step === "upload") {
+          markConversationTurnOwner("legacy_step_upload", {
+            step: cleanMessageText(step || ""),
+          });
           if (maybeHandleOffScriptInput(value)) {
             clearResponseWatchdog();
             return;

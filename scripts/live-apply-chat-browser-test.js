@@ -25,9 +25,6 @@ fs.mkdirSync(outputDir, { recursive: true });
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 async function getPage(browser) {
-  const pages = await browser.pages();
-  const existing = pages.find((page) => page.url().replace(/\/$/, "") === targetUrl.replace(/\/$/, ""));
-  if (existing) return existing;
   const page = await browser.newPage();
   await page.goto(targetUrl, { waitUntil: "domcontentloaded", timeout: 90000 });
   return page;
@@ -58,6 +55,13 @@ async function collectState(page, label) {
         node.querySelector(".sffc-crm-apply-results__review-frame")?.getAttribute("src") ||
         node.querySelector(".sffc-crm-apply-results__review-frame")?.getAttribute("data-src") ||
         "",
+      reviewFrameHidden:
+        node.querySelector(".sffc-crm-apply-results__review-frame-wrap")?.hasAttribute("hidden") || false,
+      reviewPreviewState:
+        node.querySelector(".sffc-crm-apply-results__review-screenshot")?.getAttribute("data-sffc-preview-state") ||
+        (node.querySelector(".sffc-crm-apply-results__review-screenshot")?.hasAttribute("hidden") ? "hidden" : ""),
+      hasReviewPreviewImage: !!node.querySelector(".sffc-crm-apply-results__review-screenshot img"),
+      reviewPreviewText: text(node.querySelector(".sffc-crm-apply-results__review-screenshot")).slice(0, 200),
     }));
     const rootRect = root ? root.getBoundingClientRect() : null;
     return {
@@ -168,6 +172,29 @@ async function clickButtonByText(page, patternText) {
   }, patternText);
 }
 
+async function waitForVisibleResultAfterSearch(page) {
+  try {
+    await page.waitForFunction(
+      () => {
+        const cards = Array.from(
+          document.querySelectorAll(".sffc-crm-apply-results__result")
+        );
+        return cards.some((node) => {
+          const rect = node.getBoundingClientRect();
+          const style = window.getComputedStyle(node);
+          return (
+            rect.width > 0 &&
+            rect.height > 0 &&
+            style.visibility !== "hidden" &&
+            style.display !== "none"
+          );
+        });
+      },
+      { timeout: 18000 }
+    );
+  } catch (error) {}
+}
+
 (async () => {
   const consoleMessages = [];
   const pageErrors = [];
@@ -193,7 +220,7 @@ async function clickButtonByText(page, patternText) {
   });
 
   await page.setViewport({ width: 1440, height: 950, deviceScaleFactor: 1 });
-  await page.goto(targetUrl, { waitUntil: "networkidle2", timeout: 120000 });
+  await page.goto(targetUrl, { waitUntil: "domcontentloaded", timeout: 90000 });
   await wait(2500);
 
   const states = [];
@@ -211,6 +238,9 @@ async function clickButtonByText(page, patternText) {
   for (let index = 0; index < testQueries.length; index += 1) {
     const query = testQueries[index];
     typedQueries.push({ query, sent: await typeChatMessage(page, query) });
+    if (index === 0) {
+      await waitForVisibleResultAfterSearch(page);
+    }
     await wait(6000);
     states.push(await collectState(page, `03-after-search-message-${index + 1}`));
   }
@@ -219,7 +249,7 @@ async function clickButtonByText(page, patternText) {
     ".sffc-crm-apply-results__title",
     "[data-sffc-apply-results-toggle-review]",
   ]);
-  await wait(2500);
+  await wait(7500);
   states.push(await collectState(page, "04-after-result-title-click"));
 
   const clickedPrimary = await clickFirstVisible(page, [

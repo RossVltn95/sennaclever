@@ -1,0 +1,728 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Emily Results Chat Mockup</title>
+  <style>
+    :root {
+      --blue: #0968d8;
+      --blue-dark: #064ba0;
+      --ink: #142033;
+      --muted: #667085;
+      --line: #d9e2ef;
+      --soft: #eef5fc;
+      --card: #ffffff;
+      --green: #0f8f63;
+      --amber: #b7791f;
+      --shadow: 0 16px 48px rgba(31, 44, 71, 0.12);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--ink);
+      background: linear-gradient(180deg, #e9f2fb 0%, #f7fafc 100%);
+    }
+
+    button, input { font: inherit; }
+
+    .app {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 76px minmax(0, 1fr);
+    }
+
+    .rail {
+      background: #005499;
+      color: white;
+      padding: 20px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      align-items: center;
+    }
+
+    .brand {
+      width: 42px;
+      height: 42px;
+      border-radius: 8px;
+      background: white;
+      color: #005499;
+      display: grid;
+      place-items: center;
+      font-weight: 900;
+      font-size: 26px;
+    }
+
+    .rail button {
+      width: 48px;
+      height: 48px;
+      border: 0;
+      border-radius: 8px;
+      color: white;
+      background: rgba(255,255,255,0.12);
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+    }
+
+    .rail button.is-active { background: rgba(255,255,255,0.22); }
+
+    .shell {
+      min-width: 0;
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr) auto;
+    }
+
+    .topbar {
+      height: 92px;
+      padding: 18px 30px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--line);
+      background: rgba(248, 251, 255, 0.88);
+      backdrop-filter: blur(14px);
+    }
+
+    .advisor {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      min-width: 0;
+    }
+
+    .advisor img {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      object-fit: cover;
+      box-shadow: 0 0 0 4px white;
+    }
+
+    .advisor strong {
+      display: block;
+      font-size: 22px;
+      line-height: 1.1;
+    }
+
+    .advisor span {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .top-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    .icon-btn {
+      width: 48px;
+      height: 48px;
+      border: 1px solid #c8d3e3;
+      border-radius: 8px;
+      background: white;
+      color: #32465f;
+      cursor: pointer;
+    }
+
+    .main {
+      min-height: 0;
+      overflow: auto;
+      padding: 28px;
+    }
+
+    .canvas {
+      width: min(1320px, 100%);
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: minmax(0, 1.25fr) 390px;
+      gap: 22px;
+      align-items: start;
+    }
+
+    .answer {
+      background: white;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .answer-head {
+      padding: 22px 24px 18px;
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+      border-bottom: 1px solid #edf1f6;
+    }
+
+    .answer-head img {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      object-fit: cover;
+      flex: 0 0 auto;
+    }
+
+    .answer-copy h1 {
+      margin: 0 0 8px;
+      font-size: 26px;
+      line-height: 1.2;
+      letter-spacing: 0;
+    }
+
+    .answer-copy p {
+      margin: 0;
+      color: #405167;
+      font-size: 15px;
+      line-height: 1.55;
+    }
+
+    .signals {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      border-bottom: 1px solid #edf1f6;
+    }
+
+    .signal {
+      padding: 16px 18px;
+      border-right: 1px solid #edf1f6;
+    }
+
+    .signal:last-child { border-right: 0; }
+
+    .signal span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 6px;
+    }
+
+    .signal strong {
+      font-size: 16px;
+      line-height: 1.25;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 4px;
+      padding: 14px 18px 0;
+      background: #fbfdff;
+    }
+
+    .tabs button {
+      border: 0;
+      background: transparent;
+      color: #4b5e75;
+      padding: 12px 14px;
+      border-bottom: 3px solid transparent;
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 14px;
+    }
+
+    .tabs button.is-active {
+      color: var(--blue);
+      border-color: var(--blue);
+    }
+
+    .results {
+      padding: 18px;
+      display: grid;
+      gap: 12px;
+      background: #fbfdff;
+    }
+
+    .result {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 18px;
+      padding: 18px;
+      background: white;
+      border: 1px solid #dce5f1;
+      border-radius: 8px;
+    }
+
+    .result.is-expanded {
+      border-color: #9fc2f2;
+      box-shadow: 0 12px 34px rgba(9, 104, 216, 0.12);
+    }
+
+    .result-title {
+      margin: 0 0 7px;
+      font-size: 19px;
+      line-height: 1.25;
+      color: #0b4da2;
+    }
+
+    .meta {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 8px;
+      border-radius: 6px;
+      background: #eef3f8;
+      color: #506174;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .result p {
+      margin: 0;
+      color: #45566b;
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
+    .score {
+      min-width: 88px;
+      text-align: right;
+    }
+
+    .score strong {
+      display: block;
+      font-size: 24px;
+      color: var(--green);
+    }
+
+    .score span {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .expanded {
+      grid-column: 1 / -1;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      padding-top: 14px;
+      border-top: 1px solid #edf1f6;
+    }
+
+    .mini-panel {
+      border: 1px solid #dde6f2;
+      border-radius: 8px;
+      padding: 14px;
+      background: #f8fbff;
+    }
+
+    .mini-panel strong {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 14px;
+    }
+
+    .mini-panel ul {
+      margin: 0;
+      padding-left: 18px;
+      color: #506174;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .btn {
+      border: 1px solid #c8d3e3;
+      background: white;
+      color: #24415f;
+      border-radius: 8px;
+      padding: 10px 13px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .btn.is-primary {
+      background: var(--blue);
+      border-color: var(--blue);
+      color: white;
+    }
+
+    .side {
+      display: grid;
+      gap: 14px;
+      position: sticky;
+      top: 16px;
+    }
+
+    .panel {
+      background: white;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: 0 10px 32px rgba(31, 44, 71, 0.08);
+      padding: 18px;
+    }
+
+    .panel h2 {
+      margin: 0 0 12px;
+      font-size: 16px;
+    }
+
+    .salary-band {
+      display: grid;
+      gap: 10px;
+    }
+
+    .salary-number {
+      font-size: 28px;
+      font-weight: 900;
+      color: #0b4da2;
+      line-height: 1.15;
+    }
+
+    .range-track {
+      height: 10px;
+      border-radius: 999px;
+      background: #dde8f5;
+      overflow: hidden;
+    }
+
+    .range-track span {
+      display: block;
+      width: 64%;
+      height: 100%;
+      background: linear-gradient(90deg, #0f8f63, #0968d8);
+    }
+
+    .assumptions {
+      display: grid;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .assumption {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      font-size: 13px;
+      color: #526278;
+      border-bottom: 1px solid #edf1f6;
+      padding-bottom: 8px;
+    }
+
+    .assumption:last-child { border-bottom: 0; padding-bottom: 0; }
+
+    .assumption strong { color: var(--ink); }
+
+    .cv-card {
+      display: grid;
+      grid-template-columns: 58px minmax(0, 1fr);
+      gap: 12px;
+      align-items: center;
+    }
+
+    .cv-thumb {
+      height: 74px;
+      border-radius: 6px;
+      background:
+        linear-gradient(#ffffff 0 0) padding-box,
+        linear-gradient(135deg, #a7b8cc, #eef3f8) border-box;
+      border: 1px solid transparent;
+      box-shadow: inset 0 0 0 8px #f8fafc;
+    }
+
+    .cv-card p {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.4;
+    }
+
+    .task-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .task {
+      display: grid;
+      grid-template-columns: 24px minmax(0, 1fr);
+      gap: 9px;
+      align-items: start;
+      color: #47586d;
+      font-size: 13px;
+      line-height: 1.4;
+    }
+
+    .dot {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: #e7f5ef;
+      color: var(--green);
+      font-size: 13px;
+      font-weight: 900;
+    }
+
+    .dot.is-working {
+      background: #eaf2ff;
+      color: var(--blue);
+    }
+
+    .composer {
+      padding: 18px 28px 24px;
+      background: linear-gradient(180deg, rgba(247,250,252,0.1), rgba(247,250,252,0.95));
+    }
+
+    .composer-inner {
+      width: min(1180px, 100%);
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 12px;
+      background: white;
+      border: 1px solid #cad6e6;
+      border-radius: 8px;
+      box-shadow: 0 16px 42px rgba(31, 44, 71, 0.14);
+      padding: 12px;
+    }
+
+    .composer input {
+      border: 0;
+      outline: 0;
+      min-width: 0;
+      padding: 0 14px;
+      font-size: 18px;
+      color: var(--ink);
+    }
+
+    .composer button {
+      border: 0;
+      border-radius: 8px;
+      background: var(--blue);
+      color: white;
+      padding: 14px 24px;
+      font-weight: 900;
+      cursor: pointer;
+    }
+
+    @media (max-width: 1050px) {
+      .app { grid-template-columns: 1fr; }
+      .rail { display: none; }
+      .canvas { grid-template-columns: 1fr; }
+      .side { position: static; }
+      .signals { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+
+    @media (max-width: 680px) {
+      .topbar { height: auto; padding: 14px 16px; }
+      .top-actions { display: none; }
+      .main { padding: 16px; }
+      .answer-head { padding: 18px; }
+      .answer-copy h1 { font-size: 21px; }
+      .signals { grid-template-columns: 1fr; }
+      .signal { border-right: 0; border-bottom: 1px solid #edf1f6; }
+      .expanded { grid-template-columns: 1fr; }
+      .result { grid-template-columns: 1fr; }
+      .score { text-align: left; }
+      .composer { padding: 12px 16px 18px; }
+      .composer-inner { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <aside class="rail" aria-label="Navigation">
+      <div class="brand">S</div>
+      <button class="is-active" aria-label="Chat">✦</button>
+      <button aria-label="Jobs">▤</button>
+      <button aria-label="Applications">✓</button>
+      <button aria-label="Messages">✉</button>
+    </aside>
+
+    <section class="shell">
+      <header class="topbar">
+        <div class="advisor">
+          <img src="https://media.joinsenna.com/2026/07/1784056723762.png?1784414003" alt="Emily">
+          <div>
+            <strong>Emily · MENA Careers advisor</strong>
+            <span>Results, salary benchmarks, CV fit and applications in one workspace</span>
+          </div>
+        </div>
+        <div class="top-actions">
+          <button class="icon-btn" aria-label="Search">⌕</button>
+          <button class="icon-btn" aria-label="More">•••</button>
+          <button class="icon-btn" aria-label="Close">×</button>
+        </div>
+      </header>
+
+      <section class="main">
+        <div class="canvas">
+          <section class="answer">
+            <div class="answer-head">
+              <img src="https://media.joinsenna.com/2026/07/1784056723762.png?1784414003" alt="">
+              <div class="answer-copy">
+                <h1>I found Dubai finance roles that match the CV, with salary context attached.</h1>
+                <p>The strongest route is finance leadership and FP&amp;A roles in regional groups. I would keep private markets adjacent roles in the list, but only where the mandate values reporting, forecasting, controls or stakeholder management.</p>
+              </div>
+            </div>
+
+            <div class="signals">
+              <div class="signal">
+                <span>Best matching lane</span>
+                <strong>Finance Manager / FP&amp;A</strong>
+              </div>
+              <div class="signal">
+                <span>Market</span>
+                <strong>Dubai, UAE</strong>
+              </div>
+              <div class="signal">
+                <span>Salary benchmark</span>
+                <strong>AED 25k - 45k monthly</strong>
+              </div>
+              <div class="signal">
+                <span>Confidence</span>
+                <strong>Medium-high</strong>
+              </div>
+            </div>
+
+            <nav class="tabs" aria-label="Results filters">
+              <button class="is-active">Best Matches</button>
+              <button>Salary</button>
+              <button>Recruiter Route</button>
+              <button>Applications</button>
+            </nav>
+
+            <div class="results">
+              <article class="result is-expanded">
+                <div>
+                  <h2 class="result-title">Finance Manager, Regional Investments</h2>
+                  <div class="meta">
+                    <span class="pill">Dubai</span>
+                    <span class="pill">Finance &amp; Accounting</span>
+                    <span class="pill">AED 25k - 45k benchmark</span>
+                    <span class="pill">Workday route</span>
+                  </div>
+                  <p>Strong overlap with reporting, controls, stakeholder management and UAE market experience. Salary should be checked as total package, not base only.</p>
+                </div>
+                <div class="score">
+                  <strong>82%</strong>
+                  <span>CV fit</span>
+                </div>
+                <div class="expanded">
+                  <div class="mini-panel">
+                    <strong>Why it fits</strong>
+                    <ul>
+                      <li>Finance operations and reporting evidence is visible.</li>
+                      <li>Regional market exposure supports the location.</li>
+                      <li>Role level is plausible if team size is not too large.</li>
+                    </ul>
+                  </div>
+                  <div class="mini-panel">
+                    <strong>Application state</strong>
+                    <ul>
+                      <li>CV attached.</li>
+                      <li>Answers prepared for compensation and notice period.</li>
+                      <li>Employer form preview available if embed fails.</li>
+                    </ul>
+                  </div>
+                </div>
+                <div class="actions">
+                  <button class="btn is-primary">Open Application Workspace</button>
+                  <button class="btn">Compare to CV</button>
+                  <button class="btn">Ask Salary Follow-up</button>
+                </div>
+              </article>
+
+              <article class="result">
+                <div>
+                  <h2 class="result-title">Senior FP&amp;A Analyst, Consumer Investments</h2>
+                  <div class="meta">
+                    <span class="pill">Dubai</span>
+                    <span class="pill">FP&amp;A</span>
+                    <span class="pill">AED 23k - 32k benchmark</span>
+                  </div>
+                  <p>Good technical fit, but possibly below target level if the user is aiming for management responsibility.</p>
+                </div>
+                <div class="score">
+                  <strong>74%</strong>
+                  <span>CV fit</span>
+                </div>
+              </article>
+
+              <article class="result">
+                <div>
+                  <h2 class="result-title">Investment Operations Manager</h2>
+                  <div class="meta">
+                    <span class="pill">Abu Dhabi</span>
+                    <span class="pill">Private markets adjacent</span>
+                    <span class="pill">Manual review</span>
+                  </div>
+                  <p>Worth reviewing if the user wants investment-adjacent exposure, but not as strong as pure finance-management roles.</p>
+                </div>
+                <div class="score">
+                  <strong>68%</strong>
+                  <span>CV fit</span>
+                </div>
+              </article>
+            </div>
+          </section>
+
+          <aside class="side">
+            <section class="panel">
+              <h2>Salary Benchmark</h2>
+              <div class="salary-band">
+                <div class="salary-number">AED 25k - 45k</div>
+                <div class="range-track" aria-hidden="true"><span></span></div>
+                <div class="assumptions">
+                  <div class="assumption"><span>Period</span><strong>Monthly base</strong></div>
+                  <div class="assumption"><span>Market</span><strong>Dubai</strong></div>
+                  <div class="assumption"><span>Family</span><strong>Finance &amp; Accounting</strong></div>
+                  <div class="assumption"><span>Level</span><strong>Manager</strong></div>
+                  <div class="assumption"><span>Source basis</span><strong>UAE 2026 guides</strong></div>
+                </div>
+              </div>
+            </section>
+
+            <section class="panel">
+              <h2>CV Context</h2>
+              <div class="cv-card">
+                <div class="cv-thumb" aria-hidden="true"></div>
+                <div>
+                  <strong>Dana Baranbo CV</strong>
+                  <p>Finance leadership, reporting, compliance, controls and UAE market context extracted.</p>
+                </div>
+              </div>
+            </section>
+
+            <section class="panel">
+              <h2>Emily Is Working On</h2>
+              <div class="task-list">
+                <div class="task"><span class="dot">✓</span><span>CV parsed and role family detected.</span></div>
+                <div class="task"><span class="dot">✓</span><span>Salary benchmark calculated from Gulf finance bands.</span></div>
+                <div class="task"><span class="dot is-working">•</span><span>Shortlisting roles with strongest CV fit first.</span></div>
+                <div class="task"><span class="dot is-working">•</span><span>Application workspace ready for selected role.</span></div>
+              </div>
+            </section>
+          </aside>
+        </div>
+      </section>
+
+      <form class="composer">
+        <div class="composer-inner">
+          <input type="text" value="" placeholder="Ask Emily about salary, fit, recruiters, or applying to a role">
+          <button type="button">Send</button>
+        </div>
+      </form>
+    </section>
+  </main>
+</body>
+</html>

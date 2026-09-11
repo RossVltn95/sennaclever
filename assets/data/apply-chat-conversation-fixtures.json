@@ -229,6 +229,133 @@
           "expectedAction": "reset_search_preferences"
         }
       ]
+    },
+    {
+      "id": "phase1_question_first_during_application_prompt",
+      "tier": "guest",
+      "description": "User asks real questions while an application prompt is active; Emily should answer the question instead of forcing the prompt first.",
+      "initialContext": {
+        "activeTask": "apply_flow",
+        "selectedRole": true,
+        "referencedRole": true,
+        "hasCv": true
+      },
+      "turns": [
+        {
+          "message": "what salary should I expect for this role?",
+          "promptState": "apply_results_confirm_same_cv",
+          "activeTask": "apply_flow",
+          "selectedRole": true,
+          "referencedRole": true,
+          "expectedIntent": "salary_compensation_task",
+          "expectedRelationship": "continues_task",
+          "expectedAction": "answer_salary_compensation"
+        },
+        {
+          "message": "who is the company and what do they actually do?",
+          "promptState": "apply_results_confirm_same_cv",
+          "activeTask": "apply_flow",
+          "selectedRole": true,
+          "referencedRole": true,
+          "expectedIntent": "company_research_task",
+          "expectedRelationship": "continues_task",
+          "expectedAction": "answer_company_research"
+        },
+        {
+          "message": "yes use the same CV",
+          "promptState": "apply_results_confirm_same_cv",
+          "activeTask": "apply_flow",
+          "selectedRole": true,
+          "expectedIntent": "answer_pending_question",
+          "expectedRelationship": "answers_pending_question",
+          "expectedAction": "defer_to_prompt_handler"
+        }
+      ]
+    },
+    {
+      "id": "phase1_duplicate_prompt_and_support_questions",
+      "tier": "guest",
+      "description": "User challenges repeated prompts and asks contact/support questions during setup.",
+      "initialContext": {
+        "activeTask": "apply_flow",
+        "selectedRole": true,
+        "referencedRole": true
+      },
+      "turns": [
+        {
+          "message": "you already asked me for my CV",
+          "promptState": "apply_results_confirm_same_cv",
+          "activeTask": "apply_flow",
+          "selectedRole": true,
+          "expectedIntent": "career_question",
+          "expectedRelationship": "interrupts_task",
+          "expectedAction": "answer_directly"
+        },
+        {
+          "message": "why do you need my email?",
+          "promptState": "apply_collect_preferred_email",
+          "activeTask": "apply_flow",
+          "selectedRole": true,
+          "expectedIntent": "career_question",
+          "expectedRelationship": "interrupts_task",
+          "expectedAction": "answer_directly"
+        },
+        {
+          "message": "what is Emily's email?",
+          "promptState": "apply_collect_preferred_email",
+          "activeTask": "apply_flow",
+          "selectedRole": true,
+          "expectedIntent": "career_question",
+          "expectedRelationship": "interrupts_task",
+          "expectedAction": "answer_directly"
+        },
+        {
+          "message": "how do I contact customer support?",
+          "promptState": "apply_collect_preferred_email",
+          "activeTask": "apply_flow",
+          "selectedRole": true,
+          "expectedIntent": "career_question",
+          "expectedRelationship": "interrupts_task",
+          "expectedAction": "answer_directly"
+        }
+      ]
+    },
+    {
+      "id": "phase1_worker_progress_pause_resume",
+      "tier": "paying",
+      "description": "Application worker progress must stay controllable when the user pauses, asks status, and resumes.",
+      "initialContext": {
+        "activeTask": "apply_flow",
+        "selectedRole": true,
+        "referencedRole": true,
+        "hasCv": true
+      },
+      "turns": [
+        {
+          "message": "stop, don't submit anything yet",
+          "activeTask": "apply_flow",
+          "selectedRole": true,
+          "expectedIntent": "application_pause",
+          "expectedRelationship": "pauses_task",
+          "expectedAction": "answer_directly"
+        },
+        {
+          "message": "what is happening with the application right now?",
+          "activeTask": "apply_flow",
+          "selectedRole": true,
+          "expectedIntent": "application_status",
+          "expectedRelationship": "continues_task",
+          "expectedAction": "answer_application_status"
+        },
+        {
+          "message": "continue from where you stopped",
+          "activeTask": "apply_flow",
+          "selectedRole": true,
+          "expectedIntent": "application_resume",
+          "expectedRelationship": "resumes_task",
+          "expectedAction": "resume_task"
+        }
+      ]
     }
   ]
 }

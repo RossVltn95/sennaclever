@@ -760,6 +760,22 @@ class SFFC_XML_Job_Fetcher
             'allowed_locations' => ['Riyadh', 'Saudi Arabia'],
             'force_company_name' => true,
         ],
+        'alkhorayef_group_companies_oracle_saudi' => [
+            'url' => 'https://eocn.fa.em3.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_3001/jobs',
+            'type' => 'oracle_cx',
+            'name' => 'Alkhorayef Group Companies Careers',
+            'company_name' => 'Alkhorayef Group Companies',
+            'category' => 'Job aggregators',
+            'quality' => 'standard',
+            'source_type' => 'job_aggregator',
+            'feed_group' => 'saudi_feeds',
+            'source_platform' => 'Oracle Candidate Experience',
+            'company_logo' => 'https://eocn.fa.em3.oraclecloud.com/hcmRestApi/CandidateExperience/siteFavicon/favicon-144x144.png?siteNumber=CX_3001&size=144x144',
+            'api_base_url' => 'https://eocn.fa.em3.oraclecloud.com',
+            'site_number' => 'CX_3001',
+            'allowed_locations' => ['Saudi Arabia', 'Riyadh', 'Dammam', 'Khobar', 'Jeddah'],
+            'force_company_name' => true,
+        ],
         'al_tayer_associate_oracle' => [
             'url' => 'https://hchx.fa.em2.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_1/jobs?keyword=associate&mode=location',
             'type' => 'oracle_cx',
@@ -6401,6 +6417,10 @@ class SFFC_XML_Job_Fetcher
 
     private function resolve_oracle_cx_company(array $item, array $organization_names, array $source_info)
     {
+        if (!empty($source_info['force_company_name']) && !empty($source_info['company_name'])) {
+            return (string) $source_info['company_name'];
+        }
+
         $company = (string) ($item['organization'] ?? $item['Organization'] ?? $item['businessUnit'] ?? $item['BusinessUnit'] ?? '');
         if ($company !== '') {
             return $company;
@@ -9570,6 +9590,23 @@ class SFFC_XML_Job_Fetcher
                 'source_type' => 'job_aggregator',
                 'source_platform' => 'Teamtailor',
                 'allowed_locations' => $allowed_locations,
+            ], $limit);
+        }
+
+        if (strpos($url, 'eocn.fa.em3.oraclecloud.com/hcmUI/CandidateExperience') !== false) {
+            return $this->fetch_oracle_cx_jobs('alkhorayef_group_companies_oracle_saudi_custom', [
+                'url' => $url,
+                'name' => 'Alkhorayef Group Companies Careers',
+                'company_name' => 'Alkhorayef Group Companies',
+                'category' => 'Job aggregators',
+                'source_type' => 'job_aggregator',
+                'feed_group' => 'saudi_feeds',
+                'source_platform' => 'Oracle Candidate Experience',
+                'company_logo' => 'https://eocn.fa.em3.oraclecloud.com/hcmRestApi/CandidateExperience/siteFavicon/favicon-144x144.png?siteNumber=CX_3001&size=144x144',
+                'api_base_url' => 'https://eocn.fa.em3.oraclecloud.com',
+                'site_number' => 'CX_3001',
+                'allowed_locations' => ['Saudi Arabia', 'Riyadh', 'Dammam', 'Khobar', 'Jeddah'],
+                'force_company_name' => true,
             ], $limit);
         }
 

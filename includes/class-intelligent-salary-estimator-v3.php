@@ -306,6 +306,16 @@ class SFFC_Intelligent_Salary_Estimator_V3
             $job_data['description'] ?? ''
         );
 
+        $gulf_finance_salary = $this->get_gulf_finance_benchmark_salary($job_data, $location_info, $seniority);
+        if (!empty($gulf_finance_salary)) {
+            $result = $this->format_salary_display($gulf_finance_salary, $location_info['currency']);
+            $result['confidence'] = 0.88;
+            $result['detected_location'] = $location_info;
+            $result['source'] = $gulf_finance_salary['source'] ?? 'Gulf finance benchmark';
+            $result['salary_period'] = 'monthly';
+            return $result;
+        }
+
         // 4. Get base salary from market data IN THE DETECTED CURRENCY
         $base_salary = $this->get_market_based_salary(
             $location_info['market'],
@@ -623,13 +633,39 @@ class SFFC_Intelligent_Salary_Estimator_V3
             ];
         }
 
-        // private equity (typically USD denominated)
-        if (preg_match('/\b(dubai|abu dhabi|uae|qatar|doha|kuwait|bahrain|saudi|riyadh|jeddah)\b/i', $location_lower)) {
+        if (preg_match('/\b(dubai|abu dhabi|uae|united arab emirates)\b/i', $location_lower)) {
             return [
-                'market' => 'us', // Use US market data
+                'market' => 'gulf',
+                'city' => 'dubai',
+                'currency' => 'AED',
+                'confidence' => 0.95
+            ];
+        }
+
+        if (preg_match('/\b(saudi|riyadh|jeddah|ksa|kingdom of saudi arabia)\b/i', $location_lower)) {
+            return [
+                'market' => 'gulf',
+                'city' => 'riyadh',
+                'currency' => 'SAR',
+                'confidence' => 0.95
+            ];
+        }
+
+        if (preg_match('/\b(qatar|doha)\b/i', $location_lower)) {
+            return [
+                'market' => 'gulf',
+                'city' => 'doha',
+                'currency' => 'QAR',
+                'confidence' => 0.85
+            ];
+        }
+
+        if (preg_match('/\b(kuwait|bahrain|oman|muscat)\b/i', $location_lower)) {
+            return [
+                'market' => 'gulf',
                 'city' => 'default',
                 'currency' => 'USD',
-                'confidence' => 0.85
+                'confidence' => 0.65
             ];
         }
 
@@ -800,6 +836,213 @@ class SFFC_Intelligent_Salary_Estimator_V3
 
         // Default to corporate banking
         return 'corporate banking';
+    }
+
+    private function get_gulf_finance_benchmark_salary($job_data, $location_info, $seniority)
+    {
+        if (($location_info['market'] ?? '') !== 'gulf') {
+            return null;
+        }
+
+        $city = $location_info['city'] ?? '';
+        if (!in_array($city, ['dubai', 'riyadh'], true)) {
+            return null;
+        }
+
+        $text = strtolower(trim(implode(' ', [
+            (string) ($job_data['title'] ?? ''),
+            (string) ($job_data['seniority'] ?? ''),
+            (string) ($job_data['sector'] ?? ''),
+            (string) ($job_data['company'] ?? ''),
+            (string) ($job_data['description'] ?? ''),
+        ])));
+
+        if (!preg_match('/\b(finance|accounting|fp&a|treasury|investment|bank|banking|private equity|private credit|asset management|risk|compliance|fund|portfolio|m&a|capital markets|corporate development)\b/i', $text)) {
+            return null;
+        }
+
+        $benchmarks = [
+            'dubai' => [
+                'source' => 'Charterhouse UAE 2026 and Michael Page UAE 2026',
+                'families' => [
+                    'investment_banking' => [
+                        'analyst' => [20000, 40000], 'associate' => [30000, 55000], 'vp' => [55000, 80000],
+                        'director' => [70000, 110000], 'md' => [95000, 170000],
+                    ],
+                    'private_markets' => [
+                        'analyst' => [20000, 40000], 'associate' => [35000, 60000], 'manager' => [45000, 82000],
+                        'principal' => [55000, 90000], 'director' => [72000, 135000], 'md' => [90000, 170000], 'cio' => [100000, 225000],
+                    ],
+                    'corporate_banking' => [
+                        'analyst' => [15000, 25000], 'associate' => [22000, 30000], 'manager' => [30000, 50000],
+                        'vp' => [45000, 60000], 'director' => [70000, 90000], 'md' => [80000, 120000],
+                    ],
+                    'risk' => [
+                        'analyst' => [15000, 30000], 'associate' => [20000, 35000], 'manager' => [40000, 55000],
+                        'director' => [50000, 90000], 'cro' => [70000, 180000],
+                    ],
+                    'compliance' => [
+                        'analyst' => [12000, 30000], 'associate' => [20000, 35000], 'manager' => [35000, 75000],
+                        'director' => [45000, 120000], 'cco' => [60000, 120000],
+                    ],
+                    'finance_accounting' => [
+                        'analyst' => [18000, 28000], 'associate' => [18000, 28000], 'manager' => [25000, 45000],
+                        'controller' => [35000, 55000], 'director' => [50000, 100000], 'cfo' => [65000, 200000],
+                    ],
+                    'treasury' => [
+                        'analyst' => [20000, 30000], 'manager' => [35000, 55000], 'director' => [50000, 90000], 'head' => [50000, 90000],
+                    ],
+                ],
+            ],
+            'riyadh' => [
+                'source' => 'Hays Saudi Arabia Salary Guide 2026',
+                'families' => [
+                    'investment_banking' => [
+                        'analyst' => [17000, 28000], 'associate' => [30000, 50000], 'vp' => [55000, 75000],
+                        'svp' => [75000, 100000], 'director' => [80000, 120000], 'md' => [100000, 150000], 'cio' => [120000, 180000],
+                    ],
+                    'private_markets' => [
+                        'analyst' => [17000, 28000], 'associate' => [30000, 50000], 'manager' => [35000, 70000],
+                        'vp' => [55000, 75000], 'director' => [80000, 120000], 'md' => [100000, 150000], 'cio' => [120000, 180000],
+                    ],
+                    'risk' => [
+                        'analyst' => [18000, 28000], 'associate' => [25000, 40000], 'manager' => [40000, 60000],
+                        'director' => [55000, 80000], 'cro' => [75000, 120000],
+                    ],
+                    'compliance' => [
+                        'analyst' => [18000, 28000], 'associate' => [25000, 40000], 'manager' => [40000, 60000],
+                        'director' => [55000, 85000], 'cco' => [65000, 120000],
+                    ],
+                    'finance_accounting' => [
+                        'analyst' => [15000, 25000], 'accountant' => [10000, 20000], 'manager' => [25000, 40000],
+                        'controller' => [35000, 50000], 'director' => [55000, 80000], 'cfo' => [85000, 140000],
+                    ],
+                    'treasury' => [
+                        'analyst' => [18000, 30000], 'manager' => [35000, 55000], 'director' => [50000, 80000], 'head' => [50000, 80000],
+                    ],
+                ],
+            ],
+        ];
+
+        $family = $this->detect_gulf_finance_family($text);
+        $level = $this->detect_gulf_finance_level($text, $seniority);
+        $table = $benchmarks[$city]['families'][$family] ?? null;
+        if (empty($table)) {
+            return null;
+        }
+
+        $band = $table[$level] ?? null;
+        if (empty($band)) {
+            $band = $this->infer_gulf_finance_salary_band($table, $level);
+        }
+        if (empty($band)) {
+            return null;
+        }
+
+        return [
+            'min' => (int) $band[0],
+            'max' => (int) $band[1],
+            'source' => $benchmarks[$city]['source'],
+        ];
+    }
+
+    private function detect_gulf_finance_family($text)
+    {
+        if (preg_match('/\b(private equity|private credit|private markets|venture capital|asset management|portfolio|fund manager|investment\s+(analyst|associate|manager|director)|family office|sovereign wealth)\b/i', $text)) {
+            return 'private_markets';
+        }
+        if (preg_match('/\b(investment banking|m&a|mergers|acquisitions|dcm|ecm|leveraged finance|capital markets|corporate finance|debt advisory|restructuring)\b/i', $text)) {
+            return 'investment_banking';
+        }
+        if (preg_match('/\b(corporate banking|relationship manager|wholesale banking|commercial banking)\b/i', $text)) {
+            return 'corporate_banking';
+        }
+        if (preg_match('/\b(compliance|aml|kyc|mlro|financial crime|regulatory)\b/i', $text)) {
+            return 'compliance';
+        }
+        if (preg_match('/\b(risk|credit risk|market risk|operational risk|enterprise risk)\b/i', $text)) {
+            return 'risk';
+        }
+        if (preg_match('/\b(treasury|treasurer|liquidity|alm|irrbb)\b/i', $text)) {
+            return 'treasury';
+        }
+        return 'finance_accounting';
+    }
+
+    private function detect_gulf_finance_level($text, $seniority)
+    {
+        if (preg_match('/\b(chief investment officer|cio)\b/i', $text)) return 'cio';
+        if (preg_match('/\b(chief financial officer|cfo)\b/i', $text)) return 'cfo';
+        if (preg_match('/\b(chief risk officer|cro)\b/i', $text)) return 'cro';
+        if (preg_match('/\b(chief compliance officer|cco|mlro)\b/i', $text)) return 'cco';
+        if (preg_match('/\b(managing director|\bmd\b|partner)\b/i', $text)) return 'md';
+        if (preg_match('/\b(senior vice president|\bsvp\b|executive director|\bed\b)\b/i', $text)) return 'svp';
+        if (preg_match('/\b(vice president|\bvp\b)\b/i', $text)) return 'vp';
+        if (preg_match('/\b(principal)\b/i', $text)) return 'principal';
+        if (preg_match('/\b(head of|head\b|director)\b/i', $text)) return 'director';
+        if (preg_match('/\b(financial controller|controller)\b/i', $text)) return 'controller';
+        if (preg_match('/\b(manager|fund manager|portfolio manager|relationship manager)\b/i', $text)) return 'manager';
+        if (preg_match('/\b(senior accountant)\b/i', $text)) return 'senior_accountant';
+        if (preg_match('/\b(associate|officer|consultant)\b/i', $text)) return 'associate';
+        if (preg_match('/\b(accountant)\b/i', $text)) return 'accountant';
+        if (preg_match('/\b(analyst|graduate|trainee|intern)\b/i', $text)) return 'analyst';
+
+        $map = [
+            'entry' => 'analyst',
+            'junior' => 'analyst',
+            'mid' => 'associate',
+            'senior' => 'manager',
+            'manager' => 'manager',
+            'senior_manager' => 'manager',
+            'associate_director' => 'director',
+            'director' => 'director',
+            'senior_director' => 'svp',
+            'vp' => 'vp',
+            'svp' => 'svp',
+            'c_level' => 'md',
+        ];
+
+        return $map[$seniority] ?? 'associate';
+    }
+
+    private function infer_gulf_finance_salary_band($table, $level)
+    {
+        $ratios = [
+            'analyst' => 1.0, 'associate' => 1.62, 'manager' => 2.2, 'vp' => 2.65,
+            'principal' => 3.0, 'director' => 3.55, 'svp' => 3.85, 'md' => 5.0,
+            'cfo' => 5.4, 'cio' => 6.2, 'cro' => 5.2, 'cco' => 4.8,
+        ];
+        $target_ratio = $ratios[$level] ?? 0;
+        $best = null;
+
+        if ($target_ratio <= 0) {
+            return null;
+        }
+
+        foreach ($table as $candidate_level => $band) {
+            $candidate_ratio = $ratios[$candidate_level] ?? 0;
+            if ($candidate_ratio <= 0 || !is_array($band)) {
+                continue;
+            }
+            $distance = abs(log($target_ratio / $candidate_ratio));
+            if ($best === null || $distance < $best['distance']) {
+                $best = [
+                    'band' => $band,
+                    'ratio' => $candidate_ratio,
+                    'distance' => $distance,
+                ];
+            }
+        }
+
+        if ($best === null || $best['ratio'] <= 0) {
+            return null;
+        }
+
+        $multiplier = $target_ratio / $best['ratio'];
+        return [
+            (int) round(((float) $best['band'][0]) * $multiplier),
+            (int) round(((float) $best['band'][1]) * $multiplier),
+        ];
     }
 
     /**
