@@ -5,12 +5,15 @@ import { binary } from "harper.js/binary";
 import { Dialect, LocalLinter, SuggestionKind } from "harper.js";
 import { createRequire } from "module";
 import { randomUUID } from "crypto";
+import { execFile } from "child_process";
 import os from "os";
 import path from "path";
 import { writeFile, unlink } from "fs/promises";
+import { promisify } from "util";
 
 const require = createRequire(import.meta.url);
 const { parseResumeAsync } = require("resume-parser-ats");
+const execFileAsync = promisify(execFile);
 
 process.on("uncaughtException", (error) => {
   console.error("uncaughtException", error);
@@ -33,6 +36,8 @@ const allowedOrigin = String(process.env.CORS_ORIGIN || "*").trim() || "*";
 const token = String(process.env.LITEPARSE_TOKEN || "").trim();
 const harperDialect = String(process.env.HARPER_DIALECT || "american").toLowerCase();
 const harperMaxTextLength = Number(process.env.HARPER_MAX_TEXT_LENGTH || 20000);
+const pyresumeEnabled = process.env.PYRESUME_ENABLED !== "0";
+const pyresumeTimeoutMs = Number(process.env.PYRESUME_TIMEOUT_MS || 12000);
 const parser = new LiteParse({
   outputFormat: "json",
   ocrEnabled: process.env.LITEPARSE_OCR_ENABLED !== "0",
@@ -471,6 +476,106 @@ function normalizeAtsSections(sections) {
   }));
 }
 
+function normalizeParserExperienceEntry(entry, parserSource) {
+  const role = cleanText(entry?.role || entry?.title || entry?.jobTitle);
+  const company = cleanText(entry?.company);
+  const dates = cleanText(entry?.dates || entry?.date);
+  const location = cleanText(entry?.location);
+  const bullets = normalizeStringList(entry?.bullets || entry?.descriptions || []);
+  return {
+    type: "experience",
+    role,
+    title: role,
+    company,
+    dates,
+    startDate: cleanText(entry?.startDate || entry?.start_date),
+    endDate: cleanText(entry?.endDate || entry?.end_date),
+    location,
+    bullets,
+    lines: normalizeStringList(
+      [role, company, dates, location].concat(entry?.lines || []).concat(bullets)
+    ),
+    parserSource: cleanText(entry?.parserSource || parserSource),
+    confidence: Number(entry?.confidence || 0) || 0,
+  };
+}
+
+function normalizeParserEducationEntry(entry, parserSource) {
+  const school = cleanText(entry?.school || entry?.institution);
+  const degree = cleanText(entry?.degree);
+  const dates = cleanText(entry?.dates || entry?.date);
+  const details = normalizeStringList(entry?.details || entry?.descriptions || []);
+  return {
+    school,
+    degree,
+    dates,
+    gpa: cleanText(entry?.gpa),
+    details,
+    parserSource: cleanText(entry?.parserSource || parserSource),
+  };
+}
+
+function parserEntryKey(entry) {
+  return cleanText(
+    [
+      entry?.role || entry?.title || "",
+      entry?.company || "",
+      entry?.dates || entry?.startDate || "",
+    ]
+      .join("|")
+      .toLowerCase()
+      .replace(/[^a-z0-9|]+/g, " ")
+  );
+}
+
+function mergeParserEntries(primary, secondary, parserSource) {
+  const seen = new Set();
+  const merged = [];
+  [primary || [], secondary || []].forEach((entries) => {
+    entries.forEach((entry) => {
+      const normalized = normalizeParserExperienceEntry(entry, parserSource);
+      const key = parserEntryKey(normalized);
+      if (!key || seen.has(key)) return;
+      seen.add(key);
+      merged.push(normalized);
+    });
+  });
+  return merged;
+}
+
+function mergeEducationEntries(primary, secondary, parserSource) {
+  const seen = new Set();
+  const merged = [];
+  [primary || [], secondary || []].forEach((entries) => {
+    entries.forEach((entry) => {
+      const normalized = normalizeParserEducationEntry(entry, parserSource);
+      const key = cleanText(
+        [normalized.school, normalized.degree, normalized.dates]
+          .join("|")
+          .toLowerCase()
+      );
+      if (!key || seen.has(key)) return;
+      seen.add(key);
+      merged.push(normalized);
+    });
+  });
+  return merged;
+}
+
+function mergeProfiles(primary, secondary) {
+  const left = primary || {};
+  const right = secondary || {};
+  return {
+    name: cleanText(left.name || right.name),
+    email: cleanText(left.email || right.email),
+    phone: cleanText(left.phone || right.phone),
+    linkedin: cleanText(left.linkedin || right.linkedin),
+    location: cleanText(left.location || right.location),
+    website: cleanText(left.website || right.website),
+    summary: cleanText(left.summary || right.summary),
+  };
+}
+
 function normalizeStructuredResume(parseResult, fallbackText) {
   const data = parseResult?.data || {};
   const profile = normalizeProfile(data.profile || {}, fallbackText);
@@ -547,6 +652,127 @@ async function parseStructuredResumeFromUpload(file, fallbackText) {
   }
 }
 
+async function parsePyresumeFromPath(tempPath) {
+  if (!pyresumeEnabled) {
+    return {
+      ok: false,
+      parser: "pyresume",
+      error: "disabled",
+    };
+  }
+  try {
+    const bridgePath = path.join(process.cwd(), "pyresume_bridge.py");
+    const { stdout } = await execFileAsync("python3", [bridgePath, tempPath], {
+      timeout: pyresumeTimeoutMs,
+      maxBuffer: 4 * 1024 * 1024,
+    });
+    const parsed = JSON.parse(String(stdout || "{}"));
+    return parsed && typeof parsed === "object"
+      ? parsed
+      : { ok: false, parser: "pyresume", error: "empty_response" };
+  } catch (error) {
+    return {
+      ok: false,
+      parser: "pyresume",
+      error: "pyresume_exec_failed",
+      message: error && error.message ? error.message : String(error),
+    };
+  }
+}
+
+async function parseStructuredResumeEnsembleFromUpload(file, fallbackText) {
+  if (!file?.buffer) {
+    return null;
+  }
+  const extension = path.extname(file.originalname || "") || ".pdf";
+  const tempPath = path.join(
+    os.tmpdir(),
+    `senna-resume-ensemble-${Date.now()}-${randomUUID()}${extension}`
+  );
+  try {
+    await writeFile(tempPath, file.buffer);
+    const [atsResult, pyresumeResult] = await Promise.all([
+      parseResumeAsync({ filePath: tempPath })
+        .then((parsed) => normalizeStructuredResume(parsed, fallbackText))
+        .catch((error) => ({
+          ok: false,
+          parser: "resume-parser-ats",
+          error: "structured_parse_failed",
+          message: error && error.message ? error.message : String(error),
+        })),
+      parsePyresumeFromPath(tempPath),
+    ]);
+    const atsOk = !!(atsResult && atsResult.ok);
+    const pyresumeOk = !!(pyresumeResult && pyresumeResult.ok);
+    const profile = mergeProfiles(
+      atsOk ? atsResult.profile : {},
+      pyresumeOk ? pyresumeResult.profile : {}
+    );
+    const experience = mergeParserEntries(
+      atsOk ? atsResult.experience : [],
+      pyresumeOk ? pyresumeResult.experience : [],
+      "ensemble"
+    );
+    const education = mergeEducationEntries(
+      atsOk ? atsResult.education : [],
+      pyresumeOk ? pyresumeResult.education : [],
+      "ensemble"
+    );
+    const skills = sanitizeStructuredSkills(
+      normalizeStringList([])
+        .concat(atsOk ? atsResult.skills || [] : [])
+        .concat(pyresumeOk ? pyresumeResult.skills || [] : [])
+    );
+    return {
+      ok: atsOk || pyresumeOk,
+      parser: pyresumeOk
+        ? "resume-parser-ats+pyresume"
+        : "resume-parser-ats",
+      profile,
+      sections: atsOk ? atsResult.sections || [] : [],
+      experience,
+      education,
+      skills,
+      projects: atsOk ? atsResult.projects || [] : [],
+      lines: atsOk ? atsResult.lines || [] : [],
+      metadata: {
+        ats: atsResult?.metadata || {},
+        pyresume: pyresumeResult?.metadata || {},
+        yearsExperience:
+          Number(pyresumeResult?.metadata?.yearsExperience || 0) || 0,
+      },
+      parsers: [
+        {
+          parser: "resume-parser-ats",
+          ok: atsOk,
+          error: atsResult?.error || "",
+          message: atsResult?.message || "",
+          experienceCount: Array.isArray(atsResult?.experience)
+            ? atsResult.experience.length
+            : 0,
+        },
+        {
+          parser: "pyresume",
+          ok: pyresumeOk,
+          error: pyresumeResult?.error || "",
+          message: pyresumeResult?.message || "",
+          experienceCount: Array.isArray(pyresumeResult?.experience)
+            ? pyresumeResult.experience.length
+            : 0,
+        },
+      ],
+      ensemble: {
+        ats: atsResult || null,
+        pyresume: pyresumeResult || null,
+      },
+    };
+  } finally {
+    try {
+      await unlink(tempPath);
+    } catch (error) {}
+  }
+}
+
 function normalizeHarperSuggestion(suggestion) {
   if (!suggestion) {
     return null;
@@ -591,8 +817,11 @@ app.use(express.json({ limit: "256kb" }));
 app.get("/health", (req, res) => {
   res.json({
     ok: true,
-    parser: "liteparse+resume-parser-ats",
+    parser: pyresumeEnabled
+      ? "liteparse+resume-parser-ats+pyresume"
+      : "liteparse+resume-parser-ats",
     grammar: "harper",
+    pyresumeEnabled,
     ocrEnabled: process.env.LITEPARSE_OCR_ENABLED !== "0",
   });
 });
@@ -606,12 +835,12 @@ app.post("/parse", requireToken, upload.single("file"), async (req, res) => {
 
     const result = await parser.parse(req.file.buffer);
     const normalized = normalizeParseResult(result);
-    normalized.structured = await parseStructuredResumeFromUpload(
+    normalized.structured = await parseStructuredResumeEnsembleFromUpload(
       req.file,
       normalized.text
     );
     normalized.parser = normalized.structured?.ok
-      ? "liteparse+resume-parser-ats"
+      ? `liteparse+${normalized.structured.parser}`
       : "liteparse";
     res.json(normalized);
   } catch (error) {

@@ -1,7 +1,8 @@
 # Senna LiteParse Service
 
-Small HTTP wrapper around `@llamaindex/liteparse` for CV extraction and
-`harper.js` for offline grammar review.
+Small HTTP wrapper around `@llamaindex/liteparse` for CV text extraction,
+`resume-parser-ats` plus optional `pyresume`/`leverparser` for structured CV
+parsing, and `harper.js` for offline grammar review.
 
 It is intentionally separate from the WordPress plugin so native parser
 dependencies stay out of the plugin zip.
@@ -17,10 +18,21 @@ dependencies stay out of the plugin zip.
 ```json
 {
   "ok": true,
-  "parser": "liteparse",
+  "parser": "liteparse+resume-parser-ats+pyresume",
   "text": "...",
   "totalPages": 2,
-  "pages": []
+  "pages": [],
+  "structured": {
+    "parser": "resume-parser-ats+pyresume",
+    "profile": {},
+    "experience": [],
+    "education": [],
+    "skills": [],
+    "parsers": [
+      { "parser": "resume-parser-ats", "ok": true },
+      { "parser": "pyresume", "ok": true }
+    ]
+  }
 }
 ```
 
@@ -52,6 +64,8 @@ dependencies stay out of the plugin zip.
 - `LITEPARSE_OCR_LANGUAGE=eng`
 - `LITEPARSE_MAX_PAGES=20`
 - `LITEPARSE_TIMEOUT_SECONDS=20`
+- `PYRESUME_ENABLED=1` optional, set `0` to disable the Python parser
+- `PYRESUME_TIMEOUT_MS=12000`
 - `HARPER_DIALECT=american` optional, supports `american`, `british`, `canadian`, `australian`
 - `HARPER_MAX_TEXT_LENGTH=20000`
 
