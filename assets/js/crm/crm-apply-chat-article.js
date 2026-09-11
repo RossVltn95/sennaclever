@@ -616,7 +616,154 @@
   }
 
   function parsePdf(file) {
-    return getPdfDocumentForSource(file).then(extractPdfTextFromDocument);
+    return parsePdfWithLiteParse(file).catch(function () {
+      return getPdfDocumentForSource(file).then(extractPdfTextFromDocument);
+    });
+  }
+
+  function parsePdfWithLiteParse(file) {
+    var config = getConfig();
+    var endpoint = String(config.liteParseEndpoint || "").trim();
+    var formData;
+
+    if (
+      !endpoint ||
+      !file ||
+      typeof window.fetch !== "function" ||
+      typeof FormData === "undefined"
+    ) {
+      return Promise.reject(new Error("LiteParse endpoint unavailable."));
+    }
+    if (file.__sffcLiteParseTextPromise) {
+      return file.__sffcLiteParseTextPromise;
+    }
+
+    formData = new FormData();
+    formData.append("file", file, file.name || "cv.pdf");
+    formData.append("format", "json");
+
+    file.__sffcLiteParseTextPromise = window
+      .fetch(endpoint, {
+        method: "POST",
+        body: formData,
+        headers: config.liteParseToken
+          ? {
+              Authorization: "Bearer " + String(config.liteParseToken || ""),
+            }
+          : undefined,
+      })
+      .then(function (response) {
+        if (!response || !response.ok) {
+          throw new Error("LiteParse request failed.");
+        }
+        return response.json();
+      })
+      .then(function (payload) {
+        var text = normalizeLiteParsePayloadToText(payload);
+        if (!text) {
+          throw new Error("LiteParse returned no readable text.");
+        }
+        currentCvPageCount =
+          Number(
+            payload &&
+              (payload.totalPages ||
+                payload.total_pages ||
+                (payload.pages && payload.pages.length))
+          ) || currentCvPageCount;
+        file.__sffcLiteParsePayload = payload;
+        return text;
+      })
+      .catch(function (error) {
+        file.__sffcLiteParseTextPromise = null;
+        throw error;
+      });
+
+    return file.__sffcLiteParseTextPromise;
+  }
+
+  function normalizeLiteParsePayloadToText(payload) {
+    var source = payload || {};
+    var pages = Array.isArray(source.pages) ? source.pages : [];
+    var text = cleanMessageText(source.text || source.markdown || "");
+    if (text) {
+      return text;
+    }
+    if (!pages.length) {
+      return "";
+    }
+    return pages
+      .map(function (page) {
+        return normalizeLiteParsePageToText(page || {});
+      })
+      .filter(Boolean)
+      .join("\n\n")
+      .replace(/\n{3,}/g, "\n\n")
+      .trim();
+  }
+
+  function normalizeLiteParsePageToText(page) {
+    var items =
+      page.textItems ||
+      page.text_items ||
+      page.items ||
+      page.blocks ||
+      [];
+    var rows = [];
+
+    if (page.text) {
+      return String(page.text || "").trim();
+    }
+    if (!Array.isArray(items) || !items.length) {
+      return "";
+    }
+
+    items.forEach(function (item) {
+      var text = cleanMessageText(
+        item.text || item.str || item.content || item.value || ""
+      );
+      var bbox = item.bbox || item.boundingBox || item.box || {};
+      var x = Number(item.x || bbox.x || bbox.left || bbox.x0 || 0);
+      var y = Number(item.y || bbox.y || bbox.top || bbox.y0 || 0);
+      var width = Number(
+        item.width ||
+          bbox.width ||
+          (Number(bbox.x1 || bbox.right || 0) - Number(bbox.x0 || bbox.left || 0))
+      );
+      var row;
+
+      if (!text) {
+        return;
+      }
+
+      row = rows.find(function (candidate) {
+        return Math.abs(candidate.y - y) <= 4;
+      });
+      if (!row) {
+        row = { y: y, items: [] };
+        rows.push(row);
+      }
+      row.items.push({ x: x, y: y, width: Math.max(0, width), text: text });
+    });
+
+    return rows
+      .sort(function (a, b) {
+        return a.y - b.y;
+      })
+      .map(function (row) {
+        return row.items
+          .sort(function (a, b) {
+            return a.x - b.x;
+          })
+          .map(function (item) {
+            return item.text;
+          })
+          .join(" ")
+          .replace(/\s+/g, " ")
+          .trim();
+      })
+      .filter(Boolean)
+      .join("\n")
+      .trim();
   }
 
   function renderPdfPreviewHtml(source) {
@@ -1067,7 +1214,7 @@
       .split("\n")
       .map(function (line) {
         return String(line || "")
-          .replace(/[ \t\f\v]+/g, " ")
+          .replace(/[\t\f\v]+/g, " ")
           .trim();
       })
       .join("\n")
@@ -28750,6 +28897,15 @@
           raw: clean,
         };
       }
+      match = clean.match(/\b(0?[1-9]|1[0-2])\s*[/.-]\s*(\d{2})\b/);
+      if (match) {
+        return {
+          month: parseInt(match[1], 10),
+          year: 2000 + parseInt(match[2], 10),
+          isCurrent: false,
+          raw: clean,
+        };
+      }
       match = clean.match(/\b(20\d{2}|19\d{2})\s*[/.-]\s*(0?[1-9]|1[0-2])\b/);
       if (match) {
         return {
@@ -28790,7 +28946,7 @@
     function parseCvMatchDateRange(text) {
       var normalized = normalizeCvMatchDateText(text || "");
       var pattern =
-        /\b(?:0?[1-9]|1[0-2])\s*[/.-]\s*(?:20\d{2}|19\d{2})\b|\b(?:20\d{2}|19\d{2})\s*[/.-]\s*(?:0?[1-9]|1[0-2])\b|\b(?:january|jan|janvier|gennaio|enero|february|feb|février|fevrier|febbraio|febrero|march|mar|mars|marzo|april|apr|avril|aprile|abril|may|mai|maggio|mayo|june|jun|juin|giugno|junio|july|jul|juillet|luglio|julio|august|aug|août|aout|agosto|september|sept|sep|septembre|settembre|septiembre|october|oct|octobre|ottobre|octubre|november|nov|novembre|noviembre|december|dec|décembre|decembre|dicembre|diciembre),?\s+(?:20\d{2}|19\d{2})\b|\b(?:20\d{2}|19\d{2})\b|\b(?:present|current|oggi|actualidad|attuale|ongoing|to date|till date)\b/gi;
+        /\b(?:0?[1-9]|1[0-2])\s*[/.-]\s*(?:20\d{2}|19\d{2}|\d{2})\b|\b(?:20\d{2}|19\d{2})\s*[/.-]\s*(?:0?[1-9]|1[0-2])\b|\b(?:january|jan|janvier|gennaio|enero|february|feb|février|fevrier|febbraio|febrero|march|mar|mars|marzo|april|apr|avril|aprile|abril|may|mai|maggio|mayo|june|jun|juin|giugno|junio|july|jul|juillet|luglio|julio|august|aug|août|aout|agosto|september|sept|sep|septembre|settembre|septiembre|october|oct|octobre|ottobre|octubre|november|nov|novembre|noviembre|december|dec|décembre|decembre|dicembre|diciembre),?\s+(?:20\d{2}|19\d{2})\b|\b(?:20\d{2}|19\d{2})\b|\b(?:present|current|oggi|actualidad|attuale|ongoing|to date|till date)\b/gi;
       var rawPoints = normalized.match(pattern) || [];
       var parsed = rawPoints
         .map(function (token, index) {
@@ -57205,7 +57361,7 @@
           .replace(/([a-z])([A-Z][a-z])/g, "$1 $2")
           .replace(/__SFFC_CV_(?:SIDEBAR|MAIN)__/g, " ")
           .replace(
-            /[\u00a7\u2022\u25CF\u25E6\u25AA\u25AB\u25A0\u25A1\u2043\u2219\uf0b7]/g,
+            /[\u00a7\u2022\u25CF\u25E6\u25AA\u25AB\u25A0\u25A1\u2043\u2219\u2212\uf0b7]/g,
             "- "
           )
           .replace(/\t+/g, " ")
@@ -57243,8 +57399,8 @@
     function stripCvBulletPrefix(line) {
       return cleanMessageText(
         String(line || "")
-          .replace(/[\u00a7\uf0b7]/g, "- ")
-          .replace(/^(?:[-*§•▪◦●■□‣]\s*)+/g, "")
+          .replace(/[\u00a7\u2212\uf0b7]/g, "- ")
+          .replace(/^(?:[-*§•▪◦●■□‣−]\s*)+/g, "")
       );
     }
 
@@ -57299,6 +57455,14 @@
         return false;
       }
       if (
+        isCvBulletLine(line) ||
+        /^-?\s*(?:performed|prepared|led|managed|developed|automated|supported|created|built|conducted|analyzed|analysed|evaluated|directed|implemented|recruited|ensured|played|contributed|executed|delivered|modeled|modelled|monitored|reviewed)\b/i.test(
+          clean
+        )
+      ) {
+        return false;
+      }
+      if (
         /^(include|add|move|use|avoid|prepare|provide|highlight|insert|specify|elaborate|remove|focus|always)\b/i.test(
           clean
         ) &&
@@ -57343,6 +57507,9 @@
     function hasCvDateRange(line) {
       return (
         /\b(?:19|20)\d{2}\b/.test(line) ||
+        /\b\d{1,2}\/\d{2,4}\s*(?:to|\-|–|—)\s*(?:present|current|\d{1,2}\/\d{2,4})\b/i.test(
+          line
+        ) ||
         /\b\d{1,2}\/\d{1,2}\/\d{2,4}\s*(?:to|\-|–|—)\s*(?:present|current|\d{1,2}\/\d{1,2}\/\d{2,4})\b/i.test(
           line
         ) ||
@@ -57370,7 +57537,7 @@
         /\b(?:19|20)\d{2}\s+(?:gen|gennaio|feb|febbraio|mar|marzo|apr|aprile|mag|maggio|giu|giugno|lug|luglio|ago|agosto|set|sett|settembre|ott|ottobre|nov|novembre|dic|dicembre)\s*(?:to|\-|–|—)\s*(?:oggi|present|current|(?:19|20)\d{2}\s+(?:gen|gennaio|feb|febbraio|mar|marzo|apr|aprile|mag|maggio|giu|giugno|lug|luglio|ago|agosto|set|sett|settembre|ott|ottobre|nov|novembre|dic|dicembre))\b/gi,
         /\b(?:jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)[a-z]*,?\s+\d{4}\s*(?:to|\-|–|—)\s*(?:present|current|(?:jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)[a-z]*,?\s+\d{4})\b/gi,
         /\b\d{1,2}\/\d{1,2}\/\d{2,4}\s*(?:to|\-|–|—)\s*(?:present|current|\d{1,2}\/\d{1,2}\/\d{2,4})\b/gi,
-        /\b\d{2}\/\d{4}\s*(?:to|\-|–|—)\s*(?:present|current|\d{2}\/\d{4})\b/gi,
+        /\b\d{1,2}\/\d{2,4}\s*(?:to|\-|–|—)\s*(?:present|current|\d{1,2}\/\d{2,4})\b/gi,
       ];
       return patterns.reduce(function (count, pattern) {
         return count + ((clean.match(pattern) || []).length || 0);
@@ -57378,7 +57545,7 @@
     }
 
     function isCvBulletLine(line) {
-      return /^(?:[-*§•▪◦●■□‣\uf0b7]\s*)+/.test(cleanMessageText(line));
+      return /^(?:[-*§•▪◦●■□‣−\uf0b7]\s*)+/.test(cleanMessageText(line));
     }
 
     function hasCvProfessionalActionSignal(line) {
@@ -57708,7 +57875,7 @@
         /^(?:19|20)\d{2}\s*(?:to|\-|–|—)\s*(?:present|current|(?:19|20)\d{2})\b/i.test(
           current
         ) ||
-        /^(?:\d{2}\/\d{4}|(?:jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)[a-z]*,?\s+\d{4})\s*(?:to|\-|–|—)\s*(?:present|current|\d{2}\/\d{4}|(?:jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)[a-z]*,?\s+\d{4})/i.test(
+        /^(?:\d{1,2}\/\d{2,4}|(?:jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)[a-z]*,?\s+\d{4})\s*(?:to|\-|–|—)\s*(?:present|current|\d{1,2}\/\d{2,4}|(?:jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)[a-z]*,?\s+\d{4})/i.test(
           current
         )
       ) {
@@ -57810,6 +57977,23 @@
           return list.concat(splitCvCompositeLine(part));
         }, []);
       }
+      if (
+        /\s-\s+(?:performed|prepared|led|managed|developed|automated|supported|created|built|conducted|analyzed|analysed|evaluated|directed|implemented|recruited|ensured|played|contributed)\b/i.test(clean) &&
+        !/^\s*-/.test(clean) &&
+        !/^\d{1,2}\/\d{2,4}\s*-\s*/.test(clean)
+      ) {
+        var bulletParts = clean.split(
+          /\s+-\s+(?=(?:performed|prepared|led|managed|developed|automated|supported|created|built|conducted|analyzed|analysed|evaluated|directed|implemented|recruited|ensured|played|contributed)\b)/i
+        ).map(cleanMessageText).filter(Boolean);
+        if (bulletParts.length > 1) {
+          return bulletParts.reduce(function (list, part, partIndex) {
+            if (partIndex === 0 && /:\s*$/.test(part)) {
+              return list.concat(part);
+            }
+            return list.concat(partIndex === 0 ? part : "- " + part);
+          }, []);
+        }
+      }
       for (var i = 0; i < headingPrefixes.length; i += 1) {
         var prefix = headingPrefixes[i];
         var regex = new RegExp(
@@ -57835,7 +58019,7 @@
         }
       }
       secondDateMatch = clean.match(
-        /(\b(?:19|20)\d{2}\s*(?:to|\-|–|—)\s*(?:present|current|(?:19|20)\d{2})\b).+?(\b(?:19|20)\d{2}\s*(?:to|\-|–|—)\s*(?:present|current|(?:19|20)\d{2})\b)/i
+        /(\b(?:\d{1,2}\/\d{2,4}|(?:19|20)\d{2})\s*(?:to|\-|–|—)\s*(?:present|current|\d{1,2}\/\d{2,4}|(?:19|20)\d{2})\b).+?(\b(?:\d{1,2}\/\d{2,4}|(?:19|20)\d{2})\s*(?:to|\-|–|—)\s*(?:present|current|\d{1,2}\/\d{2,4}|(?:19|20)\d{2})\b)/i
       );
       if (secondDateMatch && secondDateMatch.index > -1) {
         var first = clean.slice(0, clean.indexOf(secondDateMatch[2])).trim();
@@ -57971,7 +58155,7 @@
       }
       return source
         .replace(
-          /[\u00a7\uf0b7\u2022\u25CF\u25E6\u25AA\u25AB\u25A0\u25A1\u2043\u2219]/g,
+          /[\u00a7\uf0b7\u2022\u25CF\u25E6\u25AA\u25AB\u25A0\u25A1\u2043\u2219\u2212]/g,
           "\n• "
         )
         .replace(
@@ -57988,6 +58172,10 @@
         )
         .replace(
           /\s+((?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Sept|Oct|Nov|Dec)[a-z]*,?\s+\d{4}\s*(?:[-–—]|to)\s*(?:Present|Current|(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Sept|Oct|Nov|Dec)[a-z]*,?\s+\d{4}|(?:19|20)\d{2})(?:,\s*[^•\n]{2,80})?)/gi,
+          "\n$1\n"
+        )
+        .replace(
+          /\s+(\d{1,2}\/\d{2,4}\s*(?:[-–—]|to)\s*(?:Present|Current|\d{1,2}\/\d{2,4})\s+[A-ZÀ-Ý][^•\n]{8,180})/g,
           "\n$1\n"
         )
         .replace(/\n{3,}/g, "\n\n");
@@ -58023,6 +58211,485 @@
       });
 
       return merged;
+    }
+
+    function getCvLeadingDateRangeMatch(line) {
+      var clean = cleanMessageText(line || "");
+      var pattern =
+        /^((?:\d{1,2}\/\d{2,4}|(?:19|20)\d{2}|(?:jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)[a-z]*,?\s+\d{4})\s*(?:to|\-|–|—)\s*(?:present|current|\d{1,2}\/\d{2,4}|(?:19|20)\d{2}|(?:jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)[a-z]*,?\s+\d{4}))\s+(.+)$/i;
+      var match = clean.match(pattern);
+      if (!match || !match[1] || !match[2]) {
+        return null;
+      }
+      return {
+        dateText: cleanMessageText(match[1]).replace(/\bcurrent\b/i, "Present"),
+        rest: cleanMessageText(match[2]),
+      };
+    }
+
+    function extractCvTrailingLocation(text) {
+      var clean = cleanMessageText(text || "");
+      var match;
+      if (!clean) {
+        return { text: "", location: "" };
+      }
+      match = clean.match(
+        /\s+((?:MILAN|ROME|DUBAI|ABU DHABI|DOHA|RIYADH|JEDDAH|DAMMAM|KHOBAR|LONDON|PARIS|MOSCOW|NEW YORK|TORONTO|MONTREAL|GURUGRAM|AMMAN|BEIRUT)(?:,\s*(?:ITALY|UAE|UK|USA|FRANCE|CANADA|INDIA|SYRIA|RUSSIA|QATAR|SAUDI ARABIA))?)$/
+      );
+      if (match && match[1] && looksLikeCvLocationLine(match[1])) {
+        return {
+          text: cleanMessageText(clean.slice(0, match.index)),
+          location: cleanMessageText(match[1]),
+        };
+      }
+      match = clean.match(
+        /\s+((?:dubai|abu dhabi|doha|riyadh|jeddah|dammam|khobar|london|paris|milan|rome|moscow|new york|toronto|montreal|gurugram|amman|beirut),?\s*(?:uae|uk|usa|italy|france|canada|india|syria|russia|qatar|saudi arabia)?)$/i
+      );
+      if (match && match[1] && looksLikeCvLocationLine(match[1])) {
+        return {
+          text: cleanMessageText(clean.slice(0, match.index)),
+          location: cleanMessageText(match[1]),
+        };
+      }
+      return { text: clean, location: "" };
+    }
+
+    function parseCvSeparatedDatedEntryLines(
+      dateLine,
+      roleLine,
+      companyLine,
+      continuationLine
+    ) {
+      var dateText = getCvTailoringDateRangeText(dateLine);
+      var role = cleanExperienceMetaFragment(roleLine || "");
+      var combinedCompany = cleanMessageText(
+        [companyLine, continuationLine].filter(Boolean).join(" ")
+      );
+      var companyLocation = extractCvTrailingLocation(companyLine || "");
+      var company = cleanExperienceMetaFragment(companyLocation.text || "");
+      if (!dateText || !role) {
+        return null;
+      }
+      if (
+        continuationLine &&
+        (!looksLikeDetectedCompanyName(company) ||
+          /\s[-–—]\s*$/.test(company) ||
+          /\b(?:investment|capital|group|company|co\.?)$/i.test(company))
+      ) {
+        companyLocation = extractCvTrailingLocation(combinedCompany);
+        company = cleanExperienceMetaFragment(companyLocation.text || "");
+      }
+      company = cleanExperienceMetaFragment(
+        company.replace(/^(?:summer\s+)?intern\s*[-–—]\s*/i, "")
+      );
+      if (/\s[-–—]\s*$/.test(role) && company) {
+        role = cleanExperienceMetaFragment(role.replace(/\s[-–—]\s*$/, ""));
+      } else {
+        var parsed = parseCvStructuredDatedEntryLine(
+          [dateText, role, company].filter(Boolean).join(" ")
+        );
+        if (parsed) {
+          return parsed;
+        }
+      }
+      if (
+        !looksLikeExperienceRoleLabel(role) &&
+        !looksLikeCvRoleTitleLine(role, "")
+      ) {
+        return null;
+      }
+      return {
+        dates: dateText,
+        role: sanitizeTailoredCvRenderedRole(role) || role,
+        company: sanitizeTailoredCvRenderedCompany(company, "") || company,
+        location: companyLocation.location,
+        label: [role, company].filter(Boolean).join(" at "),
+      };
+    }
+
+    function parseCvStructuredDatedEntryLine(line) {
+      var leading = getCvLeadingDateRangeMatch(line);
+      var rest;
+      var location;
+      var role = "";
+      var company = "";
+      var split;
+      var detectedCompany;
+      if (!leading) {
+        return null;
+      }
+      rest = extractCvTrailingLocation(leading.rest);
+      location = rest.location;
+      rest = cleanExperienceMetaFragment(rest.text);
+      if (!rest || rest.split(/\s+/).length < 2 || isCvEvidenceLine(rest)) {
+        return null;
+      }
+      split = rest.match(/^(.{2,90}?)\s+[-–—]\s+(.{2,120})$/);
+      if (split) {
+        role = cleanExperienceMetaFragment(split[1]);
+        company = cleanExperienceMetaFragment(split[2]);
+      } else {
+        detectedCompany = detectCompanyNameFromText(rest);
+        if (detectedCompany) {
+          company = detectedCompany;
+          role = cleanExperienceMetaFragment(
+            rest.replace(detectedCompany, " ")
+          );
+        } else {
+          role = rest;
+        }
+      }
+      return {
+        dates: leading.dateText,
+        role: sanitizeTailoredCvRenderedRole(role) || role,
+        company: sanitizeTailoredCvRenderedCompany(company, "") || company,
+        location: location,
+        label: [role, company].filter(Boolean).join(" at "),
+      };
+    }
+
+    function cleanCvParserEntryHeadingLine(line) {
+      return cleanMessageText(line || "")
+        .replace(/\s+\|\s+/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+    }
+
+    function getCvDateRangeFromAnyLine(line) {
+      var clean = cleanMessageText(line || "");
+      var leading = getCvLeadingDateRangeMatch(clean);
+      var dateText =
+        getCvTailoringDateRangeText(clean) ||
+        getCvTailoringLooseDateText(clean) ||
+        "";
+
+      if (leading && leading.dateText) {
+        return leading.dateText;
+      }
+      return cleanMessageText(dateText);
+    }
+
+    function removeCvDateRangeFromLine(line) {
+      var clean = cleanMessageText(line || "");
+      var leading = getCvLeadingDateRangeMatch(clean);
+      var dateText = getCvDateRangeFromAnyLine(clean);
+      if (leading && leading.rest) {
+        return cleanMessageText(leading.rest);
+      }
+      if (!dateText) {
+        return clean;
+      }
+      return cleanMessageText(
+        clean
+          .replace(dateText, " ")
+          .replace(/\b(?:present|current|oggi|heute)\b/gi, " ")
+          .replace(/\s+/g, " ")
+      );
+    }
+
+    function shouldStopCvDateAnchoredEntryCollection(line) {
+      var clean = cleanMessageText(line || "");
+      var normalized = normalizeCvHeading(clean);
+      if (!clean) {
+        return true;
+      }
+      if (isCvTrackMarker(clean) || isCvContactLine(clean)) {
+        return true;
+      }
+      if (
+        /^(?:education|academic qualifications?|skills|technical skills|skills & interests|certifications?|languages?|publications?|other interests|projects)$/i.test(
+          normalized
+        )
+      ) {
+        return true;
+      }
+      return false;
+    }
+
+    function scoreCvDateAnchoredExperienceEntry(entry) {
+      var score = 0;
+      var lines = ((entry && entry.lines) || []).concat(
+        (entry && entry.bullets) || []
+      );
+      if (entry && entry.role) score += 4;
+      if (entry && entry.company) score += 4;
+      if (entry && entry.dates) score += 3;
+      score += Math.min(8, ((entry && entry.bullets) || []).length * 2);
+      if (
+        lines.some(function (line) {
+          return hasCvProfessionalActionSignal(line) || isCvEvidenceLine(line);
+        })
+      ) {
+        score += 5;
+      }
+      if (
+        lines.some(function (line) {
+          return hasEmbeddedCvEntryBoundary(line);
+        })
+      ) {
+        score -= 5;
+      }
+      return score;
+    }
+
+    function normalizeCvDateAnchoredEntry(entry) {
+      var safe = entry || {};
+      var company = sanitizeTailoredCvRenderedCompany(safe.company, "") || "";
+      var role = sanitizeTailoredCvRenderedRole(safe.role) || "";
+      var lines = dedupeList(
+        (safe.lines || []).map(cleanMessageText).filter(Boolean)
+      );
+      var bullets = dedupeList(
+        (safe.bullets || [])
+          .reduce(function (list, line) {
+            return list.concat(splitTailoredCvEvidenceLine(line));
+          }, [])
+          .map(stripCvBulletPrefix)
+          .map(cleanMessageText)
+          .filter(function (line) {
+            return (
+              line &&
+              (isCvEvidenceLine(line) || isTailoredCvSalvageEvidenceLine(line)) &&
+              !looksLikeCvPureDateRangeLine(line) &&
+              !looksLikeDetectedCompanyName(line) &&
+              !looksLikeCvRoleTitleLine(line, "") &&
+              !getCvSectionMetaFromLine(line)
+            );
+          })
+      );
+
+      if (!company && safe.company) {
+        company = cleanExperienceMetaFragment(safe.company);
+      }
+      if (!role && safe.role) {
+        role = cleanExperienceMetaFragment(safe.role);
+      }
+      if (!role && lines.length) {
+        role = lines.find(function (line) {
+          return looksLikeCvRoleTitleLine(line, "") || looksLikeExperienceRoleLabel(line);
+        }) || "";
+      }
+      if (!company && lines.length) {
+        company =
+          lines
+            .map(function (line) {
+              return detectCompanyNameFromText(line) || "";
+            })
+            .filter(Boolean)[0] || "";
+      }
+
+      return {
+        heading: cleanMessageText([role, company].filter(Boolean).join(" at ")),
+        lines: dedupeList(
+          [role, company, safe.dates, safe.location]
+            .concat(lines)
+            .map(cleanMessageText)
+            .filter(Boolean)
+        ),
+        bullets: bullets.slice(0, 8),
+        parserSource: "date_anchor",
+      };
+    }
+
+    function buildCvDateAnchoredExperienceEntries(lines) {
+      var cleanLines = (lines || [])
+        .map(cleanCvParserEntryHeadingLine)
+        .filter(Boolean);
+      var entries = [];
+      var index = 0;
+
+      function previousUsefulLine(startIndex, offset) {
+        var found = 0;
+        var i;
+        for (i = startIndex - 1; i >= 0; i -= 1) {
+          var line = cleanLines[i];
+          if (
+            !line ||
+            isCvContactLine(line) ||
+            getCvSectionMetaFromLine(line) ||
+            looksLikeCvPureDateRangeLine(line)
+          ) {
+            continue;
+          }
+          found += 1;
+          if (found === offset) {
+            return line;
+          }
+        }
+        return "";
+      }
+
+      function nextUsefulLine(startIndex, offset) {
+        var found = 0;
+        var i;
+        for (i = startIndex + 1; i < cleanLines.length; i += 1) {
+          var line = cleanLines[i];
+          if (!line || shouldStopCvDateAnchoredEntryCollection(line)) {
+            continue;
+          }
+          found += 1;
+          if (found === offset) {
+            return line;
+          }
+        }
+        return "";
+      }
+
+      function lineLooksLikeAnchor(candidate) {
+        var clean = cleanMessageText(candidate || "");
+        if (!clean || shouldStopCvDateAnchoredEntryCollection(clean)) {
+          return false;
+        }
+        if (getCvLeadingDateRangeMatch(clean)) {
+          return true;
+        }
+        if (looksLikeCvPureDateRangeLine(clean)) {
+          return true;
+        }
+        return (
+          getCvDateRangeFromAnyLine(clean) &&
+          clean.split(/\s+/).filter(Boolean).length <= 18
+        );
+      }
+
+      while (index < cleanLines.length) {
+        var line = cleanLines[index];
+        var leading = getCvLeadingDateRangeMatch(line);
+        var dateText = getCvDateRangeFromAnyLine(line);
+        var role = "";
+        var company = "";
+        var location = "";
+        var rest = "";
+        var entryLines = [];
+        var bullets = [];
+        var cursor;
+        var entry;
+
+        if (!lineLooksLikeAnchor(line) || !dateText) {
+          index += 1;
+          continue;
+        }
+
+        if (leading && leading.rest) {
+          rest = cleanMessageText(leading.rest);
+          var parsed = parseCvStructuredDatedEntryLine(line);
+          if (parsed) {
+            role = parsed.role || "";
+            company = parsed.company || "";
+            location = parsed.location || "";
+          }
+          if (!role && rest) {
+            role = cleanExperienceMetaFragment(rest);
+          }
+        } else {
+          var prevOne = previousUsefulLine(index, 1);
+          var prevTwo = previousUsefulLine(index, 2);
+          var nextOne = nextUsefulLine(index, 1);
+          var nextTwo = nextUsefulLine(index, 2);
+          rest = removeCvDateRangeFromLine(line);
+
+          if (rest && (looksLikeCvRoleTitleLine(rest, "") || looksLikeExperienceRoleLabel(rest))) {
+            role = rest;
+          } else if (
+            prevOne &&
+            (looksLikeCvRoleTitleLine(prevOne, "") ||
+              looksLikeExperienceRoleLabel(prevOne))
+          ) {
+            role = prevOne;
+          } else if (
+            nextOne &&
+            (looksLikeCvRoleTitleLine(nextOne, "") ||
+              looksLikeExperienceRoleLabel(nextOne))
+          ) {
+            role = nextOne;
+          }
+
+          if (
+            prevTwo &&
+            (looksLikeDetectedCompanyName(prevTwo) ||
+              detectCompanyNameFromText(prevTwo))
+          ) {
+            company = detectCompanyNameFromText(prevTwo) || prevTwo;
+          } else if (
+            prevOne &&
+            prevOne !== role &&
+            (looksLikeDetectedCompanyName(prevOne) ||
+              detectCompanyNameFromText(prevOne))
+          ) {
+            company = detectCompanyNameFromText(prevOne) || prevOne;
+          } else if (
+            nextOne &&
+            nextOne !== role &&
+            (looksLikeDetectedCompanyName(nextOne) ||
+              detectCompanyNameFromText(nextOne))
+          ) {
+            company = detectCompanyNameFromText(nextOne) || nextOne;
+          } else if (
+            nextTwo &&
+            nextTwo !== role &&
+            (looksLikeDetectedCompanyName(nextTwo) ||
+              detectCompanyNameFromText(nextTwo))
+          ) {
+            company = detectCompanyNameFromText(nextTwo) || nextTwo;
+          }
+
+          if (!company && rest) {
+            company = detectCompanyNameFromText(rest) || "";
+          }
+        }
+
+        cursor = index + 1;
+        while (cursor < cleanLines.length) {
+          var candidate = cleanLines[cursor];
+          if (lineLooksLikeAnchor(candidate)) {
+            break;
+          }
+          if (shouldStopCvDateAnchoredEntryCollection(candidate)) {
+            break;
+          }
+          if (
+            candidate !== role &&
+            candidate !== company &&
+            !isCvContactLine(candidate)
+          ) {
+            entryLines.push(candidate);
+            if (
+              isCvBulletLine(candidate) ||
+              isCvEvidenceLine(candidate) ||
+              hasCvProfessionalActionSignal(candidate)
+            ) {
+              bullets.push(candidate);
+            }
+          }
+          cursor += 1;
+        }
+
+        entry = normalizeCvDateAnchoredEntry({
+          role: role,
+          company: company,
+          dates: dateText,
+          location: location,
+          lines: entryLines,
+          bullets: bullets,
+        });
+
+        if (
+          entry &&
+          entry.bullets.length &&
+          (entry.heading || entry.lines.length) &&
+          scoreCvDateAnchoredExperienceEntry(entry) >= 8
+        ) {
+          entries.push(entry);
+        }
+
+        index = Math.max(index + 1, cursor);
+      }
+
+      return dedupeListByKey(entries, function (entry) {
+        return cleanMessageText(
+          [entry.heading, entry.dates, (entry.bullets || [])[0]].join(" ")
+        ).toLowerCase();
+      }).slice(0, 10);
     }
 
     function getCvSectionMetaFromLine(line) {
@@ -58369,6 +59036,7 @@
           sectionKey || ""
         );
         var isEducationSection = /^education$/i.test(sectionKey || "");
+        var skipUntilIndex = -1;
 
         function pushEntry() {
           if (
@@ -58391,11 +59059,32 @@
           entries.forEach(function (candidate) {
             var heading = cleanMessageText(candidate && candidate.heading);
             var previous = normalized[normalized.length - 1];
+            var candidateHasDate = ((candidate && candidate.lines) || []).some(
+              function (line) {
+                return hasCvDateRange(line) || looksLikeCvPureDateRangeLine(line);
+              }
+            );
+            var candidateHasBullets = Boolean(
+              ((candidate && candidate.bullets) || []).length
+            );
+            var shortDanglingHeading =
+              isExperienceSection &&
+              previous &&
+              heading &&
+              !candidateHasDate &&
+              !candidateHasBullets &&
+              heading.split(/\s+/).filter(Boolean).length <= 6 &&
+              !looksLikeExperienceRoleLabel(heading) &&
+              !hasCvProfessionalActionSignal(heading);
             var shouldMerge =
               isExperienceSection &&
               previous &&
-              (/^(?:[a-z(]|\d+(?:[.%]|\s*%|\b))/.test(heading) ||
+              (shortDanglingHeading ||
+                /^(?:[a-z(]|\d+(?:[.%]|\s*%|\b))/.test(heading) ||
                 /^(?:and|or|with|for|of|in|to)\b/i.test(heading) ||
+                /^(?:m&a coverage|key activities|selected transactions|selected transaction|deal experience|transaction experience|coverage|responsibilities|achievements)\b/i.test(
+                  heading
+                ) ||
                 hasCvProfessionalActionSignal(heading));
             if (shouldMerge) {
               previous.lines = dedupeList(
@@ -58439,14 +59128,143 @@
           return false;
         }
 
+        function startStructuredExperienceEntry(structured) {
+          pushEntry();
+          entry = {
+            heading: cleanMessageText(
+              [structured.role, structured.company].filter(Boolean).join(" at ")
+            ),
+            lines: [
+              structured.role,
+              structured.company,
+              structured.dates,
+              structured.location,
+            ].filter(Boolean),
+            bullets: [],
+          };
+        }
+
+        function looksLikeCompanyFirstEntryStart(index) {
+          var companyLine = cleanMessageText(items[index] || "");
+          var roleLine = cleanMessageText(items[index + 1] || "");
+          var dateLine = cleanMessageText(items[index + 2] || "");
+          return (
+            companyLine &&
+            roleLine &&
+            dateLine &&
+            !isCvEvidenceLine(companyLine) &&
+            !hasCvProfessionalActionSignal(companyLine) &&
+            (looksLikeCvCompanyOrProjectHeading(companyLine) ||
+              looksLikeDetectedCompanyName(companyLine) ||
+              detectCompanyNameFromText(companyLine)) &&
+            (looksLikeExperienceRoleLabel(roleLine) ||
+              looksLikeCvRoleTitleLine(roleLine, "")) &&
+            (looksLikeCvPureDateRangeLine(dateLine) ||
+              getCvTailoringLooseDateText(dateLine))
+          );
+        }
+
+        function buildCompanyFirstExperienceEntries() {
+          var built = [];
+          var index = 0;
+          while (index < (items || []).length) {
+            if (!looksLikeCompanyFirstEntryStart(index)) {
+              index += 1;
+              continue;
+            }
+            var companyLine = cleanMessageText(items[index] || "");
+            var roleLine = cleanMessageText(items[index + 1] || "");
+            var dateLine = cleanMessageText(items[index + 2] || "");
+            var companyLocation = extractCvTrailingLocation(companyLine);
+            var company =
+              sanitizeTailoredCvRenderedCompany(companyLocation.text, "") ||
+              cleanMessageText(companyLocation.text || companyLine);
+            var builtEntry = {
+              heading: cleanMessageText(
+                [roleLine, company].filter(Boolean).join(" at ")
+              ),
+              lines: [
+                cleanExperienceMetaFragment(roleLine),
+                company,
+                getCvTailoringDateRangeText(dateLine) ||
+                  getCvTailoringLooseDateText(dateLine) ||
+                  dateLine,
+                companyLocation.location,
+              ].filter(Boolean),
+              bullets: [],
+            };
+            index += 3;
+            while (index < (items || []).length) {
+              var cleanLine = cleanMessageText(items[index] || "");
+              var previousBullet =
+                builtEntry.bullets[builtEntry.bullets.length - 1] || "";
+              if (
+                looksLikeCompanyFirstEntryStart(index) ||
+                getCvSectionMetaFromLine(cleanLine)
+              ) {
+                break;
+              }
+              if (
+                cleanLine &&
+                !isCvContactLine(cleanLine) &&
+                !looksLikeCvPureDateRangeLine(cleanLine) &&
+                !looksLikeDetectedCompanyName(cleanLine) &&
+                !looksLikeExperienceRoleLabel(cleanLine)
+              ) {
+                builtEntry.lines.push(cleanLine);
+                if (
+                  hasCvProfessionalActionSignal(cleanLine) ||
+                  isCvEvidenceLine(cleanLine) ||
+                  cleanLine.split(/\s+/).filter(Boolean).length >= 6
+                ) {
+                  if (
+                    previousBullet &&
+                    /^[a-z(]/.test(cleanLine) &&
+                    !hasCvProfessionalActionSignal(cleanLine)
+                  ) {
+                    builtEntry.bullets[builtEntry.bullets.length - 1] =
+                      cleanMessageText(previousBullet + " " + cleanLine);
+                  } else {
+                    builtEntry.bullets.push(stripCvBulletPrefix(cleanLine));
+                  }
+                }
+              }
+              index += 1;
+            }
+            builtEntry.lines = dedupeList(
+              builtEntry.lines.map(cleanMessageText).filter(Boolean)
+            );
+            builtEntry.bullets = dedupeList(
+              builtEntry.bullets.map(cleanMessageText).filter(Boolean)
+            );
+            built.push(builtEntry);
+          }
+          return built.filter(function (candidate) {
+            return candidate && candidate.bullets && candidate.bullets.length;
+          });
+        }
+
+        if (isExperienceSection) {
+          var companyFirstEntries = buildCompanyFirstExperienceEntries();
+          if (companyFirstEntries.length >= 2) {
+            return companyFirstEntries.slice(0, 8);
+          }
+        }
+
         (items || []).forEach(function (item, index) {
           var next = items[index + 1] || "";
+          var afterNext = items[index + 2] || "";
+          var thirdAfter = items[index + 3] || "";
           var clean = cleanMessageText(item);
+          var structuredDatedEntry;
           var previousLine =
             entry && entry.lines && entry.lines.length
               ? entry.lines[entry.lines.length - 1]
               : "";
           if (!clean) {
+            return;
+          }
+          if (index <= skipUntilIndex) {
             return;
           }
           if (isCvTrackMarker(clean)) {
@@ -58463,6 +59281,111 @@
               clean
             )
           ) {
+            return;
+          }
+
+          if (
+            isExperienceSection &&
+            getCvLeadingDateRangeMatch(clean) &&
+            /\b(?:summer|winter|spring|fall|autumn)\s*$/i.test(clean) &&
+            /^intern\s*[-–—]\s+/i.test(next)
+          ) {
+            var leadingDateEntry = getCvLeadingDateRangeMatch(clean);
+            var internRole = cleanMessageText(
+              leadingDateEntry.rest +
+                " " +
+                next.replace(/\s*[-–—]\s+.+$/, "")
+            );
+            var internCompanyLocation = extractCvTrailingLocation(
+              cleanMessageText(
+                next.replace(/^intern\s*[-–—]\s*/i, "") + " " + afterNext
+              )
+            );
+            structuredDatedEntry = {
+              dates: leadingDateEntry.dateText,
+              role: sanitizeTailoredCvRenderedRole(internRole) || internRole,
+              company:
+                sanitizeTailoredCvRenderedCompany(
+                  internCompanyLocation.text,
+                  ""
+                ) || cleanMessageText(internCompanyLocation.text),
+              location: internCompanyLocation.location,
+              label: cleanMessageText(
+                [internRole, internCompanyLocation.text]
+                  .filter(Boolean)
+                  .join(" at ")
+              ),
+            };
+            if (structuredDatedEntry) {
+              skipUntilIndex = index + 2;
+            }
+          }
+          if (!structuredDatedEntry) {
+            structuredDatedEntry = parseCvStructuredDatedEntryLine(clean);
+          }
+          if (!structuredDatedEntry && isExperienceSection) {
+            if (looksLikeCvPureDateRangeLine(clean) && next) {
+              structuredDatedEntry = parseCvSeparatedDatedEntryLines(
+                clean,
+                next,
+                afterNext,
+                thirdAfter
+              );
+              if (structuredDatedEntry) {
+                skipUntilIndex =
+                  thirdAfter &&
+                  /\b(?:ltd|limited|llc|llp|plc|inc|corp|corporation|company|co\.?|s\.p\.a\.|s\.r\.l\.|bank|capital|partners|group|holdings)\b/i.test(
+                    cleanMessageText(afterNext + " " + thirdAfter)
+                  )
+                  ? index + 3
+                    : index + 2;
+              }
+            } else if (looksLikeCvPureDateRangeLine(next) && afterNext) {
+              structuredDatedEntry = parseCvSeparatedDatedEntryLines(
+                next,
+                clean,
+                afterNext,
+                thirdAfter
+              );
+              if (structuredDatedEntry) {
+                skipUntilIndex =
+                  thirdAfter &&
+                  /\b(?:ltd|limited|llc|llp|plc|inc|corp|corporation|company|co\.?|s\.p\.a\.|s\.r\.l\.|bank|capital|partners|group|holdings)\b/i.test(
+                    cleanMessageText(afterNext + " " + thirdAfter)
+                  )
+                    ? index + 3
+                    : index + 2;
+              }
+            }
+          }
+          if (
+            structuredDatedEntry &&
+            isExperienceSection &&
+            (looksLikeExperienceRoleLabel(structuredDatedEntry.role) ||
+              looksLikeCvRoleTitleLine(structuredDatedEntry.role, "") ||
+              looksLikeDetectedCompanyName(structuredDatedEntry.company))
+          ) {
+            startStructuredExperienceEntry(structuredDatedEntry);
+            return;
+          }
+
+          if (
+            structuredDatedEntry &&
+            isEducationSection &&
+            entry &&
+            entry.lines.length
+          ) {
+            pushEntry();
+            entry = {
+              heading: clean,
+              lines: [
+                structuredDatedEntry.role || clean,
+                structuredDatedEntry.company,
+                structuredDatedEntry.dates,
+                structuredDatedEntry.location,
+              ].filter(Boolean),
+              bullets: [],
+            };
             return;
           }
 
@@ -58492,6 +59415,21 @@
             !looksLikeCvPureDateRangeLine(previousLine)
           ) {
             entry.lines.push(clean);
+            return;
+          }
+
+          if (
+            isExperienceSection &&
+            entry &&
+            hasCvDateRange((entry.lines || []).join(" ")) &&
+            (!looksLikeCvRoleTitleLine(clean, next) ||
+              hasCvProfessionalActionSignal(clean) ||
+              isCvEvidenceLine(clean)) &&
+            !looksLikeCvCompanyOrProjectHeading(clean) &&
+            (hasCvProfessionalActionSignal(clean) || isCvEvidenceLine(clean))
+          ) {
+            entry.lines.push(clean);
+            entry.bullets.push(stripCvBulletPrefix(clean));
             return;
           }
 
@@ -58540,6 +59478,19 @@
             entry &&
             looksLikeCvRoleTitleLine(clean, next) &&
             looksLikeCvCompanyOrProjectHeading(entry.heading) &&
+            entry.lines.length <= 2 &&
+            !entry.bullets.length
+          ) {
+            entry.lines.push(clean);
+            return;
+          }
+
+          if (
+            isExperienceSection &&
+            entry &&
+            looksLikeCvCompanyOrProjectHeading(entry.heading) &&
+            looksLikeExperienceRoleLabel(clean) &&
+            looksLikeCvPureDateRangeLine(next) &&
             entry.lines.length <= 2 &&
             !entry.bullets.length
           ) {
@@ -58893,6 +59844,134 @@
         return sectionList;
       }
 
+      function getCvExperienceEntryQuality(entries) {
+        var safeEntries = entries || [];
+        var bulletCount = 0;
+        var datedCount = 0;
+        var coherentCount = 0;
+        var embeddedBoundaryCount = 0;
+
+        safeEntries.forEach(function (entry) {
+          var lines = ((entry && entry.lines) || []).concat(
+            (entry && entry.bullets) || []
+          );
+          var bullets = (entry && entry.bullets) || [];
+          bulletCount += bullets.length;
+          if (
+            lines.some(function (line) {
+              return hasCvDateRange(line) || looksLikeCvPureDateRangeLine(line);
+            })
+          ) {
+            datedCount += 1;
+          }
+          if (
+            entry &&
+            entry.heading &&
+            bullets.length &&
+            lines.some(function (line) {
+              return isCvEvidenceLine(line) || hasCvProfessionalActionSignal(line);
+            })
+          ) {
+            coherentCount += 1;
+          }
+          embeddedBoundaryCount += lines.filter(hasEmbeddedCvEntryBoundary).length;
+        });
+
+        return {
+          entries: safeEntries.length,
+          bullets: bulletCount,
+          dated: datedCount,
+          coherent: coherentCount,
+          embedded: embeddedBoundaryCount,
+          score:
+            safeEntries.length * 4 +
+            bulletCount * 2 +
+            datedCount * 3 +
+            coherentCount * 5 -
+            embeddedBoundaryCount * 8,
+        };
+      }
+
+      function shouldUseDateAnchoredExperienceEntries(currentEntries, anchoredEntries) {
+        var currentQuality = getCvExperienceEntryQuality(currentEntries);
+        var anchoredQuality = getCvExperienceEntryQuality(anchoredEntries);
+
+        if (!anchoredEntries || anchoredEntries.length < 2) {
+          return false;
+        }
+        if (!currentEntries || !currentEntries.length) {
+          return true;
+        }
+        if (
+          anchoredQuality.coherent >= currentQuality.coherent + 2 ||
+          anchoredQuality.dated >= currentQuality.dated + 2
+        ) {
+          return true;
+        }
+        if (
+          currentQuality.embedded &&
+          anchoredQuality.embedded < currentQuality.embedded
+        ) {
+          return true;
+        }
+        if (
+          anchoredQuality.entries >= currentQuality.entries &&
+          anchoredQuality.bullets >= currentQuality.bullets + 3
+        ) {
+          return true;
+        }
+        return anchoredQuality.score >= currentQuality.score + 8;
+      }
+
+      function applyDateAnchoredExperienceSections(sectionList) {
+        var anchoredEntries = buildCvDateAnchoredExperienceEntries(lines);
+        var existingExperience = null;
+        var currentEntries = [];
+
+        (sectionList || []).some(function (section) {
+          var key = String((section && section.key) || "").toLowerCase();
+          if (key === "experience" || key === "experience_previous") {
+            existingExperience = section;
+            currentEntries = currentEntries.concat((section && section.entries) || []);
+          }
+          return false;
+        });
+
+        if (!shouldUseDateAnchoredExperienceEntries(currentEntries, anchoredEntries)) {
+          return sectionList;
+        }
+
+        if (existingExperience) {
+          existingExperience.entries = anchoredEntries;
+          existingExperience.items = dedupeList(
+            anchoredEntries.reduce(function (list, entry) {
+              return list
+                .concat((entry && entry.lines) || [])
+                .concat((entry && entry.bullets) || []);
+            }, [])
+          );
+          existingExperience.parserSource = "date_anchor";
+          return sectionList;
+        }
+
+        sectionList.push({
+          key: "experience",
+          title: "Experience",
+          track: "main",
+          items: dedupeList(
+            anchoredEntries.reduce(function (list, entry) {
+              return list
+                .concat((entry && entry.lines) || [])
+                .concat((entry && entry.bullets) || []);
+            }, [])
+          ),
+          entries: anchoredEntries,
+          parserSource: "date_anchor",
+        });
+        return sectionList;
+      }
+
+      sections = applyDateAnchoredExperienceSections(sections);
       sections = rescueSparseExperienceSections(sections);
 
       return sections.slice(0, 8);
@@ -59776,7 +60855,7 @@
       if (!clean) {
         return false;
       }
-      return /^(?:(?:19|20)\d{2}|\d{2}\/\d{4}|(?:jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)[a-z]*,?\s+\d{4}|(?:يناير|فبراير|مارس|أبريل|ابريل|مايو|يونيو|يوليو|أغسطس|اغسطس|سبتمبر|أكتوبر|اكتوبر|نوفمبر|ديسمبر)\s+\d{4})\s*(?:to|\-|–|—)\s*(?:present|current|حتى الآن|حتى الان|إلى الآن|الى الان|حاليا|حالياً|مستمر|(?:19|20)\d{2}|\d{2}\/\d{4}|(?:jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)[a-z]*,?\s+\d{4}|(?:يناير|فبراير|مارس|أبريل|ابريل|مايو|يونيو|يوليو|أغسطس|اغسطس|سبتمبر|أكتوبر|اكتوبر|نوفمبر|ديسمبر)\s+\d{4})$/i.test(
+      return /^(?:(?:19|20)\d{2}|\d{1,2}\/\d{2,4}|(?:jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)[a-z]*,?\s+\d{4}|(?:يناير|فبراير|مارس|أبريل|ابريل|مايو|يونيو|يوليو|أغسطس|اغسطس|سبتمبر|أكتوبر|اكتوبر|نوفمبر|ديسمبر)\s+\d{4})\s*(?:to|\-|–|—)\s*(?:present|current|حتى الآن|حتى الان|إلى الآن|الى الان|حاليا|حالياً|مستمر|(?:19|20)\d{2}|\d{1,2}\/\d{2,4}|(?:jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)[a-z]*,?\s+\d{4}|(?:يناير|فبراير|مارس|أبريل|ابريل|مايو|يونيو|يوليو|أغسطس|اغسطس|سبتمبر|أكتوبر|اكتوبر|نوفمبر|ديسمبر)\s+\d{4})$/i.test(
         clean
       );
     }
@@ -60193,7 +61272,7 @@
       ) {
         return true;
       }
-      return /^(?:period|current|present|completed|results?|resume checker results?|matric|qualification|qualifications|berufserfahrung|thesis|kontakt|contact|education|experience|skills|languages?|profile|about me|date of birth|status|nationality|madrid|london|dubai|riyadh|milan|paris|rome|toronto|india|uk|usa|uae|egypt|spain|switzerland|france|germany)$/i.test(
+      return /^(?:period|current|present|completed|results?|resume checker results?|matric|qualification|qualifications|berufserfahrung|thesis|kontakt|contact|education|experience|professional experience|work experience|work history|employment|skills|languages?|profile|about me|date of birth|status|nationality|madrid|london|dubai|riyadh|milan|paris|rome|toronto|india|uk|usa|uae|egypt|spain|switzerland|france|germany)$/i.test(
         clean
       );
     }
@@ -60404,12 +61483,91 @@
       var cleanHeading = cleanMessageText(meta.heading || "");
       var directCompany = "";
       var directRole = "";
+      var structuredDatedEntry = null;
 
       function splitParts(text) {
         return cleanMessageText(text)
           .split(/\s*[|•·▪◦\-–—]\s*|\s*:\s*/)
           .map(cleanExperienceMetaFragment)
           .filter(Boolean);
+      }
+
+      if (
+        lines.length >= 3 &&
+        (looksLikeExperienceRoleLabel(lines[0]) ||
+          looksLikeCvRoleTitleLine(lines[0], "")) &&
+        !hasCvDateRange(lines[0]) &&
+        !isCvEvidenceLine(lines[0])
+      ) {
+        var separatedCompany = cleanMessageText(
+          detectCompanyNameFromText(lines[1]) || lines[1]
+        );
+        var separatedDate = lines.slice(1, 4).find(function (line) {
+          return (
+            looksLikeCvPureDateRangeLine(line) ||
+            hasCvDateRange(line) ||
+            getCvTailoringLooseDateText(line)
+          );
+        });
+        if (
+          separatedCompany &&
+          separatedDate &&
+          !looksLikeExperienceRoleLabel(separatedCompany) &&
+          !isCvEvidenceLine(separatedCompany)
+        ) {
+          return {
+            role: normalizeCvRoleTitleText(lines[0]),
+            company: separatedCompany,
+            label: cleanMessageText(
+              [normalizeCvRoleTitleText(lines[0]), separatedCompany]
+                .filter(Boolean)
+                .join(" at ")
+            ),
+          };
+        }
+      }
+
+      if (
+        lines.length >= 3 &&
+        looksLikeCvCompanyOrProjectHeading(lines[0]) &&
+        (looksLikeExperienceRoleLabel(lines[1]) ||
+          looksLikeCvRoleTitleLine(lines[1], "")) &&
+        (looksLikeCvPureDateRangeLine(lines[2]) ||
+          hasCvDateRange(lines[2]) ||
+          getCvTailoringLooseDateText(lines[2]))
+      ) {
+        return {
+          role: normalizeCvRoleTitleText(lines[1]),
+          company: cleanMessageText(
+            detectCompanyNameFromText(lines[0]) || lines[0]
+          ),
+          label: cleanMessageText(
+            [
+              normalizeCvRoleTitleText(lines[1]),
+              detectCompanyNameFromText(lines[0]) || lines[0],
+            ]
+              .filter(Boolean)
+              .join(" at ")
+          ),
+        };
+      }
+
+      lines.slice(0, 4).some(function (line) {
+        structuredDatedEntry = parseCvStructuredDatedEntryLine(line);
+        return !!structuredDatedEntry;
+      });
+
+      if (structuredDatedEntry) {
+        return {
+          role: cleanMessageText(structuredDatedEntry.role || ""),
+          company: cleanMessageText(structuredDatedEntry.company || ""),
+          label: cleanMessageText(
+            structuredDatedEntry.label ||
+              [structuredDatedEntry.role, structuredDatedEntry.company]
+                .filter(Boolean)
+                .join(" at ")
+          ),
+        };
       }
 
       lines.slice(0, 5).some(function (line) {
@@ -83800,6 +84958,24 @@
       });
     }
 
+    function deactivateVisibleInlineActionRows() {
+      var rows = Array.prototype.slice.call(
+        messages
+          ? messages.querySelectorAll(".sffc-crm-apply-chat__inline-action-row")
+          : []
+      );
+      rows.forEach(function (row) {
+        row.setAttribute("data-sffc-apply-chat-stale-actions", "1");
+        Array.prototype.slice
+          .call(row.querySelectorAll("button"))
+          .forEach(function (button) {
+            button.disabled = true;
+            button.setAttribute("aria-disabled", "true");
+          });
+      });
+    }
+
+
     function removeVisibleRouteSelectors() {
       var selectors = Array.prototype.slice.call(
         messages
@@ -106386,6 +107562,12 @@
           .replace(/\bcurrent\b/i, "Present");
       }
       match = clean.match(
+        /\b\d{1,2}\/\d{2,4}\s*(?:[-–—]|to)\s*(?:present|current|\d{1,2}\/\d{2,4})\b/i
+      );
+      if (match && match[0]) {
+        return cleanMessageText(match[0]).replace(/\bcurrent\b/i, "Present");
+      }
+      match = clean.match(
         /\b\d{1,2}\/\d{1,2}\/\d{2,4}\s*(?:[-–—]|to)\s*(?:present|current|\d{1,2}\/\d{1,2}\/\d{2,4})\b/i
       );
       if (match && match[0]) {
@@ -107010,11 +108192,21 @@
           return count + ((entry && entry.bullets) || []).length;
         }, 0);
       }
+      var allExperienceEntries = text ? getExperienceEntries(sections) : [];
       var rankedEntries = text
         ? config.full
-          ? getExperienceEntries(sections).slice(0, 6)
+          ? allExperienceEntries.slice(0, 8)
           : pickRelevantExperienceEntries(analysis || {}, sections, 3)
         : [];
+      if (
+        !config.full &&
+        allExperienceEntries.length > rankedEntries.length &&
+        allExperienceEntries.length <= 8 &&
+        countEntryBullets(allExperienceEntries) >=
+          Math.max(3, countEntryBullets(rankedEntries))
+      ) {
+        rankedEntries = allExperienceEntries;
+      }
       if (config.full && text && countEntryBullets(rankedEntries) < 2) {
         rankedEntries = getAllRelevantExperienceEntries(
           analysis || {},
@@ -107071,7 +108263,66 @@
             context.company || "",
             candidateName
           );
+          if (
+            allEntryLines.length >= 3 &&
+            (looksLikeExperienceRoleLabel(allEntryLines[0]) ||
+              looksLikeCvRoleTitleLine(allEntryLines[0], "")) &&
+            !hasCvDateRange(allEntryLines[0]) &&
+            !isCvEvidenceLine(allEntryLines[0])
+          ) {
+            var explicitCompany = cleanMessageText(
+              detectCompanyNameFromText(allEntryLines[1]) || allEntryLines[1]
+            );
+            var explicitDate = allEntryLines.slice(1, 4).find(function (line) {
+              return (
+                looksLikeCvPureDateRangeLine(line) ||
+                hasCvDateRange(line) ||
+                getCvTailoringLooseDateText(line)
+              );
+            });
+            if (
+              explicitCompany &&
+              explicitDate &&
+              !hasCvDateRange(explicitCompany) &&
+              !looksLikeCvPureDateRangeLine(explicitCompany) &&
+              !looksLikeExperienceRoleLabel(explicitCompany) &&
+              !isCvEvidenceLine(explicitCompany)
+            ) {
+              resolvedMeta.role =
+                sanitizeTailoredCvRenderedRole(allEntryLines[0]) ||
+                cleanExperienceMetaFragment(allEntryLines[0]);
+              resolvedMeta.company =
+                sanitizeTailoredCvRenderedCompany(
+                  explicitCompany,
+                  candidateName
+                ) || explicitCompany;
+            }
+          }
+          if (
+            allEntryLines.length >= 3 &&
+            looksLikeCvCompanyOrProjectHeading(allEntryLines[0]) &&
+            (looksLikeExperienceRoleLabel(allEntryLines[1]) ||
+              looksLikeCvRoleTitleLine(allEntryLines[1], "")) &&
+            (looksLikeCvPureDateRangeLine(allEntryLines[2]) ||
+              hasCvDateRange(allEntryLines[2]) ||
+              getCvTailoringLooseDateText(allEntryLines[2]))
+          ) {
+            var companyFirstValue = cleanMessageText(
+              detectCompanyNameFromText(allEntryLines[0]) || allEntryLines[0]
+            );
+            if (companyFirstValue && !hasCvDateRange(companyFirstValue)) {
+              resolvedMeta.role =
+                sanitizeTailoredCvRenderedRole(allEntryLines[1]) ||
+                cleanExperienceMetaFragment(allEntryLines[1]);
+              resolvedMeta.company =
+                sanitizeTailoredCvRenderedCompany(
+                  companyFirstValue,
+                  candidateName
+                ) || companyFirstValue;
+            }
+          }
           var structuredCompany =
+            (context && context.company) ||
             detectCompanyNameFromText((entry && entry.heading) || "") ||
             sanitizeTailoredCvRenderedCompany(
               cleanExperienceMetaFragment((entry && entry.heading) || ""),
@@ -107082,6 +108333,7 @@
             return (
               cleanLine &&
               !hasCvDateRange(cleanLine) &&
+              !/\s+at\s+/i.test(cleanLine) &&
               !isCvEvidenceLine(cleanLine) &&
               (looksLikeExperienceRoleLabel(cleanLine) ||
                 looksLikeCvRoleTitleLine(cleanLine, ""))
@@ -107170,6 +108422,78 @@
         .filter(function (entry) {
           return entry && entry.bullets.length && (entry.role || entry.company);
         });
+      if (rankedEntries.length) {
+        (config.full ? rankedEntries : getExperienceEntries(sections)).forEach(function (sourceEntry) {
+          var context = extractPrimaryExperienceRoleContext(sourceEntry || {});
+          var allSourceLines = [sourceEntry && sourceEntry.heading]
+            .concat((sourceEntry && sourceEntry.lines) || [])
+            .concat((sourceEntry && sourceEntry.bullets) || [])
+            .map(cleanMessageText)
+            .filter(Boolean);
+          var existing = rewrittenEntries.some(function (entry) {
+            var combined = cleanMessageText(
+              [entry && entry.role, entry && entry.company].join(" ")
+            ).toLowerCase();
+            var companyKey = cleanMessageText(context.company || "").toLowerCase();
+            var roleKey = cleanMessageText(context.role || "").toLowerCase();
+            if (companyKey) {
+              return combined.indexOf(companyKey) !== -1;
+            }
+            return Boolean(
+              roleKey &&
+                cleanMessageText(entry && entry.role).toLowerCase() === roleKey
+            );
+          });
+          var datedLine = allSourceLines.find(function (line) {
+            return hasCvDateRange(line) || getCvTailoringLooseDateText(line);
+          });
+          var preservedBullets;
+          if (existing || !(context.role || context.company)) {
+            return;
+          }
+          preservedBullets = dedupeList(
+            ((sourceEntry && sourceEntry.bullets) || [])
+              .concat((sourceEntry && sourceEntry.lines) || [])
+              .map(stripCvBulletPrefix)
+              .map(cleanMessageText)
+              .filter(function (line) {
+                return (
+                  line &&
+                  isCvEvidenceLine(line) &&
+                  line !== cleanMessageText(context.role || "") &&
+                  line !== cleanMessageText(context.company || "") &&
+                  !looksLikeCvPureDateRangeLine(line) &&
+                  !looksLikeDetectedCompanyName(line)
+                );
+              })
+          )
+            .map(function (bullet) {
+              return rewriteCvEvidenceBullet(
+                bullet,
+                targetKeywords,
+                context.role || modelTitle
+              );
+            })
+            .filter(function (bullet) {
+              return bullet && cleanMessageText(bullet.rewritten || "");
+            })
+            .slice(0, 3);
+          if (preservedBullets.length) {
+            rewrittenEntries.push({
+              role: sanitizeTailoredCvRenderedRole(context.role) || context.role,
+              company:
+                sanitizeTailoredCvRenderedCompany(
+                  context.company,
+                  candidateName
+                ) || context.company,
+              dates:
+                getCvTailoringDateRangeText(datedLine) ||
+                getCvTailoringLooseDateText(datedLine),
+              bullets: preservedBullets,
+            });
+          }
+        });
+      }
       if (!config.full) {
         rewrittenEntries = rewrittenEntries.sort(function (left, right) {
           function entryScore(entry) {
@@ -107320,7 +108644,7 @@
           ),
         },
       };
-      if (countEntryBullets(rewrittenEntries) < 2 && text) {
+      if (countEntryBullets(rewrittenEntries) < (config.full ? 5 : 3) && text) {
         rewrittenEntries = rewrittenEntries.concat(
           buildTailoredCvFallbackExperienceEntries(
             sections,
@@ -107359,6 +108683,81 @@
             })
             .filter(Boolean)
         );
+        model.entries = rewrittenEntries;
+      }
+      if (allExperienceEntries.length > rewrittenEntries.length) {
+        allExperienceEntries.forEach(function (sourceEntry) {
+          var sourceLines = [sourceEntry && sourceEntry.heading]
+            .concat((sourceEntry && sourceEntry.lines) || [])
+            .map(cleanMessageText)
+            .filter(Boolean);
+          var roleLine = cleanMessageText(sourceLines[1] || sourceLines[0] || "");
+          var companyLine = cleanMessageText(sourceLines[2] || "");
+          var dateLine = cleanMessageText(
+            sourceLines.find(function (line) {
+              return (
+                looksLikeCvPureDateRangeLine(line) ||
+                hasCvDateRange(line) ||
+                getCvTailoringLooseDateText(line)
+              );
+            }) || ""
+          );
+          var headingSplit = cleanMessageText(
+            (sourceEntry && sourceEntry.heading) || ""
+          ).match(/^(.+?)\s+at\s+(.+)$/i);
+          var bulletsToPreserve;
+          var currentModelText = cleanMessageText(
+            rewrittenEntries
+              .map(function (entry) {
+                return [entry && entry.role, entry && entry.company].join(" ");
+              })
+              .join(" ")
+          ).toLowerCase();
+          if (headingSplit && headingSplit[1] && headingSplit[2]) {
+            roleLine = cleanMessageText(headingSplit[1]);
+            companyLine = cleanMessageText(headingSplit[2]);
+          }
+          if (
+            !roleLine ||
+            !companyLine ||
+            !dateLine ||
+            currentModelText.indexOf(companyLine.toLowerCase()) !== -1
+          ) {
+            return;
+          }
+          bulletsToPreserve = dedupeList(
+            ((sourceEntry && sourceEntry.bullets) || [])
+              .map(stripCvBulletPrefix)
+              .map(cleanMessageText)
+              .filter(function (line) {
+                return line && isCvEvidenceLine(line);
+              })
+          )
+            .map(function (bullet) {
+              return rewriteCvEvidenceBullet(
+                bullet,
+                targetKeywords,
+                roleLine || modelTitle
+              );
+            })
+            .filter(function (bullet) {
+              return bullet && cleanMessageText(bullet.rewritten || "");
+            })
+            .slice(0, 3);
+          if (bulletsToPreserve.length) {
+            rewrittenEntries.push({
+              role: sanitizeTailoredCvRenderedRole(roleLine) || roleLine,
+              company:
+                sanitizeTailoredCvRenderedCompany(companyLine, candidateName) ||
+                companyLine,
+              dates:
+                getCvTailoringDateRangeText(dateLine) ||
+                getCvTailoringLooseDateText(dateLine) ||
+                dateLine,
+              bullets: bulletsToPreserve,
+            });
+          }
+        });
         model.entries = rewrittenEntries;
       }
       model.rewritePlan.sectionOrder = [
@@ -108216,7 +109615,7 @@
           });
         })
         .filter(Boolean)
-        .slice(0, 5);
+        .slice(0, 8);
     }
 
     function finalizeTailoredCvDocumentModel(model) {
@@ -119447,6 +120846,7 @@
 
     function continueApplyResultsSelectedRole(choice) {
       var cleanChoice = cleanMessageText(choice || "").toLowerCase();
+      deactivateVisibleInlineActionRows();
       clearPromptState();
       if (
         /original|current cv|without tailor|don'?t tailor|dont tailor|skip tailor|not tailor/.test(

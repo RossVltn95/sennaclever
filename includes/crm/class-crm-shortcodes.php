@@ -41055,6 +41055,8 @@ CRITICAL INSTRUCTIONS:
                 'pdfScriptUrl' => 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js',
                 'pdfWorker' => 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js',
                 'mammothScriptUrl' => 'https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js',
+                'liteParseEndpoint' => $this->get_liteparse_endpoint(),
+                'liteParseToken' => $this->get_liteparse_public_token(),
                 'cvIntelligenceOntologyUrl' => file_exists(SFFC_PLUGIN_DIR . 'assets/data/cv-intelligence-ontology.json')
                     ? SFFC_PLUGIN_URL . 'assets/data/cv-intelligence-ontology.json?ver=' . (string) filemtime(SFFC_PLUGIN_DIR . 'assets/data/cv-intelligence-ontology.json')
                     : '',
@@ -42279,6 +42281,8 @@ CRITICAL INSTRUCTIONS:
                 'pdfScriptUrl' => 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js',
                 'pdfWorker' => 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js',
                 'mammothScriptUrl' => 'https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js',
+                'liteParseEndpoint' => $this->get_liteparse_endpoint(),
+                'liteParseToken' => $this->get_liteparse_public_token(),
                 'cvIntelligenceOntologyUrl' => file_exists(SFFC_PLUGIN_DIR . 'assets/data/cv-intelligence-ontology.json')
                     ? SFFC_PLUGIN_URL . 'assets/data/cv-intelligence-ontology.json?ver=' . (string) filemtime(SFFC_PLUGIN_DIR . 'assets/data/cv-intelligence-ontology.json')
                     : '',
@@ -91867,6 +91871,26 @@ HTML;
             });
 
             return array_slice($plans, 0, 4);
+        }
+
+        private function get_liteparse_endpoint()
+        {
+            $endpoint = defined('SFFC_LITEPARSE_ENDPOINT') ? SFFC_LITEPARSE_ENDPOINT : getenv('SFFC_LITEPARSE_ENDPOINT');
+            $endpoint = is_string($endpoint) ? trim($endpoint) : '';
+
+            if ($endpoint === '') {
+                return '';
+            }
+
+            return esc_url_raw($endpoint);
+        }
+
+        private function get_liteparse_public_token()
+        {
+            $token = defined('SFFC_LITEPARSE_PUBLIC_TOKEN') ? SFFC_LITEPARSE_PUBLIC_TOKEN : getenv('SFFC_LITEPARSE_PUBLIC_TOKEN');
+            $token = is_string($token) ? trim($token) : '';
+
+            return $token === '' ? '' : sanitize_text_field($token);
         }
 
         private function get_apply_chat_pricing_options()

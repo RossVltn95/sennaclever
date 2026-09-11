@@ -180,6 +180,29 @@ function hasEmbeddedBoundary(text) {
 
 function analyseFile(api, filePath) {
   const text = extractPdfText(filePath);
+  if (!text.replace(/\f/g, "").trim()) {
+    return {
+      file: path.basename(filePath),
+      skipped: true,
+      skipReason: "no_extractable_pdf_text",
+      sections: [],
+      sectionEntries: [],
+      sectionCount: 0,
+      entries: 0,
+      editableFieldCount: 0,
+      reviewSuggestionCount: 0,
+      highlightedFieldCount: 0,
+      inlineSuggestionActionCount: 0,
+      inlineRewriteSuggestionCount: 0,
+      hasMalformedEditableWrapper: false,
+      bullets: 0,
+      educationEntries: 0,
+      quality: "needs_ocr",
+      qualityDetails: null,
+      warnings: ["no_extractable_pdf_text"],
+      failures: [],
+    };
+  }
   api.setCapturedCvText(text);
   api.setCurrentCvFileForTest(path.basename(filePath));
   api.setRoleContext({ roleTitle: "Finance Analyst", activePath: "apply_for_me" });
@@ -277,6 +300,30 @@ function analyseFile(api, filePath) {
       failures.push("ryzhechkin_expected_document_quality");
     }
   }
+  if (/CV - Daniele Mondi \(4\)\.pdf$/i.test(filePath)) {
+    const modelCompanyText = entries
+      .map((entry) => `${entry && entry.company} ${entry && entry.role}`)
+      .join(" ");
+    const entriesWithDates = entries.filter((entry) => entry && entry.dates).length;
+    if (entries.length < 4) failures.push("daniele_expected_four_model_entries");
+    if (bullets.length < 8) failures.push("daniele_expected_eight_bullets");
+    if (entriesWithDates < 4) failures.push("daniele_expected_dated_entries");
+    [
+      ["Mediobanca", "daniele_mediobanca_missing"],
+      ["Mare Holding", "daniele_mare_holding_missing"],
+      ["Tilad Investment", "daniele_tilad_missing"],
+      ["XTAL Strategies", "daniele_xtal_missing"],
+      ["Philmark", "daniele_philmark_missing"],
+      ["Qi4M", "daniele_qi4m_missing"],
+    ].forEach(([needle, failure]) => {
+      if (!new RegExp(`\\b${needle}\\b`, "i").test(modelCompanyText)) {
+        failures.push(failure);
+      }
+    });
+    if (model && model.documentQuality && model.documentQuality.status !== "document") {
+      failures.push("daniele_expected_document_quality");
+    }
+  }
   const result = {
     file: path.basename(filePath),
     sections: sections.map((section) => section.key),
@@ -323,6 +370,14 @@ function analyseFile(api, filePath) {
         lines: ((entry && entry.lines) || []).slice(0, 6),
         bullets: ((entry && entry.bullets) || []).slice(0, 6),
       }));
+    result.experienceItems = sections
+      .filter((section) =>
+        /^(experience|experience_previous)$/i.test(
+          String((section && section.key) || "")
+        )
+      )
+      .reduce((list, section) => list.concat((section && section.items) || []), [])
+      .slice(0, 80);
     result.modelEntries = entries.map((entry) => ({
       role: entry && entry.role,
       company: entry && entry.company,
@@ -361,12 +416,14 @@ function main() {
       };
     }
   });
+  const skipped = results.filter((result) => result.skipped);
   const failed = results.filter((result) => result.failures.length);
   console.log(
     JSON.stringify(
       {
         cvDir,
         tested: results.length,
+        skipped: skipped.length,
         passed: results.length - failed.length,
         failed: failed.length,
         failures: failed,

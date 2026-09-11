@@ -5848,6 +5848,10 @@ body.sffc-crm-apply-chat-lock {
   margin-top: 16px;
 }
 
+.sffc-crm-apply-chat__inline-action-row[data-sffc-apply-chat-stale-actions="1"] {
+  display: none !important;
+}
+
 .sffc-crm-apply-chat__inline-action {
   display: inline-flex;
   align-items: center;
