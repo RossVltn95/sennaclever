@@ -20728,6 +20728,9 @@
     var activeTailoredCvStyle = "classic";
     var tailoredCvReviewDismissed = {};
     var tailoredCvReviewAccepted = {};
+    var tailoredCvGrammarReviewsByPath = {};
+    var tailoredCvGrammarReviewSignature = "";
+    var tailoredCvGrammarReviewPendingSignature = "";
     var liveDraftAutoScrollUntil = 0;
     var liveDraftManualScrollUntil = 0;
     var advisorPhoto = root.getAttribute("data-advisor-photo") || "";
@@ -109019,6 +109022,268 @@
       );
     }
 
+    function addTailoredCvGrammarField(fields, path, value) {
+      var clean = cleanMessageText(value || "");
+      if (!path || !clean || clean.length < 10) {
+        return;
+      }
+      fields.push({
+        path: path,
+        value: clean,
+      });
+    }
+
+    function collectTailoredCvGrammarFields(model) {
+      var source = model || {};
+      var fields = [];
+      addTailoredCvGrammarField(fields, "summary", source.summary);
+      (source.entries || []).forEach(function (entry, entryIndex) {
+        addTailoredCvGrammarField(
+          fields,
+          "entries." + entryIndex + ".company",
+          entry && entry.company
+        );
+        addTailoredCvGrammarField(
+          fields,
+          "entries." + entryIndex + ".role",
+          entry && entry.role
+        );
+        ((entry && entry.bullets) || []).forEach(function (bullet, bulletIndex) {
+          addTailoredCvGrammarField(
+            fields,
+            "entries." +
+              entryIndex +
+              ".bullets." +
+              bulletIndex +
+              ".rewritten",
+            (bullet && bullet.rewritten) || bullet
+          );
+        });
+      });
+      (source.educationEntries || []).forEach(function (entry, entryIndex) {
+        addTailoredCvGrammarField(
+          fields,
+          "educationEntries." + entryIndex + ".heading",
+          entry && entry.heading
+        );
+        addTailoredCvGrammarField(
+          fields,
+          "educationEntries." + entryIndex + ".details.0",
+          ((entry && entry.details) || []).join(" ")
+        );
+      });
+      (source.skills || []).forEach(function (item, index) {
+        addTailoredCvGrammarField(fields, "skills." + index, item);
+      });
+      (source.projects || []).forEach(function (item, index) {
+        addTailoredCvGrammarField(fields, "projects." + index, item);
+      });
+      (source.awards || []).forEach(function (item, index) {
+        addTailoredCvGrammarField(fields, "awards." + index, item);
+      });
+      (source.languages || []).forEach(function (item, index) {
+        addTailoredCvGrammarField(fields, "languages." + index, item);
+      });
+      return fields;
+    }
+
+    function buildTailoredCvGrammarReviewPayload(fields) {
+      var text = "";
+      var ranges = [];
+      (fields || []).forEach(function (field) {
+        var value = cleanMessageText(field && field.value);
+        var start;
+        if (!field || !field.path || !value) {
+          return;
+        }
+        if (text) {
+          text += "\n\n";
+        }
+        start = text.length;
+        text += value;
+        ranges.push({
+          path: field.path,
+          start: start,
+          end: text.length,
+          value: value,
+        });
+      });
+      return {
+        text: text,
+        ranges: ranges,
+      };
+    }
+
+    function getTailoredCvGrammarReviewSignature(fields) {
+      return (fields || [])
+        .map(function (field) {
+          return [
+            cleanMessageText(field && field.path),
+            cleanMessageText(field && field.value),
+          ].join("=");
+        })
+        .join("|");
+    }
+
+    function getTailoredCvGrammarRangeForMatch(ranges, match) {
+      var start = Number(match && match.start);
+      var end = Number(match && match.end);
+      if (!Number.isFinite(start) || !Number.isFinite(end)) {
+        return null;
+      }
+      return (ranges || []).find(function (range) {
+        return (
+          range &&
+          start >= Number(range.start || 0) &&
+          end <= Number(range.end || 0)
+        );
+      });
+    }
+
+    function normalizeTailoredCvGrammarReview(match, range) {
+      var message = cleanMessageText(match && match.message);
+      var kind = cleanMessageText(match && match.kind);
+      var problem = cleanMessageText(match && match.problemText);
+      var suggestion =
+        ((match && match.suggestions) || []).find(function (item) {
+          return item && cleanMessageText(item.replacement || "");
+        }) || null;
+      var replacement = cleanMessageText(suggestion && suggestion.replacement);
+      var detailParts = [];
+
+      if (!message && !kind) {
+        return null;
+      }
+      if (problem) {
+        detailParts.push('"' + problem + '"');
+      }
+      if (replacement) {
+        detailParts.push("Suggestion: " + replacement);
+      }
+      if (message) {
+        detailParts.push(message);
+      }
+      return {
+        type: "quality",
+        path: range && range.path,
+        title: kind
+          ? kind + (message ? ": " + message : "")
+          : message || "Grammar issue",
+        detail: detailParts.join(" · ") || message || kind,
+        problemText: problem,
+        replacement: replacement,
+      };
+    }
+
+    function getTailoredCvGrammarSuggestion(path) {
+      var review = tailoredCvGrammarReviewsByPath[path || ""];
+      if (!review) {
+        return null;
+      }
+      return {
+        type: review.type || "quality",
+        path: path,
+        title: review.title,
+        detail: review.detail,
+      };
+    }
+
+    function applyTailoredCvGrammarReviewPayload(payload, ranges) {
+      var byPath = {};
+      ((payload && payload.matches) || []).forEach(function (match) {
+        var range = getTailoredCvGrammarRangeForMatch(ranges, match);
+        var review;
+        if (!range || byPath[range.path]) {
+          return;
+        }
+        review = normalizeTailoredCvGrammarReview(match, range);
+        if (review && review.path) {
+          byPath[review.path] = review;
+        }
+      });
+      tailoredCvGrammarReviewsByPath = byPath;
+    }
+
+    function refreshTailoredCvGrammarReviewInDom() {
+      var editor = root.querySelector("[data-sffc-tailored-cv-editor]");
+      var model = editedTailoredCvModel
+        ? getActiveTailoredCvDocumentModel(editedTailoredCvModel)
+        : null;
+      if (!editor || !model) {
+        return;
+      }
+      editor.outerHTML = renderProfessionalTailoredCvDocument(model, {
+        expanded: editor.classList.contains("is-expanded"),
+        skipGrammarReview: true,
+      });
+    }
+
+    function scheduleTailoredCvGrammarReview(model, options) {
+      var config = getConfig();
+      var endpoint = cleanMessageText(config.liteParseReviewEndpoint || "");
+      var fields;
+      var signature;
+      var payload;
+      if (
+        (options && options.skipGrammarReview) ||
+        !endpoint ||
+        !model ||
+        typeof window.fetch !== "function"
+      ) {
+        return;
+      }
+      fields = collectTailoredCvGrammarFields(model);
+      signature = getTailoredCvGrammarReviewSignature(fields);
+      if (
+        !signature ||
+        signature === tailoredCvGrammarReviewSignature ||
+        signature === tailoredCvGrammarReviewPendingSignature
+      ) {
+        return;
+      }
+      payload = buildTailoredCvGrammarReviewPayload(fields);
+      if (!payload.text) {
+        return;
+      }
+      tailoredCvGrammarReviewPendingSignature = signature;
+      window
+        .fetch(endpoint, {
+          method: "POST",
+          headers: Object.assign(
+            {
+              "Content-Type": "application/json",
+            },
+            config.liteParseToken
+              ? {
+                  Authorization:
+                    "Bearer " + String(config.liteParseToken || ""),
+                }
+              : {}
+          ),
+          body: JSON.stringify({ text: payload.text }),
+        })
+        .then(function (response) {
+          if (!response || !response.ok) {
+            throw new Error("Grammar review failed.");
+          }
+          return response.json();
+        })
+        .then(function (result) {
+          if (signature !== tailoredCvGrammarReviewPendingSignature) {
+            return;
+          }
+          tailoredCvGrammarReviewSignature = signature;
+          tailoredCvGrammarReviewPendingSignature = "";
+          applyTailoredCvGrammarReviewPayload(result || {}, payload.ranges);
+          refreshTailoredCvGrammarReviewInDom();
+        })
+        .catch(function () {
+          if (signature === tailoredCvGrammarReviewPendingSignature) {
+            tailoredCvGrammarReviewPendingSignature = "";
+          }
+        });
+    }
+
     function getTailoredCvWordCount(value) {
       return cleanMessageText(value || "")
         .split(/\s+/)
@@ -109144,7 +109409,12 @@
       var suggestions = [];
       var source = model || {};
       var quality = source.documentQuality || {};
+      var grammarSuggestion;
       if (cleanMessageText(source.summary || "")) {
+        grammarSuggestion = getTailoredCvGrammarSuggestion("summary");
+        if (grammarSuggestion) {
+          addTailoredCvReviewSuggestion(suggestions, grammarSuggestion);
+        }
         addTailoredCvReviewSuggestion(suggestions, {
           type: "structure",
           path: "summary",
@@ -109156,6 +109426,12 @@
       }
       (source.entries || []).forEach(function (entry, entryIndex) {
         if (entry && entry.company) {
+          grammarSuggestion = getTailoredCvGrammarSuggestion(
+            "entries." + entryIndex + ".company"
+          );
+          if (grammarSuggestion) {
+            addTailoredCvReviewSuggestion(suggestions, grammarSuggestion);
+          }
           addTailoredCvReviewSuggestion(suggestions, {
             type: "structure",
             path: "entries." + entryIndex + ".company",
@@ -109178,7 +109454,11 @@
             ".bullets." +
             bulletIndex +
             ".rewritten";
-          if (original && rewritten && original !== rewritten) {
+          grammarSuggestion = getTailoredCvGrammarSuggestion(path);
+          if (grammarSuggestion) {
+            hasRewriteSuggestion = true;
+            addTailoredCvReviewSuggestion(suggestions, grammarSuggestion);
+          } else if (original && rewritten && original !== rewritten) {
             var rewriteReview = getTailoredCvRewriteReview(
               original,
               rewritten
@@ -109216,6 +109496,13 @@
       });
       (source.skills || []).slice(0, 5).forEach(function (item, index) {
         if (item) {
+          grammarSuggestion = getTailoredCvGrammarSuggestion(
+            "skills." + index
+          );
+          if (grammarSuggestion) {
+            addTailoredCvReviewSuggestion(suggestions, grammarSuggestion);
+            return;
+          }
           addTailoredCvReviewSuggestion(suggestions, {
             type: "keyword",
             path: "skills." + index,
@@ -109928,7 +110215,11 @@
         editedTailoredCvDirty = false;
         tailoredCvReviewDismissed = {};
         tailoredCvReviewAccepted = {};
+        tailoredCvGrammarReviewsByPath = {};
+        tailoredCvGrammarReviewSignature = "";
+        tailoredCvGrammarReviewPendingSignature = "";
       }
+      scheduleTailoredCvGrammarReview(source, config);
       var reviewSuggestions = buildTailoredCvReviewSuggestions(source);
       var educationHtml = (source.educationEntries || [])
         .map(function (entry, index) {
@@ -136608,6 +136899,9 @@
           editedTailoredCvDirty = false;
           tailoredCvReviewDismissed = {};
           tailoredCvReviewAccepted = {};
+          tailoredCvGrammarReviewsByPath = {};
+          tailoredCvGrammarReviewSignature = "";
+          tailoredCvGrammarReviewPendingSignature = "";
           return renderProfessionalTailoredCvDocument(
             buildControlledTailoredCvModel(
               analysis || applyCvAnalysis || {},
@@ -139635,6 +139929,9 @@
       if (status) {
         status.textContent = isArabicChat() ? "تم الحفظ" : "Saved";
       }
+      tailoredCvGrammarReviewsByPath = {};
+      tailoredCvGrammarReviewSignature = "";
+      tailoredCvGrammarReviewPendingSignature = "";
       if (editor) {
         editor.classList.add("has-edits");
       }
@@ -139906,6 +140203,9 @@
       editedTailoredCvDirty = false;
       tailoredCvReviewDismissed = {};
       tailoredCvReviewAccepted = {};
+      tailoredCvGrammarReviewsByPath = {};
+      tailoredCvGrammarReviewSignature = "";
+      tailoredCvGrammarReviewPendingSignature = "";
       currentCvPreviewAsset = null;
       currentCvPageCount = 0;
       capturedCvText = "";
