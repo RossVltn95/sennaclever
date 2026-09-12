@@ -78,17 +78,17 @@ const reviewSurfaceBuilderRegion =
   {
     provider: "workable",
     label: "Workable",
-    expectedMode: "iframe_embed",
-    reason: "workable_iframe_probe",
-    route: "Workable route",
+    expectedMode: "remote_browser",
+    reason: "remote_browser_default",
+    route: "Workable secure browser route",
     allowedHost: "apply.workable.com",
   },
   {
     provider: "greenhouse",
     label: "Greenhouse",
-    expectedMode: "iframe_embed",
-    reason: "greenhouse_iframe_probe",
-    route: "Greenhouse route",
+    expectedMode: "remote_browser",
+    reason: "remote_browser_default",
+    route: "Greenhouse secure browser route",
     allowedHost: "job-boards.greenhouse.io",
   },
   {
@@ -118,9 +118,9 @@ const reviewSurfaceBuilderRegion =
   {
     provider: "simple_form",
     label: "Simple form",
-    expectedMode: "iframe_embed",
-    reason: "simple_form_iframe_probe",
-    route: "Simple form route",
+    expectedMode: "remote_browser",
+    reason: "remote_browser_default",
+    route: "Simple form secure browser route",
   },
 ].forEach((check) => {
   if (!policyBody.includes(check.provider)) {
@@ -132,7 +132,11 @@ const reviewSurfaceBuilderRegion =
   if (!policyBody.includes(check.reason)) {
     failures.push(`Provider policy missing reason ${check.reason}`);
   }
-  if (!policyBody.includes(check.route)) {
+  if (
+    check.route &&
+    check.reason !== "remote_browser_default" &&
+    !policyBody.includes(check.route)
+  ) {
     failures.push(`Provider policy missing status label ${check.route}`);
   }
   if (check.allowedHost && !policyBody.includes(check.allowedHost)) {
@@ -149,6 +153,8 @@ const reviewSurfaceBuilderRegion =
   "explicit_static_preview_mode",
   "explicit_remote_browser_mode",
   "known_blocked_host_remote_browser_default",
+  "remote_browser_default",
+  "policy.defaultMode = \"remote_browser\"",
 ].forEach((needle) => {
   if (!embedPolicyBody.includes(needle)) {
     failures.push(`Embed policy missing ${needle}`);
@@ -175,17 +181,23 @@ if (!fullReviewBody.includes("providerStatusLabel")) {
 
 [
   "get_crm_apply_chat_provider_default_embed_mode",
-  "workable",
-  "greenhouse",
   "workday",
   "successfactors",
   "teamtailor",
-  "simple_form",
   "remote_browser",
-  "embed",
 ].forEach((needle) => {
   if (!phpDefaultHelperRegion.includes(needle)) {
     failures.push(`PHP provider default embed-mode helper missing ${needle}`);
+  }
+});
+
+[
+  "iframe_embed",
+  "iframe",
+  "embed",
+].forEach((needle) => {
+  if (!php.includes(needle) || !source.includes(needle)) {
+    failures.push(`Explicit iframe/embed override support missing ${needle}`);
   }
 });
 
@@ -209,8 +221,8 @@ if (!fullReviewBody.includes("providerStatusLabel")) {
   "remote_browser_supported",
   "invalid_external_url",
   "remote_browser_unavailable",
-  "iframe_embed",
-  "iframe",
+  "remote_browser_default",
+  "remote_browser_default_unavailable",
   "static_preview",
 ].forEach((needle) => {
   if (!reviewSurfaceBuilderRegion.includes(needle) && !reviewSurfaceEndpointRegion.includes(needle)) {

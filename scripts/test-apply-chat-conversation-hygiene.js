@@ -78,6 +78,8 @@ function assertIncludes(label, needle) {
   ["question-aware resume html helper", "function getQuestionAwareResumeHtml("],
   ["resume prompt normalizer", "function normalizeResumePromptCopy("],
   ["CV fact sync canonical resolver", "function getCanonicalCvProfileForFactSync("],
+  ["CV fact canonical state sync guard", "function syncApplyChatCanonicalStateForCvFacts("],
+  ["message-start scroll anchor", "function scrollToMessageStart("],
 ].forEach(([label, needle]) => assertIncludes(label, needle));
 
 const setPromptStateBody = getFunctionBody("setPromptState");
@@ -128,6 +130,42 @@ if (
   )
 ) {
   failures.push("syncCvFactsFromCanonicalProfile does not use safe canonical resolver");
+}
+const mergeCvFactsBody = getFunctionBody("mergeCvFacts");
+if (/syncApplyChatCanonicalState\("cv_facts_merged"\)/.test(mergeCvFactsBody)) {
+  failures.push("mergeCvFacts still directly calls the scoped canonical state sync function");
+}
+if (!mergeCvFactsBody.includes('syncApplyChatCanonicalStateForCvFacts("cv_facts_merged")')) {
+  failures.push("mergeCvFacts does not use the safe canonical state sync guard");
+}
+const canonicalStateForCvFactsBody = getFunctionBody(
+  "syncApplyChatCanonicalStateForCvFacts"
+);
+if (!canonicalStateForCvFactsBody.includes('typeof syncApplyChatCanonicalState === "function"')) {
+  failures.push("CV fact canonical state guard does not check syncApplyChatCanonicalState scope");
+}
+if (!canonicalStateForCvFactsBody.includes("careerConversationMemory.cvFacts")) {
+  failures.push("CV fact canonical state guard does not preserve facts when canonical sync is unavailable");
+}
+
+const scrollToMessageStartBody = getFunctionBody("scrollToMessageStart");
+if (!scrollToMessageStartBody.includes("row.offsetTop")) {
+  failures.push("message-start scroll anchor does not calculate from the inserted row");
+}
+if (!scrollToMessageStartBody.includes("pendingMessagesScrollRaf")) {
+  failures.push("message-start scroll anchor does not coordinate with pending scroll RAF");
+}
+const typeEmilyPlainMessageBody = getFunctionBody("typeEmilyPlainMessage");
+if (/nextIndex !== index[\s\S]{0,220}scrollToLatest\(\)/.test(typeEmilyPlainMessageBody)) {
+  failures.push("typewriter frames still force bottom scrolling while text is revealing");
+}
+const botMessageNowBody = getFunctionBody("botMessageNow");
+if (!botMessageNowBody.includes("scrollToMessageStart(row)")) {
+  failures.push("botMessageNow does not anchor normal messages to the new row start");
+}
+const userMessageBody = getFunctionBody("userMessage");
+if (!userMessageBody.includes("scrollToMessageStart(row)")) {
+  failures.push("userMessage does not anchor user messages to the new row start");
 }
 
 const selectedRoleCvAskBody = getFunctionBody(

@@ -10501,12 +10501,6 @@ CSS;
             $application_url = esc_url_raw((string) $application_url);
             $host = strtolower((string) wp_parse_url($application_url, PHP_URL_HOST));
 
-            if ($provider === 'workable' || $provider === 'workable_board' || preg_match('~(^|\.)workable\.com$~i', $host)) {
-                return 'embed';
-            }
-            if ($provider === 'greenhouse' || preg_match('~(^|\.)greenhouse\.io$~i', $host)) {
-                return 'embed';
-            }
             if ($provider === 'workday' || preg_match('~(^|\.)myworkdayjobs\.com$|(^|\.)workdayjobs\.com$~i', $host) || preg_match('~/wday/cxs/~i', $application_url)) {
                 return 'remote_browser';
             }
@@ -10514,13 +10508,10 @@ CSS;
                 return 'remote_browser';
             }
             if ($provider === 'teamtailor' || $provider === 'teamtailor_rss' || preg_match('~(^|\.)teamtailor\.com$~i', $host)) {
-                return preg_match('~/jobs/\d+[^?#]*/applications/new~i', $application_url) ? 'remote_browser' : 'embed';
-            }
-            if (in_array($provider, ['simple_form', 'simple-form', 'basic_form', 'basic-form'], true)) {
-                return 'embed';
+                return 'remote_browser';
             }
 
-            return 'auto';
+            return 'remote_browser';
         }
 
         private function build_crm_apply_chat_review_surface_decision($provider, $application_url, $requested_mode = 'auto')
@@ -10563,6 +10554,16 @@ CSS;
                 ];
             }
 
+            if ($mode === 'embed') {
+                return [
+                    'mode' => 'embed',
+                    'surface' => 'iframe_embed',
+                    'status' => 'embed_candidate',
+                    'remote_browser_supported' => false,
+                    'reason' => 'explicit_embed_mode',
+                ];
+            }
+
             if ($mode === 'screenshot') {
                 return [
                     'mode' => 'screenshot',
@@ -10573,12 +10574,26 @@ CSS;
                 ];
             }
 
+            $remote_browser_supported = $this->can_crm_apply_chat_use_remote_browser()
+                && $this->is_crm_apply_chat_remote_browser_url_allowed($application_url)
+                && $this->is_crm_apply_chat_remote_browser_provider_url_match($provider, $application_url);
+
+            if ($remote_browser_supported) {
+                return [
+                    'mode' => 'remote_browser',
+                    'surface' => 'remote_browser',
+                    'status' => 'remote_browser_supported',
+                    'remote_browser_supported' => true,
+                    'reason' => 'remote_browser_default',
+                ];
+            }
+
             return [
-                'mode' => 'embed',
-                'surface' => 'iframe_embed',
-                'status' => 'embed_candidate',
+                'mode' => 'screenshot',
+                'surface' => 'static_preview',
+                'status' => 'remote_browser_unavailable',
                 'remote_browser_supported' => false,
-                'reason' => 'iframe_first',
+                'reason' => 'remote_browser_default_unavailable',
             ];
         }
 

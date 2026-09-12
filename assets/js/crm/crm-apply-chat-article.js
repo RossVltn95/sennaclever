@@ -19316,7 +19316,35 @@
     );
     syncCvFactsFromCanonicalProfile();
     syncCvMatchesWorkspaceState();
-    syncApplyChatCanonicalState("cv_facts_merged");
+    syncApplyChatCanonicalStateForCvFacts("cv_facts_merged");
+  }
+
+  function syncApplyChatCanonicalStateForCvFacts(reason) {
+    if (typeof syncApplyChatCanonicalState === "function") {
+      try {
+        return syncApplyChatCanonicalState(reason || "cv_facts_merged");
+      } catch (error) {
+        recordConversationAuditEvent("canonical_state_cv_fact_sync_failed", {
+          reason: cleanMessageText(reason || ""),
+          message: cleanMessageText((error && error.message) || ""),
+        });
+      }
+    }
+
+    if (
+      typeof careerConversationMemory !== "undefined" &&
+      careerConversationMemory &&
+      typeof careerConversationMemory === "object"
+    ) {
+      careerConversationMemory.cvFacts = Object.assign(
+        {},
+        careerConversationMemory.cvFacts || {},
+        cvFacts || {}
+      );
+      careerConversationMemory.updatedAt = new Date().toISOString();
+    }
+
+    return null;
   }
 
   function getCanonicalCvProfileForFactSync(profile) {
@@ -47050,7 +47078,12 @@
         policy.requiresRemoteBrowserForApply = true;
         policy.statusLabel = policy.label + " secure browser route";
         policy.reason = "known_blocked_host_remote_browser_default";
+        return policy;
       }
+      policy.defaultMode = "remote_browser";
+      policy.requiresRemoteBrowserForApply = true;
+      policy.statusLabel = policy.label + " secure browser route";
+      policy.reason = "remote_browser_default";
       return policy;
     }
 
@@ -80960,6 +80993,46 @@
       });
     }
 
+    function scrollToMessageStart(row, options) {
+      var opts = options || {};
+      var offset =
+        typeof opts.offset === "number"
+          ? opts.offset
+          : isMobileWorkspaceView && isMobileWorkspaceView()
+          ? 8
+          : 18;
+      var top;
+      if (
+        isMobileWorkspaceView &&
+        isMobileWorkspaceView() &&
+        suppressAutoScrollUntil > Date.now()
+      ) {
+        return;
+      }
+      if (!messages || !row || !messages.contains(row)) {
+        return;
+      }
+      top = Math.max(0, row.offsetTop - offset);
+      if (pendingMessagesScrollRaf) {
+        window.cancelAnimationFrame(pendingMessagesScrollRaf);
+        pendingMessagesScrollRaf = 0;
+      }
+      if (pendingMessagesScrollTimeout) {
+        window.clearTimeout(pendingMessagesScrollTimeout);
+        pendingMessagesScrollTimeout = 0;
+      }
+      pendingMessagesScrollRaf = window.requestAnimationFrame(function () {
+        pendingMessagesScrollRaf = 0;
+        messages.scrollTop = top;
+        pendingMessagesScrollTimeout = window.setTimeout(function () {
+          pendingMessagesScrollTimeout = 0;
+          if (messages && row.isConnected) {
+            messages.scrollTop = Math.max(0, row.offsetTop - offset);
+          }
+        }, 90);
+      });
+    }
+
     function scrollToWorkspaceCard(row, options) {
       var opts = options || {};
       var card = row
@@ -81193,7 +81266,7 @@
         '<span class="sffc-crm-apply-chat__typing-dots" aria-hidden="true"><i></i><i></i><i></i></span>' +
         "</div>";
       messages.appendChild(row);
-      scrollToLatest();
+      scrollToMessageStart(row);
     }
 
     function queueTransferTyping() {
@@ -81253,7 +81326,6 @@
         if (nextIndex !== index) {
           index = nextIndex;
           formatted.innerHTML = formatEmilyMessageHtml(text.slice(0, index));
-          scrollToLatest();
         }
         if (progress < 1) {
           stepTimer = window.setTimeout(renderFrame, 24);
@@ -81267,7 +81339,7 @@
         if (typingVisualToken === emilyTypingVisualToken) {
           root.classList.remove("is-emily-typing");
         }
-        scrollToLatest();
+        scrollToMessageStart(row);
         if (typeof onDone === "function") {
           onDone();
         }
@@ -81401,7 +81473,7 @@
         if (!hasActivePinnedApplyResults) {
           clearPinnedApplyResultsScroll();
         }
-        scrollToLatest();
+        scrollToMessageStart(row);
       }
       scheduleDeskSearchRefresh();
       emilyResponseSerial += 1;
@@ -81796,7 +81868,7 @@
       }
       messages.appendChild(row);
       clearPinnedApplyResultsScroll();
-      scrollToLatest();
+      scrollToMessageStart(row);
       scheduleDeskSearchRefresh();
       if (!skipChatLog) {
         logApplyChatMessage("user", String(text || ""), "");
@@ -81855,7 +81927,7 @@
         row.appendChild(button);
       });
       bubble.appendChild(row);
-      scrollToLatest();
+      scrollToMessageStart(messages.lastElementChild);
     }
 
     function appendHtmlToLatestAssistantBubble(html) {
@@ -81868,7 +81940,7 @@
         return;
       }
       bubble.insertAdjacentHTML("beforeend", String(html));
-      scrollToLatest();
+      scrollToMessageStart(messages.lastElementChild);
     }
 
     function markLatestAssistantMessage(tagName) {
