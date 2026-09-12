@@ -207,6 +207,12 @@ const normalizationChecks = [
     expectedAbsent: "i need help",
     expectedPresent: "jobs in dubai",
   },
+  {
+    label: "Riyadh job search must not become fund/fund a",
+    input: "find jobs in riyadh",
+    expectedAbsent: "fund",
+    expectedPresent: "jobs in riyadh",
+  },
 ];
 
 function getFunctionBody(name) {
@@ -234,6 +240,19 @@ function getFunctionBody(name) {
 
 function normalizeApplyChatJobSearchQueryForTest(value) {
   const clean = String(value || "").replace(/\s+/g, " ").trim();
+  const explicitLocationJobSearch = clean.match(
+    /^(?:please\s+)?(?:i\s+)?(?:(?:need|want|would like)\s+(?:help\s+)?(?:to\s+|with\s+)?|help me\s+|can you\s+|could you\s+|would you\s+)?(?:find|show|search|look for|list|recommend|get|get me)\s+(?:me\s+)?([\s\S]{0,80}?)\b(?:job|jobs|role|roles|opening|openings|vacanc(?:y|ies)|opportunit(?:y|ies))\b[\s\S]{0,24}\b(?:in|near|around)\s+(dubai|abu dhabi|riyadh|jeddah|doha|qatar|saudi(?: arabia)?|uae|united arab emirates|kuwait|bahrain|oman|muscat|london|middle east|mena|gcc)\b/i
+  );
+  if (explicitLocationJobSearch && explicitLocationJobSearch[2]) {
+    const explicitRole = explicitLocationJobSearch[1]
+      .replace(/\b(?:a|an|the|some|any|current|open|live|available|for me|please)\b/gi, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+    const explicitLocation = explicitLocationJobSearch[2].trim().toLowerCase();
+    return explicitRole
+      ? explicitRole.toLowerCase() + " in " + explicitLocation
+      : "jobs in " + explicitLocation;
+  }
   const normalized = clean
     .replace(/^(?:please\s+)?(?:can you|could you|would you|will you|please)?\s*/i, "")
     .replace(/^(?:ok|okay|well|right|so|cool|fine|great|thanks|thank you)[,.\s]+/i, "")

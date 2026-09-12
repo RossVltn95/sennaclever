@@ -808,6 +808,14 @@ class SFFC_CRM_Shortcodes
         add_action('wp_ajax_nopriv_sffc_crm_apply_chat_application_task_verification_code', [$this, 'ajax_crm_apply_chat_application_task_verification_code']);
         add_action('wp_ajax_sffc_crm_apply_chat_queue_application_preview', [$this, 'ajax_crm_apply_chat_queue_application_preview']);
         add_action('wp_ajax_nopriv_sffc_crm_apply_chat_queue_application_preview', [$this, 'ajax_crm_apply_chat_queue_application_preview']);
+        add_action('wp_ajax_sffc_crm_apply_chat_remote_browser_create', [$this, 'ajax_crm_apply_chat_remote_browser_create']);
+        add_action('wp_ajax_nopriv_sffc_crm_apply_chat_remote_browser_create', [$this, 'ajax_crm_apply_chat_remote_browser_create']);
+        add_action('wp_ajax_sffc_crm_apply_chat_remote_browser_status', [$this, 'ajax_crm_apply_chat_remote_browser_status']);
+        add_action('wp_ajax_nopriv_sffc_crm_apply_chat_remote_browser_status', [$this, 'ajax_crm_apply_chat_remote_browser_status']);
+        add_action('wp_ajax_sffc_crm_apply_chat_remote_browser_control', [$this, 'ajax_crm_apply_chat_remote_browser_control']);
+        add_action('wp_ajax_nopriv_sffc_crm_apply_chat_remote_browser_control', [$this, 'ajax_crm_apply_chat_remote_browser_control']);
+        add_action('wp_ajax_sffc_crm_apply_chat_remote_browser_close', [$this, 'ajax_crm_apply_chat_remote_browser_close']);
+        add_action('wp_ajax_nopriv_sffc_crm_apply_chat_remote_browser_close', [$this, 'ajax_crm_apply_chat_remote_browser_close']);
         add_action('wp_ajax_sffc_crm_application_worker_claim', [$this, 'ajax_crm_application_worker_claim']);
         add_action('wp_ajax_nopriv_sffc_crm_application_worker_claim', [$this, 'ajax_crm_application_worker_claim']);
         add_action('wp_ajax_sffc_crm_application_worker_get_task', [$this, 'ajax_crm_application_worker_get_task']);
@@ -10249,15 +10257,28 @@ CSS;
                 $duration = sanitize_text_field((string) $crm_post['duration']);
             }
             $auto_submit_payload = $this->get_crm_apply_chat_auto_submit_payload($jobs_post_id);
-            $application_embed_mode = sanitize_key((string) get_post_meta($jobs_post_id, '_sffc_application_embed_mode', true));
-            if ($application_embed_mode === '' && !empty($crm_post['application_embed_mode'])) {
-                $application_embed_mode = sanitize_key((string) $crm_post['application_embed_mode']);
+            $application_embed_mode = $this->normalize_crm_apply_chat_application_embed_mode(get_post_meta($jobs_post_id, '_sffc_application_embed_mode', true));
+            if (($application_embed_mode === '' || $application_embed_mode === 'auto') && !empty($crm_post['application_embed_mode'])) {
+                $application_embed_mode = $this->normalize_crm_apply_chat_application_embed_mode($crm_post['application_embed_mode']);
             }
             if (($application_embed_mode === '' || $application_embed_mode === 'auto') && !empty($auto_submit_payload['application_embed_mode'])) {
-                $application_embed_mode = sanitize_key((string) $auto_submit_payload['application_embed_mode']);
+                $application_embed_mode = $this->normalize_crm_apply_chat_application_embed_mode($auto_submit_payload['application_embed_mode']);
             }
-            if (!in_array($application_embed_mode, ['auto', 'embed', 'screenshot'], true)) {
-                $application_embed_mode = 'auto';
+            $application_workspace_url = esc_url_raw((string) ($auto_submit_payload['application_embed_url'] ?? ''));
+            if (!$this->is_crm_apply_chat_external_application_url($application_workspace_url)) {
+                $application_workspace_url = '';
+            }
+            if ($application_embed_mode === '' || $application_embed_mode === 'auto') {
+                $application_embed_mode = $this->get_crm_apply_chat_provider_default_embed_mode(
+                    $auto_submit_payload['provider'],
+                    $application_workspace_url ?: (string) ($post['application_url'] ?? '')
+                );
+            }
+            if ($application_embed_mode === '' || $application_embed_mode === 'auto') {
+                $application_embed_mode = $this->get_crm_apply_chat_provider_default_embed_mode(
+                    $auto_submit_payload['provider'],
+                    $application_workspace_url ?: $application_url
+                );
             }
 
             return [
@@ -10290,7 +10311,7 @@ CSS;
                 'description_html' => $this->format_crm_reddit_job_content($description_source),
                 'view_url' => get_permalink($jobs_post_id) ?: '',
                 'apply_url' => esc_url_raw((string) $application_url),
-                'application_workspace_url' => esc_url_raw((string) ($auto_submit_payload['application_embed_url'] ?? '')),
+                'application_workspace_url' => $application_workspace_url,
                 'application_embed_mode' => $application_embed_mode,
                 'auto_submit_supported' => $auto_submit_payload['supported'],
                 'auto_submit_provider' => $auto_submit_payload['provider'],
@@ -10384,9 +10405,15 @@ CSS;
             $payload['field_count'] = absint($schema['field_count'] ?? 0);
             $payload['required_question_count'] = absint($schema['required_question_count'] ?? 0);
             $payload['application_embed_url'] = esc_url_raw((string) ($schema['application_embed_url'] ?? ($schema['hosted_url'] ?? '')));
-            $payload['application_embed_mode'] = sanitize_key((string) ($schema['application_embed_mode'] ?? 'auto'));
-            if (!in_array($payload['application_embed_mode'], ['auto', 'embed', 'screenshot'], true)) {
-                $payload['application_embed_mode'] = 'auto';
+            if (!$this->is_crm_apply_chat_external_application_url($payload['application_embed_url'])) {
+                $payload['application_embed_url'] = '';
+            }
+            $payload['application_embed_mode'] = $this->normalize_crm_apply_chat_application_embed_mode($schema['application_embed_mode'] ?? 'auto');
+            if ($payload['application_embed_mode'] === 'auto') {
+                $payload['application_embed_mode'] = $this->get_crm_apply_chat_provider_default_embed_mode(
+                    $payload['provider'],
+                    $payload['application_embed_url'] ?: $this->get_crm_apply_chat_jobs_application_url($jobs_post_id)
+                );
             }
             $payload['greenhouse_board_token'] = sanitize_text_field((string) get_post_meta($jobs_post_id, '_sffc_greenhouse_board_token', true));
             $payload['greenhouse_job_id'] = sanitize_text_field((string) get_post_meta($jobs_post_id, '_sffc_greenhouse_job_id', true));
@@ -10444,6 +10471,106 @@ CSS;
             $is_home_host = $home_host !== '' && ($host === $home_host || substr($host, -strlen('.' . $home_host)) === '.' . $home_host);
 
             return !$is_senna_host && !$is_home_host;
+        }
+
+        private function normalize_crm_apply_chat_application_embed_mode($mode)
+        {
+            $mode = sanitize_key((string) $mode);
+            if ($mode === '' || $mode === 'automatic') {
+                return 'auto';
+            }
+            if (in_array($mode, ['embed_friendly', 'friendly', 'direct_embed'], true)) {
+                return 'embed';
+            }
+            if (in_array($mode, ['remote', 'remote-browser', 'browser', 'interactive', 'interactive_browser', 'secure_browser'], true)) {
+                return 'remote_browser';
+            }
+            if (in_array($mode, ['blocked', 'no_embed', 'static_preview'], true)) {
+                return 'screenshot';
+            }
+            return in_array($mode, ['auto', 'embed', 'remote_browser', 'screenshot'], true) ? $mode : 'auto';
+        }
+
+        private function get_crm_apply_chat_provider_default_embed_mode($provider, $application_url = '')
+        {
+            $provider = sanitize_key((string) $provider);
+            $application_url = esc_url_raw((string) $application_url);
+            $host = strtolower((string) wp_parse_url($application_url, PHP_URL_HOST));
+
+            if ($provider === 'workable' || $provider === 'workable_board' || preg_match('~(^|\.)workable\.com$~i', $host)) {
+                return 'embed';
+            }
+            if ($provider === 'greenhouse' || preg_match('~(^|\.)greenhouse\.io$~i', $host)) {
+                return 'embed';
+            }
+            if ($provider === 'workday' || preg_match('~(^|\.)myworkdayjobs\.com$|(^|\.)workdayjobs\.com$~i', $host) || preg_match('~/wday/cxs/~i', $application_url)) {
+                return 'remote_browser';
+            }
+            if ($provider === 'successfactors' || $provider === 'sap_successfactors' || preg_match('~successfactors\.(?:com|eu)$|sapsf\.com$~i', $host)) {
+                return 'remote_browser';
+            }
+            if ($provider === 'teamtailor' || $provider === 'teamtailor_rss' || preg_match('~(^|\.)teamtailor\.com$~i', $host)) {
+                return preg_match('~/jobs/\d+[^?#]*/applications/new~i', $application_url) ? 'remote_browser' : 'embed';
+            }
+            if (in_array($provider, ['simple_form', 'simple-form', 'basic_form', 'basic-form'], true)) {
+                return 'embed';
+            }
+
+            return 'auto';
+        }
+
+        private function is_crm_apply_chat_remote_browser_enabled()
+        {
+            if (defined('SFFC_REMOTE_BROWSER_ENABLED')) {
+                $constant_value = SFFC_REMOTE_BROWSER_ENABLED;
+                if ($constant_value === true || $constant_value === 1 || $constant_value === '1' || $constant_value === 'true') {
+                    return true;
+                }
+                if ($constant_value === false || $constant_value === 0 || $constant_value === '0' || $constant_value === 'false') {
+                    return false;
+                }
+            }
+
+            $option = get_option('sffc_remote_browser_enabled', '');
+            if ($option !== '') {
+                return in_array((string) $option, ['1', 'true', 'yes', 'on'], true);
+            }
+
+            return false;
+        }
+
+        private function get_crm_apply_chat_remote_browser_service_url()
+        {
+            $url = defined('SFFC_REMOTE_BROWSER_URL') ? (string) SFFC_REMOTE_BROWSER_URL : '';
+            if ($url === '') {
+                $url = (string) getenv('SFFC_REMOTE_BROWSER_URL');
+            }
+            if ($url === '') {
+                $url = (string) get_option('sffc_remote_browser_url', '');
+            }
+
+            $url = esc_url_raw(trim($url));
+            return $url !== '' ? untrailingslashit($url) : '';
+        }
+
+        private function get_crm_apply_chat_remote_browser_token()
+        {
+            $token = defined('SFFC_REMOTE_BROWSER_TOKEN') ? (string) SFFC_REMOTE_BROWSER_TOKEN : '';
+            if ($token === '') {
+                $token = (string) getenv('SFFC_REMOTE_BROWSER_TOKEN');
+            }
+            if ($token === '') {
+                $token = (string) get_option('sffc_remote_browser_token', '');
+            }
+
+            return trim($token);
+        }
+
+        private function can_crm_apply_chat_use_remote_browser()
+        {
+            return $this->is_crm_apply_chat_remote_browser_enabled()
+                && $this->get_crm_apply_chat_remote_browser_service_url() !== ''
+                && $this->get_crm_apply_chat_remote_browser_token() !== '';
         }
 
         private function fetch_crm_apply_chat_successfactors_schema_from_job_url($jobs_post_id)
@@ -10830,15 +10957,16 @@ CSS;
                 (int) ($post['id'] ?? 0)
             );
             $auto_submit_payload = $this->get_crm_apply_chat_auto_submit_payload($jobs_post_id);
-            $application_embed_mode = sanitize_key((string) ($post['application_embed_mode'] ?? 'auto'));
+            $application_embed_mode = $this->normalize_crm_apply_chat_application_embed_mode($post['application_embed_mode'] ?? 'auto');
             if (($application_embed_mode === '' || $application_embed_mode === 'auto') && $jobs_post_id > 0) {
-                $application_embed_mode = sanitize_key((string) get_post_meta($jobs_post_id, '_sffc_application_embed_mode', true));
+                $application_embed_mode = $this->normalize_crm_apply_chat_application_embed_mode(get_post_meta($jobs_post_id, '_sffc_application_embed_mode', true));
             }
             if (($application_embed_mode === '' || $application_embed_mode === 'auto') && !empty($auto_submit_payload['application_embed_mode'])) {
-                $application_embed_mode = sanitize_key((string) $auto_submit_payload['application_embed_mode']);
+                $application_embed_mode = $this->normalize_crm_apply_chat_application_embed_mode($auto_submit_payload['application_embed_mode']);
             }
-            if (!in_array($application_embed_mode, ['auto', 'embed', 'screenshot'], true)) {
-                $application_embed_mode = 'auto';
+            $application_workspace_url = esc_url_raw((string) ($auto_submit_payload['application_embed_url'] ?? ''));
+            if (!$this->is_crm_apply_chat_external_application_url($application_workspace_url)) {
+                $application_workspace_url = '';
             }
 
             return [
@@ -10872,7 +11000,7 @@ CSS;
                 'description_html' => $this->format_crm_reddit_job_content($description_source),
                 'view_url' => $view_url,
                 'apply_url' => esc_url_raw((string) ($post['application_url'] ?? '')),
-                'application_workspace_url' => esc_url_raw((string) ($auto_submit_payload['application_embed_url'] ?? '')),
+                'application_workspace_url' => $application_workspace_url,
                 'application_embed_mode' => $application_embed_mode,
                 'auto_submit_supported' => $auto_submit_payload['supported'],
                 'auto_submit_provider' => $auto_submit_payload['provider'],
@@ -10921,15 +11049,18 @@ CSS;
                 (int) ($post['id'] ?? 0)
             );
             $auto_submit_payload = $this->get_crm_apply_chat_auto_submit_payload($jobs_post_id);
-            $application_embed_mode = sanitize_key((string) ($post['application_embed_mode'] ?? 'auto'));
+            $application_embed_mode = $this->normalize_crm_apply_chat_application_embed_mode($post['application_embed_mode'] ?? 'auto');
             if (($application_embed_mode === '' || $application_embed_mode === 'auto') && $jobs_post_id > 0) {
-                $application_embed_mode = sanitize_key((string) get_post_meta($jobs_post_id, '_sffc_application_embed_mode', true));
+                $application_embed_mode = $this->normalize_crm_apply_chat_application_embed_mode(get_post_meta($jobs_post_id, '_sffc_application_embed_mode', true));
             }
             if (($application_embed_mode === '' || $application_embed_mode === 'auto') && !empty($auto_submit_payload['application_embed_mode'])) {
-                $application_embed_mode = sanitize_key((string) $auto_submit_payload['application_embed_mode']);
+                $application_embed_mode = $this->normalize_crm_apply_chat_application_embed_mode($auto_submit_payload['application_embed_mode']);
             }
-            if (!in_array($application_embed_mode, ['auto', 'embed', 'screenshot'], true)) {
-                $application_embed_mode = 'auto';
+            if ($application_embed_mode === '' || $application_embed_mode === 'auto') {
+                $application_embed_mode = $this->get_crm_apply_chat_provider_default_embed_mode(
+                    $auto_submit_payload['provider'],
+                    (string) ($post['application_url'] ?? '')
+                );
             }
 
             return [
@@ -41021,6 +41152,7 @@ CRITICAL INSTRUCTIONS:
                 $js_version,
                 true
             );
+            wp_script_add_data('sffc-crm-apply-chat-article', 'defer', true);
 
             wp_localize_script('sffc-crm-apply-chat-article', 'sffcCrmApplyChatArticle', [
                 'ajaxUrl' => admin_url('admin-ajax.php'),
@@ -41038,6 +41170,8 @@ CRITICAL INSTRUCTIONS:
                 'autoSubmitSchemaNonce' => wp_create_nonce('sffc_crm_apply_chat_get_auto_submit_schema'),
                 'applicationTaskNonce' => wp_create_nonce('sffc_crm_apply_chat_queue_application_task'),
                 'applicationPreviewQueueNonce' => wp_create_nonce('sffc_crm_apply_chat_queue_application_preview'),
+                'remoteBrowserNonce' => wp_create_nonce('sffc_crm_apply_chat_remote_browser'),
+                'remoteBrowserEnabled' => $this->can_crm_apply_chat_use_remote_browser(),
                 'catchUpInviteNonce' => wp_create_nonce('sffc_crm_apply_chat_send_catch_up_invite'),
                 'jobsSearchNonce' => wp_create_nonce('sffc_crm_apply_chat_search_jobs'),
                 'webSearchNonce' => wp_create_nonce('sffc_crm_apply_chat_web_search'),
@@ -41065,9 +41199,7 @@ CRITICAL INSTRUCTIONS:
                 'cvIntelligenceOntologyUrl' => file_exists(SFFC_PLUGIN_DIR . 'assets/data/cv-intelligence-ontology.json')
                     ? SFFC_PLUGIN_URL . 'assets/data/cv-intelligence-ontology.json?ver=' . (string) filemtime(SFFC_PLUGIN_DIR . 'assets/data/cv-intelligence-ontology.json')
                     : '',
-                'cvIntelligenceOntology' => file_exists(SFFC_PLUGIN_DIR . 'assets/data/cv-intelligence-ontology.json')
-                    ? (json_decode((string) file_get_contents(SFFC_PLUGIN_DIR . 'assets/data/cv-intelligence-ontology.json'), true) ?: [])
-                    : [],
+                'cvIntelligenceOntology' => null,
             ]);
 
             $post_model = new SFFC_CRM_Post();
@@ -41134,11 +41266,14 @@ CRITICAL INSTRUCTIONS:
             $apply_chat_intros_panel_html = $this->render_crm_apply_chat_activity_panel($apply_chat_user_id, 'intros');
             $apply_chat_sent_panel_html = $this->render_crm_apply_chat_activity_panel($apply_chat_user_id, 'sent');
 
+            $matching_roles_seed_limit = (int) apply_filters('sffc_crm_apply_chat_initial_matching_roles_seed_limit', 12);
+            $matching_recruiters_seed_limit = (int) apply_filters('sffc_crm_apply_chat_initial_matching_recruiters_seed_limit', 8);
+
             $matching_roles_seed = $this->get_apply_chat_matching_roles_seed([
                 'location' => $location,
                 'sector' => $sector,
                 'keywords' => trim($role_title . ' ' . $company_name),
-            ]);
+            ], $matching_roles_seed_limit);
 
             if (!class_exists('SFFC_CRM_HR_Outreach')) {
                 $hr_model_file = plugin_dir_path(__FILE__) . 'models/class-crm-hr-outreach.php';
@@ -41150,7 +41285,7 @@ CRITICAL INSTRUCTIONS:
             if (class_exists('SFFC_CRM_HR_Outreach')) {
                 $hr_outreach_model = new SFFC_CRM_HR_Outreach();
                 $matching_recruiters_raw = (array) $hr_outreach_model->get_all([
-                    'limit' => 36,
+                    'limit' => $matching_recruiters_seed_limit,
                 ]);
 
                 foreach ($matching_recruiters_raw as $recruiter_item) {
@@ -41260,15 +41395,22 @@ CRITICAL INSTRUCTIONS:
             $apply_chat_review_mode = in_array($apply_chat_review_mode_key, ['profile', 'recruiter_outreach'], true)
                 ? $apply_chat_review_mode_key
                 : 'role';
-            $apply_chat_application_embed_mode = sanitize_key((string) ($post['application_embed_mode'] ?? 'auto'));
+            $apply_chat_application_embed_mode = $this->normalize_crm_apply_chat_application_embed_mode($post['application_embed_mode'] ?? 'auto');
             if (($apply_chat_application_embed_mode === '' || $apply_chat_application_embed_mode === 'auto') && $jobs_post_id > 0) {
-                $apply_chat_application_embed_mode = sanitize_key((string) get_post_meta($jobs_post_id, '_sffc_application_embed_mode', true));
+                $apply_chat_application_embed_mode = $this->normalize_crm_apply_chat_application_embed_mode(get_post_meta($jobs_post_id, '_sffc_application_embed_mode', true));
             }
             if (($apply_chat_application_embed_mode === '' || $apply_chat_application_embed_mode === 'auto') && !empty($apply_chat_auto_submit['application_embed_mode'])) {
-                $apply_chat_application_embed_mode = sanitize_key((string) $apply_chat_auto_submit['application_embed_mode']);
+                $apply_chat_application_embed_mode = $this->normalize_crm_apply_chat_application_embed_mode($apply_chat_auto_submit['application_embed_mode']);
             }
-            if (!in_array($apply_chat_application_embed_mode, ['auto', 'embed', 'screenshot'], true)) {
-                $apply_chat_application_embed_mode = 'auto';
+            $apply_chat_application_workspace_url = esc_url_raw((string) ($apply_chat_auto_submit['application_embed_url'] ?? ''));
+            if (!$this->is_crm_apply_chat_external_application_url($apply_chat_application_workspace_url)) {
+                $apply_chat_application_workspace_url = '';
+            }
+            if ($apply_chat_application_embed_mode === '' || $apply_chat_application_embed_mode === 'auto') {
+                $apply_chat_application_embed_mode = $this->get_crm_apply_chat_provider_default_embed_mode(
+                    $apply_chat_auto_submit['provider'],
+                    $apply_chat_application_workspace_url ?: $application_url
+                );
             }
 
             ob_start();
@@ -41287,7 +41429,7 @@ CRITICAL INSTRUCTIONS:
                 data-company-logo="<?php echo esc_url($apply_chat_company_logo); ?>"
                 data-posted-label="<?php echo esc_attr($apply_chat_posted_label); ?>"
                 data-application-url="<?php echo esc_url($application_url); ?>"
-                data-application-workspace-url="<?php echo esc_url((string) ($apply_chat_auto_submit['application_embed_url'] ?? '')); ?>"
+                data-application-workspace-url="<?php echo esc_url($apply_chat_application_workspace_url); ?>"
                 data-application-embed-mode="<?php echo esc_attr($apply_chat_application_embed_mode); ?>"
                 data-role-url="<?php echo esc_url($public_opportunity_url); ?>"
                 data-auto-submit-supported="<?php echo !empty($apply_chat_auto_submit['supported']) ? '1' : '0'; ?>"
@@ -41818,9 +41960,12 @@ CRITICAL INSTRUCTIONS:
             if ($view_url === '' && !empty($item['wp_post_id'])) {
                 $view_url = esc_url_raw((string) (get_permalink((int) $item['wp_post_id']) ?: ''));
             }
-            $application_embed_mode = sanitize_key((string) ($item['application_embed_mode'] ?? 'auto'));
-            if (!in_array($application_embed_mode, ['auto', 'embed', 'screenshot'], true)) {
-                $application_embed_mode = 'auto';
+            $application_embed_mode = $this->normalize_crm_apply_chat_application_embed_mode($item['application_embed_mode'] ?? 'auto');
+            if ($application_embed_mode === '' || $application_embed_mode === 'auto') {
+                $application_embed_mode = $this->get_crm_apply_chat_provider_default_embed_mode(
+                    $item['auto_submit_provider'] ?? '',
+                    $application_workspace_url ?: $apply_url
+                );
             }
 
             return [
@@ -42087,6 +42232,32 @@ CRITICAL INSTRUCTIONS:
             return sanitize_text_field(trim($token));
         }
 
+        private function get_crm_apply_chat_web_answer_endpoint()
+        {
+            $endpoint = '';
+            if (defined('SFFC_SEARCH_ANSWER_ENDPOINT')) {
+                $endpoint = (string) SFFC_SEARCH_ANSWER_ENDPOINT;
+            }
+            if ($endpoint === '') {
+                $endpoint = (string) getenv('SFFC_SEARCH_ANSWER_ENDPOINT');
+            }
+
+            return esc_url_raw(trim($endpoint));
+        }
+
+        private function get_crm_apply_chat_web_answer_token()
+        {
+            $token = '';
+            if (defined('SFFC_SEARCH_ANSWER_TOKEN')) {
+                $token = (string) SFFC_SEARCH_ANSWER_TOKEN;
+            }
+            if ($token === '') {
+                $token = (string) getenv('SFFC_SEARCH_ANSWER_TOKEN');
+            }
+
+            return sanitize_text_field(trim($token));
+        }
+
         private function normalize_crm_apply_chat_web_search_locale($locale)
         {
             $locale = strtolower(trim(sanitize_text_field((string) $locale)));
@@ -42291,6 +42462,594 @@ CRITICAL INSTRUCTIONS:
                 : __('I found a few web sources worth checking. Treat these as starting points, then narrow by sector, seniority, and how current the information is.', 'senna-finance');
         }
 
+        private function is_crm_apply_chat_web_source_fetch_enabled()
+        {
+            if (defined('SFFC_WEB_SOURCE_FETCH_ENABLED')) {
+                return (bool) SFFC_WEB_SOURCE_FETCH_ENABLED;
+            }
+
+            $env = strtolower(trim((string) getenv('SFFC_WEB_SOURCE_FETCH_ENABLED')));
+            if ($env !== '') {
+                return in_array($env, ['1', 'true', 'yes', 'on'], true);
+            }
+
+            return true;
+        }
+
+        private function get_crm_apply_chat_web_source_fetch_limit()
+        {
+            $limit = defined('SFFC_WEB_SOURCE_FETCH_LIMIT')
+                ? absint(SFFC_WEB_SOURCE_FETCH_LIMIT)
+                : absint((string) getenv('SFFC_WEB_SOURCE_FETCH_LIMIT'));
+
+            return max(0, min(4, $limit ?: 3));
+        }
+
+        private function classify_crm_apply_chat_web_answer_query($query)
+        {
+            $clean = strtolower(trim((string) $query));
+
+            if (preg_match('/\b(?:recruitment agencies|recruiting agencies|recruiters|headhunter|headhunters|executive search|staffing agencies|search firms)\b/i', $clean)) {
+                return 'recruiter_directory';
+            }
+            if (preg_match('/\b(?:salary|salaries|pay range|pay scale|compensation|bonus|benefits)\b/i', $clean)) {
+                return 'salary';
+            }
+            if (preg_match('/\b(?:visa|work permit|employment law|labou?r law|golden visa|probation|notice period|tax|income tax|vat)\b/i', $clean)) {
+                return 'visa_legal';
+            }
+            if (preg_match('/\b(?:best time|best month|hiring season|when should|when is|start applying|apply for jobs)\b/i', $clean)) {
+                return 'market_timing';
+            }
+            if (preg_match('/\b(?:compare|versus| vs |which is better|difference between|pros and cons)\b/i', $clean)) {
+                return 'comparison';
+            }
+            if (preg_match('/\b(?:latest|current|currently|recent|today|this week|this month|news|trend|trends|outlook|forecast)\b/i', $clean)) {
+                return 'current_market';
+            }
+            if (preg_match('/\b(?:what does|who is|who are|tell me about|company profile|competitors|ownership|founder|revenue|aum|assets under management)\b/i', $clean)) {
+                return 'company_research';
+            }
+            if (preg_match('/\b(?:life|living|cost of living|culture|lifestyle|safe|safety|expat|relocation|move|work culture|country|city|what is .* like)\b/i', $clean)) {
+                return 'country_life';
+            }
+
+            return 'general_web_answer';
+        }
+
+        private function get_crm_apply_chat_web_answer_query_terms($query)
+        {
+            $clean = strtolower(wp_strip_all_tags((string) $query));
+            $tokens = preg_split('/[^a-z0-9+&.-]+/i', $clean);
+            $stop = array_fill_keys([
+                'the', 'and', 'for', 'with', 'that', 'this', 'what', 'when', 'where', 'which', 'who', 'how', 'why',
+                'are', 'is', 'in', 'on', 'at', 'to', 'of', 'a', 'an', 'me', 'my', 'i', 'you', 'can', 'could',
+                'please', 'tell', 'about', 'best', 'top', 'good', 'latest', 'current',
+            ], true);
+            $terms = [];
+            foreach ((array) $tokens as $token) {
+                $token = trim((string) $token);
+                if ($token === '' || strlen($token) < 3 || isset($stop[$token])) {
+                    continue;
+                }
+                $terms[$token] = true;
+            }
+
+            return array_keys($terms);
+        }
+
+        private function score_crm_apply_chat_web_search_source(array $result, $query_type, array $terms)
+        {
+            $host = strtolower((string) ($result['source'] ?? wp_parse_url((string) ($result['url'] ?? ''), PHP_URL_HOST)));
+            $title = strtolower((string) ($result['title'] ?? ''));
+            $snippet = strtolower((string) ($result['snippet'] ?? ''));
+            $haystack = $title . ' ' . $snippet . ' ' . $host;
+            $score = 0.0;
+
+            foreach ($terms as $term) {
+                if ($term !== '' && strpos($haystack, $term) !== false) {
+                    $score += 1.2;
+                }
+            }
+
+            if (preg_match('/\b(?:gov|government|official|ministry|authority)\b/i', $host . ' ' . $title)) {
+                $score += in_array($query_type, ['visa_legal', 'country_life'], true) ? 4.0 : 1.5;
+            }
+            if (preg_match('/\b(?:linkedin|glassdoor|indeed|gulf talent|bayt|salary explorer|hays|michael page|robert half|mercer|payscale)\b/i', $host . ' ' . $title)) {
+                $score += in_array($query_type, ['salary', 'recruiter_directory', 'market_timing'], true) ? 2.5 : 1.0;
+            }
+            if (preg_match('/\b(?:bloomberg|reuters|ft\.com|thenationalnews|arabianbusiness|zawya|gulfnews)\b/i', $host)) {
+                $score += in_array($query_type, ['current_market', 'company_research'], true) ? 2.5 : 1.0;
+            }
+            if (preg_match('/\b(?:official|about us|profile|company|annual report)\b/i', $title . ' ' . $snippet)) {
+                $score += $query_type === 'company_research' ? 2.8 : 0.8;
+            }
+            if (preg_match('/\b(?:utm_|facebook|instagram|tiktok|reddit|pinterest)\b/i', $host)) {
+                $score -= 2.0;
+            }
+            if (empty($result['snippet'])) {
+                $score -= 1.0;
+            }
+            if (!empty($result['score'])) {
+                $score += min(2.0, max(0.0, (float) $result['score']));
+            }
+
+            return $score;
+        }
+
+        private function is_crm_apply_chat_web_fetchable_public_url($url)
+        {
+            $url = esc_url_raw((string) $url);
+            if ($url === '') {
+                return false;
+            }
+
+            $scheme = strtolower((string) wp_parse_url($url, PHP_URL_SCHEME));
+            if (!in_array($scheme, ['http', 'https'], true)) {
+                return false;
+            }
+
+            $host = strtolower(trim((string) wp_parse_url($url, PHP_URL_HOST)));
+            if ($host === '') {
+                return false;
+            }
+
+            if ($host === 'localhost' || $host === '0.0.0.0' || preg_match('/\.(?:local|localhost|internal|test)$/i', $host)) {
+                return false;
+            }
+
+            $ip = filter_var($host, FILTER_VALIDATE_IP);
+            if ($ip !== false) {
+                return filter_var(
+                    $ip,
+                    FILTER_VALIDATE_IP,
+                    FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE
+                ) !== false;
+            }
+
+            return true;
+        }
+
+        private function select_crm_apply_chat_web_answer_sources(array $results, $query, $query_type, $limit)
+        {
+            $terms = $this->get_crm_apply_chat_web_answer_query_terms($query);
+            $scored = [];
+            foreach ($results as $result) {
+                if (!is_array($result) || empty($result['url'])) {
+                    continue;
+                }
+                if (!$this->is_crm_apply_chat_web_fetchable_public_url((string) $result['url'])) {
+                    continue;
+                }
+                $result['_sourceScore'] = $this->score_crm_apply_chat_web_search_source($result, $query_type, $terms);
+                $scored[] = $result;
+            }
+
+            usort($scored, static function ($a, $b) {
+                return (($b['_sourceScore'] ?? 0) <=> ($a['_sourceScore'] ?? 0));
+            });
+
+            return array_slice($scored, 0, max(1, absint($limit)));
+        }
+
+        private function extract_crm_apply_chat_web_page_text_from_html($html)
+        {
+            $html = (string) $html;
+            if ($html === '') {
+                return '';
+            }
+
+            $html = preg_replace('/<\s*(script|style|noscript|svg|canvas|iframe|form|header|footer|nav|aside)\b[^>]*>.*?<\s*\/\s*\1\s*>/is', ' ', $html);
+            $html = preg_replace('/<(?:br|hr)\b[^>]*>/i', "\n", $html);
+            $html = preg_replace('/<\/(?:p|div|section|article|li|h[1-6]|tr|blockquote)>/i', "\n", $html);
+            $text = html_entity_decode(wp_strip_all_tags($html), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+            $text = preg_replace('/[ \t]+/', ' ', $text);
+            $text = preg_replace('/\n\s*\n\s*\n+/', "\n\n", $text);
+            $text = trim((string) $text);
+
+            if (strlen($text) > 16000) {
+                $text = substr($text, 0, 16000);
+            }
+
+            return $text;
+        }
+
+        private function fetch_crm_apply_chat_web_answer_source(array $source)
+        {
+            $url = esc_url_raw((string) ($source['url'] ?? ''));
+            if ($url === '' || !$this->is_crm_apply_chat_web_fetchable_public_url($url)) {
+                return array_merge($source, [
+                    'fetchStatus' => $url === '' ? 'missing_url' : 'private_or_invalid_url',
+                    'text' => '',
+                ]);
+            }
+
+            $cache_key = 'sffc_web_source_' . md5($url);
+            $cached = get_transient($cache_key);
+            if (is_array($cached)) {
+                return array_merge($source, $cached, ['cachedSource' => true]);
+            }
+
+            $response = wp_remote_get($url, [
+                'timeout' => 4,
+                'redirection' => 2,
+                'limit_response_size' => 1024 * 1024,
+                'headers' => [
+                    'Accept' => 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+                    'User-Agent' => 'SennaBot/1.0 (+https://joinsenna.com)',
+                ],
+            ]);
+
+            if (is_wp_error($response)) {
+                $payload = [
+                    'fetchStatus' => 'blocked',
+                    'text' => '',
+                    'error' => sanitize_key($response->get_error_code()),
+                ];
+                set_transient($cache_key, $payload, 30 * MINUTE_IN_SECONDS);
+                return array_merge($source, $payload);
+            }
+
+            $status = (int) wp_remote_retrieve_response_code($response);
+            $content_type = strtolower((string) wp_remote_retrieve_header($response, 'content-type'));
+            if ($status < 200 || $status >= 300 || ($content_type !== '' && strpos($content_type, 'html') === false && strpos($content_type, 'text/plain') === false)) {
+                $payload = [
+                    'fetchStatus' => 'unsupported',
+                    'text' => '',
+                    'httpStatus' => $status,
+                ];
+                set_transient($cache_key, $payload, 30 * MINUTE_IN_SECONDS);
+                return array_merge($source, $payload);
+            }
+
+            $text = $this->extract_crm_apply_chat_web_page_text_from_html(wp_remote_retrieve_body($response));
+            $payload = [
+                'fetchStatus' => $text !== '' ? 'fetched' : 'empty',
+                'text' => $text,
+                'httpStatus' => $status,
+            ];
+            set_transient($cache_key, $payload, $text !== '' ? 12 * HOUR_IN_SECONDS : 30 * MINUTE_IN_SECONDS);
+
+            return array_merge($source, $payload);
+        }
+
+        private function split_crm_apply_chat_web_answer_passages($text)
+        {
+            $text = trim(preg_replace('/\s+/', ' ', (string) $text));
+            if ($text === '') {
+                return [];
+            }
+
+            $sentences = preg_split('/(?<=[.!?])\s+/', $text);
+            $passages = [];
+            $buffer = '';
+            foreach ((array) $sentences as $sentence) {
+                $sentence = trim((string) $sentence);
+                if ($sentence === '' || strlen($sentence) < 45) {
+                    continue;
+                }
+                if (strlen($buffer . ' ' . $sentence) > 360) {
+                    if ($buffer !== '') {
+                        $passages[] = $buffer;
+                    }
+                    $buffer = $sentence;
+                } else {
+                    $buffer = trim($buffer . ' ' . $sentence);
+                }
+                if (count($passages) >= 8) {
+                    break;
+                }
+            }
+            if ($buffer !== '' && count($passages) < 8) {
+                $passages[] = $buffer;
+            }
+
+            return $passages;
+        }
+
+        private function score_crm_apply_chat_web_answer_passage($passage, $query_type, array $terms)
+        {
+            $text = strtolower((string) $passage);
+            $score = 0.0;
+            foreach ($terms as $term) {
+                if ($term !== '' && strpos($text, $term) !== false) {
+                    $score += 1.4;
+                }
+            }
+
+            $type_patterns = [
+                'salary' => '/\b(?:salary|salaries|aed|sar|usd|month|annual|compensation|bonus|pay)\b/i',
+                'market_timing' => '/\b(?:january|february|march|april|may|june|july|august|september|october|november|december|quarter|hiring|recruitment|apply|season)\b/i',
+                'recruiter_directory' => '/\b(?:recruitment|recruiter|agency|executive search|headhunter|staffing)\b/i',
+                'company_research' => '/\b(?:company|investment|founded|owned|headquartered|portfolio|assets|business|subsidiary)\b/i',
+                'visa_legal' => '/\b(?:visa|permit|law|legal|sponsor|sponsorship|employment|tax|probation|notice)\b/i',
+                'country_life' => '/\b(?:living|life|culture|cost|safe|safety|expat|housing|healthcare|transport|work)\b/i',
+                'comparison' => '/\b(?:compared|whereas|while|better|higher|lower|cost|salary|market)\b/i',
+                'current_market' => '/\b(?:latest|current|market|trend|growth|hiring|forecast|outlook|202[0-9])\b/i',
+            ];
+            if (!empty($type_patterns[$query_type]) && preg_match($type_patterns[$query_type], $passage)) {
+                $score += 3.0;
+            }
+            if (preg_match('/\b(?:202[0-9]|19|20)\b|(?:\d+(?:,\d{3})*(?:\.\d+)?\s*(?:aed|sar|usd|%|per month|monthly|annually))/i', $passage)) {
+                $score += 1.4;
+            }
+
+            return $score;
+        }
+
+        private function score_crm_apply_chat_web_extraction_quality($text, $fetch_status, array $ranked_passages)
+        {
+            $text = trim((string) $text);
+            $status = sanitize_key((string) $fetch_status);
+            $score = 0.0;
+
+            if ($status === 'fetched') {
+                $score += 0.35;
+            } elseif ($status === 'snippet' || $status === 'empty') {
+                $score += 0.12;
+            }
+
+            $length = strlen($text);
+            if ($length >= 800) {
+                $score += 0.25;
+            } elseif ($length >= 300) {
+                $score += 0.16;
+            } elseif ($length >= 120) {
+                $score += 0.08;
+            }
+
+            $passage_count = count($ranked_passages);
+            if ($passage_count >= 2) {
+                $score += 0.18;
+            } elseif ($passage_count === 1) {
+                $score += 0.09;
+            }
+
+            $best_passage_score = 0.0;
+            foreach ($ranked_passages as $passage) {
+                $best_passage_score = max($best_passage_score, (float) ($passage['score'] ?? 0));
+            }
+            $score += min(0.22, $best_passage_score / 30);
+
+            return round(max(0.0, min(1.0, $score)), 2);
+        }
+
+        private function build_crm_apply_chat_web_answer_evidence($query, $query_type, array $results)
+        {
+            $terms = $this->get_crm_apply_chat_web_answer_query_terms($query);
+            $fetch_limit = $this->get_crm_apply_chat_web_source_fetch_limit();
+            $selected = $this->select_crm_apply_chat_web_answer_sources($results, $query, $query_type, $fetch_limit);
+            $evidence = [];
+            $source_index = 1;
+
+            foreach ($selected as $source) {
+                $fetched = $this->is_crm_apply_chat_web_source_fetch_enabled()
+                    ? $this->fetch_crm_apply_chat_web_answer_source($source)
+                    : array_merge($source, ['fetchStatus' => 'disabled', 'text' => '']);
+                $text = trim((string) ($fetched['text'] ?? ''));
+                if ($text === '') {
+                    $text = trim((string) ($source['snippet'] ?? ''));
+                }
+                $passages = $this->split_crm_apply_chat_web_answer_passages($text);
+                $ranked = [];
+                foreach ($passages as $passage) {
+                    $ranked[] = [
+                        'text' => sanitize_textarea_field(wp_trim_words($passage, 42, '...')),
+                        'score' => $this->score_crm_apply_chat_web_answer_passage($passage, $query_type, $terms),
+                    ];
+                }
+                usort($ranked, static function ($a, $b) {
+                    return (($b['score'] ?? 0) <=> ($a['score'] ?? 0));
+                });
+                $ranked = array_values(array_filter(array_slice($ranked, 0, 2), static function ($item) {
+                    return trim((string) ($item['text'] ?? '')) !== '';
+                }));
+                $fetch_status = sanitize_key((string) ($fetched['fetchStatus'] ?? 'snippet'));
+
+                $evidence[] = [
+                    'sourceId' => 's' . $source_index,
+                    'title' => sanitize_text_field((string) ($source['title'] ?? '')),
+                    'url' => esc_url_raw((string) ($source['url'] ?? '')),
+                    'source' => sanitize_text_field((string) ($source['source'] ?? '')),
+                    'publishedAt' => sanitize_text_field((string) ($source['publishedAt'] ?? '')),
+                    'sourceType' => sanitize_key($query_type),
+                    'reliability' => round(max(0.0, min(1.0, ((float) ($source['_sourceScore'] ?? 0)) / 8)), 2),
+                    'fetchStatus' => $fetch_status,
+                    'qualityScore' => $this->score_crm_apply_chat_web_extraction_quality($text, $fetch_status, $ranked),
+                    'usedPassages' => $ranked,
+                ];
+                $source_index++;
+            }
+
+            return $evidence;
+        }
+
+        private function summarize_crm_apply_chat_web_answer_evidence(array $evidence)
+        {
+            $summary = [
+                'sourceCount' => count($evidence),
+                'fetchedCount' => 0,
+                'snippetFallbackCount' => 0,
+                'blockedCount' => 0,
+                'averageQuality' => 0.0,
+                'answerMode' => 'no_sources',
+            ];
+            $quality_total = 0.0;
+
+            foreach ($evidence as $source) {
+                $status = sanitize_key((string) ($source['fetchStatus'] ?? ''));
+                if ($status === 'fetched') {
+                    $summary['fetchedCount']++;
+                } elseif (in_array($status, ['blocked', 'unsupported', 'timeout', 'private_or_invalid_url'], true)) {
+                    $summary['blockedCount']++;
+                } else {
+                    $summary['snippetFallbackCount']++;
+                }
+                $quality_total += (float) ($source['qualityScore'] ?? 0);
+            }
+
+            if ($summary['sourceCount'] > 0) {
+                $summary['averageQuality'] = round($quality_total / $summary['sourceCount'], 2);
+            }
+            if ($summary['fetchedCount'] > 0 && $summary['averageQuality'] >= 0.45) {
+                $summary['answerMode'] = 'source_grounded';
+            } elseif ($summary['sourceCount'] > 0) {
+                $summary['answerMode'] = 'snippet_grounded';
+            }
+
+            return $summary;
+        }
+
+        private function compose_crm_apply_chat_web_answer($query, $query_type, array $evidence, $locale)
+        {
+            $points = [];
+            foreach ($evidence as $source) {
+                foreach ((array) ($source['usedPassages'] ?? []) as $passage) {
+                    $text = trim((string) ($passage['text'] ?? ''));
+                    if ($text !== '') {
+                        $points[] = $text;
+                    }
+                }
+            }
+            $points = array_values(array_unique(array_slice($points, 0, 4)));
+            $has_fetched = false;
+            foreach ($evidence as $source) {
+                if (($source['fetchStatus'] ?? '') === 'fetched') {
+                    $has_fetched = true;
+                    break;
+                }
+            }
+
+            $labels = [
+                'country_life' => __('Here is the practical read from the sources I found.', 'senna-finance'),
+                'market_timing' => __('The useful answer is timing plus action, not timing alone.', 'senna-finance'),
+                'salary' => __('Treat salary figures as a market range, not a fixed number.', 'senna-finance'),
+                'recruiter_directory' => __('I found public sources that can help build a recruiter shortlist.', 'senna-finance'),
+                'company_research' => __('Here is the company-level read from public sources.', 'senna-finance'),
+                'visa_legal' => __('This is source-sensitive, so use official guidance before acting.', 'senna-finance'),
+                'comparison' => __('The better answer depends on your role, sector, and constraints.', 'senna-finance'),
+                'current_market' => __('Here is what the current public sources suggest.', 'senna-finance'),
+                'general_web_answer' => __('Here is the clearest answer I can give from the sources I found.', 'senna-finance'),
+            ];
+
+            $headline = $labels[$query_type] ?? $labels['general_web_answer'];
+            if ($locale === 'ar') {
+                $headline = __('هذا ملخص عملي من المصادر العامة التي وجدتها.', 'senna-finance');
+            }
+
+            $short_answer = '';
+            if (!empty($points)) {
+                $short_answer = $locale === 'ar'
+                    ? __('قرأت المصادر وحولت أهم الإشارات إلى نقاط عملية بدلاً من عرض الروابط فقط.', 'senna-finance')
+                    : __('I checked the sources and pulled out the strongest signals instead of just listing links.');
+            } else {
+                $short_answer = $locale === 'ar'
+                    ? __('لم أجد نصاً كافياً من الصفحات نفسها، لذلك أعرض أفضل النتائج المتاحة كمصادر للمراجعة.', 'senna-finance')
+                    : __('I could not extract enough readable page text, so I’m showing the best available source results as a fallback.');
+            }
+
+            $next_step = $locale === 'ar'
+                ? __('إذا أردت، أستطيع تحويل هذا إلى بحث وظائف أو قائمة خطوات عملية.', 'senna-finance')
+                : __('If you want, I can turn this into a job search, shortlist, or practical next-step plan.');
+
+            return [
+                'type' => sanitize_key($query_type),
+                'confidence' => !empty($points) ? ($has_fetched ? 0.78 : 0.58) : 0.42,
+                'headline' => sanitize_text_field($headline),
+                'shortAnswer' => sanitize_textarea_field($short_answer),
+                'keyPoints' => array_map('sanitize_textarea_field', $points),
+                'caveat' => sanitize_text_field($has_fetched
+                    ? __('These are public-source signals, so I would still verify anything legal, salary-related, or time-sensitive before relying on it.', 'senna-finance')
+                    : __('Some sources blocked full extraction, so this answer relies more heavily on search snippets.', 'senna-finance')),
+                'nextStep' => sanitize_text_field($next_step),
+            ];
+        }
+
+        private function build_crm_apply_chat_source_grounded_web_answer($query, array $results, $locale)
+        {
+            if (empty($results)) {
+                return [
+                    'classification' => [
+                        'type' => 'no_sources',
+                        'confidence' => 0,
+                    ],
+                    'answer' => null,
+                    'evidence' => [],
+                ];
+            }
+
+            $query_type = $this->classify_crm_apply_chat_web_answer_query($query);
+            $evidence = $this->build_crm_apply_chat_web_answer_evidence($query, $query_type, $results);
+            $evidence_summary = $this->summarize_crm_apply_chat_web_answer_evidence($evidence);
+
+            return [
+                'classification' => [
+                    'type' => sanitize_key($query_type),
+                    'confidence' => $evidence_summary['averageQuality'] >= 0.45 ? 0.78 : 0.58,
+                ],
+                'answer' => $this->compose_crm_apply_chat_web_answer($query, $query_type, $evidence, $locale),
+                'evidence' => $evidence,
+                'evidenceSummary' => $evidence_summary,
+            ];
+        }
+
+        private function call_crm_apply_chat_web_answer_service($query, $locale, $limit)
+        {
+            $endpoint = $this->get_crm_apply_chat_web_answer_endpoint();
+            if ($endpoint === '') {
+                return new WP_Error('sffc_answer_endpoint_missing', __('Source-grounded answer service is not configured.', 'senna-finance'));
+            }
+
+            $headers = [
+                'Accept' => 'application/json',
+                'Content-Type' => 'application/json',
+            ];
+            $token = $this->get_crm_apply_chat_web_answer_token();
+            if ($token !== '') {
+                $headers['Authorization'] = 'Bearer ' . $token;
+            }
+
+            $response = wp_remote_post($endpoint, [
+                'timeout' => 18,
+                'redirection' => 0,
+                'headers' => $headers,
+                'body' => wp_json_encode([
+                    'query' => $query,
+                    'locale' => $locale,
+                    'limit' => $limit,
+                ]),
+            ]);
+
+            if (is_wp_error($response)) {
+                $this->log_crm_apply_chat_web_search_event('answer_service_error', $query, [
+                    'error_code' => $response->get_error_code(),
+                    'endpoint_host' => (string) wp_parse_url($endpoint, PHP_URL_HOST),
+                ]);
+                return $response;
+            }
+
+            $status = (int) wp_remote_retrieve_response_code($response);
+            $decoded = json_decode((string) wp_remote_retrieve_body($response), true);
+            if ($status < 200 || $status >= 300 || !is_array($decoded) || empty($decoded['ok'])) {
+                $this->log_crm_apply_chat_web_search_event('answer_service_bad_response', $query, [
+                    'status' => $status,
+                    'endpoint_host' => (string) wp_parse_url($endpoint, PHP_URL_HOST),
+                ]);
+                return new WP_Error('sffc_answer_service_failed', __('Source-grounded answer service failed.', 'senna-finance'));
+            }
+
+            return [
+                'classification' => is_array($decoded['classification'] ?? null) ? $decoded['classification'] : null,
+                'answer' => is_array($decoded['answer'] ?? null) ? $decoded['answer'] : null,
+                'evidence' => is_array($decoded['evidence'] ?? null) ? $decoded['evidence'] : [],
+                'evidenceSummary' => is_array($decoded['evidenceSummary'] ?? null) ? $decoded['evidenceSummary'] : null,
+                'results' => is_array($decoded['results'] ?? null) ? $decoded['results'] : [],
+                'source' => sanitize_text_field((string) ($decoded['source'] ?? 'searxng+trafilatura')),
+                'searchedAt' => sanitize_text_field((string) ($decoded['searchedAt'] ?? gmdate('c'))),
+                'timings' => is_array($decoded['timings'] ?? null) ? $decoded['timings'] : [],
+            ];
+        }
+
         private function call_crm_apply_chat_web_search_service($query, $locale, $limit)
         {
             $endpoint = $this->get_crm_apply_chat_web_search_endpoint();
@@ -42349,6 +43108,7 @@ CRITICAL INSTRUCTIONS:
         public function ajax_crm_apply_chat_web_search()
         {
             check_ajax_referer('sffc_crm_apply_chat_web_search', 'nonce');
+            $started_at = microtime(true);
 
             $raw_query = isset($_POST['query']) ? wp_unslash($_POST['query']) : '';
             $query = is_array($raw_query) ? '' : trim(sanitize_text_field((string) $raw_query));
@@ -42373,31 +43133,87 @@ CRITICAL INSTRUCTIONS:
             $cached = get_transient($cache_key);
             if (is_array($cached)) {
                 $cached['cached'] = true;
+                $cached['timings'] = [
+                    'cacheHit' => true,
+                    'totalMs' => max(0, round((microtime(true) - $started_at) * 1000, 1)),
+                ];
                 wp_send_json_success($cached);
             }
 
-            $results = $this->call_crm_apply_chat_web_search_service($query, $locale, $limit);
-            if (is_wp_error($results)) {
-                $is_missing_endpoint = $results->get_error_code() === 'sffc_search_endpoint_missing';
-                wp_send_json_error([
-                    'message' => $is_missing_endpoint
-                        ? __('Web search is not configured yet.', 'senna-finance')
-                        : __('I could not reach web search just now. Try again in a moment.', 'senna-finance'),
+            $remote_answer_started_at = microtime(true);
+            $remote_answer = $this->call_crm_apply_chat_web_answer_service($query, $locale, $limit);
+            if (!is_wp_error($remote_answer)) {
+                $payload = [
+                    'ok' => true,
                     'query' => $query,
-                    'results' => [],
-                ], $is_missing_endpoint ? 503 : 502);
-            }
+                    'locale' => $locale,
+                    'summary' => $this->build_crm_apply_chat_web_search_summary($query, (array) ($remote_answer['results'] ?? []), $locale),
+                    'classification' => $remote_answer['classification'] ?? null,
+                    'answer' => $remote_answer['answer'] ?? null,
+                    'evidence' => $remote_answer['evidence'] ?? [],
+                    'evidenceSummary' => $remote_answer['evidenceSummary'] ?? null,
+                    'results' => array_values((array) ($remote_answer['results'] ?? [])),
+                    'source' => sanitize_text_field((string) ($remote_answer['source'] ?? 'searxng+trafilatura')),
+                    'cached' => false,
+                    'searchedAt' => sanitize_text_field((string) ($remote_answer['searchedAt'] ?? gmdate('c'))),
+                    'timings' => array_merge(
+                        [
+                            'cacheHit' => false,
+                            'answerServiceMs' => max(0, round((microtime(true) - $remote_answer_started_at) * 1000, 1)),
+                            'totalMs' => max(0, round((microtime(true) - $started_at) * 1000, 1)),
+                        ],
+                        is_array($remote_answer['timings'] ?? null) ? $remote_answer['timings'] : []
+                    ),
+                ];
+            } else {
+                $search_started_at = microtime(true);
+                $results = $this->call_crm_apply_chat_web_search_service($query, $locale, $limit);
+                $search_ms = max(0, round((microtime(true) - $search_started_at) * 1000, 1));
+                if (is_wp_error($results)) {
+                    $is_missing_endpoint = $results->get_error_code() === 'sffc_search_endpoint_missing';
+                    wp_send_json_error([
+                        'message' => $is_missing_endpoint
+                            ? __('Web search is not configured yet.', 'senna-finance')
+                            : __('I could not reach web search just now. Try again in a moment.', 'senna-finance'),
+                        'query' => $query,
+                        'results' => [],
+                    ], $is_missing_endpoint ? 503 : 502);
+                }
 
-            $payload = [
-                'ok' => true,
-                'query' => $query,
-                'locale' => $locale,
-                'summary' => $this->build_crm_apply_chat_web_search_summary($query, (array) $results, $locale),
-                'results' => array_values((array) $results),
-                'source' => 'searxng',
-                'cached' => false,
-                'searchedAt' => gmdate('c'),
-            ];
+                $answer_started_at = microtime(true);
+                $grounded_answer = $this->build_crm_apply_chat_source_grounded_web_answer($query, (array) $results, $locale);
+                $answer_ms = max(0, round((microtime(true) - $answer_started_at) * 1000, 1));
+
+                $payload = [
+                    'ok' => true,
+                    'query' => $query,
+                    'locale' => $locale,
+                    'summary' => $this->build_crm_apply_chat_web_search_summary($query, (array) $results, $locale),
+                    'classification' => $grounded_answer['classification'] ?? null,
+                    'answer' => $grounded_answer['answer'] ?? null,
+                    'evidence' => $grounded_answer['evidence'] ?? [],
+                    'evidenceSummary' => $grounded_answer['evidenceSummary'] ?? null,
+                    'results' => array_values((array) $results),
+                    'source' => 'searxng',
+                    'cached' => false,
+                    'searchedAt' => gmdate('c'),
+                    'timings' => [
+                        'cacheHit' => false,
+                        'searchMs' => $search_ms,
+                        'answerMs' => $answer_ms,
+                        'totalMs' => max(0, round((microtime(true) - $started_at) * 1000, 1)),
+                    ],
+                ];
+            }
+            $this->log_crm_apply_chat_web_search_event('answer_ready', $query, [
+                'query_type' => sanitize_key((string) ($payload['classification']['type'] ?? 'unknown')),
+                'source_count' => absint($payload['evidenceSummary']['sourceCount'] ?? count((array) $payload['evidence'])),
+                'answer_mode' => sanitize_key((string) ($payload['evidenceSummary']['answerMode'] ?? 'unknown')),
+                'average_quality' => (float) ($payload['evidenceSummary']['averageQuality'] ?? 0),
+                'search_ms' => (float) ($payload['timings']['searchMs'] ?? 0),
+                'answer_ms' => (float) ($payload['timings']['answerMs'] ?? 0),
+                'total_ms' => (float) ($payload['timings']['totalMs'] ?? 0),
+            ]);
 
             $cache_ttl = $this->get_crm_apply_chat_web_search_cache_ttl($query);
             if (empty($payload['results'])) {
@@ -42624,6 +43440,7 @@ CRITICAL INSTRUCTIONS:
                 $js_version,
                 true
             );
+            wp_script_add_data('sffc-crm-apply-chat-article', 'defer', true);
 
             wp_localize_script('sffc-crm-apply-chat-article', 'sffcCrmApplyChatArticle', [
                 'ajaxUrl' => admin_url('admin-ajax.php'),
@@ -42641,6 +43458,8 @@ CRITICAL INSTRUCTIONS:
                 'autoSubmitSchemaNonce' => wp_create_nonce('sffc_crm_apply_chat_get_auto_submit_schema'),
                 'applicationTaskNonce' => wp_create_nonce('sffc_crm_apply_chat_queue_application_task'),
                 'applicationPreviewQueueNonce' => wp_create_nonce('sffc_crm_apply_chat_queue_application_preview'),
+                'remoteBrowserNonce' => wp_create_nonce('sffc_crm_apply_chat_remote_browser'),
+                'remoteBrowserEnabled' => $this->can_crm_apply_chat_use_remote_browser(),
                 'catchUpInviteNonce' => wp_create_nonce('sffc_crm_apply_chat_send_catch_up_invite'),
                 'jobsSearchNonce' => wp_create_nonce('sffc_crm_apply_chat_search_jobs'),
                 'webSearchNonce' => wp_create_nonce('sffc_crm_apply_chat_web_search'),
@@ -42668,9 +43487,7 @@ CRITICAL INSTRUCTIONS:
                 'cvIntelligenceOntologyUrl' => file_exists(SFFC_PLUGIN_DIR . 'assets/data/cv-intelligence-ontology.json')
                     ? SFFC_PLUGIN_URL . 'assets/data/cv-intelligence-ontology.json?ver=' . (string) filemtime(SFFC_PLUGIN_DIR . 'assets/data/cv-intelligence-ontology.json')
                     : '',
-                'cvIntelligenceOntology' => file_exists(SFFC_PLUGIN_DIR . 'assets/data/cv-intelligence-ontology.json')
-                    ? (json_decode((string) file_get_contents(SFFC_PLUGIN_DIR . 'assets/data/cv-intelligence-ontology.json'), true) ?: [])
-                    : [],
+                'cvIntelligenceOntology' => null,
             ]);
 
             $post_model = new SFFC_CRM_Post();
@@ -42787,15 +43604,22 @@ CRITICAL INSTRUCTIONS:
                 ? $this->get_crm_editorial_community_public_opportunity_url((array) $launch_post, $launch_role_title, $launch_company_name)
                 : (!empty($launch_jobs_item['view_url']) ? (string) $launch_jobs_item['view_url'] : '#');
             $launch_auto_submit = $this->get_crm_apply_chat_auto_submit_payload($launch_jobs_post_id);
-            $launch_application_embed_mode = sanitize_key((string) ($launch_post['application_embed_mode'] ?? ($launch_jobs_item['application_embed_mode'] ?? 'auto')));
+            $launch_application_embed_mode = $this->normalize_crm_apply_chat_application_embed_mode($launch_post['application_embed_mode'] ?? ($launch_jobs_item['application_embed_mode'] ?? 'auto'));
             if (($launch_application_embed_mode === '' || $launch_application_embed_mode === 'auto') && $launch_jobs_post_id > 0) {
-                $launch_application_embed_mode = sanitize_key((string) get_post_meta($launch_jobs_post_id, '_sffc_application_embed_mode', true));
+                $launch_application_embed_mode = $this->normalize_crm_apply_chat_application_embed_mode(get_post_meta($launch_jobs_post_id, '_sffc_application_embed_mode', true));
             }
             if (($launch_application_embed_mode === '' || $launch_application_embed_mode === 'auto') && !empty($launch_auto_submit['application_embed_mode'])) {
-                $launch_application_embed_mode = sanitize_key((string) $launch_auto_submit['application_embed_mode']);
+                $launch_application_embed_mode = $this->normalize_crm_apply_chat_application_embed_mode($launch_auto_submit['application_embed_mode']);
             }
-            if (!in_array($launch_application_embed_mode, ['auto', 'embed', 'screenshot'], true)) {
-                $launch_application_embed_mode = 'auto';
+            $launch_application_workspace_url = esc_url_raw((string) ($launch_auto_submit['application_embed_url'] ?? ''));
+            if (!$this->is_crm_apply_chat_external_application_url($launch_application_workspace_url)) {
+                $launch_application_workspace_url = '';
+            }
+            if ($launch_application_embed_mode === '' || $launch_application_embed_mode === 'auto') {
+                $launch_application_embed_mode = $this->get_crm_apply_chat_provider_default_embed_mode(
+                    $launch_auto_submit['provider'],
+                    $launch_application_workspace_url ?: $launch_application_url
+                );
             }
             $matching_roles_seed = [];
             $matching_recruiters_seed = [];
@@ -42819,16 +43643,19 @@ CRITICAL INSTRUCTIONS:
             $apply_chat_intros_panel_html = $this->render_crm_apply_chat_activity_panel($apply_chat_user_id, 'intros');
             $apply_chat_sent_panel_html = $this->render_crm_apply_chat_activity_panel($apply_chat_user_id, 'sent');
 
+            $matching_roles_seed_limit = (int) apply_filters('sffc_crm_apply_chat_initial_matching_roles_seed_limit', 12);
+            $matching_recruiters_seed_limit = (int) apply_filters('sffc_crm_apply_chat_initial_matching_recruiters_seed_limit', 8);
+
             $matching_roles_seed = $this->get_apply_chat_matching_roles_seed([
                 'location' => $launch_location,
                 'sector' => $launch_sector,
                 'keywords' => trim($launch_role_title . ' ' . $launch_company_name),
-            ]);
+            ], $matching_roles_seed_limit);
 
             if (class_exists('SFFC_CRM_HR_Outreach')) {
                 $hr_outreach_model = new SFFC_CRM_HR_Outreach();
                 $matching_recruiters_raw = (array) $hr_outreach_model->get_all([
-                    'limit' => 36,
+                    'limit' => $matching_recruiters_seed_limit,
                 ]);
 
                 foreach ($matching_recruiters_raw as $recruiter_item) {
@@ -42903,7 +43730,7 @@ CRITICAL INSTRUCTIONS:
                 data-launch-notes="<?php echo esc_attr($launch_notes); ?>"
                 data-role-salary="<?php echo esc_attr($launch_salary); ?>"
                 data-application-url="<?php echo esc_url($launch_application_url !== '' ? $launch_application_url : '#'); ?>"
-                data-application-workspace-url="<?php echo esc_url((string) ($launch_auto_submit['application_embed_url'] ?? '')); ?>"
+                data-application-workspace-url="<?php echo esc_url($launch_application_workspace_url); ?>"
                 data-application-embed-mode="<?php echo esc_attr($launch_application_embed_mode); ?>"
                 data-role-url="<?php echo esc_url($launch_public_opportunity_url !== '' ? $launch_public_opportunity_url : '#'); ?>"
                 data-auto-submit-supported="<?php echo !empty($launch_auto_submit['supported']) ? '1' : '0'; ?>"
@@ -44436,6 +45263,11 @@ CRITICAL INSTRUCTIONS:
                 ];
             }
 
+            $schema_application_embed_url = esc_url_raw((string) ($schema['application_embed_url'] ?? ($schema['hosted_url'] ?? '')));
+            if (!$this->is_crm_apply_chat_external_application_url($schema_application_embed_url)) {
+                $schema_application_embed_url = '';
+            }
+
             wp_send_json_success([
                 'provider' => sanitize_key((string) ($schema['provider'] ?? $auto_submit['provider'] ?? '')),
                 'jobs_post_id' => $jobs_post_id,
@@ -44443,7 +45275,7 @@ CRITICAL INSTRUCTIONS:
                 'job_id' => sanitize_text_field((string) ($schema['job_id'] ?? $auto_submit['greenhouse_job_id'] ?? '')),
                 'submit_url' => esc_url_raw((string) ($schema['submit_url'] ?? '')),
                 'hosted_url' => esc_url_raw((string) ($schema['hosted_url'] ?? '')),
-                'application_embed_url' => esc_url_raw((string) ($schema['application_embed_url'] ?? ($schema['hosted_url'] ?? ''))),
+                'application_embed_url' => $schema_application_embed_url,
                 'schema_url' => esc_url_raw((string) ($schema['schema_url'] ?? '')),
                 'required_question_count' => count(array_filter($questions, static function ($question) {
                     return is_array($question) && !empty($question['required']);
@@ -44969,24 +45801,24 @@ CRITICAL INSTRUCTIONS:
                 wp_send_json_error(['message' => __('The application preview queue is not available yet.', 'senna-finance')], 500);
             }
 
-            $application_url = esc_url_raw(wp_unslash((string) ($_POST['application_url'] ?? '')));
+            $application_url = esc_url_raw($this->get_crm_apply_chat_post_scalar('application_url'));
             if (!$this->is_crm_apply_chat_external_application_url($application_url)) {
                 wp_send_json_error(['message' => __('I need a valid employer application URL before I can preview it.', 'senna-finance')], 422);
             }
 
-            $session_token = sanitize_text_field(wp_unslash((string) ($_POST['session_token'] ?? '')));
-            $role_title = sanitize_text_field(wp_unslash((string) ($_POST['role_title'] ?? '')));
-            $company_name = sanitize_text_field(wp_unslash((string) ($_POST['company_name'] ?? '')));
-            $provider = sanitize_key((string) wp_unslash($_POST['provider'] ?? ''));
+            $session_token = sanitize_text_field($this->get_crm_apply_chat_post_scalar('session_token'));
+            $role_title = sanitize_text_field($this->get_crm_apply_chat_post_scalar('role_title'));
+            $company_name = sanitize_text_field($this->get_crm_apply_chat_post_scalar('company_name'));
+            $provider = sanitize_key($this->get_crm_apply_chat_post_scalar('provider'));
             $jobs_post_id = absint($_POST['jobs_post_id'] ?? 0);
             $crm_post_id = absint($_POST['crm_post_id'] ?? 0);
-            $page_url = esc_url_raw(wp_unslash((string) ($_POST['page_url'] ?? '')));
+            $page_url = esc_url_raw($this->get_crm_apply_chat_post_scalar('page_url'));
             $conversation_id = $this->find_or_create_crm_apply_chat_conversation($session_token, $crm_post_id ?: $jobs_post_id, $role_title, $page_url);
             $task_uuid = wp_generate_uuid4();
             $payload = [
                 'source' => 'application_preview',
                 'page_url' => $page_url,
-                'role_url' => esc_url_raw(wp_unslash((string) ($_POST['role_url'] ?? ''))),
+                'role_url' => esc_url_raw($this->get_crm_apply_chat_post_scalar('role_url')),
                 'preview_width' => 1366,
                 'preview_height' => 1100,
             ];
@@ -45023,6 +45855,292 @@ CRITICAL INSTRUCTIONS:
             wp_send_json_success([
                 'task_uuid' => $task_uuid,
                 'status' => 'queued',
+            ]);
+        }
+
+        private function is_crm_apply_chat_remote_browser_url_allowed($url)
+        {
+            if (!$this->is_crm_apply_chat_external_application_url($url)) {
+                return false;
+            }
+
+            $host = strtolower((string) wp_parse_url($url, PHP_URL_HOST));
+            if ($host === '' || $host === 'localhost' || $host === '127.0.0.1' || $host === '0.0.0.0' || $host === '::1') {
+                return false;
+            }
+
+            if (filter_var($host, FILTER_VALIDATE_IP)) {
+                if (!filter_var($host, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        private function get_crm_apply_chat_post_scalar($key, $fallback = '')
+        {
+            if (!isset($_POST[$key]) || is_array($_POST[$key])) {
+                return $fallback;
+            }
+            return wp_unslash((string) $_POST[$key]);
+        }
+
+        private function get_crm_apply_chat_post_first_scalar(array $keys, $fallback = '')
+        {
+            foreach ($keys as $key) {
+                if (isset($_POST[$key]) && !is_array($_POST[$key])) {
+                    return wp_unslash((string) $_POST[$key]);
+                }
+            }
+            return $fallback;
+        }
+
+        private function crm_apply_chat_remote_browser_request($method, $path, array $payload = [])
+        {
+            $base_url = $this->get_crm_apply_chat_remote_browser_service_url();
+            $token = $this->get_crm_apply_chat_remote_browser_token();
+            if ($base_url === '' || $token === '') {
+                return new WP_Error('sffc_remote_browser_not_configured', __('Remote browser service is not configured.', 'senna-finance'));
+            }
+
+            $url = $base_url . '/' . ltrim($path, '/');
+            $args = [
+                'method' => strtoupper($method),
+                'timeout' => 35,
+                'redirection' => 0,
+                'headers' => [
+                    'Authorization' => 'Bearer ' . $token,
+                    'Accept' => 'application/json',
+                ],
+            ];
+
+            if (!empty($payload)) {
+                $args['headers']['Content-Type'] = 'application/json';
+                $args['body'] = wp_json_encode($payload);
+            }
+
+            $response = wp_remote_request($url, $args);
+            if (is_wp_error($response)) {
+                return $response;
+            }
+
+            $status_code = (int) wp_remote_retrieve_response_code($response);
+            $body = (string) wp_remote_retrieve_body($response);
+            $decoded = json_decode($body, true);
+            if (!is_array($decoded)) {
+                return new WP_Error('sffc_remote_browser_bad_response', __('Remote browser service returned an unreadable response.', 'senna-finance'), ['status' => $status_code]);
+            }
+            if ($status_code < 200 || $status_code >= 300 || empty($decoded['ok'])) {
+                return new WP_Error(
+                    'sffc_remote_browser_request_failed',
+                    sanitize_text_field((string) ($decoded['error'] ?? __('Remote browser request failed.', 'senna-finance'))),
+                    ['status' => $status_code, 'response' => $decoded]
+                );
+            }
+
+            return $decoded;
+        }
+
+        private function get_crm_apply_chat_remote_browser_http_status($error, $fallback = 500)
+        {
+            if (!$error instanceof WP_Error) {
+                return absint($fallback) ?: 500;
+            }
+            $data = $error->get_error_data();
+            if (is_array($data) && isset($data['status'])) {
+                return absint($data['status']) ?: 500;
+            }
+            return absint($fallback) ?: 500;
+        }
+
+        private function get_crm_apply_chat_remote_browser_transient_key($session_id)
+        {
+            return 'sffc_rbs_' . md5((string) $session_id);
+        }
+
+        private function remember_crm_apply_chat_remote_browser_session($session_id, $session_token, $conversation_id, $role_id)
+        {
+            $session_id = sanitize_text_field((string) $session_id);
+            if ($session_id === '') {
+                return;
+            }
+            set_transient($this->get_crm_apply_chat_remote_browser_transient_key($session_id), [
+                'user_id' => get_current_user_id(),
+                'session_token' => sanitize_text_field((string) $session_token),
+                'conversation_id' => absint($conversation_id),
+                'role_id' => sanitize_text_field((string) $role_id),
+                'created_at' => time(),
+            ], 20 * MINUTE_IN_SECONDS);
+        }
+
+        private function current_user_can_access_crm_apply_chat_remote_browser_session($session_id, $session_token)
+        {
+            $session_id = sanitize_text_field((string) $session_id);
+            if ($session_id === '') {
+                return false;
+            }
+            $stored = get_transient($this->get_crm_apply_chat_remote_browser_transient_key($session_id));
+            if (!is_array($stored)) {
+                return false;
+            }
+            $current_user_id = get_current_user_id();
+            $stored_user_id = absint($stored['user_id'] ?? 0);
+            if ($current_user_id > 0 && $stored_user_id > 0 && $current_user_id === $stored_user_id) {
+                return true;
+            }
+            $stored_session_token = sanitize_text_field((string) ($stored['session_token'] ?? ''));
+            $session_token = sanitize_text_field((string) $session_token);
+            return $session_token !== '' && $stored_session_token !== '' && hash_equals($stored_session_token, $session_token);
+        }
+
+        public function ajax_crm_apply_chat_remote_browser_create()
+        {
+            check_ajax_referer('sffc_crm_apply_chat_remote_browser', 'nonce');
+
+            if (!$this->can_crm_apply_chat_use_remote_browser()) {
+                wp_send_json_error(['message' => __('The secure browser is not enabled yet.', 'senna-finance')], 503);
+            }
+
+            $application_url = esc_url_raw($this->get_crm_apply_chat_post_first_scalar(['application_url', 'employer_url']));
+            if (!$this->is_crm_apply_chat_remote_browser_url_allowed($application_url)) {
+                wp_send_json_error(['message' => __('I need a valid external employer application URL before I can open the secure browser.', 'senna-finance')], 422);
+            }
+
+            $session_token = sanitize_text_field($this->get_crm_apply_chat_post_scalar('session_token'));
+            $jobs_post_id = absint($_POST['jobs_post_id'] ?? 0);
+            $crm_post_id = absint($_POST['crm_post_id'] ?? ($_POST['post_id'] ?? 0));
+            if ($jobs_post_id <= 0 && $crm_post_id > 0) {
+                $jobs_post_id = $this->find_jobs_post_id_by_crm_post_id($crm_post_id);
+            }
+
+            $role_title = sanitize_text_field($this->get_crm_apply_chat_post_scalar('role_title'));
+            $company_name = sanitize_text_field($this->get_crm_apply_chat_post_scalar('company_name'));
+            $provider = sanitize_key($this->get_crm_apply_chat_post_scalar('provider'));
+            $page_url = esc_url_raw($this->get_crm_apply_chat_post_scalar('page_url'));
+            $conversation_id = $this->find_or_create_crm_apply_chat_conversation($session_token, $crm_post_id ?: $jobs_post_id, $role_title, $page_url);
+
+            $payload = [
+                'roleId' => (string) ($jobs_post_id ?: $crm_post_id),
+                'taskUuid' => sanitize_text_field($this->get_crm_apply_chat_post_scalar('task_uuid')),
+                'userId' => get_current_user_id(),
+                'conversationId' => $conversation_id > 0 ? $conversation_id : 0,
+                'provider' => $provider ?: 'unknown',
+                'employerUrl' => $application_url,
+                'transport' => 'novnc',
+            ];
+
+            $result = $this->crm_apply_chat_remote_browser_request('POST', '/sessions', $payload);
+            if (is_wp_error($result)) {
+                wp_send_json_error([
+                    'message' => $result->get_error_message(),
+                    'fallback' => 'static_preview',
+                ], $this->get_crm_apply_chat_remote_browser_http_status($result));
+            }
+
+            $session = is_array($result['session'] ?? null) ? $result['session'] : [];
+            $remote_session_id = sanitize_text_field((string) ($session['sessionId'] ?? ''));
+            if ($remote_session_id === '' || empty($session['streamUrl'])) {
+                wp_send_json_error([
+                    'message' => __('The secure browser service did not return a usable session.', 'senna-finance'),
+                    'fallback' => 'static_preview',
+                ], 502);
+            }
+            $this->remember_crm_apply_chat_remote_browser_session(
+                $remote_session_id,
+                $session_token,
+                $conversation_id,
+                (string) ($jobs_post_id ?: $crm_post_id)
+            );
+
+            wp_send_json_success([
+                'session' => $session,
+                'mode' => 'remote_browser',
+                'message' => __('I opened the employer page in a secure Senna browser window.', 'senna-finance'),
+            ]);
+        }
+
+        public function ajax_crm_apply_chat_remote_browser_status()
+        {
+            check_ajax_referer('sffc_crm_apply_chat_remote_browser', 'nonce');
+
+            $session_id = sanitize_text_field($this->get_crm_apply_chat_post_scalar('session_id'));
+            if ($session_id === '') {
+                wp_send_json_error(['message' => __('Missing secure browser session ID.', 'senna-finance')], 422);
+            }
+            $session_token = sanitize_text_field($this->get_crm_apply_chat_post_scalar('session_token'));
+            if (!$this->current_user_can_access_crm_apply_chat_remote_browser_session($session_id, $session_token)) {
+                wp_send_json_error(['message' => __('You do not have access to this secure browser session.', 'senna-finance')], 403);
+            }
+
+            $result = $this->crm_apply_chat_remote_browser_request('GET', '/sessions/' . rawurlencode($session_id));
+            if (is_wp_error($result)) {
+                wp_send_json_error(['message' => $result->get_error_message()], $this->get_crm_apply_chat_remote_browser_http_status($result));
+            }
+
+            wp_send_json_success([
+                'session' => is_array($result['session'] ?? null) ? $result['session'] : [],
+            ]);
+        }
+
+        public function ajax_crm_apply_chat_remote_browser_control()
+        {
+            check_ajax_referer('sffc_crm_apply_chat_remote_browser', 'nonce');
+
+            $session_id = sanitize_text_field($this->get_crm_apply_chat_post_scalar('session_id'));
+            if ($session_id === '') {
+                wp_send_json_error(['message' => __('Missing secure browser session ID.', 'senna-finance')], 422);
+            }
+            $session_token = sanitize_text_field($this->get_crm_apply_chat_post_scalar('session_token'));
+            if (!$this->current_user_can_access_crm_apply_chat_remote_browser_session($session_id, $session_token)) {
+                wp_send_json_error(['message' => __('You do not have access to this secure browser session.', 'senna-finance')], 403);
+            }
+
+            $control = sanitize_key($this->get_crm_apply_chat_post_scalar('control'));
+            $allowed_controls = [
+                'user_control',
+                'emily_control',
+                'waiting_for_user',
+                'read_only',
+            ];
+            if (!in_array($control, $allowed_controls, true)) {
+                wp_send_json_error(['message' => __('Unsupported secure browser control state.', 'senna-finance')], 422);
+            }
+
+            $result = $this->crm_apply_chat_remote_browser_request('POST', '/sessions/' . rawurlencode($session_id) . '/control', [
+                'control' => $control,
+            ]);
+            if (is_wp_error($result)) {
+                wp_send_json_error(['message' => $result->get_error_message()], $this->get_crm_apply_chat_remote_browser_http_status($result));
+            }
+
+            wp_send_json_success([
+                'session' => is_array($result['session'] ?? null) ? $result['session'] : [],
+            ]);
+        }
+
+        public function ajax_crm_apply_chat_remote_browser_close()
+        {
+            check_ajax_referer('sffc_crm_apply_chat_remote_browser', 'nonce');
+
+            $session_id = sanitize_text_field($this->get_crm_apply_chat_post_scalar('session_id'));
+            if ($session_id === '') {
+                wp_send_json_error(['message' => __('Missing secure browser session ID.', 'senna-finance')], 422);
+            }
+            $session_token = sanitize_text_field($this->get_crm_apply_chat_post_scalar('session_token'));
+            if (!$this->current_user_can_access_crm_apply_chat_remote_browser_session($session_id, $session_token)) {
+                wp_send_json_error(['message' => __('You do not have access to this secure browser session.', 'senna-finance')], 403);
+            }
+
+            $result = $this->crm_apply_chat_remote_browser_request('POST', '/sessions/' . rawurlencode($session_id) . '/close');
+            if (is_wp_error($result)) {
+                wp_send_json_error(['message' => $result->get_error_message()], $this->get_crm_apply_chat_remote_browser_http_status($result));
+            }
+            delete_transient($this->get_crm_apply_chat_remote_browser_transient_key($session_id));
+
+            wp_send_json_success([
+                'closed' => !empty($result['closed']),
+                'session_id' => sanitize_text_field((string) ($result['sessionId'] ?? $session_id)),
             ]);
         }
 
@@ -54020,7 +55138,7 @@ CRITICAL INSTRUCTIONS:
 
             $post_model = new SFFC_CRM_Post();
             $user_id = get_current_user_id();
-            $limit = max(48, min(180, absint($limit)));
+            $limit = max(1, min(180, absint($limit)));
             $context = array_merge([
                 'location' => '',
                 'sector' => '',

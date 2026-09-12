@@ -15681,6 +15681,137 @@ body.sffc-crm-apply-chat-lock {
   line-height: 1.45 !important;
 }
 
+.sffc-crm-apply-chat .sffc-crm-apply-results__remote-browser {
+  display: grid !important;
+  gap: 0 !important;
+  overflow: hidden !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  border: 1px solid #d7e0ec !important;
+  border-radius: 10px !important;
+  background: #ffffff !important;
+  box-shadow: 0 8px 22px rgba(15, 23, 42, 0.08) !important;
+}
+
+.sffc-crm-apply-chat .sffc-crm-apply-results__remote-browser[hidden] {
+  display: none !important;
+}
+
+.sffc-crm-apply-chat .sffc-crm-apply-results__remote-browser-bar {
+  min-width: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 12px !important;
+  padding: 12px 14px !important;
+  border-bottom: 1px solid #e5eaf1 !important;
+  background: #f8fbff !important;
+}
+
+.sffc-crm-apply-chat .sffc-crm-apply-results__remote-browser-bar strong,
+.sffc-crm-apply-chat .sffc-crm-apply-results__remote-browser-bar span {
+  display: block !important;
+  min-width: 0 !important;
+}
+
+.sffc-crm-apply-chat .sffc-crm-apply-results__remote-browser-bar strong {
+  color: #172033 !important;
+  font-size: 13.5px !important;
+  font-weight: 800 !important;
+  line-height: 1.25 !important;
+}
+
+.sffc-crm-apply-chat .sffc-crm-apply-results__remote-browser-bar span {
+  margin-top: 2px !important;
+  color: #536273 !important;
+  font-size: 12px !important;
+  line-height: 1.35 !important;
+}
+
+.sffc-crm-apply-chat .sffc-crm-apply-results__remote-browser-actions {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  gap: 8px !important;
+  flex: 0 0 auto !important;
+}
+
+.sffc-crm-apply-chat .sffc-crm-apply-results__remote-browser-link,
+.sffc-crm-apply-chat .sffc-crm-apply-results__remote-browser-control,
+.sffc-crm-apply-chat .sffc-crm-apply-results__remote-browser-close {
+  min-height: 30px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 7px 10px !important;
+  border: 1px solid #cfd8e3 !important;
+  border-radius: 6px !important;
+  background: #ffffff !important;
+  color: #1a73e8 !important;
+  cursor: pointer !important;
+  font-size: 12.5px !important;
+  font-weight: 750 !important;
+  line-height: 1 !important;
+  text-decoration: none !important;
+  white-space: nowrap !important;
+}
+
+.sffc-crm-apply-chat .sffc-crm-apply-results__remote-browser-control.is-active {
+  border-color: #1a73e8 !important;
+  background: #1a73e8 !important;
+  color: #ffffff !important;
+}
+
+.sffc-crm-apply-chat .sffc-crm-apply-results__remote-browser.is-updating-control .sffc-crm-apply-results__remote-browser-control {
+  opacity: 0.7 !important;
+  pointer-events: none !important;
+}
+
+.sffc-crm-apply-chat .sffc-crm-apply-results__remote-browser-close {
+  color: #4b5563 !important;
+}
+
+.sffc-crm-apply-chat .sffc-crm-apply-results__remote-browser-viewport {
+  width: 100% !important;
+  min-width: 0 !important;
+  height: clamp(420px, 58vh, 720px) !important;
+  min-height: 420px !important;
+  overflow: hidden !important;
+  background: #f1f5f9 !important;
+}
+
+.sffc-crm-apply-chat .sffc-crm-apply-results__remote-browser-frame {
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+  border: 0 !important;
+  background: #ffffff !important;
+}
+
+.sffc-crm-apply-chat .sffc-crm-apply-results__remote-browser-status {
+  padding: 10px 14px !important;
+  border-top: 1px solid #e5eaf1 !important;
+  background: #ffffff !important;
+  color: #536273 !important;
+  font-size: 12.5px !important;
+  line-height: 1.35 !important;
+}
+
+.sffc-crm-apply-chat .sffc-crm-apply-results__remote-browser-error {
+  width: 100% !important;
+  min-height: 180px !important;
+  display: grid !important;
+  place-items: center !important;
+  padding: 18px !important;
+  color: #9f1c10 !important;
+  text-align: center !important;
+  font-size: 13.5px !important;
+  font-weight: 650 !important;
+  line-height: 1.45 !important;
+  background: #fff8f7 !important;
+}
+
 .sffc-crm-apply-chat .sffc-crm-apply-results__review-screenshot {
   overflow: hidden !important;
   border: 1px solid #dfe4ea !important;
@@ -15880,6 +16011,20 @@ body.sffc-crm-apply-chat-lock {
     height: 560px !important;
   }
 
+  .sffc-crm-apply-chat .sffc-crm-apply-results__remote-browser-bar {
+    align-items: stretch !important;
+    flex-direction: column !important;
+  }
+
+  .sffc-crm-apply-chat .sffc-crm-apply-results__remote-browser-actions {
+    justify-content: flex-start !important;
+  }
+
+  .sffc-crm-apply-chat .sffc-crm-apply-results__remote-browser-viewport {
+    height: min(66vh, 620px) !important;
+    min-height: 360px !important;
+  }
+
   .sffc-crm-apply-chat .sffc-crm-apply-results__btn {
     padding: 8px 14px !important;
     font-size: 13px !important;
@@ -15933,6 +16078,18 @@ body.sffc-crm-apply-chat-lock {
   .sffc-crm-apply-chat .sffc-crm-apply-results__actions {
     display: grid !important;
     grid-template-columns: minmax(0, 1fr) !important;
+    width: 100% !important;
+  }
+
+  .sffc-crm-apply-chat .sffc-crm-apply-results__remote-browser-actions {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    width: 100% !important;
+  }
+
+  .sffc-crm-apply-chat .sffc-crm-apply-results__remote-browser-link,
+  .sffc-crm-apply-chat .sffc-crm-apply-results__remote-browser-control,
+  .sffc-crm-apply-chat .sffc-crm-apply-results__remote-browser-close {
     width: 100% !important;
   }
 
@@ -23434,6 +23591,66 @@ body.sffc-crm-apply-chat-lock {
   font-weight: 700 !important;
 }
 
+.sffc-crm-apply-chat.is-emily-typing .sffc-crm-apply-chat__send {
+  width: 38px !important;
+  min-width: 38px !important;
+  border-radius: 10px !important;
+  background: #191919 !important;
+  box-shadow: none !important;
+  cursor: default !important;
+  animation: none !important;
+}
+
+.sffc-crm-apply-chat.is-emily-typing .sffc-crm-apply-chat__send::before {
+  content: "" !important;
+  width: 5px !important;
+  height: 5px !important;
+  border-radius: 999px !important;
+  background: #ffffff !important;
+  color: transparent !important;
+  font-size: 0 !important;
+  box-shadow:
+    -8px 0 0 rgba(255, 255, 255, 0.42),
+    8px 0 0 rgba(255, 255, 255, 0.42) !important;
+  animation: sffc-crm-apply-chat-send-dots 0.95s ease-in-out infinite !important;
+}
+
+@keyframes sffc-crm-apply-chat-send-dots {
+  0% {
+    background: rgba(255, 255, 255, 0.42);
+    box-shadow:
+      -8px 0 0 #ffffff,
+      8px 0 0 rgba(255, 255, 255, 0.42);
+  }
+
+  33% {
+    background: #ffffff;
+    box-shadow:
+      -8px 0 0 rgba(255, 255, 255, 0.42),
+      8px 0 0 rgba(255, 255, 255, 0.42);
+  }
+
+  66% {
+    background: rgba(255, 255, 255, 0.42);
+    box-shadow:
+      -8px 0 0 rgba(255, 255, 255, 0.42),
+      8px 0 0 #ffffff;
+  }
+
+  100% {
+    background: rgba(255, 255, 255, 0.42);
+    box-shadow:
+      -8px 0 0 #ffffff,
+      8px 0 0 rgba(255, 255, 255, 0.42);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sffc-crm-apply-chat.is-emily-typing .sffc-crm-apply-chat__send::before {
+    animation: none !important;
+  }
+}
+
 .sffc-crm-apply-chat__link-pill,
 .sffc-crm-apply-chat a {
   color: var(--sffc-chat-blue) !important;
@@ -24319,6 +24536,86 @@ body.sffc-crm-apply-chat-lock .sffc-crm-apply-chat.is-chat-open .sffc-crm-apply-
   line-height: 1.45 !important;
   font-weight: 500 !important;
   overflow-wrap: anywhere !important;
+}
+
+.sffc-crm-apply-chat__web-answer {
+  display: grid !important;
+  gap: 10px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  color: inherit !important;
+}
+
+.sffc-crm-apply-chat__web-answer-headline {
+  margin: 0 !important;
+  color: #111827 !important;
+  font-size: inherit !important;
+  line-height: inherit !important;
+  font-weight: 800 !important;
+  letter-spacing: 0 !important;
+}
+
+.sffc-crm-apply-chat__web-answer-lead,
+.sffc-crm-apply-chat__web-answer-caveat,
+.sffc-crm-apply-chat__web-answer-next {
+  margin: 0 !important;
+  color: #334155 !important;
+  font-size: inherit !important;
+  line-height: 1.55 !important;
+  font-weight: 550 !important;
+}
+
+.sffc-crm-apply-chat__web-answer-points {
+  display: grid !important;
+  gap: 6px !important;
+  margin: 0 !important;
+  padding-left: 20px !important;
+  color: #1f2937 !important;
+}
+
+.sffc-crm-apply-chat__web-answer-points li {
+  margin: 0 !important;
+  padding-left: 2px !important;
+  font-size: inherit !important;
+  line-height: 1.45 !important;
+  font-weight: 600 !important;
+}
+
+.sffc-crm-apply-chat__web-answer-caveat {
+  margin: 0 !important;
+  color: #64748b !important;
+  font-size: 13px !important;
+}
+
+.sffc-crm-apply-chat__web-answer-next {
+  margin: 0 !important;
+  color: #075985 !important;
+  font-weight: 750 !important;
+}
+
+.sffc-crm-apply-chat__web-search-passage {
+  margin: 8px 0 0 !important;
+  padding-left: 10px !important;
+  border-left: 2px solid #bfdbfe !important;
+  color: #334155 !important;
+  font-size: 13px !important;
+  line-height: 1.45 !important;
+  font-weight: 600 !important;
+  overflow-wrap: anywhere !important;
+}
+
+.sffc-crm-apply-chat__web-search-used-for {
+  display: inline-flex !important;
+  align-items: center !important;
+  width: fit-content !important;
+  margin-top: 8px !important;
+  padding: 3px 8px !important;
+  border-radius: 999px !important;
+  background: #ecfdf5 !important;
+  color: #047857 !important;
+  font-size: 11px !important;
+  line-height: 1.2 !important;
+  font-weight: 800 !important;
 }
 
 body.sffc-crm-apply-chat-lock .sffc-crm-apply-chat.is-chat-open .sffc-crm-apply-chat__structured-surface > .sffc-crm-apply-chat__web-search-card {

@@ -19319,10 +19319,36 @@
     syncApplyChatCanonicalState("cv_facts_merged");
   }
 
+  function getCanonicalCvProfileForFactSync(profile) {
+    if (profile) {
+      return profile;
+    }
+
+    if (typeof getSafeCanonicalCvProfile === "function") {
+      try {
+        return getSafeCanonicalCvProfile({ debug: false }) || null;
+      } catch (error) {
+        recordConversationAuditEvent("canonical_cv_fact_sync_failed", {
+          message: cleanMessageText((error && error.message) || ""),
+        });
+      }
+    }
+
+    if (typeof buildCanonicalCvProfile === "function") {
+      try {
+        return buildCanonicalCvProfile({ debug: false }) || null;
+      } catch (error) {
+        recordConversationAuditEvent("canonical_cv_fact_sync_failed", {
+          message: cleanMessageText((error && error.message) || ""),
+        });
+      }
+    }
+
+    return null;
+  }
+
   function syncCvFactsFromCanonicalProfile(profile) {
-    var canonical =
-      profile ||
-      getSafeCanonicalCvProfile({ debug: false });
+    var canonical = getCanonicalCvProfileForFactSync(profile);
     var title;
     var company;
     var locations;
@@ -24058,6 +24084,7 @@
     var step = "choice";
     var audioContext = null;
     var typingTimer = 0;
+    var emilyTypingVisualToken = 0;
     var botBusyUntil = 0;
     var analysisReady = false;
     var pendingAnalysis = null;
@@ -44785,6 +44812,21 @@
 
     function normalizeApplyChatJobSearchQuery(value) {
       var clean = normalizeCareerIntentText(cleanMessageText(value || ""));
+      var explicitLocationJobSearch = clean.match(
+        /^(?:please\s+)?(?:i\s+)?(?:(?:need|want|would like)\s+(?:help\s+)?(?:to\s+|with\s+)?|help me\s+|can you\s+|could you\s+|would you\s+)?(?:find|show|search|look for|list|recommend|get|get me)\s+(?:me\s+)?([\s\S]{0,80}?)\b(?:job|jobs|role|roles|opening|openings|vacanc(?:y|ies)|opportunit(?:y|ies))\b[\s\S]{0,24}\b(?:in|near|around)\s+(dubai|abu dhabi|riyadh|jeddah|doha|qatar|saudi(?: arabia)?|uae|united arab emirates|kuwait|bahrain|oman|muscat|london|middle east|mena|gcc)\b/i
+      );
+      if (explicitLocationJobSearch && explicitLocationJobSearch[2]) {
+        var explicitRole = cleanMessageText(explicitLocationJobSearch[1] || "")
+          .replace(/\b(?:a|an|the|some|any|current|open|live|available|for me|please)\b/gi, " ")
+          .replace(/\s+/g, " ")
+          .trim();
+        var explicitLocation = cleanMessageText(
+          explicitLocationJobSearch[2]
+        ).toLowerCase();
+        return explicitRole
+          ? explicitRole.toLowerCase() + " in " + explicitLocation
+          : "jobs in " + explicitLocation;
+      }
       var normalized = clean
         .replace(
           /^(?:please\s+)?(?:can you|could you|would you|will you|please)?\s*/i,
@@ -45709,6 +45751,20 @@
       );
     }
 
+    function looksLikeCareerTimingQuestion(value) {
+      var clean = normalizeCareerIntentText(
+        cleanMessageText(value || "")
+      ).toLowerCase();
+      return (
+        /\b(?:best time|best month|best months|when should|when is|which months?|what months?|hiring season|job search timing|start job searching|start applying|apply timing|timing)\b/i.test(
+          clean
+        ) &&
+        /\b(?:job|jobs|role|roles|search|apply|applying|application|hiring|market|recruit(?:er|ing)|opportunit)/i.test(
+          clean
+        )
+      );
+    }
+
     function getContextualApplyChatSearchQuery() {
       var parts = [];
       var excludedTerms = sanitizeRoleTargetList(
@@ -45796,7 +45852,8 @@
         looksLikeRecruiterNonResponseQuestion(clean) ||
         looksLikeSennaContactQuestion(clean) ||
         looksLikeAnswerQualityComplaint(clean) ||
-        looksLikeMisroutedSearchComplaint(clean)
+        looksLikeMisroutedSearchComplaint(clean) ||
+        looksLikeCareerTimingQuestion(clean)
       ) {
         return false;
       }
@@ -46514,6 +46571,125 @@
       return clean ? clean.charAt(0).toUpperCase() + clean.slice(1) : "";
     }
 
+    function getApplyChatProviderReviewPolicy(provider, url) {
+      var cleanProvider = cleanMessageText(provider || "").toLowerCase();
+      var host = getApplicationUrlHost(url);
+      var cleanUrl = cleanMessageText(url || "");
+      var policy = {
+        provider: cleanProvider || "unknown",
+        label:
+          getAutoSubmitProviderLabel(cleanProvider) ||
+          getApplicationUrlProviderLabel(cleanUrl) ||
+          "Employer",
+        defaultMode: "iframe_embed",
+        iframeAllowedHosts: [],
+        iframeBlockedHosts: [],
+        requiresRemoteBrowserForApply: false,
+        statusLabel: "Direct embed check",
+        reason: "provider_policy_iframe_first",
+      };
+
+      if (
+        cleanProvider === "workable" ||
+        cleanProvider === "workable_board" ||
+        /(?:^|\.)workable\.com$/.test(host)
+      ) {
+        policy.provider = "workable";
+        policy.label = "Workable";
+        policy.iframeAllowedHosts = ["apply.workable.com"];
+        policy.statusLabel = "Workable route";
+        policy.reason = "workable_iframe_probe";
+        return policy;
+      }
+
+      if (
+        cleanProvider === "greenhouse" ||
+        /(?:job-boards|boards)(?:\.eu)?\.greenhouse\.io$/i.test(host)
+      ) {
+        policy.provider = "greenhouse";
+        policy.label = "Greenhouse";
+        policy.iframeAllowedHosts = [
+          "job-boards.greenhouse.io",
+          "boards.greenhouse.io",
+          "job-boards.eu.greenhouse.io",
+          "boards.eu.greenhouse.io",
+        ];
+        policy.statusLabel = "Greenhouse route";
+        policy.reason = "greenhouse_iframe_probe";
+        return policy;
+      }
+
+      if (
+        cleanProvider === "workday" ||
+        /(?:^|\.)myworkdayjobs\.com$|(?:^|\.)workdayjobs\.com$/.test(host)
+      ) {
+        policy.provider = "workday";
+        policy.label = "Workday";
+        policy.defaultMode = "remote_browser";
+        policy.requiresRemoteBrowserForApply = true;
+        policy.iframeBlockedHosts = ["myworkdayjobs.com", "workdayjobs.com"];
+        policy.statusLabel = "Workday secure browser route";
+        policy.reason = "workday_remote_browser_default";
+        return policy;
+      }
+
+      if (
+        cleanProvider === "successfactors" ||
+        cleanProvider === "sap successfactors" ||
+        /successfactors\.(?:com|eu)$|sapsf\.com$/.test(host)
+      ) {
+        policy.provider = "successfactors";
+        policy.label = "SAP SuccessFactors";
+        policy.defaultMode = "remote_browser";
+        policy.requiresRemoteBrowserForApply = true;
+        policy.iframeBlockedHosts = ["successfactors.com", "sapsf.com"];
+        policy.statusLabel = "SAP SuccessFactors secure browser route";
+        policy.reason = "successfactors_remote_browser_default";
+        return policy;
+      }
+
+      if (
+        cleanProvider === "teamtailor" ||
+        cleanProvider === "teamtailor_rss" ||
+        /(?:^|\.)teamtailor\.com$/.test(host)
+      ) {
+        policy.provider = "teamtailor";
+        policy.label = "Teamtailor";
+        policy.defaultMode = /\/jobs\/\d+[^?#]*\/applications\/new/i.test(
+          cleanUrl
+        )
+          ? "remote_browser"
+          : "iframe_embed";
+        policy.requiresRemoteBrowserForApply =
+          policy.defaultMode === "remote_browser";
+        policy.iframeBlockedHosts = ["teamtailor.com"];
+        policy.statusLabel =
+          policy.defaultMode === "remote_browser"
+            ? "Teamtailor secure browser route"
+            : "Teamtailor page route";
+        policy.reason =
+          policy.defaultMode === "remote_browser"
+            ? "teamtailor_application_remote_browser_default"
+            : "teamtailor_public_post_iframe_probe";
+        return policy;
+      }
+
+      if (
+        cleanProvider === "simple_form" ||
+        cleanProvider === "simple-form" ||
+        cleanProvider === "basic_form" ||
+        cleanProvider === "basic-form"
+      ) {
+        policy.provider = "simple_form";
+        policy.label = "Simple form";
+        policy.statusLabel = "Simple form route";
+        policy.reason = "simple_form_iframe_probe";
+        return policy;
+      }
+
+      return policy;
+    }
+
     function getApplicationUrlProviderLabel(url) {
       var value = cleanMessageText(url || "");
       var host = "";
@@ -46814,24 +46990,134 @@
       if (mode === "screenshot" || mode === "blocked" || mode === "no_embed") {
         return "screenshot";
       }
+      if (
+        mode === "remote" ||
+        mode === "remote_browser" ||
+        mode === "remote-browser" ||
+        mode === "browser" ||
+        mode === "interactive" ||
+        mode === "interactive_browser" ||
+        mode === "secure_browser"
+      ) {
+        return "remote_browser";
+      }
       return "auto";
     }
 
-    function shouldUseApplicationScreenshotPreview(url, provider, item) {
+    function getApplyChatRemoteBrowserConfig() {
+      var config = getConfig ? getConfig() : {};
+      var enabledValue =
+        (config && config.remoteBrowserEnabled) ||
+        root.getAttribute("data-remote-browser-enabled") ||
+        "";
+      var serviceUrl =
+        (config && config.remoteBrowserUrl) ||
+        root.getAttribute("data-remote-browser-url") ||
+        "";
+      return {
+        enabled:
+          enabledValue === true ||
+          enabledValue === "1" ||
+          enabledValue === "true",
+        serviceUrl: cleanMessageText(serviceUrl || ""),
+      };
+    }
+
+    function getApplicationEmbedPolicy(provider, url, item) {
+      var cleanProvider = cleanMessageText(provider || "").toLowerCase();
       var mode = getApplicationEmbedMode(item || {});
-      if (!url || !/^(https?:\/\/|\/)/i.test(url)) {
-        return false;
-      }
-      if (isKnownFrameBlockedApplicationUrl(url, provider)) {
-        return true;
-      }
+      var policy = getApplyChatProviderReviewPolicy(cleanProvider, url);
       if (mode === "embed") {
-        return false;
+        policy.defaultMode = "iframe_embed";
+        policy.requiresRemoteBrowserForApply = false;
+        policy.reason = "explicit_embed_mode";
+        return policy;
       }
       if (mode === "screenshot") {
-        return true;
+        policy.defaultMode = "static_preview";
+        policy.requiresRemoteBrowserForApply = false;
+        policy.reason = "explicit_static_preview_mode";
+        return policy;
       }
-      return false;
+      if (mode === "remote_browser") {
+        policy.defaultMode = "remote_browser";
+        policy.requiresRemoteBrowserForApply = true;
+        policy.reason = "explicit_remote_browser_mode";
+        return policy;
+      }
+      if (isKnownFrameBlockedApplicationUrl(url, provider)) {
+        policy.defaultMode = "remote_browser";
+        policy.requiresRemoteBrowserForApply = true;
+        policy.statusLabel = policy.label + " secure browser route";
+        policy.reason = "known_blocked_host_remote_browser_default";
+      }
+      return policy;
+    }
+
+    function getEmployerReviewSurfaceDecision(item, rawUrl, provider) {
+      var source = item || {};
+      var url = cleanMessageText(rawUrl || "");
+      var mode = getApplicationEmbedMode(source);
+      var remoteBrowser = getApplyChatRemoteBrowserConfig();
+      var policy;
+      var canFrameUrl;
+      var knownBlocked;
+      var surface = "external_link_only";
+      var reason = "missing_external_application_url";
+      var providerLabel;
+      if (!isUsableExternalApplyUrl(url) || isInternalSennaApplicationUrl(url)) {
+        url = "";
+      }
+      canFrameUrl = !!(url && /^(https?:\/\/|\/)/i.test(url));
+      policy = getApplicationEmbedPolicy(provider, url, source);
+      knownBlocked = !!(url && isKnownFrameBlockedApplicationUrl(url, provider));
+      if (url && canFrameUrl) {
+        if (mode === "screenshot") {
+          surface = "static_preview";
+          reason = "mode_requests_static_preview";
+        } else if (policy.defaultMode === "remote_browser" || knownBlocked) {
+          surface = remoteBrowser.enabled ? "remote_browser" : "static_preview";
+          reason = remoteBrowser.enabled
+            ? policy.reason || "remote_browser_available"
+            : (policy.reason || "remote_browser_default") +
+              "_remote_browser_unavailable";
+        } else if (policy.defaultMode === "static_preview") {
+          surface = "static_preview";
+          reason = policy.reason || "static_preview_policy";
+        } else {
+          surface = "iframe_embed";
+          reason = policy.reason || "auto_iframe_first";
+        }
+      } else if (url) {
+        reason = "url_not_frameable";
+      }
+      providerLabel =
+        getAutoSubmitProviderLabel(provider) ||
+        (url ? getApplicationUrlProviderLabel(url) : "") ||
+        (isArabicChat() ? "جهة العمل" : "Employer");
+      return {
+        url: url,
+        mode: mode,
+        policy: policy,
+        surface: surface,
+        reason: reason,
+        canFrameUrl: canFrameUrl,
+        knownBlocked: knownBlocked,
+        shouldRenderIframe: surface === "iframe_embed",
+        shouldRequestScreenshot:
+          surface === "static_preview" ||
+          (surface === "remote_browser" && !remoteBrowser.enabled),
+        shouldStartRemoteBrowser: surface === "remote_browser",
+        remoteBrowserEnabled: remoteBrowser.enabled,
+        remoteBrowserUrl: remoteBrowser.serviceUrl,
+        providerLabel: providerLabel,
+        providerStatusLabel: policy.statusLabel || providerLabel,
+      };
+    }
+
+    function shouldUseApplicationScreenshotPreview(url, provider, item) {
+      return getEmployerReviewSurfaceDecision(item || {}, url, provider)
+        .shouldRequestScreenshot;
     }
 
     function renderInlineApplicationReviewPreview(
@@ -47673,32 +47959,29 @@
         var provider = cleanMessageText(
           (item && (item.autoSubmitProvider || item.sourcePlatform)) || ""
         );
-        var blocked;
-        var canFrameUrl;
-        var shouldRequestScreenshot;
-        var providerLabel;
-        if (!isUsableExternalApplyUrl(url)) {
-          url = "";
-        }
-        canFrameUrl = url && /^(https?:\/\/|\/)/i.test(url);
-        blocked = shouldUseApplicationScreenshotPreview(url, provider, item);
-        shouldRequestScreenshot = url && canFrameUrl && blocked;
-        providerLabel =
-          getAutoSubmitProviderLabel(provider) ||
-          (url ? getApplicationUrlProviderLabel(url) : "") ||
-          uiText("Employer", "جهة العمل");
+        var reviewDecision = getEmployerReviewSurfaceDecision(
+          item || {},
+          url,
+          provider
+        );
+        var providerStatusLabel =
+          reviewDecision.providerStatusLabel || reviewDecision.providerLabel;
+        url = reviewDecision.url;
         return (
           '<div class="sffc-crm-apply-results__review" hidden id="' +
           escapeHtml(panelId) +
           '" data-sffc-apply-results-review-panel="' +
           escapeHtml(key) +
+          '" data-sffc-apply-results-review-mode="' +
+          escapeHtml(reviewDecision.surface) +
+          '" data-sffc-apply-results-review-reason="' +
+          escapeHtml(reviewDecision.reason) +
           '">' +
           '<div class="sffc-crm-apply-results__review-head">' +
           "<div><strong>" +
           escapeHtml(uiText("Review and apply yourself", "راجع وقدّم بنفسك")) +
           "</strong><span>" +
-          escapeHtml(providerLabel) +
-          escapeHtml(uiText(" application route", " مسار التقديم")) +
+          escapeHtml(providerStatusLabel) +
           "</span></div>" +
           (url
             ? '<a class="sffc-crm-apply-results__review-link" href="' +
@@ -47708,7 +47991,7 @@
               "</a>"
             : "") +
           "</div>" +
-          (url && canFrameUrl && !blocked
+          (reviewDecision.shouldRenderIframe
             ? '<div class="sffc-crm-apply-results__review-frame-wrap">' +
               '<iframe class="sffc-crm-apply-results__review-frame" title="' +
               escapeHtml(
@@ -47722,10 +48005,15 @@
             : '<div class="sffc-crm-apply-results__review-fallback">' +
               escapeHtml(
                 url
-                  ? uiText(
-                      "This employer form may block embedded previews. Open it in a new tab to review the role and apply yourself.",
-                      "قد يمنع نموذج جهة العمل المعاينة المضمنة. افتحه في تبويب جديد لمراجعة الدور والتقديم بنفسك."
-                    )
+                  ? reviewDecision.surface === "remote_browser"
+                    ? uiText(
+                        "This employer form blocks a standard embed. I’ll use the secure browser route when it is available, with a preview as backup.",
+                        "يمنع نموذج جهة العمل التضمين القياسي. سأستخدم مسار المتصفح الآمن عندما يكون متاحاً، مع معاينة احتياطية."
+                      )
+                    : uiText(
+                        "This employer form may block embedded previews. Open it in a new tab to review the role and apply yourself.",
+                        "قد يمنع نموذج جهة العمل المعاينة المضمنة. افتحه في تبويب جديد لمراجعة الدور والتقديم بنفسك."
+                      )
                   : uiText(
                       "I do not have a usable employer form link for this role yet.",
                       "لا يوجد لدي رابط نموذج تقديم صالح لهذا الدور حتى الآن."
@@ -47736,7 +48024,7 @@
             item,
             url,
             provider,
-            shouldRequestScreenshot
+            reviewDecision.shouldRequestScreenshot
           ) +
           "</div>"
         );
@@ -48310,6 +48598,12 @@
       var asksForCurrentKnowledge;
       var asksForBestList;
       var externalCareerSubject;
+      var generalExternalSubject;
+      var companyResearchSubject;
+      var comparisonResearchSubject;
+      var newsResearchSubject;
+      var factualResearchSubject;
+      var explicitNamedCompanyResearch;
       var hasNamedMarket;
       if (!clean || wordCount < 3 || wordCount > 34) {
         return false;
@@ -48317,11 +48611,21 @@
       if (looksLikeExternalRecruiterDirectorySearch(clean)) {
         return true;
       }
+      explicitNamedCompanyResearch =
+        /\b(?:what\s+(?:does|do|is)\s+|who\s+(?:are|is)\s+|tell me about\s+|research\s+|look up\s+|company profile|competitors?|ownership|founders?|headquarters|funding|ipo|stock price|share price|annual report|revenue|aum|assets under management|subsidiar(?:y|ies)|portfolio companies|reviews?|glassdoor|culture)\b/i.test(
+          clean
+        ) &&
+        /\b(?:company|companies|employer|firm|bank|fund|startup|business|organisation|organization|mubadala|adcb|standard chartered|savills|mashreq|permira|merak|qiddiya|pif|tikehau)\b/i.test(
+          clean
+        ) &&
+        !/\b(?:this|that|it|they|them|role|job|position|posting|previous|first|second|third|last)\b/i.test(
+          clean
+        );
       if (
         looksLikePastedCvText(clean) ||
         looksLikeApplyChatControlCommand(clean) ||
         looksLikeApplicationStateControlCommand(clean) ||
-        looksLikeSelectedRoleQuestion(clean) ||
+        (looksLikeSelectedRoleQuestion(clean) && !explicitNamedCompanyResearch) ||
         looksLikeRoleCvComparisonQuestion(clean) ||
         looksLikeConcreteApplyChatJobSearch(clean, detectedIntent) ||
         looksLikeActualJobPostSearch(clean, detectedIntent) ||
@@ -48340,6 +48644,7 @@
         /\b(?:cv|resume|cover letter|application|apply|tailor|rewrite|interview prep)\b/i.test(
           clean
         ) &&
+        !looksLikeCareerTimingQuestion(clean) &&
         !/\b(?:agency|agencies|recruiter|recruiters|company|companies|market|salary|visa|relocation)\b/i.test(
           clean
         )
@@ -48348,19 +48653,52 @@
       }
 
       asksForExternalKnowledge =
-        /\b(?:who|what|which|where|how|can you tell me|do you know|research|look up|search the web|google|find out)\b/i.test(
+        /\b(?:who|what|which|where|when|how|why|can you tell me|do you know|research|look up|search the web|google|find out|tell me about|explain|describe|summarise|summarize)\b/i.test(
           clean
         );
       asksForCurrentKnowledge =
-        /\b(?:latest|current|currently|recent|today|this week|this month|now|202[0-9]|up to date|updated)\b/i.test(
+        /\b(?:latest|current|currently|recent|today|this week|this month|this year|now|202[0-9]|up to date|updated|new|news|trend|trends|forecast|outlook)\b/i.test(
           clean
         );
       asksForBestList =
-        /\b(?:best|top|leading|recommended|reputable|good|strong|average|typical|benchmark|list of|examples of|rank|ranked)\b/i.test(
+        /\b(?:best|top|leading|recommended|reputable|good|strong|average|typical|benchmark|list of|examples of|rank|ranked|compare|comparison|versus|vs|better|pros and cons|advantages|disadvantages)\b/i.test(
           clean
         );
       externalCareerSubject =
-        /\b(?:recruitment agenc(?:y|ies)|recruiting agenc(?:y|ies)|headhunters?|executive search|recruiters?|hiring agencies|staffing agencies|employers?|companies|firms|banks?|salary|average salary|pay range|pay scale|compensation benchmark|compensation guide|salary benchmark|salary guide|market report|hiring trend|hiring trends|hiring market|labour market|labor market|visa rules?|work permit|relocation|cost of living|industry news|business news|professional bodies|networking events?)\b/i.test(
+        /\b(?:recruitment agenc(?:y|ies)|recruiting agenc(?:y|ies)|headhunters?|executive search|recruiters?|hiring agencies|staffing agencies|employers?|companies|firms|banks?|salary|average salary|pay range|pay scale|compensation benchmark|compensation guide|salary benchmark|salary guide|bonus|benefits|notice period|probation|labou?r law|employment law|market report|hiring trend|hiring trends|hiring market|labour market|labor market|visa rules?|work permit|golden visa|employment visa|relocation|cost of living|industry news|business news|professional bodies|networking events?|job fairs?|career fairs?|certifications?|qualifications?)\b/i.test(
+          clean
+        );
+      generalExternalSubject =
+        /\b(?:country|city|market|economy|culture|lifestyle|life|living|work culture|business culture|social norms|laws?|rules?|customs|weather|tax|income tax|housing|rent|schooling|healthcare|transport|commute|safety|safe|expat|expats|relocat(?:e|ion|ing)|move|moving|live|living|like|quality of life|weekend|working hours|costs?)\b/i.test(
+          clean
+        ) ||
+        /\b(?:what\s+is|what'?s|what\s+are|how\s+is|how\s+are|why\s+is|tell me about|describe|explain|summari[sz]e)\b.*\b(?:saudi arabia|saudi|riyadh|jeddah|dubai|abu dhabi|uae|united arab emirates|qatar|doha|kuwait|bahrain|oman|muscat|london|middle east|mena|gcc)\b/i.test(
+          clean
+        );
+      companyResearchSubject =
+        explicitNamedCompanyResearch ||
+        (/\b(?:what\s+(?:does|do|is)\s+|who\s+(?:are|is)\s+|tell me about\s+|research\s+|look up\s+|company profile|competitors?|ownership|founders?|headquarters|funding|ipo|stock price|share price|annual report|revenue|aum|assets under management|subsidiar(?:y|ies)|portfolio companies|reviews?|glassdoor|culture)\b/i.test(
+          clean
+        ) &&
+          /\b(?:company|companies|employer|firm|bank|fund|startup|business|organisation|organization|mubadala|adcb|standard chartered|savills|mashreq|permira|merak|qiddiya|pif|tikehau)\b/i.test(
+            clean
+          ));
+      comparisonResearchSubject =
+        /\b(?:compare|comparison|versus|vs|better|best between|pros and cons|which is better|difference between|should i choose)\b/i.test(
+          clean
+        ) &&
+        /\b(?:dubai|abu dhabi|riyadh|saudi|saudi arabia|uae|qatar|doha|kuwait|bahrain|oman|london|market|country|city|salary|tax|cost of living|company|companies|employer|recruiter|agency|sector|industry)\b/i.test(
+          clean
+        );
+      newsResearchSubject =
+        /\b(?:latest|recent|today|this week|this month|news|update|announced|happened|layoffs?|hiring freeze|expansion|market outlook|forecast|trend|trends)\b/i.test(
+          clean
+        ) &&
+        /\b(?:market|company|companies|bank|fund|sector|industry|economy|jobs?|hiring|salary|dubai|riyadh|saudi|uae|qatar|middle east|mena|gcc)\b/i.test(
+          clean
+        );
+      factualResearchSubject =
+        /\b(?:population|currency|time zone|timezone|capital|language|languages|religion|holidays?|public holidays?|weekend|work week|tax rate|income tax|corporate tax|vat|minimum wage|labou?r law|employment law|visa|work permit|rent|cost of living|schools?|healthcare)\b/i.test(
           clean
         );
       hasNamedMarket =
@@ -48369,11 +48707,21 @@
         );
 
       return (
-        externalCareerSubject &&
+        (looksLikeCareerTimingQuestion(clean) ||
+          externalCareerSubject ||
+          generalExternalSubject ||
+          companyResearchSubject ||
+          comparisonResearchSubject ||
+          newsResearchSubject ||
+          factualResearchSubject) &&
         (asksForExternalKnowledge ||
           asksForCurrentKnowledge ||
           asksForBestList ||
-          hasNamedMarket)
+          companyResearchSubject ||
+          comparisonResearchSubject ||
+          newsResearchSubject ||
+          factualResearchSubject ||
+          (hasNamedMarket && !generalExternalSubject))
       );
     }
 
@@ -48416,10 +48764,81 @@
         });
     }
 
+    function renderApplyChatWebSearchSummaryHtml(payload) {
+      var answer = payload && payload.answer && typeof payload.answer === "object"
+        ? payload.answer
+        : null;
+      var summary = cleanMessageText((payload && payload.summary) || "");
+      var empty = isArabicChat()
+        ? "لم أجد مصادر مفيدة كفاية لهذا السؤال الآن. جرّب صياغة أكثر تحديداً، مثل القطاع أو المدينة أو نوع الجهة."
+        : "I could not find useful enough sources for that right now. Try a more specific version, such as the sector, city, or type of organization.";
+      var headline = cleanMessageText(answer && answer.headline);
+      var shortAnswer = cleanMessageText(answer && answer.shortAnswer);
+      var keyPoints = Array.isArray(answer && answer.keyPoints)
+        ? answer.keyPoints
+        : [];
+      var caveat = cleanMessageText(answer && answer.caveat);
+      var nextStep = cleanMessageText(answer && answer.nextStep);
+
+      if (!answer || (!headline && !shortAnswer && !keyPoints.length)) {
+        return (
+          '<div class="sffc-crm-apply-chat__formatted sffc-crm-apply-chat__web-answer" data-sffc-apply-chat-web-answer>' +
+          '<p dir="auto">' +
+          escapeHtml(summary || empty) +
+          "</p></div>"
+        );
+      }
+
+      return (
+        '<div class="sffc-crm-apply-chat__formatted sffc-crm-apply-chat__web-answer" data-sffc-apply-chat-web-answer>' +
+        (headline
+          ? '<p class="sffc-crm-apply-chat__web-answer-headline" dir="auto"><strong>' +
+            escapeHtml(headline) +
+            "</strong></p>"
+          : "") +
+        (shortAnswer
+          ? '<p class="sffc-crm-apply-chat__web-answer-lead" dir="auto">' +
+            escapeHtml(shortAnswer) +
+            "</p>"
+          : "") +
+        (keyPoints.length
+          ? '<ul class="sffc-crm-apply-chat__web-answer-points">' +
+            keyPoints
+              .slice(0, 4)
+              .map(function (point) {
+                var cleanPoint = cleanMessageText(point || "");
+                return cleanPoint
+                  ? '<li dir="auto">' + escapeHtml(cleanPoint) + "</li>"
+                  : "";
+              })
+              .join("") +
+            "</ul>"
+          : "") +
+        (caveat
+          ? '<p class="sffc-crm-apply-chat__web-answer-caveat" dir="auto">' +
+            escapeHtml(caveat) +
+            "</p>"
+          : "") +
+        (nextStep
+          ? '<p class="sffc-crm-apply-chat__web-answer-next" dir="auto">' +
+            escapeHtml(nextStep) +
+            "</p>"
+          : "") +
+        "</div>"
+      );
+    }
+
     function renderApplyChatWebSearchAnswerHtml(payload) {
       var results = Array.isArray(payload && payload.results)
         ? payload.results
         : [];
+      var evidence = Array.isArray(payload && payload.evidence)
+        ? payload.evidence
+        : [];
+      var evidenceSummary =
+        payload && payload.evidenceSummary && typeof payload.evidenceSummary === "object"
+          ? payload.evidenceSummary
+          : null;
       var summary = cleanMessageText((payload && payload.summary) || "");
       var heading = isArabicChat() ? "نتائج من الويب" : "Web results";
       var kicker = isArabicChat() ? "بحث ويب" : "Searched web";
@@ -48433,9 +48852,34 @@
           : isArabicChat()
           ? "مصادر عامة"
           : "Public sources";
+      var answerMode = cleanMessageText(
+        evidenceSummary && evidenceSummary.answerMode
+      );
+      var modeLabel =
+        answerMode === "source_grounded"
+          ? isArabicChat()
+            ? "مبني على صفحات مقروءة"
+            : "Page evidence"
+          : answerMode === "snippet_grounded"
+          ? isArabicChat()
+            ? "مبني على مقتطفات"
+            : "Snippet-based"
+          : cachedLabel;
       var empty = isArabicChat()
         ? "لم أجد مصادر مفيدة كفاية لهذا السؤال الآن. جرّب صياغة أكثر تحديداً، مثل القطاع أو المدينة أو نوع الجهة."
         : "I could not find useful enough sources for that right now. Try a more specific version, such as the sector, city, or type of organization.";
+      function getEvidenceForUrl(url) {
+        var cleanUrl = cleanMessageText(url || "");
+        var found = null;
+        evidence.some(function (item) {
+          if (cleanMessageText(item && item.url) === cleanUrl) {
+            found = item;
+            return true;
+          }
+          return false;
+        });
+        return found;
+      }
       if (!results.length) {
         return (
           '<section class="sffc-crm-apply-chat__web-search-card is-empty" data-sffc-apply-chat-web-search-card>' +
@@ -48462,7 +48906,7 @@
         escapeHtml(heading) +
         "</h3>" +
         '<span class="sffc-crm-apply-chat__web-search-meta">' +
-        escapeHtml(cachedLabel) +
+        escapeHtml(modeLabel) +
         "</span>" +
         "</div>" +
         '<p class="sffc-crm-apply-chat__web-search-summary">' +
@@ -48480,6 +48924,18 @@
             var snippet = cleanMessageText(item && item.snippet);
             var published = cleanMessageText(item && item.publishedAt);
             var sourceText = source || sourceLabel;
+            var matchedEvidence = getEvidenceForUrl(url);
+            var usedPassages = Array.isArray(
+              matchedEvidence && matchedEvidence.usedPassages
+            )
+              ? matchedEvidence.usedPassages
+              : [];
+            var passage = cleanMessageText(
+              usedPassages[0] && usedPassages[0].text
+            );
+            var fetchStatus = cleanMessageText(
+              matchedEvidence && matchedEvidence.fetchStatus
+            );
             return (
               '<article class="sffc-crm-apply-chat__web-search-item">' +
               '<div class="sffc-crm-apply-chat__web-search-item-main">' +
@@ -48510,6 +48966,24 @@
                   escapeHtml(snippet) +
                   "</p>"
                 : "") +
+              (passage
+                ? '<p class="sffc-crm-apply-chat__web-search-passage" dir="auto">' +
+                  escapeHtml(passage) +
+                  "</p>"
+                : "") +
+              (fetchStatus
+                ? '<span class="sffc-crm-apply-chat__web-search-used-for">' +
+                  escapeHtml(
+                    fetchStatus === "fetched"
+                      ? isArabicChat()
+                        ? "تمت قراءة الصفحة"
+                        : "Page read"
+                      : isArabicChat()
+                      ? "استخدمت المقتطف"
+                      : "Snippet fallback"
+                  ) +
+                  "</span>"
+                : "") +
               "</div>" +
               "</article>"
             );
@@ -48533,6 +49007,12 @@
       );
       fetchApplyChatWebSearch(query, 6)
         .then(function (payload) {
+          botMessage(
+            renderApplyChatWebSearchSummaryHtml(payload),
+            humanComposeDelay("Web answer ready.", 700, 1400),
+            null,
+            humanReadDelay(value, 360)
+          );
           botMessage(
             renderApplyChatWebSearchAnswerHtml(payload),
             humanComposeDelay("Web search results ready.", 900, 1800),
@@ -80684,6 +81164,8 @@
       if (typing) {
         typing.remove();
       }
+      emilyTypingVisualToken += 1;
+      root.classList.remove("is-emily-typing");
     }
 
     function showTyping(state) {
@@ -80698,6 +81180,8 @@
         typingState.mode === "transfer" ? "Transferring" : "Emily's typing";
       var row = document.createElement("div");
       removeTyping();
+      emilyTypingVisualToken += 1;
+      root.classList.add("is-emily-typing");
       row.className = "sffc-crm-apply-chat__message is-emily is-typing";
       row.setAttribute("data-sffc-apply-chat-typing", "true");
       row.innerHTML =
@@ -80731,6 +81215,7 @@
       var startedAt;
       var duration;
       var stepTimer = 0;
+      var typingVisualToken;
 
       if (!row || shouldReduceApplyChatMotion()) {
         return false;
@@ -80746,7 +81231,9 @@
       total = text.length;
       duration = Math.max(520, Math.min(2400, total * 18));
       startedAt = Date.now();
+      typingVisualToken = ++emilyTypingVisualToken;
       row.classList.add("is-revealing");
+      root.classList.add("is-emily-typing");
       formatted.innerHTML = "";
 
       function renderFrame() {
@@ -80755,6 +81242,9 @@
         var nextIndex;
 
         if (!row.isConnected) {
+          if (typingVisualToken === emilyTypingVisualToken) {
+            root.classList.remove("is-emily-typing");
+          }
           return;
         }
         elapsed = Date.now() - startedAt;
@@ -80774,6 +81264,9 @@
         }
         formatted.innerHTML = finalHtml || formatEmilyMessageHtml(text);
         row.classList.remove("is-revealing");
+        if (typingVisualToken === emilyTypingVisualToken) {
+          root.classList.remove("is-emily-typing");
+        }
         scrollToLatest();
         if (typeof onDone === "function") {
           onDone();
@@ -120152,9 +120645,11 @@
         employerUrl ||
           (isCurrentRole &&
             !isInternalSennaApplicationUrl(applicationWorkspaceUrl) &&
+            isUsableExternalApplyUrl(applicationWorkspaceUrl) &&
             applicationWorkspaceUrl) ||
           (isCurrentRole &&
             !isInternalSennaApplicationUrl(applicationUrl) &&
+            isUsableExternalApplyUrl(applicationUrl) &&
             applicationUrl) ||
           ""
       );
@@ -127100,9 +127595,7 @@
         var provider = cleanMessageText(
           (item && (item.autoSubmitProvider || item.sourcePlatform)) || ""
         );
-        var blocked;
-        var canFrameUrl;
-        var shouldRequestScreenshot;
+        var reviewDecision;
         var providerKey;
         var providerStatus;
         var fieldCount;
@@ -127115,17 +127608,16 @@
           panelId.replace(/[^a-z0-9_-]+/gi, "-") + "-preview";
         var frameWrapId =
           panelId.replace(/[^a-z0-9_-]+/gi, "-") + "-frame";
-        if (!isUsableExternalApplyUrl(url)) {
-          url = "";
-        }
-        canFrameUrl = url && /^(https?:\/\/|\/)/i.test(url);
-        blocked = shouldUseApplicationScreenshotPreview(url, provider, item);
-        shouldRequestScreenshot = url && canFrameUrl && blocked;
+        reviewDecision = getEmployerReviewSurfaceDecision(
+          item || {},
+          url,
+          provider
+        );
+        url = reviewDecision.url;
         providerKey = getCommercialApplyQueueProviderKey(item || {});
-        var providerLabel =
-          getAutoSubmitProviderLabel(provider) ||
-          (url ? getApplicationUrlProviderLabel(url) : "") ||
-          uiText("Employer", "جهة العمل");
+        var providerLabel = reviewDecision.providerLabel;
+        var providerStatusLabel =
+          reviewDecision.providerStatusLabel || providerLabel;
         providerStatus = cleanMessageText(
           (item && item.autoSubmitSchemaStatus) || ""
         );
@@ -127152,13 +127644,16 @@
           escapeHtml(key) +
           '" data-sffc-apply-results-review-provider="' +
           escapeHtml(providerKey || provider || "") +
+          '" data-sffc-apply-results-review-mode="' +
+          escapeHtml(reviewDecision.surface) +
+          '" data-sffc-apply-results-review-reason="' +
+          escapeHtml(reviewDecision.reason) +
           '">' +
           '<div class="sffc-crm-apply-results__review-head">' +
           "<div><strong>" +
           escapeHtml(uiText("Review and apply yourself", "راجع وقدّم بنفسك")) +
           "</strong><span>" +
-          escapeHtml(providerLabel) +
-          escapeHtml(uiText(" application route", " مسار التقديم")) +
+          escapeHtml(providerStatusLabel) +
           "</span></div>" +
           (url
             ? '<a class="sffc-crm-apply-results__review-link" href="' +
@@ -127181,8 +127676,8 @@
             ? '<div class="sffc-crm-apply-results__native-workspace" data-sffc-apply-results-native-workspace>' +
               '<div class="sffc-crm-apply-results__native-workspace-head">' +
               '<strong>Senna application workspace</strong><span>' +
-              escapeHtml(providerLabel) +
-              " adapter</span></div>" +
+              escapeHtml(providerStatusLabel) +
+              "</span></div>" +
               '<div class="sffc-crm-apply-results__native-workspace-grid">' +
               '<span><strong>' +
               escapeHtml(fieldCount ? String(fieldCount) : "Detecting") +
@@ -127208,9 +127703,9 @@
               "</strong><small>Final submit state</small></span>" +
               "</div></div>"
             : "") +
-          (url && canFrameUrl
+          (url && reviewDecision.canFrameUrl
             ? '<div class="sffc-crm-apply-results__review-frame-wrap"' +
-              (blocked ? " hidden" : "") +
+              (reviewDecision.shouldRenderIframe ? "" : " hidden") +
               ' id="' +
               escapeHtml(frameWrapId) +
               '">' +
@@ -127224,14 +127719,19 @@
               '" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>' +
               "</div>"
             : "") +
-          (!url || !canFrameUrl || blocked
+          (!url || !reviewDecision.canFrameUrl || !reviewDecision.shouldRenderIframe
             ? '<div class="sffc-crm-apply-results__review-fallback">' +
               escapeHtml(
                 url
-                  ? uiText(
-                      "This employer form may block embeds. I’ll use a live preview so you can still review the page without leaving the chat.",
-                      "قد يمنع نموذج جهة العمل المعاينة المضمنة. افتحه في تبويب جديد لمراجعة الدور والتقديم بنفسك."
-                    )
+                  ? reviewDecision.surface === "remote_browser"
+                    ? uiText(
+                        "This employer form blocks a standard embed. I’ll use the secure browser route when it is available, with a preview as backup.",
+                        "يمنع نموذج جهة العمل التضمين القياسي. سأستخدم مسار المتصفح الآمن عندما يكون متاحاً، مع معاينة احتياطية."
+                      )
+                    : uiText(
+                        "This employer form may block embeds. I’ll show a preview where possible and keep the employer form link ready.",
+                        "قد يمنع نموذج جهة العمل التضمين. سأعرض معاينة عندما يكون ذلك ممكناً وأبقي رابط النموذج جاهزاً."
+                      )
                   : uiText(
                       "I do not have a usable employer form link for this role yet.",
                       "لا يوجد لدي رابط نموذج تقديم صالح لهذا الدور حتى الآن."
@@ -127239,11 +127739,19 @@
               ) +
               "</div>"
             : "") +
+          renderApplyResultsRemoteBrowser(
+            item,
+            url,
+            provider,
+            reviewDecision,
+            panelId,
+            reviewDecision.shouldStartRemoteBrowser
+          ) +
           renderInlineApplicationReviewPreview(
             item,
             url,
             provider,
-            shouldRequestScreenshot
+            reviewDecision.shouldRequestScreenshot
           ).replace(
             'data-sffc-apply-results-preview-url=',
             'id="' +
@@ -127256,12 +127764,12 @@
               escapeHtml(url) +
               '" target="_blank" rel="noopener noreferrer">Open employer form</a>'
             : "") +
-          (url && canFrameUrl
+          (url && reviewDecision.canFrameUrl
             ? '<button type="button" class="sffc-crm-apply-results__btn sffc-crm-apply-results__btn--secondary" data-sffc-apply-results-try-live-embed="' +
               escapeHtml(frameWrapId) +
               '">Try live embed</button>'
             : "") +
-          (url && canFrameUrl
+          (url && reviewDecision.canFrameUrl
             ? '<button type="button" class="sffc-crm-apply-results__btn sffc-crm-apply-results__btn--secondary" data-sffc-apply-results-refresh-preview="' +
               escapeHtml(previewId) +
               '">Refresh preview</button>'
@@ -129476,6 +129984,11 @@
       var url = getApplyResultsFallbackApplicationUrl(item);
       var provider = getCommercialApplyQueueProviderKey(item);
       var providerLabel = getCommercialApplyQueueProviderLabel(item);
+      var reviewDecision = getEmployerReviewSurfaceDecision(
+        item || {},
+        url,
+        provider
+      );
       var roleLabel = cleanMessageText(
         [
           item.title || roleTitle || "this role",
@@ -129486,16 +129999,18 @@
           .filter(Boolean)
           .join(" ")
       );
-      var canFrameUrl = url && /^(https?:\/\/|\/)/i.test(url);
-      var blocked = shouldUseApplicationScreenshotPreview(url, provider, item);
-      var shouldRequestScreenshot = url && canFrameUrl && blocked;
+      url = reviewDecision.url;
       var previewId =
         "sffc-apply-fallback-preview-" +
         String(Date.now()) +
         "-" +
         String(itemIndex || 0);
       return (
-        '<section class="sffc-crm-apply-results sffc-crm-apply-results--fallback" data-sffc-apply-results-fallback-card>' +
+        '<section class="sffc-crm-apply-results sffc-crm-apply-results--fallback" data-sffc-apply-results-fallback-card data-sffc-apply-results-review-mode="' +
+        escapeHtml(reviewDecision.surface) +
+        '" data-sffc-apply-results-review-reason="' +
+        escapeHtml(reviewDecision.reason) +
+        '">' +
         '<div class="sffc-crm-apply-results__topbar">' +
         "<div><strong>" +
         escapeHtml("Application needs fallback") +
@@ -129521,9 +130036,15 @@
                 " step."
         ) +
         "</p>" +
-        (url && canFrameUrl
-          ? blocked
-            ? '<div class="sffc-crm-apply-results__review-fallback">This employer form may block embeds. I’ll try to capture a live preview so you can still see what the page is asking for.</div>'
+        (url && reviewDecision.canFrameUrl
+          ? !reviewDecision.shouldRenderIframe
+            ? '<div class="sffc-crm-apply-results__review-fallback">' +
+              escapeHtml(
+                reviewDecision.surface === "remote_browser"
+                  ? "This employer form blocks a standard embed. I’ll use the secure browser route when it is available, with a preview as backup."
+                  : "This employer form may block embeds. I’ll show a preview where possible and keep the employer form link ready."
+              ) +
+              "</div>"
             : '<div class="sffc-crm-apply-results__review-frame-wrap">' +
               '<iframe class="sffc-crm-apply-results__review-frame" title="' +
               escapeHtml(roleLabel || "Employer application") +
@@ -129532,7 +130053,15 @@
               '" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>' +
               "</div>"
           : '<div class="sffc-crm-apply-results__review-fallback">I do not have a usable employer form link for this role yet.</div>') +
-        (shouldRequestScreenshot
+        renderApplyResultsRemoteBrowser(
+          item,
+          url,
+          provider,
+          reviewDecision,
+          "sffc-apply-fallback-" + String(itemIndex || 0),
+          reviewDecision.shouldStartRemoteBrowser
+        ) +
+        (reviewDecision.shouldRequestScreenshot
           ? '<div id="' +
             escapeHtml(previewId) +
             '" class="sffc-crm-apply-results__review-screenshot' +
@@ -129568,7 +130097,7 @@
             "</div>"
           : "") +
         '<div class="sffc-crm-apply-results__actions">' +
-        (url && canFrameUrl
+        (url && reviewDecision.canFrameUrl
           ? '<button type="button" class="sffc-crm-apply-results__btn sffc-crm-apply-results__btn--secondary" data-sffc-apply-results-fallback-action="preview" data-sffc-apply-results-preview-target="' +
             escapeHtml(previewId) +
             '">Refresh preview</button>'
@@ -133224,6 +133753,10 @@
       var activeTask = (context && context.activeTask) || {};
       var hasPrompt = !!cleanMessageText(activeTask.promptState || "");
       var hasRole = !!(context && (context.selectedRole || context.referencedRole));
+      var highConfidenceWebSearch = looksLikeHighConfidenceWebSearchRequest(
+        text,
+        detectIntent(text)
+      );
       var priorBelief =
         context &&
         context.memory &&
@@ -133369,12 +133902,21 @@
           "selected_role_question"
         );
       }
+      if (highConfidenceWebSearch) {
+        addConversationBeliefEvidence(
+          goals,
+          "web_search",
+          34,
+          "external_knowledge_question"
+        );
+      }
       if (
         looksLikeCareerDecisionQuestion(text) ||
         looksLikeRecruiterNonResponseQuestion(text) ||
         looksLikeSennaContactQuestion(text) ||
         looksLikeAnswerQualityComplaint(text) ||
         looksLikeMisroutedSearchComplaint(text) ||
+        (looksLikeCareerTimingQuestion(text) && !highConfidenceWebSearch) ||
         /\bhow\b.*\b(?:get|find|land|search|look for|apply|break into|get into)\b.*\b(?:job|jobs|role|roles|work)\b/i.test(clean)
       ) {
         addConversationBeliefEvidence(
@@ -133885,6 +134427,13 @@
       var wordCount = clean ? clean.split(/\s+/).filter(Boolean).length : 0;
       if (!promptState || !clean) {
         return false;
+      }
+      if (
+        /\b(?:career question|general career advice|career advice|talking through a career question|answer this as general career advice)\b/i.test(
+          clean
+        )
+      ) {
+        return true;
       }
       if (
         promptState === "apply_results_selected_next_step" &&
@@ -134986,6 +135535,15 @@
         );
       }
 
+      if (looksLikeCareerTimingQuestion(clean) && !highConfidenceWebSearch) {
+        addProbabilisticIntentSignal(
+          scores,
+          "career_question",
+          38,
+          "career_timing_question"
+        );
+      }
+
       if (
         activeTask.type === "search" &&
         /\b(?:anything new|any new|what'?s new|new|latest|current|open)\b.*\b(?:job|jobs|role|roles|opening|openings|vacanc|opportunit|private credit|private equity|credit|investment|dubai|riyadh|abu dhabi|saudi|uae)\b/i.test(
@@ -135411,6 +135969,32 @@
           source: "rules",
           preferenceFeedback: null,
           referencedRole: referencedRole,
+          careerDecision: null,
+        };
+      }
+      if (looksLikeCareerTimingQuestion(clean)) {
+        return {
+          type: "career_question",
+          confidence: 0.94,
+          rawSignals: ["career_timing_question"],
+          source: "rules",
+          preferenceFeedback: null,
+          referencedRole: null,
+          careerDecision: null,
+        };
+      }
+      if (
+        /\b(?:career question|general career advice|career advice|talking through a career question|answer this as general career advice)\b/i.test(
+          lower
+        )
+      ) {
+        return {
+          type: "career_question",
+          confidence: 0.91,
+          rawSignals: ["route_clarification_career_question"],
+          source: "rules",
+          preferenceFeedback: null,
+          referencedRole: null,
           careerDecision: null,
         };
       }
@@ -137993,6 +138577,19 @@
       if (looksLikeUnsupportedCvClaimInstruction(value)) {
         return answerUnsupportedCvClaimInstruction(value);
       }
+      if (action.type === "web_search") {
+        if (
+          decision.relationshipToTask === "pauses_task" ||
+          decision.relationshipToTask === "changes_task" ||
+          decision.relationshipToTask === "interrupts_task"
+        ) {
+          pauseActiveWorkflowForCareerConversation("web_search");
+        }
+        clearPromptState();
+        return searchWebInApplyChat(
+          (action.params && action.params.query) || value
+        );
+      }
       if (handleHighPriorityTaskCommand(value)) {
         return true;
       }
@@ -138014,19 +138611,6 @@
       if (action.type === "show_job_results") {
         clearPromptState();
         return searchActualJobPostsInChat(
-          (action.params && action.params.query) || value
-        );
-      }
-      if (action.type === "web_search") {
-        if (
-          decision.relationshipToTask === "pauses_task" ||
-          decision.relationshipToTask === "changes_task" ||
-          decision.relationshipToTask === "interrupts_task"
-        ) {
-          pauseActiveWorkflowForCareerConversation("web_search");
-        }
-        clearPromptState();
-        return searchWebInApplyChat(
           (action.params && action.params.query) || value
         );
       }
@@ -151141,6 +151725,101 @@
       );
     }
 
+    function renderApplyResultsRemoteBrowser(
+      item,
+      url,
+      provider,
+      reviewDecision,
+      panelId,
+      visible
+    ) {
+      var remoteConfig = getApplyChatRemoteBrowserConfig();
+      if (
+        !url ||
+        !reviewDecision ||
+        (!reviewDecision.shouldStartRemoteBrowser && !remoteConfig.enabled)
+      ) {
+        return "";
+      }
+      return (
+        '<section class="sffc-crm-apply-results__remote-browser' +
+        (visible ? " is-loading" : "") +
+        '"' +
+        (visible ? "" : " hidden") +
+        ' data-sffc-apply-results-remote-browser' +
+        ' data-sffc-remote-browser-url="' +
+        escapeHtml(url) +
+        '" data-sffc-remote-browser-provider="' +
+        escapeHtml(provider || "") +
+        '" data-sffc-remote-browser-title="' +
+        escapeHtml((item && item.title) || "") +
+        '" data-sffc-remote-browser-company="' +
+        escapeHtml((item && item.company) || "") +
+        '" data-sffc-remote-browser-role-url="' +
+        escapeHtml((item && (item.viewUrl || item.url)) || "") +
+        '" data-sffc-remote-browser-jobs-post-id="' +
+        escapeHtml(
+          String(
+            (item &&
+              (item.jobsPostId ||
+                item.jobs_post_id ||
+                item.wpPostId ||
+                item.wp_post_id)) ||
+              ""
+          )
+        ) +
+        '" data-sffc-remote-browser-crm-post-id="' +
+        escapeHtml(cleanMessageText(root.getAttribute("data-crm-post-id") || "")) +
+        '" data-sffc-remote-browser-panel-id="' +
+        escapeHtml(panelId || "") +
+        '">' +
+        '<div class="sffc-crm-apply-results__remote-browser-bar">' +
+        '<div><strong>' +
+        escapeHtml(uiText("Secure browser session", "جلسة متصفح آمنة")) +
+        "</strong><span>" +
+        escapeHtml(
+          uiText(
+            "Opening the employer page here because a normal embed is blocked.",
+            "نفتح صفحة جهة العمل هنا لأن التضمين العادي محظور."
+          )
+        ) +
+        "</span></div>" +
+        '<div class="sffc-crm-apply-results__remote-browser-actions">' +
+        '<button type="button" class="sffc-crm-apply-results__remote-browser-control is-active" data-sffc-remote-browser-control="user_control">' +
+        escapeHtml(uiText("Take control", "التحكم")) +
+        "</button>" +
+        '<button type="button" class="sffc-crm-apply-results__remote-browser-control" data-sffc-remote-browser-control="emily_control">' +
+        escapeHtml(uiText("Let Emily drive", "إميلي تتحكم")) +
+        "</button>" +
+        '<a class="sffc-crm-apply-results__remote-browser-link" href="' +
+        escapeHtml(url) +
+        '" target="_blank" rel="noopener noreferrer">' +
+        escapeHtml(uiText("Open tab", "فتح تبويب")) +
+        "</a>" +
+        '<button type="button" class="sffc-crm-apply-results__remote-browser-close" data-sffc-remote-browser-close>' +
+        escapeHtml(uiText("Close", "إغلاق")) +
+        "</button>" +
+        "</div></div>" +
+        '<div class="sffc-crm-apply-results__remote-browser-viewport" data-sffc-remote-browser-viewport>' +
+        renderApplyResultsPreviewLoader(
+          uiText(
+            "Starting secure browser...",
+            "جار تشغيل المتصفح الآمن..."
+          )
+        ) +
+        "</div>" +
+        '<div class="sffc-crm-apply-results__remote-browser-status" data-sffc-remote-browser-status>' +
+        escapeHtml(
+          uiText(
+            "You are in control. Emily will not submit anything without explicit confirmation.",
+            "أنت المتحكم. لن ترسل إميلي أي شيء بدون تأكيد صريح."
+          )
+        ) +
+        "</div>" +
+        "</section>"
+      );
+    }
+
     function setApplyResultsPreviewReady(
       preview,
       screenshotUrl,
@@ -151397,18 +152076,456 @@
         });
     }
 
+    function setApplyResultsRemoteBrowserError(remoteBrowser, message) {
+      var viewport = remoteBrowser
+        ? remoteBrowser.querySelector("[data-sffc-remote-browser-viewport]")
+        : null;
+      var status = remoteBrowser
+        ? remoteBrowser.querySelector("[data-sffc-remote-browser-status]")
+        : null;
+      if (!remoteBrowser || !viewport) {
+        return;
+      }
+      remoteBrowser.classList.remove("is-loading", "is-ready");
+      remoteBrowser.classList.add("is-error");
+      remoteBrowser.setAttribute("data-sffc-remote-browser-state", "error");
+      viewport.innerHTML =
+        '<div class="sffc-crm-apply-results__remote-browser-error">' +
+        escapeHtml(
+          message ||
+            uiText(
+              "I could not start the secure browser. I’ll show the preview fallback instead.",
+              "تعذر تشغيل المتصفح الآمن. سأعرض المعاينة الاحتياطية بدلاً من ذلك."
+            )
+        ) +
+        "</div>";
+      if (status) {
+        status.textContent = uiText(
+          "Preview fallback is available below.",
+          "المعاينة الاحتياطية متاحة بالأسفل."
+        );
+      }
+    }
+
+    function getApplyResultsRemoteBrowserControlCopy(control) {
+      var cleanControl = cleanMessageText(control || "user_control");
+      if (cleanControl === "emily_control") {
+        return uiText(
+          "Emily is driving this step. You can take control any time. Final submission still needs explicit confirmation.",
+          "إميلي تتحكم في هذه الخطوة. يمكنك استعادة التحكم في أي وقت. الإرسال النهائي يحتاج تأكيداً صريحاً."
+        );
+      }
+      if (cleanControl === "waiting_for_user") {
+        return uiText(
+          "Emily needs you here: complete the verification, login, CAPTCHA, or employer-specific answer before we continue.",
+          "إميلي تحتاجك هنا: أكمل التحقق أو تسجيل الدخول أو الكابتشا أو الإجابة الخاصة بصاحب العمل قبل المتابعة."
+        );
+      }
+      if (cleanControl === "read_only") {
+        return uiText(
+          "Read-only while Emily checks the page. Take control if you need to type or choose an answer.",
+          "وضع القراءة فقط أثناء فحص إميلي للصفحة. استعد التحكم إذا احتجت للكتابة أو اختيار إجابة."
+        );
+      }
+      return uiText(
+        "You are in control. Emily will not submit anything without explicit confirmation.",
+        "أنت المتحكم. لن ترسل إميلي أي شيء بدون تأكيد صريح."
+      );
+    }
+
+    function setApplyResultsRemoteBrowserControlState(remoteBrowser, control) {
+      var cleanControl = cleanMessageText(control || "user_control");
+      var status = remoteBrowser
+        ? remoteBrowser.querySelector("[data-sffc-remote-browser-status]")
+        : null;
+      var controls = remoteBrowser
+        ? remoteBrowser.querySelectorAll("[data-sffc-remote-browser-control]")
+        : [];
+      if (!remoteBrowser) {
+        return;
+      }
+      remoteBrowser.setAttribute(
+        "data-sffc-remote-browser-control",
+        cleanControl
+      );
+      Array.prototype.forEach.call(controls, function (button) {
+        var buttonControl = cleanMessageText(
+          button.getAttribute("data-sffc-remote-browser-control") || ""
+        );
+        var isActive = buttonControl === cleanControl;
+        button.classList.toggle("is-active", isActive);
+        button.setAttribute("aria-pressed", isActive ? "true" : "false");
+      });
+      if (status) {
+        status.textContent = getApplyResultsRemoteBrowserControlCopy(cleanControl);
+      }
+    }
+
+    function setApplyResultsRemoteBrowserReady(remoteBrowser, session) {
+      var viewport = remoteBrowser
+        ? remoteBrowser.querySelector("[data-sffc-remote-browser-viewport]")
+        : null;
+      var status = remoteBrowser
+        ? remoteBrowser.querySelector("[data-sffc-remote-browser-status]")
+        : null;
+      var streamUrl = cleanMessageText(session && session.streamUrl);
+      if (!remoteBrowser || !viewport || !streamUrl) {
+        return;
+      }
+      remoteBrowser.classList.remove("is-loading", "is-error");
+      remoteBrowser.classList.add("is-ready");
+      remoteBrowser.setAttribute("data-sffc-remote-browser-state", "ready");
+      remoteBrowser.setAttribute(
+        "data-sffc-remote-browser-session-id",
+        cleanMessageText(session.sessionId || "")
+      );
+      setApplyResultsRemoteBrowserControlState(
+        remoteBrowser,
+        cleanMessageText(session.control || "user_control")
+      );
+      viewport.innerHTML =
+        '<iframe class="sffc-crm-apply-results__remote-browser-frame" title="' +
+        escapeHtml(
+          uiText("Secure employer browser", "متصفح جهة العمل الآمن")
+        ) +
+        '" src="' +
+        escapeHtml(streamUrl) +
+        '" loading="eager" allow="clipboard-read; clipboard-write"></iframe>';
+      if (status) {
+        status.textContent = getApplyResultsRemoteBrowserControlCopy(
+          cleanMessageText(session.control || "user_control")
+        );
+      }
+    }
+
+    function requestApplyResultsRemoteBrowser(remoteBrowser) {
+      var config = getConfig();
+      var url = cleanMessageText(
+        remoteBrowser
+          ? remoteBrowser.getAttribute("data-sffc-remote-browser-url") || ""
+          : ""
+      );
+      var provider = cleanMessageText(
+        remoteBrowser
+          ? remoteBrowser.getAttribute("data-sffc-remote-browser-provider") ||
+              ""
+          : ""
+      );
+      var formData;
+      if (
+        !remoteBrowser ||
+        remoteBrowser.getAttribute("data-sffc-remote-browser-state") ===
+          "loading" ||
+        remoteBrowser.getAttribute("data-sffc-remote-browser-state") ===
+          "ready"
+      ) {
+        return;
+      }
+      if (!config.remoteBrowserEnabled || !config.remoteBrowserNonce) {
+        setApplyResultsRemoteBrowserError(
+          remoteBrowser,
+          uiText(
+            "The secure browser is not configured yet.",
+            "لم يتم إعداد المتصفح الآمن بعد."
+          )
+        );
+        return;
+      }
+      if (!url || !/^https?:\/\//i.test(url)) {
+        setApplyResultsRemoteBrowserError(
+          remoteBrowser,
+          uiText(
+            "I need a valid employer page before I can open the secure browser.",
+            "أحتاج إلى صفحة جهة عمل صالحة قبل فتح المتصفح الآمن."
+          )
+        );
+        return;
+      }
+      remoteBrowser.hidden = false;
+      remoteBrowser.classList.add("is-loading");
+      remoteBrowser.classList.remove("is-error", "is-ready");
+      remoteBrowser.setAttribute("data-sffc-remote-browser-state", "loading");
+      formData = new FormData();
+      formData.append("action", "sffc_crm_apply_chat_remote_browser_create");
+      formData.append("nonce", config.remoteBrowserNonce || "");
+      formData.append("application_url", url);
+      formData.append("provider", provider);
+      formData.append("session_token", ensureApplyChatSessionToken());
+      formData.append(
+        "role_title",
+        remoteBrowser.getAttribute("data-sffc-remote-browser-title") || ""
+      );
+      formData.append(
+        "company_name",
+        remoteBrowser.getAttribute("data-sffc-remote-browser-company") || ""
+      );
+      formData.append(
+        "role_url",
+        remoteBrowser.getAttribute("data-sffc-remote-browser-role-url") || url
+      );
+      formData.append(
+        "jobs_post_id",
+        remoteBrowser.getAttribute("data-sffc-remote-browser-jobs-post-id") ||
+          ""
+      );
+      formData.append(
+        "crm_post_id",
+        remoteBrowser.getAttribute("data-sffc-remote-browser-crm-post-id") ||
+          ""
+      );
+      formData.append("page_url", window.location.href || "");
+      window
+        .fetch(config.ajaxUrl || "/wp-admin/admin-ajax.php", {
+          method: "POST",
+          credentials: "same-origin",
+          body: formData,
+        })
+        .then(parseAjaxJson)
+        .then(function (payload) {
+          var data = payload && payload.data ? payload.data : {};
+          if (!payload || !payload.success || !data.session) {
+            throw new Error(
+              (data && data.message) ||
+                uiText(
+                  "The secure browser did not return a session.",
+                  "لم يرجع المتصفح الآمن جلسة."
+                )
+            );
+          }
+          setApplyResultsRemoteBrowserReady(remoteBrowser, data.session);
+        })
+        .catch(function (error) {
+          var panel = remoteBrowser.closest(
+            "[data-sffc-apply-results-review-panel]"
+          );
+          var preview = panel
+            ? panel.querySelector("[data-sffc-apply-results-preview-url]")
+            : null;
+          setApplyResultsRemoteBrowserError(
+            remoteBrowser,
+            (error && error.message) ||
+              uiText(
+                "I could not start the secure browser.",
+                "تعذر تشغيل المتصفح الآمن."
+              )
+          );
+          if (preview) {
+            preview.hidden = false;
+            requestApplyResultsApplicationPreview(preview);
+          }
+        });
+    }
+
+    function closeApplyResultsRemoteBrowser(remoteBrowser) {
+      var config = getConfig();
+      var sessionId = cleanMessageText(
+        remoteBrowser
+          ? remoteBrowser.getAttribute(
+              "data-sffc-remote-browser-session-id"
+            ) || ""
+          : ""
+      );
+      var formData;
+      if (!remoteBrowser) {
+        return;
+      }
+      remoteBrowser.hidden = true;
+      if (!sessionId || !config.remoteBrowserNonce || !config.ajaxUrl) {
+        return;
+      }
+      formData = new FormData();
+      formData.append("action", "sffc_crm_apply_chat_remote_browser_close");
+      formData.append("nonce", config.remoteBrowserNonce || "");
+      formData.append("session_id", sessionId);
+      formData.append("session_token", ensureApplyChatSessionToken());
+      window
+        .fetch(config.ajaxUrl || "/wp-admin/admin-ajax.php", {
+          method: "POST",
+          credentials: "same-origin",
+          body: formData,
+        })
+        .catch(function () {});
+    }
+
+    function requestApplyResultsRemoteBrowserControl(remoteBrowser, control) {
+      var config = getConfig();
+      var sessionId = cleanMessageText(
+        remoteBrowser
+          ? remoteBrowser.getAttribute(
+              "data-sffc-remote-browser-session-id"
+            ) || ""
+          : ""
+      );
+      var cleanControl = cleanMessageText(control || "");
+      var formData;
+      if (!remoteBrowser || !sessionId || !cleanControl) {
+        return;
+      }
+      if (!config.remoteBrowserNonce || !config.ajaxUrl) {
+        setApplyResultsRemoteBrowserError(
+          remoteBrowser,
+          uiText(
+            "The secure browser controls are not configured yet.",
+            "لم يتم إعداد عناصر التحكم في المتصفح الآمن بعد."
+          )
+        );
+        return;
+      }
+      remoteBrowser.classList.add("is-updating-control");
+      formData = new FormData();
+      formData.append("action", "sffc_crm_apply_chat_remote_browser_control");
+      formData.append("nonce", config.remoteBrowserNonce || "");
+      formData.append("session_id", sessionId);
+      formData.append("session_token", ensureApplyChatSessionToken());
+      formData.append("control", cleanControl);
+      window
+        .fetch(config.ajaxUrl || "/wp-admin/admin-ajax.php", {
+          method: "POST",
+          credentials: "same-origin",
+          body: formData,
+        })
+        .then(parseAjaxJson)
+        .then(function (payload) {
+          var data = payload && payload.data ? payload.data : {};
+          if (!payload || !payload.success || !data.session) {
+            throw new Error(
+              (data && data.message) ||
+                uiText(
+                  "I could not update browser control.",
+                  "تعذر تحديث التحكم في المتصفح."
+                )
+            );
+          }
+          setApplyResultsRemoteBrowserControlState(
+            remoteBrowser,
+            cleanMessageText(data.session.control || cleanControl)
+          );
+        })
+        .catch(function (error) {
+          var status = remoteBrowser.querySelector(
+            "[data-sffc-remote-browser-status]"
+          );
+          if (status) {
+            status.textContent =
+              (error && error.message) ||
+              uiText(
+                "I could not update browser control.",
+                "تعذر تحديث التحكم في المتصفح."
+              );
+          }
+        })
+        .finally(function () {
+          remoteBrowser.classList.remove("is-updating-control");
+        });
+    }
+
     function showApplyResultsIframePreviewFallback(panel, preview, frame) {
       var frameWrap = frame
         ? frame.closest(".sffc-crm-apply-results__review-frame-wrap")
         : null;
+      var remoteBrowser = panel
+        ? panel.querySelector("[data-sffc-apply-results-remote-browser]")
+        : null;
       if (!preview) {
         return;
+      }
+      if (panel) {
+        panel.setAttribute(
+          "data-sffc-apply-results-review-current-mode",
+          remoteBrowser ? "remote_browser" : "static_preview"
+        );
       }
       if (frameWrap) {
         frameWrap.hidden = true;
       }
+      if (remoteBrowser) {
+        remoteBrowser.hidden = false;
+        requestApplyResultsRemoteBrowser(remoteBrowser);
+        return;
+      }
       preview.hidden = false;
       requestApplyResultsApplicationPreview(preview);
+    }
+
+    function markApplyResultsReviewFrameState(panel, frame, state, reason) {
+      var cleanState = cleanMessageText(state || "");
+      var cleanReason = cleanMessageText(reason || "");
+      if (frame && cleanState) {
+        frame.setAttribute("data-sffc-review-frame-state", cleanState);
+      }
+      if (panel && cleanState) {
+        panel.setAttribute("data-sffc-apply-results-iframe-state", cleanState);
+      }
+      if (panel && cleanReason) {
+        panel.setAttribute("data-sffc-apply-results-iframe-reason", cleanReason);
+      }
+    }
+
+    function shouldProbeApplyResultsIframe(panel) {
+      var mode = cleanMessageText(
+        panel ? panel.getAttribute("data-sffc-apply-results-review-mode") : ""
+      );
+      return !mode || mode === "iframe_embed";
+    }
+
+    function startApplyResultsIframeProbe(panel, frame, preview, timeoutMs) {
+      if (!frame || frame.getAttribute("src")) {
+        return;
+      }
+      if (!frame.getAttribute("data-sffc-review-frame-listeners")) {
+        frame.setAttribute("data-sffc-review-frame-listeners", "1");
+        frame.addEventListener(
+          "load",
+          function () {
+            markApplyResultsReviewFrameState(
+              panel,
+              frame,
+              "loaded",
+              "iframe_load_event"
+            );
+          },
+          { once: true }
+        );
+        frame.addEventListener(
+          "error",
+          function () {
+            markApplyResultsReviewFrameState(
+              panel,
+              frame,
+              "blocked",
+              "iframe_error_event"
+            );
+            showApplyResultsIframePreviewFallback(panel, preview, frame);
+          },
+          { once: true }
+        );
+      }
+      markApplyResultsReviewFrameState(
+        panel,
+        frame,
+        "loading",
+        "iframe_probe_started"
+      );
+      frame.setAttribute("src", frame.getAttribute("data-src") || "");
+      if (preview) {
+        window.setTimeout(function () {
+          if (
+            !frame ||
+            frame.getAttribute("data-sffc-review-frame-state") === "loaded" ||
+            !panel ||
+            panel.hidden
+          ) {
+            return;
+          }
+          markApplyResultsReviewFrameState(
+            panel,
+            frame,
+            "timeout",
+            "iframe_probe_timeout"
+          );
+          showApplyResultsIframePreviewFallback(panel, preview, frame);
+        }, timeoutMs || 4500);
+      }
     }
 
     function hydrateApplyResultsReviewPanel(panel) {
@@ -151418,37 +152535,14 @@
       var preview = panel
         ? panel.querySelector("[data-sffc-apply-results-preview-url]")
         : null;
-      if (frame && !frame.getAttribute("src")) {
-        frame.addEventListener(
-          "load",
-          function () {
-            frame.setAttribute("data-sffc-review-frame-state", "loaded");
-          },
-          { once: true }
-        );
-        frame.addEventListener(
-          "error",
-          function () {
-            frame.setAttribute("data-sffc-review-frame-state", "blocked");
-            showApplyResultsIframePreviewFallback(panel, preview, frame);
-          },
-          { once: true }
-        );
-        frame.setAttribute("src", frame.getAttribute("data-src") || "");
-        if (preview) {
-          window.setTimeout(function () {
-            if (
-              !frame ||
-              frame.getAttribute("data-sffc-review-frame-state") === "loaded" ||
-              !panel ||
-              panel.hidden
-            ) {
-              return;
-            }
-            frame.setAttribute("data-sffc-review-frame-state", "preview");
-            showApplyResultsIframePreviewFallback(panel, preview, frame);
-          }, 4500);
-        }
+      var remoteBrowser = panel
+        ? panel.querySelector("[data-sffc-apply-results-remote-browser]")
+        : null;
+      if (frame && !frame.getAttribute("src") && shouldProbeApplyResultsIframe(panel)) {
+        startApplyResultsIframeProbe(panel, frame, preview, 4500);
+      }
+      if (remoteBrowser && !remoteBrowser.hidden) {
+        requestApplyResultsRemoteBrowser(remoteBrowser);
       }
       if (preview && !preview.hidden) {
         requestApplyResultsApplicationPreview(preview);
@@ -151720,6 +152814,12 @@
       var applyResultsRefreshPreview = event.target.closest(
         "[data-sffc-apply-results-refresh-preview]"
       );
+      var applyResultsRemoteBrowserControl = event.target.closest(
+        "[data-sffc-remote-browser-control]"
+      );
+      var applyResultsRemoteBrowserClose = event.target.closest(
+        "[data-sffc-remote-browser-close]"
+      );
       var applyResultsSampleCard = event.target.closest(
         ".sffc-crm-apply-results__result"
       );
@@ -151772,6 +152872,8 @@
           applyResultsReviewToggle ||
           applyResultsTryLiveEmbed ||
           applyResultsRefreshPreview ||
+          applyResultsRemoteBrowserControl ||
+          applyResultsRemoteBrowserClose ||
           applyResultsClearSearch) &&
         event.target.closest('[data-sffc-apply-results-stale="1"]')
       ) {
@@ -152238,6 +153340,12 @@
         var liveFrame = liveFrameWrap
           ? liveFrameWrap.querySelector("[data-sffc-apply-results-review-frame]")
           : null;
+        var livePanel = liveFrameWrap
+          ? liveFrameWrap.closest("[data-sffc-apply-results-review-panel]")
+          : null;
+        var livePreview = livePanel
+          ? livePanel.querySelector("[data-sffc-apply-results-preview-url]")
+          : null;
         event.preventDefault();
         if (typeof event.stopImmediatePropagation === "function") {
           event.stopImmediatePropagation();
@@ -152245,10 +153353,15 @@
         if (liveFrameWrap && root.contains(liveFrameWrap)) {
           liveFrameWrap.hidden = false;
         }
-        if (liveFrame && !liveFrame.getAttribute("src")) {
-          liveFrame.setAttribute(
-            "src",
-            liveFrame.getAttribute("data-src") || ""
+        if (liveFrame) {
+          if (livePreview) {
+            livePreview.hidden = true;
+          }
+          startApplyResultsIframeProbe(
+            livePanel,
+            liveFrame,
+            livePreview,
+            4500
           );
         }
         return;
@@ -152278,6 +153391,35 @@
           );
           requestApplyResultsApplicationPreview(refreshPreview);
         }
+        return;
+      }
+      if (applyResultsRemoteBrowserControl) {
+        var controlRemoteBrowserPanel = applyResultsRemoteBrowserControl.closest(
+          "[data-sffc-apply-results-remote-browser]"
+        );
+        var requestedControl =
+          applyResultsRemoteBrowserControl.getAttribute(
+            "data-sffc-remote-browser-control"
+          ) || "";
+        event.preventDefault();
+        if (typeof event.stopImmediatePropagation === "function") {
+          event.stopImmediatePropagation();
+        }
+        requestApplyResultsRemoteBrowserControl(
+          controlRemoteBrowserPanel,
+          requestedControl
+        );
+        return;
+      }
+      if (applyResultsRemoteBrowserClose) {
+        var remoteBrowserPanel = applyResultsRemoteBrowserClose.closest(
+          "[data-sffc-apply-results-remote-browser]"
+        );
+        event.preventDefault();
+        if (typeof event.stopImmediatePropagation === "function") {
+          event.stopImmediatePropagation();
+        }
+        closeApplyResultsRemoteBrowser(remoteBrowserPanel);
         return;
       }
       if (applyResultsApplyButton) {

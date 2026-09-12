@@ -930,6 +930,138 @@ const baseCases = [
     expectedPlanMode: "execute",
   },
   {
+    message: "when is the best time to apply for jobs in dubai",
+    promptState: "",
+    activeTask: "search",
+    selectedRole: true,
+    expectedIntent: "web_search",
+    expectedRelationship: "interrupts_task",
+    expectedAction: "web_search",
+    expectedPlanObjective: "answer_with_web_search",
+    expectedPlanMode: "execute",
+  },
+  {
+    message: "what is saudi arabia like",
+    promptState: "",
+    activeTask: "apply_flow",
+    selectedRole: true,
+    expectedIntent: "web_search",
+    expectedRelationship: "interrupts_task",
+    expectedAction: "web_search",
+    expectedPlanObjective: "answer_with_web_search",
+    expectedPlanMode: "execute",
+  },
+  {
+    message: "what is life like in Riyadh for expats",
+    promptState: "apply_results_selected_next_step",
+    activeTask: "apply_flow",
+    selectedRole: true,
+    expectedIntent: "web_search",
+    expectedRelationship: "interrupts_task",
+    expectedAction: "web_search",
+    expectedPlanObjective: "answer_with_web_search",
+    expectedPlanMode: "execute",
+  },
+  {
+    message: "what is saudi arabia like for work",
+    promptState: "apply_results_selected_next_step",
+    activeTask: "apply_flow",
+    selectedRole: true,
+    expectedIntent: "web_search",
+    expectedRelationship: "interrupts_task",
+    expectedAction: "web_search",
+    expectedPlanObjective: "answer_with_web_search",
+    expectedPlanMode: "execute",
+  },
+  {
+    message: "tell me about living in Dubai as an expat",
+    promptState: "",
+    activeTask: "search",
+    selectedRole: true,
+    expectedIntent: "web_search",
+    expectedRelationship: "interrupts_task",
+    expectedAction: "web_search",
+    expectedPlanObjective: "answer_with_web_search",
+    expectedPlanMode: "execute",
+  },
+  {
+    message: "what is the cost of living in Riyadh",
+    promptState: "",
+    activeTask: "apply_flow",
+    selectedRole: true,
+    expectedIntent: "web_search",
+    expectedRelationship: "interrupts_task",
+    expectedAction: "web_search",
+    expectedPlanObjective: "answer_with_web_search",
+    expectedPlanMode: "execute",
+  },
+  {
+    message: "what are visa rules for working in Dubai",
+    promptState: "",
+    activeTask: "apply_flow",
+    selectedRole: true,
+    expectedIntent: "web_search",
+    expectedRelationship: "interrupts_task",
+    expectedAction: "web_search",
+    expectedPlanObjective: "answer_with_web_search",
+    expectedPlanMode: "execute",
+  },
+  {
+    message: "what is the average salary for a finance manager in Riyadh",
+    promptState: "",
+    activeTask: "apply_flow",
+    selectedRole: true,
+    expectedIntent: "web_search",
+    expectedRelationship: "interrupts_task",
+    expectedAction: "web_search",
+    expectedPlanObjective: "answer_with_web_search",
+    expectedPlanMode: "execute",
+  },
+  {
+    message: "latest hiring trends in Dubai private equity",
+    promptState: "",
+    activeTask: "search",
+    selectedRole: true,
+    expectedIntent: "web_search",
+    expectedRelationship: "interrupts_task",
+    expectedAction: "web_search",
+    expectedPlanObjective: "answer_with_web_search",
+    expectedPlanMode: "execute",
+  },
+  {
+    message: "compare Dubai and Riyadh for finance careers",
+    promptState: "",
+    activeTask: "search",
+    selectedRole: true,
+    expectedIntent: "web_search",
+    expectedRelationship: "interrupts_task",
+    expectedAction: "web_search",
+    expectedPlanObjective: "answer_with_web_search",
+    expectedPlanMode: "execute",
+  },
+  {
+    message: "what does Mubadala Investment Company do",
+    promptState: "",
+    activeTask: "apply_flow",
+    selectedRole: true,
+    expectedIntent: "web_search",
+    expectedRelationship: "interrupts_task",
+    expectedAction: "web_search",
+    expectedPlanObjective: "answer_with_web_search",
+    expectedPlanMode: "execute",
+  },
+  {
+    message: "we are talking through a career question",
+    promptState: "",
+    activeTask: "search",
+    selectedRole: true,
+    expectedIntent: "career_question",
+    expectedRelationship: "interrupts_task",
+    expectedAction: "answer_directly",
+    expectedPlanObjective: "answer_career_question",
+    expectedPlanMode: "answer",
+  },
+  {
     message: "show me HR manager jobs in Dubai",
     promptState: "",
     activeTask: "",
@@ -941,6 +1073,15 @@ const baseCases = [
     message: "i need help to find jobs in dubai",
     promptState: "",
     activeTask: "",
+    expectedIntent: "job_search",
+    expectedRelationship: "new_topic",
+    expectedAction: "show_job_results",
+  },
+  {
+    message: "find finance jobs in Dubai",
+    promptState: "",
+    activeTask: "apply_flow",
+    selectedRole: true,
     expectedIntent: "job_search",
     expectedRelationship: "new_topic",
     expectedAction: "show_job_results",
@@ -992,6 +1133,9 @@ function isPromptAnswer(message, promptState) {
   const text = clean(message).toLowerCase();
   const wordCount = text ? text.split(/\s+/).filter(Boolean).length : 0;
   if (!promptState || !text) return false;
+  if (/\b(?:career question|general career advice|career advice|talking through a career question|answer this as general career advice)\b/i.test(text)) {
+    return true;
+  }
   if (
     promptState === "apply_results_selected_next_step" &&
     /\b(?:apply|application|jump|start|go ahead|compare|match|fit|improve|tailor|original|current cv|without tailor)\b/i.test(text)
@@ -1054,6 +1198,14 @@ function isFreshSearchRequest(message) {
   return /\b(?:anything new|any new|what'?s new|whats new|new roles|new jobs|fresh roles|fresh jobs)\b/.test(text);
 }
 
+function isCareerTimingQuestion(message) {
+  const text = clean(message).toLowerCase();
+  return (
+    /\b(?:best time|best month|best months|when should|when is|which months?|what months?|hiring season|job search timing|start job searching|start applying|apply timing|timing)\b/i.test(text) &&
+    /\b(?:job|jobs|role|roles|search|apply|applying|application|hiring|market|recruit(?:er|ing)|opportunit)/i.test(text)
+  );
+}
+
 function isShortRoleDiscoverySearch(message) {
   const text = clean(message).toLowerCase();
   const words = text.split(/\s+/).filter(Boolean);
@@ -1070,10 +1222,14 @@ function isShortRoleDiscoverySearch(message) {
 function isHighConfidenceWebSearchRequest(message) {
   const text = clean(message).toLowerCase();
   const words = text ? text.split(/\s+/).filter(Boolean) : [];
+  const explicitNamedCompanyResearch = /\b(?:what\s+(?:does|do|is)\s+|who\s+(?:are|is)\s+|tell me about\s+|research\s+|look up\s+|company profile|competitors?|ownership|founders?|headquarters|funding|ipo|stock price|share price|annual report|revenue|aum|assets under management|subsidiar(?:y|ies)|portfolio companies|reviews?|glassdoor|culture)\b/i.test(text) &&
+    /\b(?:company|companies|employer|firm|bank|fund|startup|business|organisation|organization|mubadala|adcb|standard chartered|savills|mashreq|permira|merak|qiddiya|pif|tikehau)\b/i.test(text) &&
+    !/\b(?:this|that|it|they|them|role|job|position|posting|previous|first|second|third|last)\b/i.test(text);
   if (!text || words.length < 3 || words.length > 34) return false;
   if (
-    isSelectedRoleQuestion(text) ||
+    (isSelectedRoleQuestion(text) && !explicitNamedCompanyResearch) ||
     /\b(?:cv|resume|cover letter|application|apply|tailor|rewrite|interview prep)\b/i.test(text) &&
+      !isCareerTimingQuestion(text) &&
       !/\b(?:agency|agencies|recruiter|recruiters|company|companies|market|salary|visa|relocation)\b/i.test(text)
   ) {
     return false;
@@ -1081,12 +1237,24 @@ function isHighConfidenceWebSearchRequest(message) {
   if (/\b(?:show|find|search|look for|list|recommend|get me|source)\b.*\b(?:job|jobs|role|roles|opening|openings|vacanc|opportunit)/i.test(text)) {
     return false;
   }
-  const asksForExternalKnowledge = /\b(?:who|what|which|where|how|can you tell me|do you know|research|look up|search the web|google|find out)\b/i.test(text);
-  const asksForCurrentKnowledge = /\b(?:latest|current|currently|recent|today|this week|this month|now|202[0-9]|up to date|updated)\b/i.test(text);
-  const asksForBestList = /\b(?:best|top|leading|recommended|reputable|good|strong|average|typical|benchmark|list of|examples of|rank|ranked)\b/i.test(text);
-  const externalCareerSubject = /\b(?:recruitment agenc(?:y|ies)|recruiting agenc(?:y|ies)|headhunters?|executive search|recruiters?|hiring agencies|staffing agencies|employers?|companies|firms|banks?|salary|average salary|pay range|pay scale|compensation benchmark|compensation guide|salary benchmark|salary guide|market report|hiring trend|hiring trends|hiring market|labour market|labor market|visa rules?|work permit|relocation|cost of living|industry news|business news|professional bodies|networking events?)\b/i.test(text);
+  const asksForExternalKnowledge = /\b(?:who|what|which|where|when|how|why|can you tell me|do you know|research|look up|search the web|google|find out|tell me about|explain|describe|summarise|summarize)\b/i.test(text);
+  const asksForCurrentKnowledge = /\b(?:latest|current|currently|recent|today|this week|this month|this year|now|202[0-9]|up to date|updated|new|news|trend|trends|forecast|outlook)\b/i.test(text);
+  const asksForBestList = /\b(?:best|top|leading|recommended|reputable|good|strong|average|typical|benchmark|list of|examples of|rank|ranked|compare|comparison|versus|vs|better|pros and cons|advantages|disadvantages)\b/i.test(text);
+  const externalCareerSubject = /\b(?:recruitment agenc(?:y|ies)|recruiting agenc(?:y|ies)|headhunters?|executive search|recruiters?|hiring agencies|staffing agencies|employers?|companies|firms|banks?|salary|average salary|pay range|pay scale|compensation benchmark|compensation guide|salary benchmark|salary guide|bonus|benefits|notice period|probation|labou?r law|employment law|market report|hiring trend|hiring trends|hiring market|labour market|labor market|visa rules?|work permit|golden visa|employment visa|relocation|cost of living|industry news|business news|professional bodies|networking events?|job fairs?|career fairs?|certifications?|qualifications?)\b/i.test(text);
+  const generalExternalSubject =
+    /\b(?:country|city|market|economy|culture|lifestyle|life|living|work culture|business culture|social norms|laws?|rules?|customs|weather|tax|income tax|housing|rent|schooling|healthcare|transport|commute|safety|safe|expat|expats|relocat(?:e|ion|ing)|move|moving|live|living|like|quality of life|weekend|working hours|costs?)\b/i.test(text) ||
+    /\b(?:what\s+is|what'?s|what\s+are|how\s+is|how\s+are|why\s+is|tell me about|describe|explain|summari[sz]e)\b.*\b(?:saudi arabia|saudi|riyadh|jeddah|dubai|abu dhabi|uae|united arab emirates|qatar|doha|kuwait|bahrain|oman|muscat|london|middle east|mena|gcc)\b/i.test(text);
+  const companyResearchSubject = explicitNamedCompanyResearch ||
+    (/\b(?:what\s+(?:does|do|is)\s+|who\s+(?:are|is)\s+|tell me about\s+|research\s+|look up\s+|company profile|competitors?|ownership|founders?|headquarters|funding|ipo|stock price|share price|annual report|revenue|aum|assets under management|subsidiar(?:y|ies)|portfolio companies|reviews?|glassdoor|culture)\b/i.test(text) &&
+      /\b(?:company|companies|employer|firm|bank|fund|startup|business|organisation|organization|mubadala|adcb|standard chartered|savills|mashreq|permira|merak|qiddiya|pif|tikehau)\b/i.test(text));
+  const comparisonResearchSubject = /\b(?:compare|comparison|versus|vs|better|best between|pros and cons|which is better|difference between|should i choose)\b/i.test(text) &&
+    /\b(?:dubai|abu dhabi|riyadh|saudi|saudi arabia|uae|qatar|doha|kuwait|bahrain|oman|london|market|country|city|salary|tax|cost of living|company|companies|employer|recruiter|agency|sector|industry)\b/i.test(text);
+  const newsResearchSubject = /\b(?:latest|recent|today|this week|this month|news|update|announced|happened|layoffs?|hiring freeze|expansion|market outlook|forecast|trend|trends)\b/i.test(text) &&
+    /\b(?:market|company|companies|bank|fund|sector|industry|economy|jobs?|hiring|salary|dubai|riyadh|saudi|uae|qatar|middle east|mena|gcc)\b/i.test(text);
+  const factualResearchSubject = /\b(?:population|currency|time zone|timezone|capital|language|languages|religion|holidays?|public holidays?|weekend|work week|tax rate|income tax|corporate tax|vat|minimum wage|labou?r law|employment law|visa|work permit|rent|cost of living|schools?|healthcare)\b/i.test(text);
   const hasNamedMarket = /\b(?:in|for|near|around)\s+(?:dubai|abu dhabi|riyadh|jeddah|doha|qatar|saudi|saudi arabia|uae|united arab emirates|kuwait|bahrain|oman|muscat|london|middle east|mena|gcc)\b|\b(?:dubai|abu dhabi|riyadh|jeddah|doha|qatar|saudi|saudi arabia|uae|united arab emirates|kuwait|bahrain|oman|muscat|london|middle east|mena|gcc)\b/i.test(text);
-  return externalCareerSubject && (asksForExternalKnowledge || asksForCurrentKnowledge || asksForBestList || hasNamedMarket);
+  return (isCareerTimingQuestion(text) || externalCareerSubject || generalExternalSubject || companyResearchSubject || comparisonResearchSubject || newsResearchSubject || factualResearchSubject) &&
+    (asksForExternalKnowledge || asksForCurrentKnowledge || asksForBestList || companyResearchSubject || comparisonResearchSubject || newsResearchSubject || factualResearchSubject || (hasNamedMarket && !generalExternalSubject));
 }
 
 function isSelectedRoleQuestion(message) {
@@ -1378,15 +1546,18 @@ function buildBeliefState(message, context) {
     }
   }
 
+  const highConfidenceWebSearch = isHighConfidenceWebSearchRequest(text);
+
   if (
     isSennaContactQuestion(text) ||
-    isAnswerQualityComplaint(text)
+    isAnswerQualityComplaint(text) ||
+    (isCareerTimingQuestion(text) && !highConfidenceWebSearch)
   ) {
     addBelief(goals, "ask_career_question", 36);
     addBelief(relations, context.activeTask ? "interrupts_task" : "new_topic", 28);
   }
 
-  if (isHighConfidenceWebSearchRequest(text)) {
+  if (highConfidenceWebSearch) {
     addBelief(goals, "web_search", 34);
     addBelief(relations, context.activeTask ? "interrupts_task" : "new_topic", 26);
   }
@@ -1538,6 +1709,9 @@ function classify(message, context) {
   if (isApplicationHistoryTask(text)) {
     return ["application_history", 0.95];
   }
+  if (isHighConfidenceWebSearchRequest(text)) {
+    return ["web_search", 0.93];
+  }
   if (isCompanyResearchTask(text)) {
     return ["company_research_task", 0.94];
   }
@@ -1559,8 +1733,11 @@ function classify(message, context) {
   if (isSearchFilterResetRequest(text)) {
     return ["search_filter_reset", 0.94];
   }
-  if (isHighConfidenceWebSearchRequest(text)) {
-    return ["web_search", 0.93];
+  if (isCareerTimingQuestion(text)) {
+    return ["career_question", 0.94];
+  }
+  if (/\b(?:career question|general career advice|career advice|talking through a career question|answer this as general career advice)\b/i.test(lower)) {
+    return ["career_question", 0.91];
   }
   if (isProviderFilterClearRequest(text)) {
     return ["search_refinement", 0.94];

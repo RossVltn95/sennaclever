@@ -8,12 +8,18 @@ const jsPath = path.join(repoRoot, "assets/js/crm/crm-apply-chat-article.js");
 const phpPath = path.join(repoRoot, "includes/crm/class-crm-shortcodes.php");
 const cssPath = path.join(repoRoot, "assets/css/crm/crm-apply-chat-article.css");
 const serviceDir = path.join(repoRoot, "services/senna-search-service");
+const answerServiceDir = path.join(repoRoot, "services/senna-web-answer-service");
 const planPath = path.join(repoRoot, "docs/apply-chat-web-search-integration-plan.md");
+const groundedPlanPath = path.join(
+  repoRoot,
+  "docs/apply-chat-source-grounded-answer-plan.md"
+);
 
 const js = fs.readFileSync(jsPath, "utf8");
 const php = fs.readFileSync(phpPath, "utf8");
 const css = fs.readFileSync(cssPath, "utf8");
 const plan = fs.readFileSync(planPath, "utf8");
+const groundedPlan = fs.readFileSync(groundedPlanPath, "utf8");
 const failures = [];
 
 function fail(message) {
@@ -57,6 +63,10 @@ const webSearchRenderBody = getFunctionBody(
   js,
   "renderApplyChatWebSearchAnswerHtml"
 );
+const webSearchSummaryRenderBody = getFunctionBody(
+  js,
+  "renderApplyChatWebSearchSummaryHtml"
+);
 const webSearchFetchBody = getFunctionBody(js, "fetchApplyChatWebSearch");
 const webSearchActionBody = getFunctionBody(js, "searchWebInApplyChat");
 const promptReplyBody = getFunctionBody(js, "maybeHandlePromptReply");
@@ -67,6 +77,7 @@ const profileReviewBody = getFunctionBody(
 
 if (!webSearchRouteBody) fail("Could not inspect web-search route function");
 if (!webSearchRenderBody) fail("Could not inspect web-search renderer");
+if (!webSearchSummaryRenderBody) fail("Could not inspect web-search summary renderer");
 if (!webSearchFetchBody) fail("Could not inspect web-search fetcher");
 if (!webSearchActionBody) fail("Could not inspect web-search action");
 if (!promptReplyBody) fail("Could not inspect prompt reply handler");
@@ -79,6 +90,12 @@ if (!profileReviewBody) fail("Could not inspect profile review input handler");
   "top executive search firms in Riyadh",
   "latest hiring trends in Saudi finance",
   "average salary for HR manager Dubai",
+  "what is Saudi Arabia like",
+  "what is life like in Riyadh for expats",
+  "what is the cost of living in Riyadh",
+  "what are visa rules for working in Dubai",
+  "what does Mubadala Investment Company do",
+  "compare Dubai and Riyadh for finance careers",
 ].forEach((prompt) => {
   assertIncludes(`Phase 7 prompt in plan: ${prompt}`, plan, prompt);
 });
@@ -93,6 +110,19 @@ if (!profileReviewBody) fail("Could not inspect profile review input handler");
   "salary guide",
   "hiring trend",
   "hiring market",
+  "cost of living",
+  "employment law",
+  "golden visa",
+  "company profile",
+  "assets under management",
+  "compare",
+  "market outlook",
+  "tax rate",
+  "country",
+  "culture",
+  "lifestyle",
+  "expat",
+  "looksLikeCareerTimingQuestion(clean)",
   "dubai",
   "riyadh",
   "saudi arabia",
@@ -141,7 +171,29 @@ if (
 }
 
 [
+  "payload.answer",
+  "sffc-crm-apply-chat__formatted sffc-crm-apply-chat__web-answer",
+  "sffc-crm-apply-chat__web-answer",
+  "sffc-crm-apply-chat__web-answer-headline",
+  "sffc-crm-apply-chat__web-answer-lead",
+  "sffc-crm-apply-chat__web-answer-next",
+].forEach((needle) => {
+  assertIncludes(`web-search answer renderer ${needle}`, webSearchSummaryRenderBody, needle);
+});
+
+[
   "sffc-crm-apply-chat__web-search-card",
+  "payload.evidence",
+  "payload.evidenceSummary",
+  "answerMode",
+  "Page evidence",
+  "Snippet-based",
+  "sffc-crm-apply-chat__web-search-passage",
+  "sffc-crm-apply-chat__web-search-used-for",
+  "usedPassages",
+  "fetchStatus",
+  "Page read",
+  "Snippet fallback",
   "sffc-crm-apply-chat__web-search-item",
   "sffc-crm-apply-chat__web-search-source",
   "sffc-crm-apply-chat__web-search-snippet",
@@ -155,9 +207,24 @@ if (
   assertIncludes(`web-search renderer ${needle}`, webSearchRenderBody, needle);
 });
 
+if (webSearchRenderBody.includes("sffc-crm-apply-chat__web-answer")) {
+  fail("Web-search result card renderer should not contain the conversational answer block");
+}
+
+assertRegex(
+  "web search sends answer before source card",
+  webSearchActionBody,
+  /renderApplyChatWebSearchSummaryHtml\(payload\)[\s\S]+renderApplyChatWebSearchAnswerHtml\(payload\)/
+);
+
 [
   ".sffc-crm-apply-chat__message.has-web-search-card",
   ".sffc-crm-apply-chat__web-search-card",
+  ".sffc-crm-apply-chat__web-answer",
+  ".sffc-crm-apply-chat__web-answer-headline",
+  ".sffc-crm-apply-chat__web-answer-points",
+  ".sffc-crm-apply-chat__web-search-passage",
+  ".sffc-crm-apply-chat__web-search-used-for",
   ".sffc-crm-apply-chat__web-search-list",
   ".sffc-crm-apply-chat__web-search-title",
   ".sffc-crm-apply-chat__web-search-snippet",
@@ -172,7 +239,45 @@ if (
   "get_crm_apply_chat_web_search_endpoint",
   "SFFC_SEARCH_ENDPOINT",
   "SFFC_SEARCH_TOKEN",
+  "get_crm_apply_chat_web_answer_endpoint",
+  "get_crm_apply_chat_web_answer_token",
+  "SFFC_SEARCH_ANSWER_ENDPOINT",
+  "SFFC_SEARCH_ANSWER_TOKEN",
+  "call_crm_apply_chat_web_answer_service",
+  "answer_service_error",
+  "answer_service_bad_response",
+  "answerServiceMs",
+  "searxng+trafilatura",
   "normalize_crm_apply_chat_web_search_results",
+  "classify_crm_apply_chat_web_answer_query",
+  "select_crm_apply_chat_web_answer_sources",
+  "fetch_crm_apply_chat_web_answer_source",
+  "extract_crm_apply_chat_web_page_text_from_html",
+  "score_crm_apply_chat_web_extraction_quality",
+  "build_crm_apply_chat_web_answer_evidence",
+  "summarize_crm_apply_chat_web_answer_evidence",
+  "compose_crm_apply_chat_web_answer",
+  "build_crm_apply_chat_source_grounded_web_answer",
+  "is_crm_apply_chat_web_fetchable_public_url",
+  "private_or_invalid_url",
+  "FILTER_FLAG_NO_PRIV_RANGE",
+  "FILTER_FLAG_NO_RES_RANGE",
+  "SFFC_WEB_SOURCE_FETCH_ENABLED",
+  "SFFC_WEB_SOURCE_FETCH_LIMIT",
+  "limit_response_size",
+  "'answer' =>",
+  "'evidence' =>",
+  "'evidenceSummary' =>",
+  "answer_ready",
+  "query_type",
+  "source_count",
+  "answer_mode",
+  "average_quality",
+  "'timings' =>",
+  "'searchMs' =>",
+  "'answerMs' =>",
+  "'totalMs' =>",
+  "'cacheHit' =>",
   "get_crm_apply_chat_web_search_cache_ttl",
   "set_transient($cache_key",
   "30 * MINUTE_IN_SECONDS",
@@ -225,6 +330,36 @@ assertRegex(
   }
 });
 
+[
+  "Dockerfile",
+  "README.md",
+  "railway.json",
+  "requirements.txt",
+  "app.py",
+].forEach((relativePath) => {
+  const fullPath = path.join(answerServiceDir, relativePath);
+  if (!fs.existsSync(fullPath)) {
+    fail(`Missing web answer service file: ${relativePath}`);
+  }
+});
+
+const answerServiceApp = fs.readFileSync(
+  path.join(answerServiceDir, "app.py"),
+  "utf8"
+);
+[
+  "import trafilatura",
+  "SEARXNG_ENDPOINT",
+  "SENNA_ANSWER_TOKEN",
+  "@app.route(\"/answer\"",
+  "fetch_source_text",
+  "qualityScore",
+  "evidenceSummary",
+  "source_grounded",
+].forEach((needle) => {
+  assertIncludes(`web answer service ${needle}`, answerServiceApp, needle);
+});
+
 assertIncludes(
   "Phase 7 cached repeat query check",
   plan,
@@ -235,6 +370,16 @@ assertIncludes(
   plan,
   "Timeout and no-result states work."
 );
+
+[
+  "https://clever-appreciation-production-3057.up.railway.app/search",
+  "Phase 1 should not create a new search service.",
+  "source-grounded answer synthesis in the WordPress adapter first",
+  "Confirmed current WordPress adapter normalizes SearXNG",
+  "Confirmed current frontend renders only generic `summary`",
+].forEach((needle) => {
+  assertIncludes(`source-grounded plan ${needle}`, groundedPlan, needle);
+});
 
 if (failures.length) {
   console.error("Apply-chat web search Phase 7 checks failed:");

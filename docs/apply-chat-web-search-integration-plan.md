@@ -91,6 +91,9 @@ Examples:
 - `latest hiring trends in Saudi finance`
 - `which banks are hiring analysts in UAE right now`
 - `average salary for HR manager Dubai`
+- `what is Saudi Arabia like`
+- `what is life like in Riyadh for expats`
+- `when is the best time to apply for jobs in Dubai`
 - `what is the latest on Qiddiya hiring`
 
 Emily should not search when:
@@ -418,8 +421,16 @@ Prompts to test:
 - [x] `top executive search firms in Riyadh`
 - [x] `latest hiring trends in Saudi finance`
 - [x] `average salary for HR manager Dubai`
+- [x] `what is Saudi Arabia like`
+- [x] `what is life like in Riyadh for expats`
+- [x] `when is the best time to apply for jobs in Dubai`
+- [x] `what is the cost of living in Riyadh`
+- [x] `what are visa rules for working in Dubai`
+- [x] `what does Mubadala Investment Company do`
+- [x] `compare Dubai and Riyadh for finance careers`
 - [x] Arabic version of recruitment-agency query.
 - [x] `show me HR manager jobs in Dubai`
+- [x] `find finance jobs in Dubai`
 - [x] `am I a fit for this job?`
 
 Checks:
@@ -437,7 +448,8 @@ Implementation notes:
 - Added `scripts/test-apply-chat-web-search.js` to verify the web-search route signals, CV/job-flow exclusions, AJAX wiring, card markup, mobile CSS, SearXNG service scaffold, caching, tracking cleanup, and sensitive-query guardrails.
 - Added a `has-web-search-card` CSS layout hook so source cards follow the same structured-card sizing path as the other apply-chat cards.
 - Phase 7 audit fixed plain `average salary` / `pay range` route coverage, added `dir="auto"` to dynamic web-result text, and corrected URL cleanup to use `http_build_query()` instead of WordPress `build_query()`.
-- Added the web-search prompt matrix to `scripts/test-apply-chat-decision-engine.js`, so `best recruitment agencies in Dubai`, `best recruiters in Dubai`, `top executive search firms in Riyadh`, `latest hiring trends in Saudi finance`, and `average salary for HR manager Dubai` must route to `web_search`.
+- Added the web-search prompt matrix to `scripts/test-apply-chat-decision-engine.js`, so `best recruitment agencies in Dubai`, `best recruiters in Dubai`, `top executive search firms in Riyadh`, `latest hiring trends in Saudi finance`, `average salary for HR manager Dubai`, `what is Saudi Arabia like`, `what is life like in Riyadh for expats`, and `when is the best time to apply for jobs in Dubai` must route to `web_search`.
+- Expanded the active-role guard so living/cost-of-living, visa/legal, salary/tax, company research, market-comparison, and current-market questions interrupt selected-role/application state and route to web search instead of clarification. Added negative coverage so concrete job requests such as `find finance jobs in Dubai` still route to local job search.
 - The audit also fixed the broad selected-role salary detector so market salary questions with a named location no longer get misclassified as selected-role questions.
 - Ran the existing apply-chat decision suite to confirm web search did not break job/CV/application routing.
 
@@ -483,6 +495,9 @@ curl "https://YOUR-RAILWAY-DOMAIN.up.railway.app/search?q=best+recruitment+agenc
   - `top executive search firms in Riyadh`
   - `latest hiring trends in Saudi finance`
   - `average salary for HR manager Dubai`
+  - `what is Saudi Arabia like`
+  - `what is life like in Riyadh for expats`
+  - `when is the best time to apply for jobs in Dubai`
   - `show me HR manager jobs in Dubai`
   - `am I a fit for this job?`
 

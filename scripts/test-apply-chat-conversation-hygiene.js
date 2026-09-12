@@ -77,6 +77,7 @@ function assertIncludes(label, needle) {
   ["question-aware resume prompt helper", "function getQuestionAwareResumePrompt("],
   ["question-aware resume html helper", "function getQuestionAwareResumeHtml("],
   ["resume prompt normalizer", "function normalizeResumePromptCopy("],
+  ["CV fact sync canonical resolver", "function getCanonicalCvProfileForFactSync("],
 ].forEach(([label, needle]) => assertIncludes(label, needle));
 
 const setPromptStateBody = getFunctionBody("setPromptState");
@@ -90,6 +91,43 @@ if (!promptSlotSpecBody.includes("slot: getCanonicalPromptSlotId(promptKey)")) {
 }
 if (!promptSlotSpecBody.includes("resume: getQuestionAwareResumePrompt(promptKey)")) {
   failures.push("getPromptSlotSpec does not use question-aware resume copy");
+}
+
+const canonicalCvFactSyncResolverBody = getFunctionBody(
+  "getCanonicalCvProfileForFactSync"
+);
+if (
+  !canonicalCvFactSyncResolverBody.includes(
+    'typeof getSafeCanonicalCvProfile === "function"'
+  )
+) {
+  failures.push("CV fact sync resolver does not guard getSafeCanonicalCvProfile scope");
+}
+if (
+  !canonicalCvFactSyncResolverBody.includes(
+    'typeof buildCanonicalCvProfile === "function"'
+  )
+) {
+  failures.push("CV fact sync resolver does not guard buildCanonicalCvProfile scope");
+}
+const syncCvFactsFromCanonicalProfileBody = getFunctionBody(
+  "syncCvFactsFromCanonicalProfile"
+);
+if (
+  /profile\s*\|\|\s*getSafeCanonicalCvProfile\s*\(/.test(
+    syncCvFactsFromCanonicalProfileBody
+  )
+) {
+  failures.push(
+    "syncCvFactsFromCanonicalProfile still directly calls out-of-scope canonical helper"
+  );
+}
+if (
+  !syncCvFactsFromCanonicalProfileBody.includes(
+    "getCanonicalCvProfileForFactSync(profile)"
+  )
+) {
+  failures.push("syncCvFactsFromCanonicalProfile does not use safe canonical resolver");
 }
 
 const selectedRoleCvAskBody = getFunctionBody(
