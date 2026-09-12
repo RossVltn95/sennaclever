@@ -181,6 +181,13 @@ const userMessageBody = getFunctionBody("userMessage");
 if (!userMessageBody.includes("scrollToMessageStart(row)")) {
   failures.push("userMessage does not anchor user messages to the new row start");
 }
+const actualJobPostSearchBody = getFunctionBody("searchActualJobPostsInChat");
+if (!source.includes("actualJobPostSearchRequestToken")) {
+  failures.push("actual job post search request token is missing");
+}
+if (!actualJobPostSearchBody.includes("requestToken !== actualJobPostSearchRequestToken")) {
+  failures.push("actual job post search does not ignore stale duplicate responses");
+}
 
 const selectedRoleCvAskBody = getFunctionBody(
   "askForCvBeforeSelectedRoleApplication"

@@ -42032,9 +42032,18 @@ CRITICAL INSTRUCTIONS:
             if (!$this->is_crm_apply_chat_external_application_url($apply_url)) {
                 $apply_url = '';
             }
+            $jobs_post_id = (int) ($item['jobs_post_id'] ?? ((string) ($item['source'] ?? '') === 'jobs' ? (int) ($item['post_id'] ?? 0) : 0));
+            $wp_post_id = (int) ($item['wp_post_id'] ?? 0);
+            $linked_jobs_post_id = $jobs_post_id > 0 ? $jobs_post_id : $wp_post_id;
+            if ($apply_url === '' && $linked_jobs_post_id > 0) {
+                $apply_url = $this->get_crm_apply_chat_jobs_application_url($linked_jobs_post_id);
+            }
             $application_workspace_url = esc_url_raw((string) ($item['application_workspace_url'] ?? $item['application_embed_url'] ?? ''));
             if (!$this->is_crm_apply_chat_external_application_url($application_workspace_url)) {
                 $application_workspace_url = '';
+            }
+            if ($application_workspace_url === '' && $apply_url !== '') {
+                $application_workspace_url = $apply_url;
             }
             $company_logo = esc_url_raw((string) (
                 $item['companyLogo']
@@ -42068,8 +42077,8 @@ CRITICAL INSTRUCTIONS:
             return [
                 'id' => (int) ($item['crm_post_id'] ?? $item['id'] ?? $item['post_id'] ?? 0),
                 'post_id' => (int) ($item['crm_post_id'] ?? $item['id'] ?? 0),
-                'jobs_post_id' => (int) ($item['jobs_post_id'] ?? ((string) ($item['source'] ?? '') === 'jobs' ? (int) ($item['post_id'] ?? 0) : 0)),
-                'wp_post_id' => (int) ($item['wp_post_id'] ?? 0),
+                'jobs_post_id' => $jobs_post_id,
+                'wp_post_id' => $wp_post_id,
                 'source' => sanitize_key((string) ($item['source'] ?? 'crm')),
                 'source_platform' => sanitize_text_field((string) ($item['source_platform'] ?? '')),
                 'title' => $title,

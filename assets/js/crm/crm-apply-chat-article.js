@@ -24294,6 +24294,7 @@
     var commercialApplyQueueActiveTab = "shortlist";
     var commercialApplyQueueFilter = "all";
     var commercialApplyQueueBrokenLogoUrls = {};
+    var actualJobPostSearchRequestToken = 0;
     var pendingApplyResultsSelection = null;
     var pendingApplyResultsOfflineItem = null;
     var pendingApplyResultsOfflineItemIndex = -1;
@@ -46369,6 +46370,7 @@
     function normalizeActualJobPostSearchItem(item) {
       var source = item || {};
       var title = cleanMessageText(source.title || source.role_title || "Role");
+      var externalEmployerUrl = getExternalEmployerApplicationUrlFromItem(source);
       var rawChips = Array.isArray(source.tags)
         ? source.tags
         : Array.isArray(source.chips)
@@ -46432,20 +46434,8 @@
         viewUrl: cleanMessageText(
           source.view_url || source.viewUrl || source.url || "#"
         ),
-        applyUrl: cleanMessageText(
-          source.apply_url ||
-            source.applyUrl ||
-            source.application_url ||
-            source.applicationUrl ||
-            ""
-        ),
-        applicationWorkspaceUrl: cleanMessageText(
-          source.application_workspace_url ||
-            source.applicationWorkspaceUrl ||
-            source.application_embed_url ||
-            source.applicationEmbedUrl ||
-            ""
-        ),
+        applyUrl: externalEmployerUrl,
+        applicationWorkspaceUrl: externalEmployerUrl,
         applicationEmbedMode: cleanMessageText(
           source.application_embed_mode || source.applicationEmbedMode || ""
         ),
@@ -48467,6 +48457,7 @@
       var clean = looksLikeContextualBetterJobSearch(value)
         ? getContextualApplyChatSearchQuery()
         : normalizeApplyChatProviderSearchQuery(value || "", providerFilter);
+      var requestToken;
       if (clearsProviderFilter) {
         conversationFacts.providerFilter = "";
         clean = getContextualApplyChatSearchQuery();
@@ -48482,6 +48473,8 @@
       clearPromptState();
       activePath = "job_search";
       step = "job_search_results";
+      actualJobPostSearchRequestToken += 1;
+      requestToken = actualJobPostSearchRequestToken;
       botMessage(
         "I’m checking the current job posts for that.",
         humanComposeDelay(
@@ -48498,6 +48491,9 @@
         .then(function (result) {
           var items = result && result.items ? result.items || [] : [];
           var renderQuery = result && result.query ? result.query : clean;
+          if (requestToken !== actualJobPostSearchRequestToken) {
+            return;
+          }
           botMessage(
             renderActualJobPostSearchResults(
               items,
@@ -48552,6 +48548,9 @@
           );
         })
         .catch(function () {
+          if (requestToken !== actualJobPostSearchRequestToken) {
+            return;
+          }
           botMessage(
             "I could not load the job posts just now. Try again with a specific title or company.",
             humanComposeDelay(

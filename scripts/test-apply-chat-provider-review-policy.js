@@ -38,6 +38,9 @@ function getFunctionBody(name) {
 const policyBody = getFunctionBody("getApplyChatProviderReviewPolicy");
 const embedPolicyBody = getFunctionBody("getApplicationEmbedPolicy");
 const decisionBody = getFunctionBody("getEmployerReviewSurfaceDecision");
+const normalizeActualJobPostSearchItemBody = getFunctionBody(
+  "normalizeActualJobPostSearchItem"
+);
 const inlineReviewBody = getFunctionBody("renderInlineApplicationReview");
 const fullReviewBody = getFunctionBody("renderResultApplicationReview");
 const inlineReviewStart = source.indexOf("function renderInlineApplicationReview");
@@ -180,6 +183,12 @@ if (!inlineReviewRegion.includes("renderApplyResultsRemoteBrowser(")) {
 }
 if (!fullReviewBody.includes("providerStatusLabel")) {
   failures.push("Full review card must render the provider status label.");
+}
+if (!normalizeActualJobPostSearchItemBody.includes("getExternalEmployerApplicationUrlFromItem(source)")) {
+  failures.push("Actual job search item normalizer must use the external employer URL guard.");
+}
+if (!normalizeActualJobPostSearchItemBody.includes("applyUrl: externalEmployerUrl")) {
+  failures.push("Actual job search item normalizer must not expose raw/internal apply URLs.");
 }
 
 [
