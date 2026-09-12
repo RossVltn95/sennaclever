@@ -149,11 +149,25 @@ if (!canonicalStateForCvFactsBody.includes("careerConversationMemory.cvFacts")) 
 }
 
 const scrollToMessageStartBody = getFunctionBody("scrollToMessageStart");
-if (!scrollToMessageStartBody.includes("row.offsetTop")) {
-  failures.push("message-start scroll anchor does not calculate from the inserted row");
+if (!scrollToMessageStartBody.includes("getScrollTopForMessageTarget(row")) {
+  failures.push("message-start scroll anchor does not use the scroller-relative target helper");
 }
 if (!scrollToMessageStartBody.includes("pendingMessagesScrollRaf")) {
   failures.push("message-start scroll anchor does not coordinate with pending scroll RAF");
+}
+const scrollTargetBody = getFunctionBody("getScrollTopForMessageTarget");
+if (!scrollTargetBody.includes("getBoundingClientRect")) {
+  failures.push("scroll target helper does not use viewport geometry for nested cards");
+}
+if (!scrollTargetBody.includes("messages.scrollTop")) {
+  failures.push("scroll target helper does not account for the current messages scrollTop");
+}
+const scrollToWorkspaceCardBody = getFunctionBody("scrollToWorkspaceCard");
+if (/target\.offsetTop\s*-/.test(scrollToWorkspaceCardBody)) {
+  failures.push("workspace card scroll still uses nested target.offsetTop directly");
+}
+if (!scrollToWorkspaceCardBody.includes("getScrollTopForMessageTarget(target")) {
+  failures.push("workspace card scroll does not use the scroller-relative target helper");
 }
 const typeEmilyPlainMessageBody = getFunctionBody("typeEmilyPlainMessage");
 if (/nextIndex !== index[\s\S]{0,220}scrollToLatest\(\)/.test(typeEmilyPlainMessageBody)) {

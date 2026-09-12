@@ -48040,8 +48040,8 @@
                 url
                   ? reviewDecision.surface === "remote_browser"
                     ? uiText(
-                        "This employer form blocks a standard embed. I’ll use the secure browser route when it is available, with a preview as backup.",
-                        "يمنع نموذج جهة العمل التضمين القياسي. سأستخدم مسار المتصفح الآمن عندما يكون متاحاً، مع معاينة احتياطية."
+                        "I’ll open this employer form in Senna’s secure browser so you can review it inside the chat. If the browser is unavailable, I’ll fall back to a preview and the employer link.",
+                        "سأفتح نموذج جهة العمل في متصفح Senna الآمن حتى تتمكن من مراجعته داخل المحادثة. إذا لم يكن المتصفح متاحاً، سأستخدم معاينة احتياطية ورابط جهة العمل."
                       )
                     : uiText(
                         "This employer form may block embedded previews. Open it in a new tab to review the role and apply yourself.",
@@ -48053,6 +48053,14 @@
                     )
               ) +
               "</div>") +
+          renderApplyResultsRemoteBrowser(
+            item,
+            url,
+            provider,
+            reviewDecision,
+            panelId,
+            reviewDecision.shouldStartRemoteBrowser
+          ) +
           renderInlineApplicationReviewPreview(
             item,
             url,
@@ -81012,7 +81020,7 @@
       if (!messages || !row || !messages.contains(row)) {
         return;
       }
-      top = Math.max(0, row.offsetTop - offset);
+      top = getScrollTopForMessageTarget(row, offset);
       if (pendingMessagesScrollRaf) {
         window.cancelAnimationFrame(pendingMessagesScrollRaf);
         pendingMessagesScrollRaf = 0;
@@ -81027,10 +81035,33 @@
         pendingMessagesScrollTimeout = window.setTimeout(function () {
           pendingMessagesScrollTimeout = 0;
           if (messages && row.isConnected) {
-            messages.scrollTop = Math.max(0, row.offsetTop - offset);
+            messages.scrollTop = getScrollTopForMessageTarget(row, offset);
           }
         }, 90);
       });
+    }
+
+    function getScrollTopForMessageTarget(target, offset) {
+      var targetRect;
+      var messagesRect;
+      var currentScrollTop;
+      var safeOffset = typeof offset === "number" ? offset : 0;
+      if (!messages || !target) {
+        return 0;
+      }
+      if (
+        typeof target.getBoundingClientRect === "function" &&
+        typeof messages.getBoundingClientRect === "function"
+      ) {
+        targetRect = target.getBoundingClientRect();
+        messagesRect = messages.getBoundingClientRect();
+        currentScrollTop = Number(messages.scrollTop) || 0;
+        return Math.max(
+          0,
+          currentScrollTop + targetRect.top - messagesRect.top - safeOffset
+        );
+      }
+      return Math.max(0, target.offsetTop - safeOffset);
     }
 
     function scrollToWorkspaceCard(row, options) {
@@ -81041,11 +81072,12 @@
           )
         : null;
       var target = card || row;
+      var offset = typeof opts.offset === "number" ? opts.offset : 28;
       var top;
       if (!messages || !target) {
         return;
       }
-      top = Math.max(0, target.offsetTop - (opts.offset || 28));
+      top = getScrollTopForMessageTarget(target, offset);
       if (pendingMessagesScrollRaf) {
         window.cancelAnimationFrame(pendingMessagesScrollRaf);
         pendingMessagesScrollRaf = 0;
@@ -81061,10 +81093,7 @@
           pinnedWorkspaceCardUntil > Date.now() &&
           messages.contains(row)
         ) {
-          messages.scrollTop = Math.max(
-            0,
-            target.offsetTop - (opts.offset || 28)
-          );
+          messages.scrollTop = getScrollTopForMessageTarget(target, offset);
         }
       }, 90);
     }
@@ -127814,8 +127843,8 @@
                 url
                   ? reviewDecision.surface === "remote_browser"
                     ? uiText(
-                        "This employer form blocks a standard embed. I’ll use the secure browser route when it is available, with a preview as backup.",
-                        "يمنع نموذج جهة العمل التضمين القياسي. سأستخدم مسار المتصفح الآمن عندما يكون متاحاً، مع معاينة احتياطية."
+                        "I’ll open this employer form in Senna’s secure browser so you can review it inside the chat. If the browser is unavailable, I’ll fall back to a preview and the employer link.",
+                        "سأفتح نموذج جهة العمل في متصفح Senna الآمن حتى تتمكن من مراجعته داخل المحادثة. إذا لم يكن المتصفح متاحاً، سأستخدم معاينة احتياطية ورابط جهة العمل."
                       )
                     : uiText(
                         "This employer form may block embeds. I’ll show a preview where possible and keep the employer form link ready.",
@@ -130138,7 +130167,7 @@
             ? '<div class="sffc-crm-apply-results__review-fallback">' +
               escapeHtml(
                 reviewDecision.surface === "remote_browser"
-                  ? "This employer form blocks a standard embed. I’ll use the secure browser route when it is available, with a preview as backup."
+                  ? "I’ll open this employer form in Senna’s secure browser so you can review it inside the chat. If the browser is unavailable, I’ll fall back to a preview and the employer link."
                   : "This employer form may block embeds. I’ll show a preview where possible and keep the employer form link ready."
               ) +
               "</div>"
@@ -151890,8 +151919,8 @@
         "</strong><span>" +
         escapeHtml(
           uiText(
-            "Opening the employer page here because a normal embed is blocked.",
-            "نفتح صفحة جهة العمل هنا لأن التضمين العادي محظور."
+            "Opening the employer page inside this chat.",
+            "نفتح صفحة جهة العمل داخل هذه المحادثة."
           )
         ) +
         "</span></div>" +

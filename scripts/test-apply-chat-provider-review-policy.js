@@ -175,6 +175,9 @@ const reviewSurfaceBuilderRegion =
 if (!inlineReviewRegion.includes("reviewDecision.providerStatusLabel")) {
   failures.push("Inline review card must render the provider status label.");
 }
+if (!inlineReviewRegion.includes("renderApplyResultsRemoteBrowser(")) {
+  failures.push("Inline review card must render the remote browser window.");
+}
 if (!fullReviewBody.includes("providerStatusLabel")) {
   failures.push("Full review card must render the provider status label.");
 }
@@ -259,6 +262,13 @@ if (!fullReviewBody.includes("providerStatusLabel")) {
     failures.push(`Review-surface telemetry missing ${needle}`);
   }
 });
+
+if (source.includes("This employer form blocks a standard embed. I’ll use the secure browser route when it is available")) {
+  failures.push("Review-surface copy still describes secure browser as conditional iframe fallback.");
+}
+if (!source.includes("I’ll open this employer form in Senna’s secure browser")) {
+  failures.push("Review-surface copy does not describe secure browser as the default route.");
+}
 
 [
   "remote_browser",
