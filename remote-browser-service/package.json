@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "start": "node src/server.js",
-    "check": "node --check src/server.js && node --check src/auth.js && node --check src/browser.js && node --check src/cleanup.js && node --check src/novnc.js && node --check src/sessions.js",
+    "check": "node --check src/server.js && node --check src/auth.js && node --check src/audit.js && node --check src/browser.js && node --check src/cleanup.js && node --check src/novnc.js && node --check src/rate-limit.js && node --check src/sessions.js",
     "test": "NODE_ENV=test node --test test/*.test.js"
   },
   "dependencies": {

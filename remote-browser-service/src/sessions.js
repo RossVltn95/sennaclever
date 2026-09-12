@@ -30,6 +30,38 @@ export function getSessionCount() {
   return sessions.size;
 }
 
+export function getAllocatedSlots() {
+  return Array.from(sessions.values())
+    .map((session) => Number(session.slot))
+    .filter((slot) => Number.isInteger(slot) && slot >= 0)
+    .sort((a, b) => a - b);
+}
+
+export function getNextAvailableSlot() {
+  const used = new Set(getAllocatedSlots());
+  const maxSessions = getMaxSessions();
+  for (let slot = 0; slot < maxSessions; slot += 1) {
+    if (!used.has(slot)) {
+      return slot;
+    }
+  }
+  return -1;
+}
+
+export function getCapacitySnapshot() {
+  const activeSessions = getSessionCount();
+  const maxSessions = getMaxSessions();
+  return {
+    activeSessions,
+    maxSessions,
+    availableSessions: Math.max(0, maxSessions - activeSessions),
+    hasCapacity: activeSessions < maxSessions && getNextAvailableSlot() >= 0,
+    allocatedSlots: getAllocatedSlots(),
+    sessionTtlSeconds: Math.round(getSessionTtlMs() / 1000),
+    idleTtlSeconds: Math.round(getIdleTtlMs() / 1000),
+  };
+}
+
 export function listSessionSummaries() {
   return Array.from(sessions.values()).map(serializeSession);
 }
@@ -112,7 +144,8 @@ export function touchSession(session) {
 }
 
 export async function createSession(payload) {
-  if (sessions.size >= getMaxSessions()) {
+  const slot = getNextAvailableSlot();
+  if (sessions.size >= getMaxSessions() || slot < 0) {
     const error = new Error("Remote browser capacity is full.");
     error.code = "capacity_full";
     throw error;
@@ -133,7 +166,7 @@ export async function createSession(payload) {
     status: "starting",
     control: "user_control",
     transport,
-    slot: sessions.size,
+    slot,
     viewerToken: crypto.randomBytes(24).toString("base64url"),
     runtime: null,
     createdAt: now,

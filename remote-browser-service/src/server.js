@@ -2,15 +2,17 @@ import http from "node:http";
 import { URL } from "node:url";
 import {
   cleanText,
+  assertSafeEmployerUrl,
   getCorsHeaders,
   isAuthorized,
-  isValidEmployerUrl,
   parseJsonBody,
   sendError,
   sendJson,
 } from "./auth.js";
+import { auditEvent, auditSessionEvent, getHost } from "./audit.js";
 import {
   clickSession,
+  getBrowserExecutablePath,
   pressKeySession,
   screenshotSession,
   scrollSession,
@@ -20,6 +22,7 @@ import { startCleanupLoop, stopCleanupLoop } from "./cleanup.js";
 import {
   closeAllSessions,
   closeSession,
+  getCapacitySnapshot,
   createSession,
   getMaxSessions,
   getSession,
@@ -31,7 +34,8 @@ import {
   setSessionControl,
   touchSession,
 } from "./sessions.js";
-import { proxyNoVncHttp, proxyNoVncUpgrade } from "./novnc.js";
+import { isNoVncAvailable, proxyNoVncHttp, proxyNoVncUpgrade } from "./novnc.js";
+import { checkRateLimit, getClientKey } from "./rate-limit.js";
 
 const port = Number(process.env.PORT || 3000);
 const token = cleanText(process.env.SFFC_REMOTE_BROWSER_TOKEN || "");
@@ -57,6 +61,22 @@ function requireAuth(request, response, corsHeaders) {
     return false;
   }
   return true;
+}
+
+function enforceRateLimit(request, response, corsHeaders, scope, limit, windowMs) {
+  const clientKey = `${scope}:${getClientKey(request)}`;
+  const result = checkRateLimit(clientKey, { limit, windowMs });
+  if (result.allowed) {
+    return true;
+  }
+  response.setHeader("Retry-After", String(Math.max(1, Math.ceil((result.resetAt - Date.now()) / 1000))));
+  auditEvent("remote_browser_rate_limited", {
+    scope,
+    client: getClientKey(request),
+    limit: result.limit,
+  });
+  sendError(response, 429, "Too many secure browser requests. Please wait and try again.", {}, corsHeaders);
+  return false;
 }
 
 function getViewerCookieToken(request, sessionId) {
@@ -85,6 +105,12 @@ function setViewerCookie(response, session) {
 }
 
 async function handleHealth(response, corsHeaders) {
+  const capacity = getCapacitySnapshot();
+  const runtime = {
+    transport: cleanText(process.env.SFFC_REMOTE_BROWSER_TRANSPORT || "novnc").toLowerCase(),
+    chromeAvailable: Boolean(getBrowserExecutablePath()),
+    noVncAvailable: isNoVncAvailable(),
+  };
   sendJson(
     response,
     200,
@@ -94,6 +120,23 @@ async function handleHealth(response, corsHeaders) {
       status: "healthy",
       sessions: getSessionCount(),
       maxSessions: getMaxSessions(),
+      capacity,
+      runtime,
+      now: new Date().toISOString(),
+    },
+    corsHeaders
+  );
+}
+
+async function handleCapacity(response, corsHeaders) {
+  const capacity = getCapacitySnapshot();
+  sendJson(
+    response,
+    200,
+    {
+      ok: true,
+      capacity,
+      sessions: listSessionSummaries(),
       now: new Date().toISOString(),
     },
     corsHeaders
@@ -101,13 +144,50 @@ async function handleHealth(response, corsHeaders) {
 }
 
 async function handleCreateSession(request, response, corsHeaders) {
-  const body = await parseJsonBody(request);
-  const employerUrl = cleanText(body.employerUrl || body.employer_url || body.url || "");
-  if (!isValidEmployerUrl(employerUrl)) {
-    sendError(response, 422, "A valid external employer URL is required.", {}, corsHeaders);
+  const startedAt = Date.now();
+  if (
+    !enforceRateLimit(
+      request,
+      response,
+      corsHeaders,
+      "create_session",
+      Number(process.env.SFFC_REMOTE_BROWSER_CREATE_RATE_LIMIT || 10),
+      Number(process.env.SFFC_REMOTE_BROWSER_RATE_LIMIT_WINDOW_MS || 60000)
+    )
+  ) {
     return;
   }
+  const body = await parseJsonBody(request);
+  const employerUrl = await assertSafeEmployerUrl(body.employerUrl || body.employer_url || body.url || "");
+  auditEvent("remote_browser_create_requested", {
+    provider: cleanText(body.provider || "unknown"),
+    employerHost: getHost(employerUrl),
+    roleId: cleanText(body.roleId || body.role_id || body.jobsPostId || body.jobs_post_id || ""),
+    userId: Number(body.userId || body.user_id || 0) || 0,
+    conversationId: Number(body.conversationId || body.conversation_id || 0) || 0,
+  });
   const session = await createSession({ ...body, employerUrl });
+  auditEvent("remote_browser_ready", {
+    sessionId: session.sessionId,
+    provider: session.provider,
+    employerHost: getHost(session.employerUrl),
+    roleId: session.roleId,
+    userId: session.userId,
+    conversationId: session.conversationId,
+    transport: session.transport,
+    startupMs: Date.now() - startedAt,
+  });
+  auditEvent("remote_browser_created", {
+    sessionId: session.sessionId,
+    provider: session.provider,
+    employerHost: getHost(session.employerUrl),
+    roleId: session.roleId,
+    userId: session.userId,
+    conversationId: session.conversationId,
+    transport: session.transport,
+    status: session.status,
+    control: session.control,
+  });
   sendJson(response, 201, { ok: true, session }, corsHeaders);
 }
 
@@ -154,14 +234,34 @@ async function handleSessionAction(request, response, pathname, corsHeaders) {
     return;
   }
   body = await parseJsonBody(request);
+  if (
+    ["navigate", "control", "click", "type", "key", "scroll", "upload"].includes(action) &&
+    !enforceRateLimit(
+      request,
+      response,
+      corsHeaders,
+      `session_${action}`,
+      Number(process.env.SFFC_REMOTE_BROWSER_ACTION_RATE_LIMIT || 120),
+      Number(process.env.SFFC_REMOTE_BROWSER_RATE_LIMIT_WINDOW_MS || 60000)
+    )
+  ) {
+    return;
+  }
   if (action === "navigate") {
-    const targetUrl = cleanText(body.employerUrl || body.employer_url || body.url || "");
-    if (!isValidEmployerUrl(targetUrl)) {
-      sendError(response, 422, "A valid external employer URL is required.", {}, corsHeaders);
-      return;
+    const targetUrl = await assertSafeEmployerUrl(body.employerUrl || body.employer_url || body.url || "");
+    try {
+      const nextSession = await navigateExistingSession(sessionId, targetUrl);
+      auditSessionEvent("remote_browser_navigated", nextSession, {
+        employerHost: getHost(targetUrl),
+      });
+      sendJson(response, 200, { ok: true, session: nextSession }, corsHeaders);
+    } catch (error) {
+      auditSessionEvent("remote_browser_navigation_failed", session, {
+        employerHost: getHost(targetUrl),
+        error: cleanText(error.message || "Navigation failed."),
+      });
+      throw error;
     }
-    const nextSession = await navigateExistingSession(sessionId, targetUrl);
-    sendJson(response, 200, { ok: true, session: nextSession }, corsHeaders);
     return;
   }
   if (action === "control") {
@@ -171,6 +271,9 @@ async function handleSessionAction(request, response, pathname, corsHeaders) {
       return;
     }
     const nextSession = setSessionControl(sessionId, requestedControl);
+    auditSessionEvent("remote_browser_control_changed", nextSession, {
+      requestedControl,
+    });
     sendJson(response, 200, { ok: true, session: nextSession }, corsHeaders);
     return;
   }
@@ -183,10 +286,18 @@ async function handleSessionAction(request, response, pathname, corsHeaders) {
   } else if (action === "scroll") {
     snapshot = await scrollSession(session.runtime, body.deltaX || 0, body.deltaY || 0);
   } else if (action === "upload") {
+    auditSessionEvent("remote_browser_upload_blocked", session, {
+      reason: "upload_requires_explicit_shared_control_implementation",
+    });
     sendError(response, 501, "Remote browser file upload is reserved for the shared-control phase.", {}, corsHeaders);
     return;
   } else if (action === "close") {
+    auditSessionEvent("remote_browser_close_requested", session);
     await closeSession(sessionId);
+    auditEvent("remote_browser_closed", {
+      sessionId,
+      durationMs: Date.now() - Number(session.createdAt || Date.now()),
+    });
     sendJson(response, 200, { ok: true, closed: true, sessionId }, corsHeaders);
     return;
   } else {
@@ -196,6 +307,7 @@ async function handleSessionAction(request, response, pathname, corsHeaders) {
   session.finalUrl = snapshot.finalUrl;
   session.title = snapshot.title;
   touchSession(session);
+  auditSessionEvent(`remote_browser_${action}`, session);
   sendJson(response, 200, { ok: true, session: serializeSession(session) }, corsHeaders);
 }
 
@@ -240,6 +352,10 @@ async function handleRequest(request, response) {
     if (!requireAuth(request, response, corsHeaders)) {
       return;
     }
+    if (parsedUrl.pathname === "/capacity" && request.method === "GET") {
+      await handleCapacity(response, corsHeaders);
+      return;
+    }
     if (parsedUrl.pathname === "/sessions" && request.method === "GET") {
       sendJson(response, 200, { ok: true, sessions: listSessionSummaries() }, corsHeaders);
       return;
@@ -254,9 +370,23 @@ async function handleRequest(request, response) {
     }
     sendError(response, 404, "Remote browser endpoint was not found.", {}, corsHeaders);
   } catch (error) {
+    if (error.code === "capacity_full") {
+      auditEvent("remote_browser_capacity_exhausted", {
+        path: parsedUrl.pathname,
+        method: request.method,
+        sessions: getSessionCount(),
+        maxSessions: getMaxSessions(),
+      });
+    }
+    auditEvent("remote_browser_request_failed", {
+      path: parsedUrl.pathname,
+      method: request.method,
+      statusCode: error.statusCode || (error.code === "capacity_full" ? 429 : 500),
+      error: cleanText(error.message || "Remote browser request failed."),
+    });
     sendError(
       response,
-      error.code === "capacity_full" ? 429 : 500,
+      error.statusCode || (error.code === "capacity_full" ? 429 : 500),
       error.message || "Remote browser request failed.",
       {},
       corsHeaders

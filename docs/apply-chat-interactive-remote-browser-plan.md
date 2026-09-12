@@ -550,21 +550,23 @@ Acceptance criteria:
 
 Remote browser introduces higher risk than screenshots.
 
+Status: first security layer implemented. The remote-browser service now rejects Senna/internal URLs, localhost, private/reserved IP ranges, metadata hosts, and hostnames that resolve to private/reserved addresses before browser launch or navigation. It also rate-limits session creation and browser actions, logs lifecycle/security events as JSON lines, keeps isolated short-lived sessions, and keeps file upload unavailable until explicit shared-control safeguards exist. WordPress now rate-limits create/status/control/close broker requests, blocks obvious provider/URL mismatches, audits remote-browser lifecycle events to the PHP error log, and keeps session access tied to logged-in user or guest session token.
+
 Required controls:
 
-- Short-lived signed session tokens.
-- Session tied to user/session/conversation/task.
-- Employer URL allowlist/validation.
-- Block internal admin URLs and localhost/private network targets.
-- Clear session expiry.
-- Automatic browser cleanup.
-- Per-user isolation.
-- No cross-user browser reuse.
-- No persistent cookies unless explicitly required and scoped.
-- CV files stored temporarily and deleted after use.
-- Audit logs for navigation, upload, autofill, control handoff, final-submit attempts, and session close.
-- Rate limits per user and globally.
-- Capacity guard before creating a browser.
+- Short-lived signed session tokens. Complete for viewer tokens; API token remains server-to-server.
+- Session tied to user/session/conversation/task. Complete at WordPress broker level and service metadata level.
+- Employer URL allowlist/validation. Complete as denylist plus provider/URL matching; a stricter positive allowlist can be added later if required.
+- Block internal admin URLs and localhost/private network targets. Complete in WordPress broker and remote-browser service, including DNS resolution guard.
+- Clear session expiry. Complete via TTL and idle TTL.
+- Automatic browser cleanup. Complete, with cleanup audit event.
+- Per-user isolation. Complete for browser profile/display/session process separation.
+- No cross-user browser reuse. Complete at broker/session-token layer.
+- No persistent cookies unless explicitly required and scoped. Complete for current session model: no shared browser profiles.
+- CV files stored temporarily and deleted after use. Not applicable to remote browser yet because upload is deliberately disabled; must be revisited when upload ships.
+- Audit logs for navigation, upload, autofill, control handoff, final-submit attempts, and session close. Partially complete: session create, navigation, control, upload-blocked, close, failure, rate-limit, and cleanup are logged; autofill/final-submit belong to worker integration.
+- Rate limits per user and globally. Partially complete: per-client broker/service limits and max session capacity exist; distributed/global limits need Redis or Railway-side service coordination if scaling horizontally.
+- Capacity guard before creating a browser. Complete in service.
 
 Never allow:
 
@@ -576,20 +578,22 @@ Never allow:
 
 ## Phase 9: WordPress Plugin Changes
 
+Status: first pass implemented. The apply-chat plugin now exposes the review-surface decision AJAX endpoint, localizes its nonce, accepts `remote_browser` as a valid admin/import/runtime embed mode, persists the last review decision metadata on jobs posts, and keeps provider-to-URL safety checks in the broker before starting secure browser sessions.
+
 New AJAX endpoints:
 
-- `sffc_crm_apply_chat_review_surface_decision`
-- `sffc_crm_apply_chat_remote_browser_create`
-- `sffc_crm_apply_chat_remote_browser_status`
-- `sffc_crm_apply_chat_remote_browser_close`
-- `sffc_crm_apply_chat_remote_browser_control`
+- `sffc_crm_apply_chat_review_surface_decision` - complete
+- `sffc_crm_apply_chat_remote_browser_create` - complete
+- `sffc_crm_apply_chat_remote_browser_status` - complete
+- `sffc_crm_apply_chat_remote_browser_close` - complete
+- `sffc_crm_apply_chat_remote_browser_control` - complete
 
 New persisted metadata:
 
-- `_sffc_application_embed_mode`: `auto|embed|remote_browser|screenshot`
-- `_sffc_application_embed_last_checked_at`
-- `_sffc_application_embed_last_status`
-- `_sffc_application_remote_browser_supported`
+- `_sffc_application_embed_mode`: `auto|embed|remote_browser|screenshot` - complete
+- `_sffc_application_embed_last_checked_at` - complete
+- `_sffc_application_embed_last_status` - complete
+- `_sffc_application_remote_browser_supported` - complete
 
 Update existing mode enum:
 
@@ -617,7 +621,16 @@ Compatibility rule:
 - `embed` forces iframe-first but still escalates if blocked.
 - `remote_browser` skips iframe probing.
 
+Implementation notes:
+
+- The admin job editor now preserves `remote_browser` instead of downgrading it to `auto`.
+- Feed/import inference now stores `remote_browser` for Workday, SuccessFactors, and Teamtailor application-form URLs that should use the secure browser route.
+- The review-surface endpoint rejects missing/internal Senna URLs as static fallback decisions rather than allowing them into employer application routing.
+- Review decisions are logged and persisted so later UI and worker phases can inspect the last chosen surface.
+
 ## Phase 10: Worker / Railway Changes
+
+Status: first pass implemented as a separate Railway service in `remote-browser-service/`. The service has its own Dockerfile, `railway.json`, Chrome/noVNC runtime dependencies, isolated session storage, TTL/idle cleanup, health/capacity reporting, max concurrent session enforcement, and deterministic noVNC slot allocation so active sessions do not collide on display/VNC ports.
 
 Either extend the existing application worker or create a separate remote-browser service.
 
@@ -635,14 +648,14 @@ Why:
 
 Railway/service needs:
 
-- Chrome installed.
-- noVNC/streaming server or BrowserBox service.
-- Session storage.
-- Cleanup loop.
-- Health and capacity endpoint.
-- Memory/CPU limits.
-- Max concurrent sessions.
-- Session TTL, likely 10-20 minutes.
+- Chrome installed. Complete in `remote-browser-service/Dockerfile`.
+- noVNC/streaming server or BrowserBox service. Complete with noVNC, Xvfb, x11vnc, and websockify.
+- Session storage. Complete in in-memory session registry for the first single-instance Railway service.
+- Cleanup loop. Complete for TTL and idle expiry.
+- Health and capacity endpoint. Complete with public `/health` and token-protected `/capacity`.
+- Memory/CPU limits. Configure in Railway service settings; the app enforces max sessions and TTLs.
+- Max concurrent sessions. Complete via `SFFC_REMOTE_BROWSER_MAX_SESSIONS`.
+- Session TTL, likely 10-20 minutes. Complete via `SFFC_REMOTE_BROWSER_SESSION_TTL_SECONDS` and `SFFC_REMOTE_BROWSER_IDLE_TTL_SECONDS`.
 
 Minimum environment variables:
 
@@ -655,7 +668,23 @@ SFFC_REMOTE_BROWSER_SESSION_TTL_SECONDS=1200
 SFFC_REMOTE_BROWSER_ALLOWED_HOSTS=
 ```
 
+Railway setup:
+
+```text
+Project: RossVltn95/sennaclever
+Service: senna-remote-browser
+Root Directory: remote-browser-service
+Dockerfile Path: Dockerfile
+Start Command: npm start
+Healthcheck Path: /health
+Healthcheck Timeout: 60s
+```
+
+If Railway is configured from the repository root instead of a service root directory, use `remote-browser-service/Dockerfile` as the Dockerfile path.
+
 ## Phase 11: Observability
+
+Status: first pass implemented. Review-surface decisions and frontend surface outcomes now log through WordPress, while the remote-browser service logs lifecycle, readiness, capacity, navigation failure, control, close, cleanup, and rate-limit events as structured JSON.
 
 Log every surface decision:
 
@@ -672,25 +701,25 @@ Log every surface decision:
 
 Log remote session lifecycle:
 
-- `remote_browser_create_requested`
-- `remote_browser_created`
-- `remote_browser_ready`
-- `remote_browser_control_changed`
-- `remote_browser_navigation_failed`
-- `remote_browser_expired`
-- `remote_browser_closed`
-- `remote_browser_capacity_exhausted`
+- `remote_browser_create_requested` - complete
+- `remote_browser_created` - complete
+- `remote_browser_ready` - complete
+- `remote_browser_control_changed` - complete
+- `remote_browser_navigation_failed` - complete
+- `remote_browser_expired` - partial via `remote_browser_expired_cleanup`
+- `remote_browser_closed` - complete with duration
+- `remote_browser_capacity_exhausted` - complete
 
 Metrics:
 
-- iframe success rate by provider/host;
-- remote browser creation success rate;
-- time to interactive browser;
-- session duration;
-- screenshot fallback rate;
-- application completion rate after remote browser;
-- failure rate by provider;
-- user exits after static preview.
+- iframe success rate by provider/host - supported by `apply_review_surface_iframe_*` events.
+- remote browser creation success rate - supported by broker/service create, ready, failed events.
+- time to interactive browser - supported by `remote_browser_ready.startupMs`.
+- session duration - supported by `remote_browser_closed.durationMs`.
+- screenshot fallback rate - supported by `apply_review_surface_screenshot_preview_*` events.
+- application completion rate after remote browser - pending worker/application outcome correlation.
+- failure rate by provider - supported by provider/host on service and broker failure events.
+- user exits after static preview - pending frontend close/abandon analytics beyond review-surface telemetry.
 
 ## Phase 12: Testing Plan
 
@@ -798,7 +827,7 @@ SFFC_REMOTE_BROWSER_ADMIN_ONLY=1
 - [x] Add control handoff states.
 - [x] Add provider-specific defaults.
 - [ ] Add static screenshot last-resort card.
-- [ ] Add observability events.
+- [x] Add observability events.
 - [x] Add unit tests.
 - [ ] Add browser tests.
 - [x] Add Railway service configuration.

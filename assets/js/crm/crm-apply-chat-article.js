@@ -127644,6 +127644,23 @@
           escapeHtml(key) +
           '" data-sffc-apply-results-review-provider="' +
           escapeHtml(providerKey || provider || "") +
+          '" data-sffc-apply-results-review-url="' +
+          escapeHtml(url || "") +
+          '" data-sffc-apply-results-review-jobs-post-id="' +
+          escapeHtml(
+            String(
+              (item &&
+                (item.jobsPostId ||
+                  item.jobs_post_id ||
+                  item.wpPostId ||
+                  item.wp_post_id)) ||
+                ""
+            )
+          ) +
+          '" data-sffc-apply-results-review-crm-post-id="' +
+          escapeHtml(
+            cleanMessageText(root.getAttribute("data-crm-post-id") || "")
+          ) +
           '" data-sffc-apply-results-review-mode="' +
           escapeHtml(reviewDecision.surface) +
           '" data-sffc-apply-results-review-reason="' +
@@ -130010,6 +130027,14 @@
         escapeHtml(reviewDecision.surface) +
         '" data-sffc-apply-results-review-reason="' +
         escapeHtml(reviewDecision.reason) +
+        '" data-sffc-apply-results-review-provider="' +
+        escapeHtml(provider || "") +
+        '" data-sffc-apply-results-review-url="' +
+        escapeHtml(url || "") +
+        '" data-sffc-apply-results-review-jobs-post-id="' +
+        escapeHtml(String(jobsPostId || "")) +
+        '" data-sffc-apply-results-review-crm-post-id="' +
+        escapeHtml(cleanMessageText(root.getAttribute("data-crm-post-id") || "")) +
         '">' +
         '<div class="sffc-crm-apply-results__topbar">' +
         "<div><strong>" +
@@ -151693,6 +151718,11 @@
     }
 
     function setApplyResultsPreviewError(preview, message) {
+      var panel = preview
+        ? preview.closest(
+            "[data-sffc-apply-results-review-panel], [data-sffc-apply-results-fallback-card]"
+          )
+        : null;
       if (!preview) {
         return;
       }
@@ -151706,6 +151736,15 @@
             "I could not generate a screenshot preview for this employer page."
         ) +
         "</span>";
+      logApplyResultsReviewSurfaceEvent(panel, "screenshot_preview_error", {
+        state: "error",
+        surface: "static_preview",
+        reason: message || "screenshot_preview_error",
+        url: preview.getAttribute("data-sffc-apply-results-preview-url") || "",
+        provider:
+          preview.getAttribute("data-sffc-apply-results-preview-provider") ||
+          "",
+      });
     }
 
     function renderApplyResultsPreviewLoader(message) {
@@ -151826,6 +151865,11 @@
       finalUrl,
       pageTitle
     ) {
+      var panel = preview
+        ? preview.closest(
+            "[data-sffc-apply-results-review-panel], [data-sffc-apply-results-fallback-card]"
+          )
+        : null;
       if (!preview || !screenshotUrl) {
         return;
       }
@@ -151846,6 +151890,17 @@
         escapeHtml(pageTitle || "Employer page preview") +
         '">' +
         "</a>";
+      logApplyResultsReviewSurfaceEvent(panel, "screenshot_preview_ready", {
+        state: "ready",
+        surface: "static_preview",
+        url:
+          finalUrl ||
+          preview.getAttribute("data-sffc-apply-results-preview-url") ||
+          "",
+        provider:
+          preview.getAttribute("data-sffc-apply-results-preview-provider") ||
+          "",
+      });
     }
 
     function fetchApplyResultsPreviewTaskStatus(taskUuid) {
@@ -152010,6 +152065,18 @@
       preview.classList.add("is-loading");
       preview.classList.remove("is-error");
       preview.setAttribute("data-sffc-preview-state", "loading");
+      logApplyResultsReviewSurfaceEvent(
+        preview.closest(
+          "[data-sffc-apply-results-review-panel], [data-sffc-apply-results-fallback-card]"
+        ),
+        "screenshot_preview_requested",
+        {
+          state: "loading",
+          surface: "static_preview",
+          url: previewUrl,
+          provider: provider,
+        }
+      );
       preview.innerHTML = renderApplyResultsPreviewLoader(
           isArabicChat()
             ? "جار تجهيز معاينة صفحة جهة العمل..."
@@ -152105,6 +152172,21 @@
           "المعاينة الاحتياطية متاحة بالأسفل."
         );
       }
+      logApplyResultsReviewSurfaceEvent(
+        remoteBrowser.closest(
+          "[data-sffc-apply-results-review-panel], [data-sffc-apply-results-fallback-card]"
+        ),
+        "remote_browser_error",
+        {
+          state: "error",
+          surface: "remote_browser",
+          reason: message || "remote_browser_error",
+          url: remoteBrowser.getAttribute("data-sffc-remote-browser-url") || "",
+          provider:
+            remoteBrowser.getAttribute("data-sffc-remote-browser-provider") ||
+            "",
+        }
+      );
     }
 
     function getApplyResultsRemoteBrowserControlCopy(control) {
@@ -152196,6 +152278,20 @@
           cleanMessageText(session.control || "user_control")
         );
       }
+      logApplyResultsReviewSurfaceEvent(
+        remoteBrowser.closest(
+          "[data-sffc-apply-results-review-panel], [data-sffc-apply-results-fallback-card]"
+        ),
+        "remote_browser_ready",
+        {
+          state: "ready",
+          surface: "remote_browser",
+          url: remoteBrowser.getAttribute("data-sffc-remote-browser-url") || "",
+          provider:
+            remoteBrowser.getAttribute("data-sffc-remote-browser-provider") ||
+            "",
+        }
+      );
     }
 
     function requestApplyResultsRemoteBrowser(remoteBrowser) {
@@ -152245,6 +152341,18 @@
       remoteBrowser.classList.add("is-loading");
       remoteBrowser.classList.remove("is-error", "is-ready");
       remoteBrowser.setAttribute("data-sffc-remote-browser-state", "loading");
+      logApplyResultsReviewSurfaceEvent(
+        remoteBrowser.closest(
+          "[data-sffc-apply-results-review-panel], [data-sffc-apply-results-fallback-card]"
+        ),
+        "remote_browser_requested",
+        {
+          state: "loading",
+          surface: "remote_browser",
+          url: url,
+          provider: provider,
+        }
+      );
       formData = new FormData();
       formData.append("action", "sffc_crm_apply_chat_remote_browser_create");
       formData.append("nonce", config.remoteBrowserNonce || "");
@@ -152435,6 +152543,13 @@
           remoteBrowser ? "remote_browser" : "static_preview"
         );
       }
+      logApplyResultsReviewSurfaceEvent(panel, "iframe_fallback_shown", {
+        state: remoteBrowser ? "remote_browser" : "static_preview",
+        surface: remoteBrowser ? "remote_browser" : "static_preview",
+        url: frame
+          ? frame.getAttribute("data-src") || frame.getAttribute("src") || ""
+          : "",
+      });
       if (frameWrap) {
         frameWrap.hidden = true;
       }
@@ -152468,6 +152583,91 @@
       return !mode || mode === "iframe_embed";
     }
 
+    function logApplyResultsReviewSurfaceEvent(panel, eventName, extra) {
+      var config = getConfig();
+      var formData;
+      var event = cleanMessageText(eventName || "");
+      var payload = extra || {};
+      if (
+        !panel ||
+        !event ||
+        !window.fetch ||
+        !config.ajaxUrl ||
+        !config.reviewSurfaceDecisionNonce
+      ) {
+        return;
+      }
+      formData = new FormData();
+      formData.append("action", "sffc_crm_apply_chat_review_surface_event");
+      formData.append("nonce", config.reviewSurfaceDecisionNonce || "");
+      formData.append("event", event);
+      formData.append(
+        "provider",
+        cleanMessageText(
+          payload.provider ||
+            panel.getAttribute("data-sffc-apply-results-review-provider") ||
+            ""
+        )
+      );
+      formData.append(
+        "application_url",
+        cleanMessageText(
+          payload.url ||
+            panel.getAttribute("data-sffc-apply-results-review-url") ||
+            ""
+        )
+      );
+      formData.append(
+        "jobs_post_id",
+        cleanMessageText(
+          payload.jobsPostId ||
+            panel.getAttribute("data-sffc-apply-results-review-jobs-post-id") ||
+            ""
+        )
+      );
+      formData.append(
+        "crm_post_id",
+        cleanMessageText(
+          payload.crmPostId ||
+            panel.getAttribute("data-sffc-apply-results-review-crm-post-id") ||
+            ""
+        )
+      );
+      formData.append(
+        "mode",
+        cleanMessageText(
+          payload.mode ||
+            panel.getAttribute("data-sffc-apply-results-review-mode") ||
+            ""
+        )
+      );
+      formData.append(
+        "surface",
+        cleanMessageText(
+          payload.surface ||
+            panel.getAttribute("data-sffc-apply-results-review-mode") ||
+            ""
+        )
+      );
+      formData.append("state", cleanMessageText(payload.state || ""));
+      formData.append(
+        "reason",
+        cleanMessageText(
+          payload.reason ||
+            panel.getAttribute("data-sffc-apply-results-review-reason") ||
+            ""
+        )
+      );
+      window
+        .fetch(config.ajaxUrl || "/wp-admin/admin-ajax.php", {
+          method: "POST",
+          credentials: "same-origin",
+          body: formData,
+          keepalive: true,
+        })
+        .catch(function () {});
+    }
+
     function startApplyResultsIframeProbe(panel, frame, preview, timeoutMs) {
       if (!frame || frame.getAttribute("src")) {
         return;
@@ -152483,6 +152683,10 @@
               "loaded",
               "iframe_load_event"
             );
+            logApplyResultsReviewSurfaceEvent(panel, "iframe_load_event", {
+              state: "loaded",
+              url: frame.getAttribute("data-src") || frame.getAttribute("src") || "",
+            });
           },
           { once: true }
         );
@@ -152495,6 +152699,10 @@
               "blocked",
               "iframe_error_event"
             );
+            logApplyResultsReviewSurfaceEvent(panel, "iframe_error_event", {
+              state: "blocked",
+              url: frame.getAttribute("data-src") || frame.getAttribute("src") || "",
+            });
             showApplyResultsIframePreviewFallback(panel, preview, frame);
           },
           { once: true }
@@ -152506,6 +152714,10 @@
         "loading",
         "iframe_probe_started"
       );
+      logApplyResultsReviewSurfaceEvent(panel, "iframe_probe_started", {
+        state: "loading",
+        url: frame.getAttribute("data-src") || "",
+      });
       frame.setAttribute("src", frame.getAttribute("data-src") || "");
       if (preview) {
         window.setTimeout(function () {
@@ -152523,6 +152735,10 @@
             "timeout",
             "iframe_probe_timeout"
           );
+          logApplyResultsReviewSurfaceEvent(panel, "iframe_probe_timeout", {
+            state: "timeout",
+            url: frame.getAttribute("data-src") || frame.getAttribute("src") || "",
+          });
           showApplyResultsIframePreviewFallback(panel, preview, frame);
         }, timeoutMs || 4500);
       }
@@ -152538,6 +152754,17 @@
       var remoteBrowser = panel
         ? panel.querySelector("[data-sffc-apply-results-remote-browser]")
         : null;
+      if (
+        panel &&
+        !panel.getAttribute("data-sffc-apply-results-review-render-logged")
+      ) {
+        panel.setAttribute("data-sffc-apply-results-review-render-logged", "1");
+        logApplyResultsReviewSurfaceEvent(panel, "review_surface_rendered", {
+          state: cleanMessageText(
+            panel.getAttribute("data-sffc-apply-results-review-mode") || ""
+          ),
+        });
+      }
       if (frame && !frame.getAttribute("src") && shouldProbeApplyResultsIframe(panel)) {
         startApplyResultsIframeProbe(panel, frame, preview, 4500);
       }

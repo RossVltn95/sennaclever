@@ -2,6 +2,9 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   clearSessionsForTest,
+  getAllocatedSlots,
+  getCapacitySnapshot,
+  getNextAvailableSlot,
   getSession,
   seedSessionForTest,
   serializeSession,
@@ -59,4 +62,26 @@ test("serializes control state for the WordPress broker", async () => {
   assert.equal(serialized.control, "waiting_for_user");
   assert.equal(serialized.status, "waiting_for_user");
   assert.match(serialized.controlUrl, /\/sessions\/serialize-control-test\/control$/);
+});
+
+test("allocates the lowest available remote browser slot", async () => {
+  await clearSessionsForTest();
+  seedSessionForTest({ sessionId: "slot-0", slot: 0 });
+  seedSessionForTest({ sessionId: "slot-2", slot: 2 });
+
+  assert.deepEqual(getAllocatedSlots(), [0, 2]);
+  assert.equal(getNextAvailableSlot(), 1);
+});
+
+test("reports capacity from active sessions and max sessions", async () => {
+  await clearSessionsForTest();
+  seedSessionForTest({ sessionId: "capacity-0", slot: 0 });
+  const capacity = getCapacitySnapshot();
+
+  assert.equal(capacity.activeSessions, 1);
+  assert.equal(capacity.availableSessions, capacity.maxSessions - 1);
+  assert.equal(capacity.hasCapacity, capacity.maxSessions > 1);
+  assert.deepEqual(capacity.allocatedSlots, [0]);
+  assert.ok(capacity.sessionTtlSeconds >= 60);
+  assert.ok(capacity.idleTtlSeconds >= 30);
 });

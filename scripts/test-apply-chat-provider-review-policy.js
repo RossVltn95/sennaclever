@@ -6,8 +6,12 @@ const path = require("path");
 const root = path.resolve(__dirname, "..");
 const sourcePath = path.join(root, "assets/js/crm/crm-apply-chat-article.js");
 const phpPath = path.join(root, "includes/crm/class-crm-shortcodes.php");
+const adminPhpPath = path.join(root, "includes/crm/admin/class-crm-admin.php");
+const feedAdminPhpPath = path.join(root, "includes/class-feed-manager-admin.php");
 const source = fs.readFileSync(sourcePath, "utf8");
 const php = fs.readFileSync(phpPath, "utf8");
+const adminPhp = fs.readFileSync(adminPhpPath, "utf8");
+const feedAdminPhp = fs.readFileSync(feedAdminPhpPath, "utf8");
 const failures = [];
 
 function getFunctionBody(name) {
@@ -47,6 +51,26 @@ const phpDefaultHelperRegion =
     ? php.slice(
         phpDefaultHelperStart,
         php.indexOf("private function is_crm_apply_chat_remote_browser_enabled", phpDefaultHelperStart)
+      )
+    : "";
+const reviewSurfaceEndpointStart = php.indexOf(
+  "public function ajax_crm_apply_chat_review_surface_decision"
+);
+const reviewSurfaceEndpointRegion =
+  reviewSurfaceEndpointStart >= 0
+    ? php.slice(
+        reviewSurfaceEndpointStart,
+        php.indexOf("public function ajax_crm_apply_chat_remote_browser_create", reviewSurfaceEndpointStart)
+      )
+    : "";
+const reviewSurfaceBuilderStart = php.indexOf(
+  "private function build_crm_apply_chat_review_surface_decision"
+);
+const reviewSurfaceBuilderRegion =
+  reviewSurfaceBuilderStart >= 0
+    ? php.slice(
+        reviewSurfaceBuilderStart,
+        php.indexOf("private function is_crm_apply_chat_remote_browser_enabled", reviewSurfaceBuilderStart)
       )
     : "";
 
@@ -162,6 +186,90 @@ if (!fullReviewBody.includes("providerStatusLabel")) {
 ].forEach((needle) => {
   if (!phpDefaultHelperRegion.includes(needle)) {
     failures.push(`PHP provider default embed-mode helper missing ${needle}`);
+  }
+});
+
+[
+  "wp_ajax_sffc_crm_apply_chat_review_surface_decision",
+  "wp_ajax_nopriv_sffc_crm_apply_chat_review_surface_decision",
+  "wp_ajax_sffc_crm_apply_chat_review_surface_event",
+  "wp_ajax_nopriv_sffc_crm_apply_chat_review_surface_event",
+  "reviewSurfaceDecisionNonce",
+  "sffc_crm_apply_chat_review_surface_decision",
+  "sffc_crm_apply_chat_review_surface_event",
+].forEach((needle) => {
+  if (!php.includes(needle)) {
+    failures.push(`PHP review-surface endpoint wiring missing ${needle}`);
+  }
+});
+
+[
+  "build_crm_apply_chat_review_surface_decision",
+  "persist_crm_apply_chat_review_surface_metadata",
+  "remote_browser_supported",
+  "invalid_external_url",
+  "remote_browser_unavailable",
+  "iframe_embed",
+  "iframe",
+  "static_preview",
+].forEach((needle) => {
+  if (!reviewSurfaceBuilderRegion.includes(needle) && !reviewSurfaceEndpointRegion.includes(needle)) {
+    failures.push(`PHP review-surface decision support missing ${needle}`);
+  }
+});
+
+[
+  "_sffc_application_embed_mode",
+  "_sffc_application_embed_last_checked_at",
+  "_sffc_application_embed_last_status",
+  "_sffc_application_remote_browser_supported",
+].forEach((needle) => {
+  if (!php.includes(needle)) {
+    failures.push(`PHP review-surface metadata persistence missing ${needle}`);
+  }
+});
+
+[
+  "logApplyResultsReviewSurfaceEvent",
+  "iframe_probe_started",
+  "iframe_load_event",
+  "iframe_error_event",
+  "iframe_probe_timeout",
+  "iframe_fallback_shown",
+  "remote_browser_requested",
+  "remote_browser_ready",
+  "remote_browser_error",
+  "screenshot_preview_requested",
+  "screenshot_preview_ready",
+  "screenshot_preview_error",
+].forEach((needle) => {
+  if (!source.includes(needle) && !php.includes(needle)) {
+    failures.push(`Review-surface telemetry missing ${needle}`);
+  }
+});
+
+[
+  "remote_browser",
+  "<option value=\"remote_browser\"",
+  "Secure browser",
+].forEach((needle) => {
+  if (!adminPhp.includes(needle)) {
+    failures.push(`Admin embed-mode enum/UI missing ${needle}`);
+  }
+});
+
+if (adminPhp.includes("['auto', 'embed', 'screenshot']")) {
+  failures.push("Admin embed-mode validation still rejects remote_browser.");
+}
+
+[
+  "return 'remote_browser';",
+  "workday",
+  "successfactors",
+  "teamtailor",
+].forEach((needle) => {
+  if (!feedAdminPhp.includes(needle)) {
+    failures.push(`Feed/import embed-mode inference missing ${needle}`);
   }
 });
 

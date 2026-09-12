@@ -1976,17 +1976,29 @@ class SFFC_Feed_Manager_Admin {
             return 'embed';
         }
 
-        if ($provider === 'successfactors') {
-            return preg_match('/[?&]career_ns=job_application\b/i', $url) ? 'embed' : 'screenshot';
+        if (
+            $provider === 'workday'
+            || preg_match('/(?:^|\.)myworkdayjobs\.com$/', $host)
+            || preg_match('/(?:^|\.)workdayjobs\.com$/', $host)
+            || preg_match('~/wday/cxs/~i', $url)
+        ) {
+            return 'remote_browser';
+        }
+
+        if ($provider === 'successfactors' || preg_match('/successfactors\.(?:com|eu)$|sapsf\.com$/', $host)) {
+            return 'remote_browser';
         }
 
         if (
-            in_array($provider, ['recruitee', 'teamtailor', 'teamtailor_rss', 'michael_page'], true)
+            in_array($provider, ['recruitee', 'michael_page'], true)
             || preg_match('/(?:^|\.)recruitee\.com$/', $host)
-            || preg_match('/(?:^|\.)teamtailor\.com$/', $host)
             || preg_match('/michaelpage\./', $host)
         ) {
             return 'screenshot';
+        }
+
+        if (in_array($provider, ['teamtailor', 'teamtailor_rss'], true) || preg_match('/(?:^|\.)teamtailor\.com$/', $host)) {
+            return preg_match('~/jobs/\d+[^?#]*/applications/new~i', $url) ? 'remote_browser' : 'embed';
         }
 
         return 'auto';

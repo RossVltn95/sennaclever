@@ -16,6 +16,19 @@ Railway project
 
 Use `remote-browser-service/Dockerfile`.
 
+Railway service settings:
+
+```text
+Root Directory: remote-browser-service
+Builder: Dockerfile
+Dockerfile Path: Dockerfile
+Start Command: npm start
+Healthcheck Path: /health
+Healthcheck Timeout: 60s
+```
+
+If the service is created from the repository root instead of setting the Railway root directory to `remote-browser-service`, set the Dockerfile path to `remote-browser-service/Dockerfile` and make sure the build context includes this directory.
+
 ## Environment
 
 ```bash
@@ -32,6 +45,9 @@ SFFC_REMOTE_BROWSER_NOVNC_WEB_ROOT=/usr/share/novnc
 SFFC_REMOTE_BROWSER_DISPLAY_BASE=100
 SFFC_REMOTE_BROWSER_RFB_PORT_BASE=5900
 SFFC_REMOTE_BROWSER_NOVNC_PORT_BASE=7900
+SFFC_REMOTE_BROWSER_CREATE_RATE_LIMIT=10
+SFFC_REMOTE_BROWSER_ACTION_RATE_LIMIT=120
+SFFC_REMOTE_BROWSER_RATE_LIMIT_WINDOW_MS=60000
 PORT=3000
 ```
 
@@ -44,11 +60,43 @@ define('SFFC_REMOTE_BROWSER_TOKEN', 'replace-with-shared-token');
 
 The browser service should not be called directly by unauthenticated frontend code.
 
+## Security Controls
+
+The service is intentionally not a general-purpose browser proxy.
+
+- Only server-to-server API calls with `SFFC_REMOTE_BROWSER_TOKEN` can create or control sessions.
+- Public noVNC access requires a short-lived per-session viewer token.
+- Employer URLs must be external `http` or `https` URLs.
+- `joinsenna.com`, localhost, private IP ranges, link-local/metadata addresses, and DNS records resolving to private/reserved addresses are rejected.
+- Sessions use isolated Chrome profiles and are automatically closed by TTL/idle cleanup.
+- Create and action requests are rate-limited per client.
+- Sensitive lifecycle events are logged as JSON lines in Railway logs.
+- File upload and final submit are not exposed through the remote browser API until explicit consent and worker-side safeguards are implemented.
+
+## Observability
+
+The service writes structured JSON lines to stdout for Railway log drains.
+
+Important events:
+
+- `remote_browser_create_requested`
+- `remote_browser_created`
+- `remote_browser_ready`
+- `remote_browser_control_changed`
+- `remote_browser_navigation_failed`
+- `remote_browser_capacity_exhausted`
+- `remote_browser_closed`
+- `remote_browser_expired_cleanup`
+- `remote_browser_rate_limited`
+
+`remote_browser_ready` includes `startupMs`; `remote_browser_closed` includes `durationMs`. WordPress logs matching broker-side and review-surface events with the `[sffc-apply-chat-remote-browser]` prefix.
+
 ## API
 
 All endpoints except `/health` require `Authorization: Bearer <token>` or `X-SFFC-Remote-Browser-Token: <token>`.
 
 - `GET /health`
+- `GET /capacity`
 - `POST /sessions`
 - `GET /sessions/:id`
 - `GET /sessions/:id/screenshot`
@@ -75,6 +123,8 @@ All endpoints except `/health` require `Authorization: Bearer <token>` or `X-SFF
 ```
 
 The first production transport uses noVNC over a per-session reverse proxy so the chat can show a real interactive browser window. The older Puppeteer screenshot/control protocol remains available as a development fallback by passing `transport: "puppeteer"`.
+
+`GET /health` is public and returns capacity plus runtime availability for Railway health checks. `GET /capacity` requires the service token and returns active session summaries for WordPress/admin diagnostics.
 
 ## Transport
 

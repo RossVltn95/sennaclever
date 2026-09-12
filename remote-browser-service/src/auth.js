@@ -1,4 +1,5 @@
 import crypto from "node:crypto";
+import dns from "node:dns/promises";
 
 export function cleanText(value) {
   return String(value ?? "").replace(/\s+/g, " ").trim();
@@ -105,11 +106,87 @@ export function isInternalSennaUrl(url) {
   }
 }
 
+export function isPrivateOrReservedIp(hostname) {
+  const value = cleanText(hostname).replace(/^\[|\]$/g, "");
+  const ipv4 = value.match(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/);
+  if (ipv4) {
+    const parts = ipv4.slice(1).map(Number);
+    if (parts.some((part) => part < 0 || part > 255)) {
+      return true;
+    }
+    const [a, b] = parts;
+    return (
+      a === 0 ||
+      a === 10 ||
+      a === 127 ||
+      (a === 100 && b >= 64 && b <= 127) ||
+      (a === 169 && b === 254) ||
+      (a === 172 && b >= 16 && b <= 31) ||
+      (a === 192 && b === 168) ||
+      (a === 198 && (b === 18 || b === 19)) ||
+      a >= 224
+    );
+  }
+  const lower = value.toLowerCase();
+  return (
+    lower === "::1" ||
+    lower === "::" ||
+    lower.startsWith("fc") ||
+    lower.startsWith("fd") ||
+    lower.startsWith("fe80:")
+  );
+}
+
+export function isBlockedEmployerHostname(hostname) {
+  const host = cleanText(hostname).toLowerCase().replace(/\.$/, "");
+  if (!host) {
+    return true;
+  }
+  return (
+    host === "localhost" ||
+    host.endsWith(".localhost") ||
+    host === "metadata.google.internal" ||
+    host === "169.254.169.254" ||
+    host === "metadata" ||
+    /(^|\.)joinsenna\.com$/i.test(host) ||
+    isPrivateOrReservedIp(host)
+  );
+}
+
 export function isValidEmployerUrl(url) {
   try {
     const parsed = new URL(cleanText(url));
-    return /^https?:$/i.test(parsed.protocol) && !!parsed.hostname && !isInternalSennaUrl(parsed.href);
+    return (
+      /^https?:$/i.test(parsed.protocol) &&
+      !!parsed.hostname &&
+      !isInternalSennaUrl(parsed.href) &&
+      !isBlockedEmployerHostname(parsed.hostname)
+    );
   } catch (error) {
     return false;
   }
+}
+
+export async function assertSafeEmployerUrl(url) {
+  const cleanUrl = cleanText(url);
+  if (!isValidEmployerUrl(cleanUrl)) {
+    throw Object.assign(new Error("A valid external employer URL is required."), {
+      statusCode: 422,
+    });
+  }
+  const parsed = new URL(cleanUrl);
+  const host = parsed.hostname;
+  if (isBlockedEmployerHostname(host)) {
+    throw Object.assign(new Error("This employer URL is not allowed."), {
+      statusCode: 422,
+    });
+  }
+  const addresses = await dns.lookup(host, { all: true }).catch(() => []);
+  if (addresses.some((entry) => isPrivateOrReservedIp(entry.address))) {
+    throw Object.assign(
+      new Error("This employer URL resolves to a private or reserved network address."),
+      { statusCode: 422 }
+    );
+  }
+  return cleanUrl;
 }

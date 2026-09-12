@@ -1,3 +1,4 @@
+import { auditEvent } from "./audit.js";
 import { closeExpiredSessions } from "./sessions.js";
 
 let cleanupTimer = null;
@@ -7,7 +8,11 @@ export function startCleanupLoop(intervalMs = 15000) {
     return cleanupTimer;
   }
   cleanupTimer = setInterval(() => {
-    closeExpiredSessions().catch((error) => {
+    closeExpiredSessions().then((count) => {
+      if (count > 0) {
+        auditEvent("remote_browser_expired_cleanup", { count });
+      }
+    }).catch((error) => {
       console.error("[sffc-remote-browser] cleanup failed", error);
     });
   }, Math.max(5000, Number(intervalMs) || 15000));
