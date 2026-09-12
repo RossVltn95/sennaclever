@@ -26945,6 +26945,10 @@
       return chatLanguage === "ar";
     }
 
+    function uiText(english, arabic) {
+      return isArabicChat() ? arabic : english;
+    }
+
     function getLocalizedMembershipPlanMeta(accountType) {
       var key = String(accountType || "")
         .trim()
@@ -48491,17 +48495,44 @@
         .then(function (result) {
           var items = result && result.items ? result.items || [] : [];
           var renderQuery = result && result.query ? result.query : clean;
+          var renderedResultsHtml;
           if (requestToken !== actualJobPostSearchRequestToken) {
             return;
           }
-          botMessage(
-            renderActualJobPostSearchResults(
+          try {
+            renderedResultsHtml = renderActualJobPostSearchResults(
               items,
               providerFilter ? providerLabel + " " + clean : clean,
               {
                 fallbackQuery: renderQuery,
               }
-            ),
+            );
+          } catch (error) {
+            if (window.console && window.console.error) {
+              window.console.error(
+                "[sffc-apply-chat] job result render failed",
+                {
+                  query: clean,
+                  fallbackQuery: renderQuery,
+                  providerFilter: providerFilter || "",
+                  itemCount: items.length,
+                  firstItem: items[0] || null,
+                  message: error && error.message ? error.message : String(error),
+                  stack: error && error.stack ? error.stack : "",
+                }
+              );
+            }
+            recordConversationAuditEvent("actual_job_post_search_render_failed", {
+              query: clean,
+              fallbackQuery: renderQuery,
+              providerFilter: providerFilter || "",
+              itemCount: items.length,
+              message: error && error.message ? error.message : String(error),
+            });
+            throw error;
+          }
+          botMessage(
+            renderedResultsHtml,
             humanComposeDelay("I found current job posts.", 800, 1500),
             function () {
               setPromptState(
@@ -48547,10 +48578,23 @@
             }
           );
         })
-        .catch(function () {
+        .catch(function (error) {
           if (requestToken !== actualJobPostSearchRequestToken) {
             return;
           }
+          if (window.console && window.console.error) {
+            window.console.error("[sffc-apply-chat] job post search failed", {
+              query: clean,
+              providerFilter: providerFilter || "",
+              message: error && error.message ? error.message : String(error),
+              stack: error && error.stack ? error.stack : "",
+            });
+          }
+          recordConversationAuditEvent("actual_job_post_search_failed", {
+            query: clean,
+            providerFilter: providerFilter || "",
+            message: error && error.message ? error.message : String(error),
+          });
           botMessage(
             "I could not load the job posts just now. Try again with a specific title or company.",
             humanComposeDelay(
