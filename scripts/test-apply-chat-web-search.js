@@ -59,11 +59,18 @@ const webSearchRenderBody = getFunctionBody(
 );
 const webSearchFetchBody = getFunctionBody(js, "fetchApplyChatWebSearch");
 const webSearchActionBody = getFunctionBody(js, "searchWebInApplyChat");
+const promptReplyBody = getFunctionBody(js, "maybeHandlePromptReply");
+const profileReviewBody = getFunctionBody(
+  js,
+  "handleProfileReviewFollowUp"
+);
 
 if (!webSearchRouteBody) fail("Could not inspect web-search route function");
 if (!webSearchRenderBody) fail("Could not inspect web-search renderer");
 if (!webSearchFetchBody) fail("Could not inspect web-search fetcher");
 if (!webSearchActionBody) fail("Could not inspect web-search action");
+if (!promptReplyBody) fail("Could not inspect prompt reply handler");
+if (!profileReviewBody) fail("Could not inspect profile review input handler");
 
 [
   "best recruitment agencies in Dubai",
@@ -114,6 +121,22 @@ assertIncludes("web-search fallback copy", webSearchActionBody, "I can’t reach
 assertIncludes("web-search route debug hook", js, "classifyWebSearchRoute");
 assertIncludes("web-search decision action", js, 'type: "web_search"');
 assertIncludes("web-search action executor", js, "searchWebInApplyChat(");
+
+if (
+  promptReplyBody &&
+  promptReplyBody.indexOf("looksLikeHighConfidenceWebSearchRequest(value, offScriptIntent)") >
+    promptReplyBody.indexOf("looksLikeConcreteApplyChatJobSearch(value, offScriptIntent)")
+) {
+  fail("Prompt reply handler checks concrete job search before high-confidence web search");
+}
+
+if (
+  profileReviewBody &&
+  profileReviewBody.indexOf("looksLikeHighConfidenceWebSearchRequest(value, intent)") >
+    profileReviewBody.indexOf("looksLikeConcreteApplyChatJobSearch(value, intent)")
+) {
+  fail("Profile review handler checks concrete job search before high-confidence web search");
+}
 
 [
   "sffc-crm-apply-chat__web-search-card",

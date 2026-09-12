@@ -106999,6 +106999,19 @@
         !/^(greenhouse_security_code|commercial_apply_queue_verification_code|greenhouse_test_full_name|greenhouse_test_email|greenhouse_test_confirm_email|greenhouse_test_phone|teamtailor_test_full_name|teamtailor_test_email|teamtailor_test_confirm_email|teamtailor_test_phone|workable_test_full_name|workable_test_email|workable_test_confirm_email|workable_test_phone|successfactors_test_full_name|successfactors_test_email|successfactors_test_confirm_email|workday_test_full_name|workday_test_email|workday_test_confirm_email|workday_account_password|successfactors_account_password|successfactors_profile_[a-z_]+|apply_account_email|apply_confirm_preferred_email|apply_collect_preferred_email|apply_collect_full_name|apply_employer_question|apply_employer_questions_bulk|apply_results_failure_fallback|apply_results_offline_collect_email)$/i.test(
           promptStateValue
         ) &&
+        looksLikeHighConfidenceWebSearchRequest(value, offScriptIntent)
+      ) {
+        clearResponseWatchdog();
+        clearPromptState();
+        promptReplyWasTyped = true;
+        pauseActiveWorkflowForCareerConversation("web_search");
+        return searchWebInApplyChat(value);
+      }
+
+      if (
+        !/^(greenhouse_security_code|commercial_apply_queue_verification_code|greenhouse_test_full_name|greenhouse_test_email|greenhouse_test_confirm_email|greenhouse_test_phone|teamtailor_test_full_name|teamtailor_test_email|teamtailor_test_confirm_email|teamtailor_test_phone|workable_test_full_name|workable_test_email|workable_test_confirm_email|workable_test_phone|successfactors_test_full_name|successfactors_test_email|successfactors_test_confirm_email|workday_test_full_name|workday_test_email|workday_test_confirm_email|workday_account_password|successfactors_account_password|successfactors_profile_[a-z_]+|apply_account_email|apply_confirm_preferred_email|apply_collect_preferred_email|apply_collect_full_name|apply_employer_question|apply_employer_questions_bulk|apply_results_failure_fallback|apply_results_offline_collect_email)$/i.test(
+          promptStateValue
+        ) &&
         looksLikeConcreteApplyChatJobSearch(value, offScriptIntent)
       ) {
         clearResponseWatchdog();
@@ -135849,6 +135862,11 @@
           humanReadDelay(value, 350)
         );
         return true;
+      }
+      if (looksLikeHighConfidenceWebSearchRequest(value, intent)) {
+        clearPromptState();
+        pauseActiveWorkflowForCareerConversation("web_search");
+        return searchWebInApplyChat(value);
       }
       if (looksLikeConcreteApplyChatJobSearch(value, intent)) {
         clearPromptState();
