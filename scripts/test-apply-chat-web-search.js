@@ -356,6 +356,14 @@ const answerServiceApp = fs.readFileSync(
   "qualityScore",
   "evidenceSummary",
   "source_grounded",
+  "extract_month_signals",
+  "extract_money_signals",
+  "clean_evidence_point",
+  "build_short_answer",
+  "build_next_step",
+  "compose_answer(qtype, query, evidence, evidence_summary)",
+  "For Dubai, the strongest signal is to apply around",
+  "This is a shortlist-building question, not a jobs-database search.",
 ].forEach((needle) => {
   assertIncludes(`web answer service ${needle}`, answerServiceApp, needle);
 });

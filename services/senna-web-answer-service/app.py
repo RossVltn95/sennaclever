@@ -324,27 +324,196 @@ def summarize_evidence(evidence):
     }
 
 
-def compose_answer(qtype, evidence):
-    points = []
+MONTH_ALIASES = {
+    "jan": "January",
+    "january": "January",
+    "feb": "February",
+    "february": "February",
+    "mar": "March",
+    "march": "March",
+    "apr": "April",
+    "april": "April",
+    "may": "May",
+    "jun": "June",
+    "june": "June",
+    "jul": "July",
+    "july": "July",
+    "aug": "August",
+    "august": "August",
+    "sep": "September",
+    "sept": "September",
+    "september": "September",
+    "oct": "October",
+    "october": "October",
+    "nov": "November",
+    "november": "November",
+    "dec": "December",
+    "december": "December",
+}
+
+
+def collect_passage_texts(evidence):
+    texts = []
     for source in evidence:
         for passage in source.get("usedPassages", []):
-            text = passage.get("text", "").strip()
-            if text and text not in points:
-                points.append(text)
-    points = points[:4]
+            text = str(passage.get("text", "")).strip()
+            if text and text not in texts:
+                texts.append(text)
+    return texts
+
+
+def clean_evidence_point(text):
+    text = re.sub(r"\s+", " ", str(text or "")).strip()
+    text = re.sub(r"^\[?OC\]?\s*", "", text, flags=re.I)
+    text = re.sub(r"^\d{1,2}[-/.]\d{1,2}[-/.]\d{2,4}\s*", "", text)
+    text = re.sub(r"^(best hiring seasons?[^:]*:?\s*)", "", text, flags=re.I)
+    return trim_words(text, 34)
+
+
+def extract_month_signals(passages):
+    counts = {}
+    joined = " ".join(passages).lower()
+    for raw, canonical in MONTH_ALIASES.items():
+        matches = len(re.findall(rf"\b{re.escape(raw)}\.?\b", joined))
+        if matches:
+            counts[canonical] = counts.get(canonical, 0) + matches
+    ordered = sorted(counts.items(), key=lambda item: (-item[1], list(MONTH_ALIASES.values()).index(item[0])))
+    months = [month for month, _count in ordered[:5]]
+    slow = []
+    if re.search(r"\bsummer|july|august|heat|hot\b", joined):
+        slow.append("summer")
+    if re.search(r"\bramadan\b", joined):
+        slow.append("Ramadan")
+    if re.search(r"\bholiday|year end|december slowdown\b", joined):
+        slow.append("holiday slowdowns")
+    return {"months": months, "slowPeriods": slow}
+
+
+def extract_money_signals(passages):
+    joined = " ".join(passages)
+    matches = re.findall(
+        r"\b(?:AED|SAR|USD|GBP|EUR|\$|£|€)\s?\d[\d,]*(?:\.\d+)?(?:\s?(?:k|K|m|M|million|thousand))?\b|\b\d[\d,]*(?:\.\d+)?\s?(?:AED|SAR|USD|GBP|EUR)\b",
+        joined,
+    )
+    unique = []
+    for match in matches:
+        clean = re.sub(r"\s+", " ", match).strip()
+        if clean and clean not in unique:
+            unique.append(clean)
+    return unique[:4]
+
+
+def extract_source_names(evidence):
+    names = []
+    for source in evidence:
+        name = str(source.get("source") or "").strip()
+        if name and name not in names:
+            names.append(name)
+    return names[:3]
+
+
+def build_short_answer(qtype, query, points, evidence, evidence_summary):
+    lower_query = query.lower()
+    month_signals = extract_month_signals(points)
+    money_signals = extract_money_signals(points)
+    source_names = extract_source_names(evidence)
+    source_phrase = ", ".join(source_names)
+    has_sources = bool(points)
+
+    if not has_sources:
+        return "I could not extract enough readable source text, so I would treat the links below as leads rather than a finished answer."
+
+    if qtype == "market_timing":
+        months = month_signals["months"]
+        slow = month_signals["slowPeriods"]
+        if "dubai" in lower_query and months:
+            answer = (
+                "For Dubai, the strongest signal is to apply around "
+                + ", ".join(months[:4])
+                + ". Use those months for active applications and recruiter follow-ups, not just browsing."
+            )
+        elif months:
+            answer = (
+                "The sources point to "
+                + ", ".join(months[:4])
+                + " as the strongest timing signals. I would apply before and during those windows, then keep follow-ups moving weekly."
+            )
+        else:
+            answer = "The sources point to hiring cycles rather than one perfect date: apply when budgets open, follow up early in the week, and avoid waiting for everyone else to start."
+        if slow:
+            answer += " Treat " + ", ".join(slow[:2]) + " as slower periods unless a role is already live."
+        return answer
+
+    if qtype == "recruiter_directory":
+        return (
+            "This is a shortlist-building question, not a jobs-database search. I would use the public results to identify agencies, then filter them by sector, recent mandates, and whether they cover your target seniority."
+        )
+
+    if qtype == "salary":
+        if money_signals:
+            return (
+                "The visible salary signals include "
+                + ", ".join(money_signals)
+                + ", but treat them as market indicators rather than guarantees because pay moves with sector, seniority, and visa/package details."
+            )
+        return "The sources give market-level compensation signals, but I would not rely on one number. Use them to build a realistic range, then adjust for sector, seniority, bonus, and benefits."
+
+    if qtype == "company_research":
+        return "From the public sources, I would read this as a company-research question: understand what the organisation does, where it operates, and how the role links to its current priorities before applying."
+
+    if qtype == "visa_legal":
+        return "This is legal or immigration-sensitive, so use the web answer as orientation only. The safe next step is to verify the rule with an official government or employer source before acting."
+
+    if qtype == "country_life":
+        location = "Saudi Arabia" if "saudi" in lower_query else "Dubai" if "dubai" in lower_query else "the location"
+        return (
+            f"For {location}, the useful answer is practical fit: cost, work culture, safety, commute, visa rules, and whether the market matches your target role. The sources below give a starting view, but I would verify recent details before moving."
+        )
+
+    if qtype == "comparison":
+        return "The comparison depends on your target role and constraints. I would compare the options across hiring demand, salary after cost of living, visa path, commute, and long-term career signal."
+
+    if qtype == "current_market":
+        return "The current-market answer should be treated as directional: look at recent hiring, sector momentum, and whether employers are actively posting similar roles now."
+
+    if source_phrase:
+        return f"I found usable public signals from {source_phrase}. The safest read is to combine the source points below rather than trusting one result."
+    return "I found usable public signals and condensed them into the points below."
+
+
+def build_next_step(qtype):
+    if qtype == "market_timing":
+        return "I can turn this into a weekly application plan or search current roles for that location."
+    if qtype == "recruiter_directory":
+        return "I can turn this into a recruiter shortlist with sectors, locations, and outreach priorities."
+    if qtype == "salary":
+        return "I can compare this against a specific title, city, and seniority level."
+    if qtype == "company_research":
+        return "I can use this to prepare a role-fit summary or questions to ask before applying."
+    if qtype == "visa_legal":
+        return "I can help find the official source or turn this into a checklist for the employer."
+    return "I can turn this into a job search, shortlist, or practical next-step plan."
+
+
+def compose_answer(qtype, query, evidence, evidence_summary):
+    points = []
+    for text in collect_passage_texts(evidence):
+        clean = clean_evidence_point(text)
+        if clean and clean not in points:
+            points.append(clean)
+    points = points[:5]
     has_fetched = any(source.get("fetchStatus") == "fetched" for source in evidence)
+    average_quality = float((evidence_summary or {}).get("averageQuality") or 0)
     return {
         "type": qtype,
-        "confidence": 0.78 if points and has_fetched else 0.58 if points else 0.42,
+        "confidence": 0.82 if points and has_fetched and average_quality >= 0.6 else 0.68 if points else 0.42,
         "headline": HEADLINES.get(qtype, HEADLINES["general_web_answer"]),
-        "shortAnswer": "I checked the sources and pulled out the strongest signals instead of just listing links."
-        if points
-        else "I could not extract enough readable page text, so I’m showing the best available source results as a fallback.",
+        "shortAnswer": build_short_answer(qtype, query, points, evidence, evidence_summary),
         "keyPoints": points,
         "caveat": "These are public-source signals, so verify anything legal, salary-related, or time-sensitive before relying on it."
         if has_fetched
         else "Some sources blocked full extraction, so this answer relies more heavily on search snippets.",
-        "nextStep": "I can turn this into a job search, shortlist, or practical next-step plan.",
+        "nextStep": build_next_step(qtype),
     }
 
 
@@ -382,7 +551,7 @@ def answer():
     answer_started = time.perf_counter()
     evidence = build_evidence(query, qtype, results)
     evidence_summary = summarize_evidence(evidence)
-    answer_payload = compose_answer(qtype, evidence)
+    answer_payload = compose_answer(qtype, query, evidence, evidence_summary)
     answer_ms = round((time.perf_counter() - answer_started) * 1000, 1)
     return jsonify(
         {
@@ -405,4 +574,3 @@ def answer():
             "requestId": hashlib.md5(f"{query}|{time.time()}".encode("utf-8")).hexdigest()[:12],
         }
     )
-
