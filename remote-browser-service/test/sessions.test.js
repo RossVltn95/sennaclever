@@ -10,6 +10,7 @@ import {
   serializeSession,
   setSessionControl,
 } from "../src/sessions.js";
+import { isNoVncStaticAssetPath } from "../src/novnc.js";
 
 test("updates remote browser control states", async () => {
   await clearSessionsForTest();
@@ -84,6 +85,25 @@ test("serializes noVNC stream URL with auto-connect and viewer token", async () 
   assert.match(
     streamUrl.searchParams.get("path") || "",
     /^sessions\/novnc-stream-test\/novnc\/websockify\?token=viewer-token-123$/
+  );
+});
+
+test("identifies noVNC static assets separately from protected entrypoints", () => {
+  assert.equal(
+    isNoVncStaticAssetPath(["sessions", "abc", "novnc", "app", "styles", "base.css"]),
+    true
+  );
+  assert.equal(
+    isNoVncStaticAssetPath(["sessions", "abc", "novnc", "core", "rfb.js"]),
+    true
+  );
+  assert.equal(
+    isNoVncStaticAssetPath(["sessions", "abc", "novnc", "vnc.html"]),
+    false
+  );
+  assert.equal(
+    isNoVncStaticAssetPath(["sessions", "abc", "novnc", "websockify"]),
+    false
   );
 });
 

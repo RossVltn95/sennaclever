@@ -191,6 +191,20 @@ export function getNoVncStreamPath(sessionId, viewerToken = "", publicBaseUrl = 
   return `/sessions/${encoded}/novnc/vnc.html?${params.toString()}`;
 }
 
+export function isNoVncStaticAssetPath(parts) {
+  const assetPath = Array.isArray(parts) ? parts.slice(3).join("/") : "";
+  if (!assetPath) {
+    return false;
+  }
+  if (/^(?:vnc|vnc_lite|vnc_auto)\.html$/i.test(assetPath)) {
+    return false;
+  }
+  if (/^websockify(?:\/|$)/i.test(assetPath)) {
+    return false;
+  }
+  return /\.(?:css|js|mjs|png|jpg|jpeg|gif|svg|ico|webp|woff|woff2|ttf|map|json)$/i.test(assetPath);
+}
+
 function rewriteNoVncPath(request, sessionId) {
   const prefix = `/sessions/${encodeURIComponent(sessionId)}/novnc`;
   const unencodedPrefix = `/sessions/${sessionId}/novnc`;

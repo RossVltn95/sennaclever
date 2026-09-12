@@ -34,7 +34,7 @@ import {
   setSessionControl,
   touchSession,
 } from "./sessions.js";
-import { isNoVncAvailable, proxyNoVncHttp, proxyNoVncUpgrade } from "./novnc.js";
+import { isNoVncAvailable, isNoVncStaticAssetPath, proxyNoVncHttp, proxyNoVncUpgrade } from "./novnc.js";
 import { checkRateLimit, getClientKey } from "./rate-limit.js";
 
 const port = Number(process.env.PORT || 3000);
@@ -320,6 +320,10 @@ function handleNoVncRequest(request, response, parsedUrl, corsHeaders) {
   if (!session) {
     sendError(response, 404, "Remote browser session was not found.", {}, corsHeaders);
     return true;
+  }
+  if (isNoVncStaticAssetPath(parts)) {
+    touchSession(session);
+    return proxyNoVncHttp(request, response, session, corsHeaders);
   }
   const queryToken = parsedUrl.searchParams.get("token") || "";
   const cookieToken = getViewerCookieToken(request, session.sessionId);
