@@ -64,6 +64,29 @@ test("serializes control state for the WordPress broker", async () => {
   assert.match(serialized.controlUrl, /\/sessions\/serialize-control-test\/control$/);
 });
 
+test("serializes noVNC stream URL with auto-connect and viewer token", async () => {
+  await clearSessionsForTest();
+  const session = seedSessionForTest({
+    sessionId: "novnc-stream-test",
+    viewerToken: "viewer-token-123",
+    runtime: {
+      kind: "novnc",
+      webPort: 7900,
+    },
+  });
+  const serialized = serializeSession(session);
+  const streamUrl = new URL(serialized.streamUrl, "https://remote.example.test");
+
+  assert.equal(streamUrl.pathname, "/sessions/novnc-stream-test/novnc/vnc.html");
+  assert.equal(streamUrl.searchParams.get("autoconnect"), "1");
+  assert.equal(streamUrl.searchParams.get("resize"), "remote");
+  assert.equal(streamUrl.searchParams.get("token"), "viewer-token-123");
+  assert.match(
+    streamUrl.searchParams.get("path") || "",
+    /^sessions\/novnc-stream-test\/novnc\/websockify\?token=viewer-token-123$/
+  );
+});
+
 test("allocates the lowest available remote browser slot", async () => {
   await clearSessionsForTest();
   seedSessionForTest({ sessionId: "slot-0", slot: 0 });

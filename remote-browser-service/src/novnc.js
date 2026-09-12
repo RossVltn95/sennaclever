@@ -162,9 +162,33 @@ export async function closeNoVncSession(runtime) {
   }
 }
 
-export function getNoVncStreamPath(sessionId) {
+export function getNoVncStreamPath(sessionId, viewerToken = "", publicBaseUrl = "") {
   const encoded = encodeURIComponent(sessionId);
-  return `/sessions/${encoded}/novnc/vnc.html?autoconnect=true&resize=remote&path=sessions/${encoded}/novnc/websockify`;
+  const token = cleanText(viewerToken || "");
+  const params = new URLSearchParams({
+    autoconnect: "1",
+    reconnect: "1",
+    reconnect_delay: "1000",
+    resize: "remote",
+    quality: "6",
+    compression: "2",
+    path: `sessions/${encoded}/novnc/websockify${token ? `?token=${encodeURIComponent(token)}` : ""}`,
+  });
+  let publicUrl;
+  if (token) {
+    params.set("token", token);
+  }
+  try {
+    publicUrl = publicBaseUrl ? new URL(publicBaseUrl) : null;
+  } catch (error) {
+    publicUrl = null;
+  }
+  if (publicUrl && publicUrl.hostname) {
+    params.set("host", publicUrl.hostname);
+    params.set("port", publicUrl.port || (publicUrl.protocol === "https:" ? "443" : "80"));
+    params.set("encrypt", publicUrl.protocol === "https:" ? "1" : "0");
+  }
+  return `/sessions/${encoded}/novnc/vnc.html?${params.toString()}`;
 }
 
 function rewriteNoVncPath(request, sessionId) {

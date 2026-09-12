@@ -141,10 +141,10 @@ For each session the service starts:
 The returned `streamUrl` points to:
 
 ```text
-/sessions/:id/novnc/vnc.html?autoconnect=true&resize=remote&path=sessions/:id/novnc/websockify&token=...
+/sessions/:id/novnc/vnc.html?autoconnect=1&resize=remote&path=sessions/:id/novnc/websockify%3Ftoken%3D...&token=...
 ```
 
-The token in the URL is a short-lived viewer token for that single browser session. API actions still require the server token.
+The token in the URL is a short-lived viewer token for that single browser session. It is included both on the noVNC page request and inside the proxied WebSocket path so iframe cookie restrictions do not leave the user on the raw noVNC connection screen. API actions still require the server token.
 
 For local development on machines without `Xvfb`, `x11vnc`, and `websockify`, create sessions with:
 

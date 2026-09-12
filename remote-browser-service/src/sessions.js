@@ -69,7 +69,7 @@ export function listSessionSummaries() {
 export function serializeSession(session) {
   const publicBase = getPublicBaseUrl().replace(/\/+$/g, "");
   const relativeStreamUrl = session.runtime?.kind === "novnc"
-    ? `${getNoVncStreamPath(session.sessionId)}&token=${encodeURIComponent(session.viewerToken)}`
+    ? getNoVncStreamPath(session.sessionId, session.viewerToken, publicBase)
     : `/sessions/${encodeURIComponent(session.sessionId)}/screenshot`;
   return {
     sessionId: session.sessionId,
