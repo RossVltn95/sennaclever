@@ -86,6 +86,7 @@ Emily should search when the user asks for information that is likely:
 Examples:
 
 - `best recruitment agencies in Dubai`
+- `best recruiters in Dubai`
 - `top executive search firms in Riyadh`
 - `latest hiring trends in Saudi finance`
 - `which banks are hiring analysts in UAE right now`
@@ -412,6 +413,7 @@ Implementation notes:
 Prompts to test:
 
 - [x] `best recruitment agencies in Dubai`
+- [x] `best recruiters in Dubai`
 - [x] `best finance recruitment agencies in Dubai`
 - [x] `top executive search firms in Riyadh`
 - [x] `latest hiring trends in Saudi finance`
@@ -435,7 +437,7 @@ Implementation notes:
 - Added `scripts/test-apply-chat-web-search.js` to verify the web-search route signals, CV/job-flow exclusions, AJAX wiring, card markup, mobile CSS, SearXNG service scaffold, caching, tracking cleanup, and sensitive-query guardrails.
 - Added a `has-web-search-card` CSS layout hook so source cards follow the same structured-card sizing path as the other apply-chat cards.
 - Phase 7 audit fixed plain `average salary` / `pay range` route coverage, added `dir="auto"` to dynamic web-result text, and corrected URL cleanup to use `http_build_query()` instead of WordPress `build_query()`.
-- Added the web-search prompt matrix to `scripts/test-apply-chat-decision-engine.js`, so `best recruitment agencies in Dubai`, `top executive search firms in Riyadh`, `latest hiring trends in Saudi finance`, and `average salary for HR manager Dubai` must route to `web_search`.
+- Added the web-search prompt matrix to `scripts/test-apply-chat-decision-engine.js`, so `best recruitment agencies in Dubai`, `best recruiters in Dubai`, `top executive search firms in Riyadh`, `latest hiring trends in Saudi finance`, and `average salary for HR manager Dubai` must route to `web_search`.
 - The audit also fixed the broad selected-role salary detector so market salary questions with a named location no longer get misclassified as selected-role questions.
 - Ran the existing apply-chat decision suite to confirm web search did not break job/CV/application routing.
 

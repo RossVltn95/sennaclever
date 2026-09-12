@@ -346,6 +346,92 @@ const duplicateLiterals = Array.from(duplicateLiteralCounts.entries())
   .slice(0, 40)
   .map(([text, count]) => ({ count, text }));
 
+[
+  {
+    label: "old language gate greeting",
+    pattern: /Hi, I'm Emily, your job search assistant\. Would you prefer English or Arabic\?/,
+  },
+  {
+    label: "legacy Emily transfer copy",
+    pattern: /Transferring to Emily/,
+  },
+  {
+    label: "legacy recruiter shortlist copy",
+    pattern: /Here are recruiters hiring for your profile|Recruiters Hiring for Your Profile/,
+  },
+  {
+    label: "managed service quick route CTA",
+    pattern: /Yes, sign me up to the service|No, apply for this role only/,
+  },
+  {
+    label: "broken repeated tailoring progress",
+    pattern: /I(?:'|’)m tailoring the CV for this the employer application now/,
+  },
+].forEach((check) => {
+  if (check.pattern.test(source)) {
+    failures.push(`Conversation regression still present: ${check.label}`);
+  }
+});
+
+[
+  "renderWelcomeTrendingPillsHtml",
+  "submitWelcomePillPrompt",
+  "data-sffc-apply-chat-welcome-prompt",
+  "data-sffc-apply-chat-language-label",
+  "syncApplyChatCanonicalState",
+  "claimConversationTurn",
+].forEach((needle) => {
+  if (!source.includes(needle)) {
+    failures.push(`Missing unified conversation guard: ${needle}`);
+  }
+});
+
+const welcomeBody = getFunctionBody("getEmilyGuestWelcomeMessageItem");
+if (!welcomeBody.includes("renderWelcomeTrendingPillsHtml")) {
+  failures.push("Welcome renderer does not attach trending pills");
+}
+if (/showLanguageChoiceButtons|showLanguageGate|is-clarify/.test(welcomeBody)) {
+  failures.push("Welcome renderer can still use the old language gate choices");
+}
+
+const welcomeSubmitBody = getFunctionBody("submitWelcomePillPrompt");
+if (!/composer\.dispatchEvent/.test(welcomeSubmitBody)) {
+  failures.push("Welcome pill clicks must route through the composer submit event");
+}
+if (/startConsultantFlow|addTransferNotice/.test(welcomeSubmitBody)) {
+  failures.push("Welcome pill clicks still route through legacy consultant/transfer flow");
+}
+
+const liveTailoringBody = getFunctionBody("runLiveTailoringSequence");
+const tailoringProgressCopies = countMatches(
+  /tailoring the CV for this(?: the)? employer application now/gi,
+  liveTailoringBody
+);
+if (tailoringProgressCopies > 1) {
+  failures.push(
+    `Repeated tailoring progress copy still appears in live tailoring (${tailoringProgressCopies})`
+  );
+}
+
+const cssPath = path.join(
+  repoRoot,
+  "assets/css/crm/crm-apply-chat-article.css"
+);
+const cssSource = fs.existsSync(cssPath) ? fs.readFileSync(cssPath, "utf8") : "";
+[
+  "/* Phase 6 layout contract: one content axis, one composer, no legacy overlays. */",
+  "max-width: 1000px !important",
+  "scrollbar-width: none !important",
+  "content: none !important",
+  "pointer-events: auto !important",
+  "data-sffc-apply-chat-language-label]::before",
+  "content: \"Languages\"",
+].forEach((needle) => {
+  if (!cssSource.includes(needle)) {
+    failures.push(`Layout smoke CSS missing: ${needle}`);
+  }
+});
+
 let fixtureSummary = null;
 if (!fs.existsSync(fixturesPath)) {
   failures.push("Missing apply-chat conversation fixture file");

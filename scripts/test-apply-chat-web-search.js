@@ -74,6 +74,7 @@ if (!profileReviewBody) fail("Could not inspect profile review input handler");
 
 [
   "best recruitment agencies in Dubai",
+  "best recruiters in Dubai",
   "best finance recruitment agencies in Dubai",
   "top executive search firms in Riyadh",
   "latest hiring trends in Saudi finance",
@@ -84,6 +85,7 @@ if (!profileReviewBody) fail("Could not inspect profile review input handler");
 
 [
   "recruitment agenc",
+  "looksLikeExternalRecruiterDirectorySearch(clean)",
   "executive search",
   "salary benchmark",
   "average salary",

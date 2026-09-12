@@ -39,6 +39,10 @@ outgoing:
   pool_maxsize: 20
 
 engines:
+  - name: ahmia
+    disabled: true
+  - name: torch
+    disabled: true
   - name: google
     disabled: true
   - name: google news

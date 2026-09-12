@@ -890,6 +890,16 @@ const baseCases = [
     expectedPlanMode: "execute",
   },
   {
+    message: "best recruiters in Dubai",
+    promptState: "",
+    activeTask: "",
+    expectedIntent: "web_search",
+    expectedRelationship: "new_topic",
+    expectedAction: "web_search",
+    expectedPlanObjective: "answer_with_web_search",
+    expectedPlanMode: "execute",
+  },
+  {
     message: "top executive search firms in Riyadh",
     promptState: "",
     activeTask: "",
@@ -921,6 +931,14 @@ const baseCases = [
   },
   {
     message: "show me HR manager jobs in Dubai",
+    promptState: "",
+    activeTask: "",
+    expectedIntent: "job_search",
+    expectedRelationship: "new_topic",
+    expectedAction: "show_job_results",
+  },
+  {
+    message: "i need help to find jobs in dubai",
     promptState: "",
     activeTask: "",
     expectedIntent: "job_search",

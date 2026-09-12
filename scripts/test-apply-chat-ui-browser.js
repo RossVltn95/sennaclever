@@ -49,7 +49,7 @@ const html = String.raw`<!doctype html>
   <meta charset="utf-8">
   <style>
     body { margin: 0; font-family: Inter, Arial, sans-serif; background: #eef4fb; }
-    .sffc-crm-apply-chat { width: 100%; min-height: 100vh; overflow-x: hidden; padding: 32px; box-sizing: border-box; }
+    .sffc-crm-apply-chat { width: 100%; min-height: 100vh; overflow-x: hidden; padding: 32px 32px 180px; box-sizing: border-box; }
     .sffc-crm-apply-chat__message.is-emily.has-apply-results-card { width: min(920px, 100%); margin: 0 auto; }
     .sffc-crm-apply-results { width: 100%; box-sizing: border-box; }
     .sffc-crm-apply-results__topbar,
@@ -71,8 +71,40 @@ const html = String.raw`<!doctype html>
     .sffc-crm-apply-results__review[hidden] { display: none; }
     .sffc-crm-apply-results__review { margin-top: 14px; border-top: 1px solid #e8edf4; padding-top: 14px; }
     .sffc-crm-apply-results__review-frame { width: 100%; min-height: 180px; border: 1px solid #dfe5ee; border-radius: 8px; }
+    .sffc-crm-apply-chat__composer {
+      position: fixed;
+      left: 50%;
+      bottom: 24px;
+      transform: translateX(-50%);
+      width: min(920px, calc(100vw - 64px));
+      min-height: 112px;
+      padding: 13px;
+      border: 1px solid #ddddda;
+      border-radius: 22px;
+      background: rgba(255, 255, 255, 0.96);
+      box-shadow: 0 16px 44px rgba(24, 24, 24, 0.1);
+      box-sizing: border-box;
+      z-index: 20;
+    }
+    .sffc-crm-apply-chat__composer input {
+      width: 100%;
+      height: 54px;
+      border: 0;
+      outline: 0;
+      font: inherit;
+      font-size: 15.5px;
+      background: transparent;
+      box-sizing: border-box;
+    }
+    .sffc-crm-apply-chat__composer-bottom { display: flex; align-items: center; justify-content: space-between; }
+    .sffc-crm-apply-chat__composer-tools { display: flex; gap: 8px; align-items: center; }
+    .sffc-crm-apply-chat__composer-mode,
+    .sffc-crm-apply-chat__composer-tool { border: 0; border-radius: 999px; padding: 7px 10px; background: transparent; }
+    .sffc-crm-apply-chat__composer-mode { border: 1px solid #e2e2df; background: #fbfbfa; }
+    .sffc-crm-apply-chat__send { width: 38px; height: 38px; border: 0; border-radius: 10px; background: #191919; color: #fff; }
     @media (max-width: 640px) {
-      .sffc-crm-apply-chat { padding: 12px; }
+      .sffc-crm-apply-chat { padding: 12px 12px 170px; }
+      .sffc-crm-apply-chat__composer { width: calc(100vw - 24px); bottom: 12px; }
       .sffc-crm-apply-results__actions { display: grid; }
       .sffc-crm-apply-results__title { font-size: 17px; }
     }
@@ -105,6 +137,19 @@ const html = String.raw`<!doctype html>
         </div>
       </div>
     </section>
+    <form class="sffc-crm-apply-chat__composer" data-sffc-apply-chat-composer>
+      <div class="sffc-crm-apply-chat__composer-input-row">
+        <input type="text" data-sffc-apply-chat-input placeholder="Ask Emily about a role, company, CV or job search...">
+      </div>
+      <div class="sffc-crm-apply-chat__composer-bottom">
+        <div class="sffc-crm-apply-chat__composer-tools">
+          <button type="button" class="sffc-crm-apply-chat__composer-tool">+</button>
+          <button type="button" class="sffc-crm-apply-chat__composer-mode">Search jobs</button>
+          <button type="button" class="sffc-crm-apply-chat__composer-tool">Use my CV</button>
+        </div>
+        <button type="submit" class="sffc-crm-apply-chat__send">↑</button>
+      </div>
+    </form>
   </main>
   <script>
     document.addEventListener("click", function (event) {
@@ -133,6 +178,34 @@ async function assertViewport(page, viewport) {
   const buttonCount = await page.$$eval(".sffc-crm-apply-results__actions .sffc-crm-apply-results__btn", (buttons) => buttons.length);
   if (buttonCount < 2) {
     throw new Error("missing result action buttons");
+  }
+  const layout = await page.evaluate(() => {
+    const result = document.querySelector(".sffc-crm-apply-chat__message.has-apply-results-card");
+    const composer = document.querySelector("[data-sffc-apply-chat-composer]");
+    const input = document.querySelector("[data-sffc-apply-chat-input]");
+    input.focus();
+    const resultRect = result.getBoundingClientRect();
+    const composerRect = composer.getBoundingClientRect();
+    return {
+      activeInput: document.activeElement === input,
+      leftDelta: Math.abs(resultRect.left - composerRect.left),
+      rightDelta: Math.abs(resultRect.right - composerRect.right),
+      composerVisible:
+        composerRect.width > 200 &&
+        composerRect.height > 80 &&
+        composerRect.bottom <= window.innerHeight + 1,
+    };
+  });
+  if (!layout.activeInput) {
+    throw new Error("composer input is not focusable");
+  }
+  if (!layout.composerVisible) {
+    throw new Error("composer is not visible inside the viewport");
+  }
+  if (layout.leftDelta > 1 || layout.rightDelta > 1) {
+    throw new Error(
+      `composer is not aligned with result column: left ${layout.leftDelta}, right ${layout.rightDelta}`
+    );
   }
   const resultContext = await page.$eval(".sffc-crm-apply-results--job-search", (surface) => {
     const card = surface.querySelector(".sffc-crm-apply-results__result");
@@ -163,6 +236,12 @@ async function assertViewport(page, viewport) {
   if (expanded !== "true" || !frameSrc) {
     throw new Error("review panel did not expand and hydrate iframe");
   }
+  const screenshotDir = "reports/apply-chat-ui";
+  fs.mkdirSync(screenshotDir, { recursive: true });
+  await page.screenshot({
+    path: `${screenshotDir}/apply-chat-${viewport.width}x${viewport.height}.png`,
+    fullPage: true,
+  });
 }
 
 (async () => {

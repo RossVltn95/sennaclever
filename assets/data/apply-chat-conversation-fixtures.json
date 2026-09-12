@@ -356,6 +356,40 @@
           "expectedAction": "resume_task"
         }
       ]
+    },
+    {
+      "id": "phase14_career_question_then_search_cta",
+      "tier": "guest",
+      "description": "A career question can be answered first, then a search follow-up routes through the unified search path without old transfer or recruiter flows.",
+      "initialContext": {
+        "activeTask": "",
+        "selectedRole": false,
+        "referencedRole": false,
+        "hasCv": false
+      },
+      "turns": [
+        {
+          "message": "how can I land interviews in Dubai?",
+          "activeTask": "",
+          "expectedIntent": "career_question",
+          "expectedRelationship": "new_topic",
+          "expectedAction": "answer_directly"
+        },
+        {
+          "message": "find roles that fit me",
+          "activeTask": "career_advisor_focus",
+          "expectedIntent": "job_search",
+          "expectedRelationship": "new_topic",
+          "expectedAction": "show_job_results"
+        },
+        {
+          "message": "show me finance roles in Dubai",
+          "activeTask": "search",
+          "expectedIntent": "job_search",
+          "expectedRelationship": "continues_task",
+          "expectedAction": "show_job_results"
+        }
+      ]
     }
   ]
 }

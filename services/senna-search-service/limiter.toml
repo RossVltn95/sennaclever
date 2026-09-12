@@ -1,0 +1,3 @@
+# Limiter is disabled in settings.yml, but SearXNG still probes this path at
+# startup. Keeping the file present avoids noisy Railway warnings.
+
