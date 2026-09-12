@@ -37,11 +37,15 @@ const forbidden = [
   },
   {
     label: "Old quick route service CTA",
-    pattern: /Talk me through the service|Run wider search|This role only/,
+    pattern: /Talk me through the service|Run wider search|This role only|Yes, sign me up to the service|No, apply for this role only/,
   },
   {
     label: "Old quick route positioning copy",
-    pattern: /This role can stay as a one-role application|wider route makes sense/i,
+    pattern: /This role can stay as a one-role application|wider route makes sense|I have an idea that could work much better|actively source suitable roles/i,
+  },
+  {
+    label: "Old quick route selector bindings",
+    pattern: /data-sffc-apply-chat-quick-route-(?:membership|single)|quickRouteMembershipChoice|quickRouteSingleChoice|__sffcOpenMembershipFromQuickRouteSelector|__sffcContinueSingleRoleFromQuickRouteSelector/,
   },
   {
     label: "Old generic CV-to-search progress",
@@ -98,9 +102,15 @@ const required = [
   "Matched to your CV",
   "function getSelectedApplicationStartLine(",
   "function getContextualSocialReply(",
-  "Keep finding me roles",
-  "Just this role",
-  "approach relevant recruiters",
+  "function renderApplicationMaterialChoice(",
+  "Do you want me to include this tailored version with your application?",
+  "Use Tailored CV",
+  "Continue with original",
+  "I also drafted a cover letter for this based on your skills and experience.",
+  "Apply with cover letter",
+  "Continue without cover letter",
+  "sffc-crm-apply-chat__tailored-cv-document-card is-done has-quality-review",
+  "sffc-crm-apply-chat__quick-score-card",
   "function looksLikeCareerDecisionQuestion(",
   "function looksLikeRecruiterNonResponseQuestion(",
   "function looksLikeMisroutedSearchComplaint(",
@@ -220,8 +230,63 @@ if (!/data-sffc-apply-results-selected-next="tailored">Tailor CV/.test(source)) 
 }
 
 const containsIntroApplyCardBody = getFunctionBody("containsIntroApplyCardHtml");
-if (/quick-route-chat/.test(containsIntroApplyCardBody)) {
-  failures.push("Quick route chat must render inside the normal Emily message bubble with avatar");
+if (!/application-material-(?:card|choice)/.test(containsIntroApplyCardBody)) {
+  failures.push("Structured message detector must include application material choice cards");
+}
+
+const quickPathSelectorBody = getFunctionBody("renderApplyQuickPathSelector");
+if (/quick-route-chat|quick-route-actions|data-sffc-apply-chat-quick-route/.test(quickPathSelectorBody)) {
+  failures.push("Apply quick path selector must render the material CV choice, not old quick-route upsell");
+}
+if (!/renderApplicationMaterialChoice\("cv"\)/.test(quickPathSelectorBody)) {
+  failures.push("Apply quick path selector must ask for tailored CV vs original CV");
+}
+
+const quickRoleInsightsBody = getFunctionBody("renderApplyQuickRoleInsights");
+if (/sffc-crm-apply-chat__quick-insights/.test(quickRoleInsightsBody)) {
+  failures.push("Apply role insight surface must no longer render the old quick-insights card");
+}
+if (!/renderCvTailoringPreviewCard\("done"\)/.test(quickRoleInsightsBody)) {
+  failures.push("Apply role insight surface must render the tailored CV document card");
+}
+
+const cvTailoringPreviewBody = getFunctionBody("renderCvTailoringPreviewCard");
+[
+  "sffc-crm-apply-chat__tailored-cv-document-card is-done has-quality-review",
+  "tailoredScoreCard",
+  "renderApplyQuickInsightsScoreSummary",
+].forEach((needle) => {
+  if (!cvTailoringPreviewBody.includes(needle)) {
+    failures.push(`Tailored CV document card missing ${needle}`);
+  }
+});
+
+const continueApplyAfterAnalysisBody = getFunctionBody("continueApplyAfterAnalysis");
+[
+  "I also drafted a cover letter for this based on your skills and experience.",
+  "buildCoverLetterDraftHtml",
+  'renderApplicationMaterialChoice("cover_letter")',
+].forEach((needle) => {
+  if (!continueApplyAfterAnalysisBody.includes(needle)) {
+    failures.push(`Apply analysis flow missing ${needle}`);
+  }
+});
+[
+  {
+    label: "apply_cv_decision",
+    pattern: /setPromptState\(\s*"apply_cv_decision"/,
+  },
+  {
+    label: "apply_cover_letter_check",
+    pattern: /setPromptState\(\s*"apply_cover_letter_check"/,
+  },
+].forEach((check) => {
+  if (!check.pattern.test(continueApplyAfterAnalysisBody)) {
+    failures.push(`Apply analysis flow missing ${check.label} prompt state`);
+  }
+});
+if (/showManagedSearchSampleResults|Keep finding me roles|Just this role|apply_route_choice/.test(continueApplyAfterAnalysisBody)) {
+  failures.push("Apply analysis flow must not route into the old managed-service quick path");
 }
 
 const frameBlockedBody = getFunctionBody("isKnownFrameBlockedApplicationUrl");

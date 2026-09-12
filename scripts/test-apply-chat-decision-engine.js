@@ -879,6 +879,63 @@ const baseCases = [
     expectedBeliefGoal: "apply",
     expectedBeliefQuality: "usable",
   },
+  {
+    message: "best recruitment agencies in Dubai",
+    promptState: "",
+    activeTask: "",
+    expectedIntent: "web_search",
+    expectedRelationship: "new_topic",
+    expectedAction: "web_search",
+    expectedPlanObjective: "answer_with_web_search",
+    expectedPlanMode: "execute",
+  },
+  {
+    message: "top executive search firms in Riyadh",
+    promptState: "",
+    activeTask: "",
+    expectedIntent: "web_search",
+    expectedRelationship: "new_topic",
+    expectedAction: "web_search",
+    expectedPlanObjective: "answer_with_web_search",
+    expectedPlanMode: "execute",
+  },
+  {
+    message: "latest hiring trends in Saudi finance",
+    promptState: "",
+    activeTask: "",
+    expectedIntent: "web_search",
+    expectedRelationship: "new_topic",
+    expectedAction: "web_search",
+    expectedPlanObjective: "answer_with_web_search",
+    expectedPlanMode: "execute",
+  },
+  {
+    message: "average salary for HR manager Dubai",
+    promptState: "",
+    activeTask: "",
+    expectedIntent: "web_search",
+    expectedRelationship: "new_topic",
+    expectedAction: "web_search",
+    expectedPlanObjective: "answer_with_web_search",
+    expectedPlanMode: "execute",
+  },
+  {
+    message: "show me HR manager jobs in Dubai",
+    promptState: "",
+    activeTask: "",
+    expectedIntent: "job_search",
+    expectedRelationship: "new_topic",
+    expectedAction: "show_job_results",
+  },
+  {
+    message: "am I a fit for this job?",
+    promptState: "",
+    activeTask: "apply_flow",
+    selectedRole: true,
+    expectedIntent: "cv_role_comparison",
+    expectedRelationship: "continues_task",
+    expectedAction: "compare_selected_role_cv",
+  },
 ];
 
 function loadScenarioCases() {
@@ -992,9 +1049,38 @@ function isShortRoleDiscoverySearch(message) {
   );
 }
 
+function isHighConfidenceWebSearchRequest(message) {
+  const text = clean(message).toLowerCase();
+  const words = text ? text.split(/\s+/).filter(Boolean) : [];
+  if (!text || words.length < 3 || words.length > 34) return false;
+  if (
+    isSelectedRoleQuestion(text) ||
+    /\b(?:cv|resume|cover letter|application|apply|tailor|rewrite|interview prep)\b/i.test(text) &&
+      !/\b(?:agency|agencies|recruiter|recruiters|company|companies|market|salary|visa|relocation)\b/i.test(text)
+  ) {
+    return false;
+  }
+  if (/\b(?:show|find|search|look for|list|recommend|get me|source)\b.*\b(?:job|jobs|role|roles|opening|openings|vacanc|opportunit)/i.test(text)) {
+    return false;
+  }
+  const asksForExternalKnowledge = /\b(?:who|what|which|where|how|can you tell me|do you know|research|look up|search the web|google|find out)\b/i.test(text);
+  const asksForCurrentKnowledge = /\b(?:latest|current|currently|recent|today|this week|this month|now|202[0-9]|up to date|updated)\b/i.test(text);
+  const asksForBestList = /\b(?:best|top|leading|recommended|reputable|good|strong|average|typical|benchmark|list of|examples of|rank|ranked)\b/i.test(text);
+  const externalCareerSubject = /\b(?:recruitment agenc(?:y|ies)|recruiting agenc(?:y|ies)|headhunters?|executive search|recruiters?|hiring agencies|staffing agencies|employers?|companies|firms|banks?|salary|average salary|pay range|pay scale|compensation benchmark|compensation guide|salary benchmark|salary guide|market report|hiring trend|hiring trends|hiring market|labour market|labor market|visa rules?|work permit|relocation|cost of living|industry news|business news|professional bodies|networking events?)\b/i.test(text);
+  const hasNamedMarket = /\b(?:in|for|near|around)\s+(?:dubai|abu dhabi|riyadh|jeddah|doha|qatar|saudi|saudi arabia|uae|united arab emirates|kuwait|bahrain|oman|muscat|london|middle east|mena|gcc)\b|\b(?:dubai|abu dhabi|riyadh|jeddah|doha|qatar|saudi|saudi arabia|uae|united arab emirates|kuwait|bahrain|oman|muscat|london|middle east|mena|gcc)\b/i.test(text);
+  return externalCareerSubject && (asksForExternalKnowledge || asksForCurrentKnowledge || asksForBestList || hasNamedMarket);
+}
+
 function isSelectedRoleQuestion(message) {
   const text = clean(message).toLowerCase();
   const wordCount = text ? text.split(/\s+/).filter(Boolean).length : 0;
+  if (
+    /\b(?:average salary|salary benchmark|salary guide|pay range|pay scale|compensation benchmark|compensation guide)\b/i.test(text) &&
+    /\b(?:dubai|abu dhabi|riyadh|jeddah|doha|qatar|saudi|saudi arabia|uae|united arab emirates|kuwait|bahrain|oman|muscat|london|middle east|mena|gcc)\b/i.test(text) &&
+    !/\b(?:this|that|it|one|role|job|company|previous|first|second|third|last|they)\b/i.test(text)
+  ) {
+    return false;
+  }
   return (
     /\b(?:salary|compensation|pay|package|arabic|language|deal breaker|enough experience|requirements?|company|office|location|report to|manager|hiring manager|what do they (?:actually )?do|good company|stage|status)\b/i.test(text) &&
       /\b(?:this|that|it|one|role|job|company|previous|first|second|third|last|they)\b/i.test(text)
@@ -1247,6 +1333,7 @@ function goalFromIntent(intent) {
     job_search: "search",
     role_reference: "role_reference",
     role_question: "ask_role_question",
+    web_search: "web_search",
     career_question: "ask_career_question",
     career_planning: "career_planning",
     application_pause: "pause",
@@ -1279,6 +1366,11 @@ function buildBeliefState(message, context) {
   ) {
     addBelief(goals, "ask_career_question", 36);
     addBelief(relations, context.activeTask ? "interrupts_task" : "new_topic", 28);
+  }
+
+  if (isHighConfidenceWebSearchRequest(text)) {
+    addBelief(goals, "web_search", 34);
+    addBelief(relations, context.activeTask ? "interrupts_task" : "new_topic", 26);
   }
 
   if (hasPrompt && isPromptAnswer(text, context.promptState)) {
@@ -1364,6 +1456,7 @@ function intentFromBeliefGoal(goal) {
     search: "job_search",
     role_reference: "role_reference",
     ask_role_question: "role_question",
+    web_search: "web_search",
     ask_career_question: "career_question",
     career_planning: "career_planning",
     pause: "application_pause",
@@ -1386,7 +1479,7 @@ function applyBeliefPolicy(raw, belief) {
     (
       intent === "unknown" ||
       confidence < 0.72 ||
-      (confidence < 0.9 && /^(?:answer_pending_question|search_refinement|cv_role_comparison|apply_action|role_reference|role_question|career_question|career_planning|application_pause|application_resume)$/.test(beliefIntent))
+      (confidence < 0.9 && /^(?:answer_pending_question|search_refinement|web_search|cv_role_comparison|apply_action|role_reference|role_question|career_question|career_planning|application_pause|application_resume)$/.test(beliefIntent))
     )
   ) {
     return [beliefIntent, Math.max(confidence, Math.min(0.96, beliefConfidence + 0.24))];
@@ -1447,6 +1540,9 @@ function classify(message, context) {
   }
   if (isSearchFilterResetRequest(text)) {
     return ["search_filter_reset", 0.94];
+  }
+  if (isHighConfidenceWebSearchRequest(text)) {
+    return ["web_search", 0.93];
   }
   if (isProviderFilterClearRequest(text)) {
     return ["search_refinement", 0.94];
@@ -1580,6 +1676,7 @@ function relationship(intent, context) {
   if (intent === "search_results_question") return context.activeTask === "search" || context.visibleResults ? "continues_task" : "new_topic";
   if (intent === "cv_role_comparison") return context.selectedRole || context.referencedRole ? "continues_task" : context.activeTask ? "interrupts_task" : "new_topic";
   if (intent === "job_search") return context.activeTask === "search" ? "continues_task" : "new_topic";
+  if (intent === "web_search") return context.activeTask ? "interrupts_task" : "new_topic";
   if (intent === "apply_action") return context.selectedRole || context.referencedRole ? "continues_task" : "new_topic";
   if (intent === "role_reference") return context.activeTask ? "continues_task" : "new_topic";
   if (intent === "role_question") return context.selectedRole || context.referencedRole ? "continues_task" : context.activeTask ? "interrupts_task" : "new_topic";
@@ -1606,6 +1703,7 @@ function action(intent, relation, context) {
   if (intent === "search_filter_status") return "answer_search_filters";
   if (intent === "search_filter_reset") return "reset_search_preferences";
   if (intent === "search_results_question") return "answer_search_results_question";
+  if (intent === "web_search") return "web_search";
   if (intent === "job_search") return "show_job_results";
   if (intent === "cv_role_comparison") return context.selectedRole || context.referencedRole ? "compare_selected_role_cv" : "ask_clarifying_question";
   if (intent === "apply_action") return context.selectedRole || context.referencedRole ? "start_apply_execution" : "ask_clarifying_question";
@@ -1623,6 +1721,7 @@ function planObjective(intent, actionType) {
   if (/^(?:show_job_results|update_search_preferences|reset_search_preferences|answer_search_filters|answer_search_results_question)$/i.test(actionType || "")) {
     return "manage_job_search";
   }
+  if (actionType === "web_search") return "answer_with_web_search";
   if (/^(?:render_selected_role|answer_role_question|compare_selected_role_cv)$/i.test(actionType || "")) {
     return "work_with_selected_role";
   }
@@ -1644,7 +1743,7 @@ function planObjective(intent, actionType) {
 function planMode(actionType) {
   if (actionType === "defer_to_prompt_handler") return "prompt";
   if (actionType === "ask_clarifying_question") return "clarify";
-  if (/^(?:show_job_results|update_search_preferences|reset_search_preferences|start_apply_execution|resume_task|compare_selected_role_cv|render_selected_role|start_cv_tailoring|start_cv_review|start_interview_prep|start_application_material|start_recruiter_networking)$/i.test(actionType || "")) {
+  if (/^(?:show_job_results|web_search|update_search_preferences|reset_search_preferences|start_apply_execution|resume_task|compare_selected_role_cv|render_selected_role|start_cv_tailoring|start_cv_review|start_interview_prep|start_application_material|start_recruiter_networking)$/i.test(actionType || "")) {
     return "execute";
   }
   if (/^answer_/i.test(actionType || "") || actionType === "answer_directly") {

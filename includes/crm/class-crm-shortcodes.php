@@ -820,6 +820,8 @@ class SFFC_CRM_Shortcodes
         add_action('wp_ajax_nopriv_sffc_crm_apply_chat_send_catch_up_invite', [$this, 'ajax_crm_apply_chat_send_catch_up_invite']);
         add_action('wp_ajax_sffc_crm_apply_chat_search_jobs', [$this, 'ajax_crm_apply_chat_search_jobs']);
         add_action('wp_ajax_nopriv_sffc_crm_apply_chat_search_jobs', [$this, 'ajax_crm_apply_chat_search_jobs']);
+        add_action('wp_ajax_sffc_crm_apply_chat_web_search', [$this, 'ajax_crm_apply_chat_web_search']);
+        add_action('wp_ajax_nopriv_sffc_crm_apply_chat_web_search', [$this, 'ajax_crm_apply_chat_web_search']);
         add_action('wp_ajax_sffc_crm_apply_chat_admin_threads', [$this, 'ajax_crm_apply_chat_admin_threads']);
         add_action('wp_ajax_sffc_crm_apply_chat_admin_open', [$this, 'ajax_crm_apply_chat_admin_open']);
         add_action('wp_ajax_sffc_crm_apply_chat_admin_reply', [$this, 'ajax_crm_apply_chat_admin_reply']);
@@ -41038,6 +41040,7 @@ CRITICAL INSTRUCTIONS:
                 'applicationPreviewQueueNonce' => wp_create_nonce('sffc_crm_apply_chat_queue_application_preview'),
                 'catchUpInviteNonce' => wp_create_nonce('sffc_crm_apply_chat_send_catch_up_invite'),
                 'jobsSearchNonce' => wp_create_nonce('sffc_crm_apply_chat_search_jobs'),
+                'webSearchNonce' => wp_create_nonce('sffc_crm_apply_chat_web_search'),
                 'emilyDecisionEngineEnabled' => (bool) apply_filters('sffc_crm_apply_chat_decision_engine_enabled', true),
                 'emilyDecisionEngineShadowMode' => (bool) apply_filters('sffc_crm_apply_chat_decision_engine_shadow_mode', false),
                 'emilyDecisionConfidenceThreshold' => (float) apply_filters('sffc_crm_apply_chat_decision_confidence_threshold', 0.6),
@@ -41466,7 +41469,7 @@ CRITICAL INSTRUCTIONS:
                             <nav class="sffc-crm-apply-chat__app-rail" aria-label="<?php esc_attr_e('Chat navigation', 'senna-finance'); ?>">
                                 <div class="sffc-crm-apply-chat__app-rail-brand" aria-label="<?php esc_attr_e('MENA Careers', 'senna-finance'); ?>">
                                     <span class="sffc-crm-apply-chat__app-rail-brand-mark" aria-hidden="true">
-                                        <span class="sffc-crm-apply-chat__app-rail-brand-glyph">S</span>
+                                        <img src="https://media.joinsenna.com/2026/01/sennaLogoOfficial.png" alt="" loading="lazy">
                                     </span>
                                 </div>
                                 <div class="sffc-crm-apply-chat__app-rail-group">
@@ -41487,6 +41490,12 @@ CRITICAL INSTRUCTIONS:
                                             <svg viewBox="0 0 24 24" fill="none"><path d="M5 12.2h5.2l2.1-2.6 2.2 4.2 1.8-2.2H19" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M7.2 7.2h9.6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M7.2 17h6.4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
                                         </span>
                                         <span class="sffc-crm-apply-chat__app-rail-button-label"><?php esc_html_e('Saved roles', 'senna-finance'); ?></span>
+                                    </button>
+                                    <button type="button" class="sffc-crm-apply-chat__app-rail-button" data-sffc-apply-chat-open-workspace-cv aria-label="<?php esc_attr_e('My CV', 'senna-finance'); ?>">
+                                        <span class="sffc-crm-apply-chat__app-rail-button-icon" aria-hidden="true">
+                                            <svg viewBox="0 0 24 24" fill="none"><path d="M12 5.5 18.5 12 12 18.5 5.5 12 12 5.5Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
+                                        </span>
+                                        <span class="sffc-crm-apply-chat__app-rail-button-label"><?php esc_html_e('My CV', 'senna-finance'); ?></span>
                                     </button>
                                     <button type="button" class="sffc-crm-apply-chat__app-rail-button" data-sffc-apply-chat-rail-view="sent" aria-label="<?php esc_attr_e('Career plan', 'senna-finance'); ?>" data-sffc-apply-chat-membership-gated="1">
                                         <span class="sffc-crm-apply-chat__app-rail-button-icon" aria-hidden="true">
@@ -41566,6 +41575,16 @@ CRITICAL INSTRUCTIONS:
                                                 <small class="sffc-crm-apply-chat__desk-role"><?php echo esc_html($role_context); ?></small>
                                             <?php endif; ?>
                                         </div>
+                                        <div class="sffc-crm-apply-chat__desk-language" data-sffc-apply-chat-language>
+                                            <button type="button" class="sffc-crm-apply-chat__desk-language-toggle" data-sffc-apply-chat-language-toggle aria-haspopup="true" aria-expanded="false">
+                                                <span data-sffc-apply-chat-language-label><?php esc_html_e('Languages', 'senna-finance'); ?></span>
+                                                <span aria-hidden="true">⌄</span>
+                                            </button>
+                                            <div class="sffc-crm-apply-chat__desk-language-menu" data-sffc-apply-chat-language-menu hidden>
+                                                <button type="button" data-sffc-apply-chat-language-option="en"><?php esc_html_e('English', 'senna-finance'); ?></button>
+                                                <button type="button" data-sffc-apply-chat-language-option="ar"><?php esc_html_e('Arabic', 'senna-finance'); ?></button>
+                                            </div>
+                                        </div>
                                     </div>
                                     <div class="sffc-crm-apply-chat__desk-head-actions">
                                         <div class="sffc-crm-apply-chat__desk-search" data-sffc-apply-chat-desk-search hidden>
@@ -41595,10 +41614,22 @@ CRITICAL INSTRUCTIONS:
                                         <div class="sffc-crm-apply-chat__conversation-stage" data-sffc-apply-chat-conversation-stage>
                                             <div class="sffc-crm-apply-chat__messages" data-sffc-apply-chat-messages></div>
                                             <form class="sffc-crm-apply-chat__composer" data-sffc-apply-chat-composer>
-                                                <input type="text" data-sffc-apply-chat-input autocomplete="off" placeholder="<?php esc_attr_e('Type your answer', 'senna-finance'); ?>">
+                                                <div class="sffc-crm-apply-chat__composer-input-row">
+                                                    <input type="text" data-sffc-apply-chat-input autocomplete="off" placeholder="<?php esc_attr_e('Ask Emily about a role, company, CV or job search...', 'senna-finance'); ?>">
+                                                </div>
                                                 <input type="file" data-sffc-apply-chat-file accept=".pdf,.doc,.docx,.txt">
-                                                <button type="button" class="sffc-crm-apply-chat__upload" data-sffc-apply-chat-upload hidden><?php esc_html_e('Upload CV', 'senna-finance'); ?></button>
-                                                <button type="submit" class="sffc-crm-apply-chat__send"><?php esc_html_e('Send', 'senna-finance'); ?></button>
+                                                <div class="sffc-crm-apply-chat__composer-bottom">
+                                                    <div class="sffc-crm-apply-chat__composer-tools">
+                                                        <button type="button" class="sffc-crm-apply-chat__composer-tool" data-sffc-apply-chat-upload-trigger aria-label="<?php esc_attr_e('Attach document', 'senna-finance'); ?>">+</button>
+                                                        <button type="button" class="sffc-crm-apply-chat__composer-mode is-active" data-sffc-apply-chat-search-mode>
+                                                            <span class="sffc-crm-apply-chat__composer-mode-dot" aria-hidden="true"></span>
+                                                            <span><?php esc_html_e('Search jobs', 'senna-finance'); ?></span>
+                                                        </button>
+                                                        <button type="button" class="sffc-crm-apply-chat__composer-tool sffc-crm-apply-chat__composer-tool--cv" data-sffc-apply-chat-use-cv><?php esc_html_e('Use my CV', 'senna-finance'); ?></button>
+                                                        <button type="button" class="sffc-crm-apply-chat__upload" data-sffc-apply-chat-upload hidden><?php esc_html_e('Upload CV', 'senna-finance'); ?></button>
+                                                    </div>
+                                                    <button type="submit" class="sffc-crm-apply-chat__send" aria-label="<?php esc_attr_e('Send message', 'senna-finance'); ?>"><?php esc_html_e('Send', 'senna-finance'); ?></button>
+                                                </div>
                                             </form>
                                         </div>
                                         <section class="sffc-crm-apply-chat__results-stage sffc-community-editorial sffc-crm-linkedin-jobs" data-sffc-apply-chat-results-stage hidden aria-hidden="true">
@@ -42030,6 +42061,352 @@ CRITICAL INSTRUCTIONS:
             return $items;
         }
 
+        private function get_crm_apply_chat_web_search_endpoint()
+        {
+            $endpoint = '';
+            if (defined('SFFC_SEARCH_ENDPOINT')) {
+                $endpoint = (string) SFFC_SEARCH_ENDPOINT;
+            }
+            if ($endpoint === '') {
+                $endpoint = (string) getenv('SFFC_SEARCH_ENDPOINT');
+            }
+
+            return esc_url_raw(trim($endpoint));
+        }
+
+        private function get_crm_apply_chat_web_search_token()
+        {
+            $token = '';
+            if (defined('SFFC_SEARCH_TOKEN')) {
+                $token = (string) SFFC_SEARCH_TOKEN;
+            }
+            if ($token === '') {
+                $token = (string) getenv('SFFC_SEARCH_TOKEN');
+            }
+
+            return sanitize_text_field(trim($token));
+        }
+
+        private function normalize_crm_apply_chat_web_search_locale($locale)
+        {
+            $locale = strtolower(trim(sanitize_text_field((string) $locale)));
+            if (strpos($locale, 'ar') === 0) {
+                return 'ar';
+            }
+
+            return 'en';
+        }
+
+        private function is_crm_apply_chat_web_search_tracking_param($key)
+        {
+            $key = strtolower(trim((string) $key));
+            if ($key === '') {
+                return false;
+            }
+
+            if (strpos($key, 'utm_') === 0) {
+                return true;
+            }
+
+            return in_array($key, [
+                'fbclid',
+                'gclid',
+                'gbraid',
+                'wbraid',
+                'igshid',
+                'mc_cid',
+                'mc_eid',
+                '_hsenc',
+                '_hsmi',
+                'ref',
+                'ref_src',
+                'spm',
+            ], true);
+        }
+
+        private function is_crm_apply_chat_web_search_sensitive_query($query)
+        {
+            $query = trim((string) $query);
+            if ($query === '') {
+                return false;
+            }
+
+            if (preg_match('/[\w.+-]+@[\w.-]+\.[a-z]{2,}/i', $query)) {
+                return true;
+            }
+
+            if (preg_match('/(?:\+?\d[\d\s().-]{7,}\d)/', $query)) {
+                return true;
+            }
+
+            return (bool) preg_match(
+                '/\b(?:home address|private address|personal address|private email|personal email|phone number|mobile number|personal phone|passport|national id|identity number|emirates id|iqama|date of birth|dob|bank account|password|otp|dox|doxx|doxxing|lookup someone|find someone\'?s (?:phone|email|address))\b/i',
+                $query
+            );
+        }
+
+        private function log_crm_apply_chat_web_search_event($event, $query = '', array $context = [])
+        {
+            if (!defined('WP_DEBUG') || !WP_DEBUG) {
+                return;
+            }
+
+            $safe_context = [];
+            foreach ($context as $key => $value) {
+                $safe_key = sanitize_key((string) $key);
+                if ($safe_key === '' || in_array($safe_key, ['token', 'authorization', 'headers', 'url', 'query'], true)) {
+                    continue;
+                }
+                if (is_scalar($value) || $value === null) {
+                    $safe_context[$safe_key] = sanitize_text_field((string) $value);
+                }
+            }
+
+            $payload = array_merge([
+                'event' => sanitize_key((string) $event),
+                'query_hash' => substr(hash('sha256', strtolower(trim((string) $query))), 0, 16),
+            ], $safe_context);
+
+            error_log('SFFC apply chat web search: ' . wp_json_encode($payload));
+        }
+
+        private function normalize_crm_apply_chat_web_search_result_url($url)
+        {
+            $url = esc_url_raw(trim((string) $url));
+            if ($url === '') {
+                return '';
+            }
+
+            $scheme = strtolower((string) wp_parse_url($url, PHP_URL_SCHEME));
+            if (!in_array($scheme, ['http', 'https'], true)) {
+                return '';
+            }
+
+            $parts = wp_parse_url($url);
+            if (!is_array($parts) || empty($parts['host'])) {
+                return $url;
+            }
+
+            $query_args = [];
+            if (!empty($parts['query'])) {
+                wp_parse_str($parts['query'], $query_args);
+                foreach (array_keys($query_args) as $key) {
+                    if ($this->is_crm_apply_chat_web_search_tracking_param($key)) {
+                        unset($query_args[$key]);
+                    }
+                }
+            }
+
+            $clean_url = strtolower((string) $parts['scheme']) . '://' . $parts['host'];
+            if (!empty($parts['port'])) {
+                $clean_url .= ':' . absint($parts['port']);
+            }
+            $clean_url .= isset($parts['path']) ? $parts['path'] : '';
+            if (!empty($query_args)) {
+                $clean_url .= '?' . http_build_query($query_args, '', '&', PHP_QUERY_RFC3986);
+            }
+
+            return esc_url_raw($clean_url);
+        }
+
+        private function normalize_crm_apply_chat_web_search_results($body, $limit = 6)
+        {
+            $limit = max(5, min(8, absint($limit)));
+            $data = json_decode((string) $body, true);
+            if (!is_array($data)) {
+                return [];
+            }
+
+            $raw_results = [];
+            if (!empty($data['results']) && is_array($data['results'])) {
+                $raw_results = $data['results'];
+            } elseif (!empty($data['items']) && is_array($data['items'])) {
+                $raw_results = $data['items'];
+            }
+
+            $results = [];
+            $seen = [];
+            foreach ($raw_results as $raw_result) {
+                if (!is_array($raw_result)) {
+                    continue;
+                }
+
+                $url = $this->normalize_crm_apply_chat_web_search_result_url($raw_result['url'] ?? $raw_result['link'] ?? '');
+                if ($url === '' || isset($seen[$url])) {
+                    continue;
+                }
+                $seen[$url] = true;
+
+                $title = trim(wp_strip_all_tags((string) ($raw_result['title'] ?? $raw_result['name'] ?? '')));
+                $snippet = trim(wp_strip_all_tags((string) ($raw_result['content'] ?? $raw_result['snippet'] ?? $raw_result['description'] ?? '')));
+                if ($title === '' && $snippet === '') {
+                    continue;
+                }
+
+                $host = (string) wp_parse_url($url, PHP_URL_HOST);
+                $source = $host !== '' ? preg_replace('/^www\./i', '', $host) : '';
+
+                $results[] = [
+                    'title' => sanitize_text_field($title !== '' ? $title : $source),
+                    'url' => $url,
+                    'snippet' => sanitize_textarea_field($snippet),
+                    'source' => sanitize_text_field($source),
+                    'engine' => sanitize_text_field((string) ($raw_result['engine'] ?? $raw_result['engines'][0] ?? '')),
+                    'category' => sanitize_text_field((string) ($raw_result['category'] ?? 'web')),
+                    'publishedAt' => sanitize_text_field((string) ($raw_result['publishedDate'] ?? $raw_result['published_at'] ?? $raw_result['date'] ?? '')),
+                    'score' => isset($raw_result['score']) ? (float) $raw_result['score'] : 0.0,
+                ];
+
+                if (count($results) >= $limit) {
+                    break;
+                }
+            }
+
+            return $results;
+        }
+
+        private function get_crm_apply_chat_web_search_cache_ttl($query)
+        {
+            $query = strtolower((string) $query);
+            if (preg_match('/\b(latest|news|today|current|currently|recent|now|this week|this month)\b/u', $query)) {
+                return HOUR_IN_SECONDS;
+            }
+            if (preg_match('/(اليوم|الآن|اخر|آخر|حديث|جديد|حالي|حالية|هذا الأسبوع|هذا الشهر)/u', $query)) {
+                return HOUR_IN_SECONDS;
+            }
+
+            return 12 * HOUR_IN_SECONDS;
+        }
+
+        private function build_crm_apply_chat_web_search_summary($query, array $results, $locale)
+        {
+            if (empty($results)) {
+                return $locale === 'ar'
+                    ? __('لم أتمكن من العثور على مصادر ويب مفيدة لهذا السؤال الآن.', 'senna-finance')
+                    : __('I could not verify useful web sources for that right now.', 'senna-finance');
+            }
+
+            return $locale === 'ar'
+                ? __('وجدت بعض مصادر الويب التي تستحق المراجعة. استخدمها كنقطة بداية، ثم ضيق البحث حسب المجال، مستوى الخبرة، وحداثة المعلومات.', 'senna-finance')
+                : __('I found a few web sources worth checking. Treat these as starting points, then narrow by sector, seniority, and how current the information is.', 'senna-finance');
+        }
+
+        private function call_crm_apply_chat_web_search_service($query, $locale, $limit)
+        {
+            $endpoint = $this->get_crm_apply_chat_web_search_endpoint();
+            if ($endpoint === '') {
+                $this->log_crm_apply_chat_web_search_event('missing_endpoint', $query, [
+                    'locale' => $locale,
+                    'limit' => $limit,
+                ]);
+                return new WP_Error('sffc_search_endpoint_missing', __('Web search is not configured yet.', 'senna-finance'));
+            }
+
+            $url = add_query_arg([
+                'q' => $query,
+                'format' => 'json',
+                'language' => $locale,
+                'safesearch' => '1',
+            ], $endpoint);
+
+            $headers = [
+                'Accept' => 'application/json',
+            ];
+            $token = $this->get_crm_apply_chat_web_search_token();
+            if ($token !== '') {
+                $headers['Authorization'] = 'Bearer ' . $token;
+            }
+
+            $response = wp_remote_get($url, [
+                'timeout' => 10,
+                'redirection' => 2,
+                'headers' => $headers,
+            ]);
+
+            if (is_wp_error($response)) {
+                $this->log_crm_apply_chat_web_search_event('request_error', $query, [
+                    'error_code' => $response->get_error_code(),
+                    'endpoint_host' => (string) wp_parse_url($endpoint, PHP_URL_HOST),
+                ]);
+                return $response;
+            }
+
+            $status = (int) wp_remote_retrieve_response_code($response);
+            if ($status < 200 || $status >= 300) {
+                $this->log_crm_apply_chat_web_search_event('bad_status', $query, [
+                    'status' => $status,
+                    'endpoint_host' => (string) wp_parse_url($endpoint, PHP_URL_HOST),
+                ]);
+                return new WP_Error(
+                    'sffc_search_service_failed',
+                    sprintf(__('Web search failed with status %d.', 'senna-finance'), $status)
+                );
+            }
+
+            return $this->normalize_crm_apply_chat_web_search_results(wp_remote_retrieve_body($response), $limit);
+        }
+
+        public function ajax_crm_apply_chat_web_search()
+        {
+            check_ajax_referer('sffc_crm_apply_chat_web_search', 'nonce');
+
+            $raw_query = isset($_POST['query']) ? wp_unslash($_POST['query']) : '';
+            $query = is_array($raw_query) ? '' : trim(sanitize_text_field((string) $raw_query));
+            $query = function_exists('mb_substr') ? mb_substr($query, 0, 220) : substr($query, 0, 220);
+            $query_length = function_exists('mb_strlen') ? mb_strlen($query) : strlen($query);
+            if ($query_length < 3) {
+                wp_send_json_error([
+                    'message' => __('Ask me what to search for.', 'senna-finance'),
+                ], 400);
+            }
+
+            if ($this->is_crm_apply_chat_web_search_sensitive_query($query)) {
+                wp_send_json_error([
+                    'message' => __('I can search public career information, but not private personal details.', 'senna-finance'),
+                ], 400);
+            }
+
+            $locale = isset($_POST['locale']) ? $this->normalize_crm_apply_chat_web_search_locale(wp_unslash((string) $_POST['locale'])) : 'en';
+            $limit = isset($_POST['limit']) ? absint($_POST['limit']) : 6;
+            $limit = max(5, min(8, $limit));
+            $cache_key = 'sffc_apply_chat_web_search_' . md5(strtolower($locale . '|' . $limit . '|' . $query));
+            $cached = get_transient($cache_key);
+            if (is_array($cached)) {
+                $cached['cached'] = true;
+                wp_send_json_success($cached);
+            }
+
+            $results = $this->call_crm_apply_chat_web_search_service($query, $locale, $limit);
+            if (is_wp_error($results)) {
+                $is_missing_endpoint = $results->get_error_code() === 'sffc_search_endpoint_missing';
+                wp_send_json_error([
+                    'message' => $is_missing_endpoint
+                        ? __('Web search is not configured yet.', 'senna-finance')
+                        : __('I could not reach web search just now. Try again in a moment.', 'senna-finance'),
+                    'query' => $query,
+                    'results' => [],
+                ], $is_missing_endpoint ? 503 : 502);
+            }
+
+            $payload = [
+                'ok' => true,
+                'query' => $query,
+                'locale' => $locale,
+                'summary' => $this->build_crm_apply_chat_web_search_summary($query, (array) $results, $locale),
+                'results' => array_values((array) $results),
+                'source' => 'searxng',
+                'cached' => false,
+                'searchedAt' => gmdate('c'),
+            ];
+
+            $cache_ttl = $this->get_crm_apply_chat_web_search_cache_ttl($query);
+            if (empty($payload['results'])) {
+                $cache_ttl = min($cache_ttl, 30 * MINUTE_IN_SECONDS);
+            }
+            set_transient($cache_key, $payload, $cache_ttl);
+            wp_send_json_success($payload);
+        }
+
         public function ajax_crm_apply_chat_search_jobs()
         {
             check_ajax_referer('sffc_crm_apply_chat_search_jobs', 'nonce');
@@ -42266,6 +42643,7 @@ CRITICAL INSTRUCTIONS:
                 'applicationPreviewQueueNonce' => wp_create_nonce('sffc_crm_apply_chat_queue_application_preview'),
                 'catchUpInviteNonce' => wp_create_nonce('sffc_crm_apply_chat_send_catch_up_invite'),
                 'jobsSearchNonce' => wp_create_nonce('sffc_crm_apply_chat_search_jobs'),
+                'webSearchNonce' => wp_create_nonce('sffc_crm_apply_chat_web_search'),
                 'emilyDecisionEngineEnabled' => (bool) apply_filters('sffc_crm_apply_chat_decision_engine_enabled', true),
                 'emilyDecisionEngineShadowMode' => (bool) apply_filters('sffc_crm_apply_chat_decision_engine_shadow_mode', false),
                 'emilyDecisionConfidenceThreshold' => (float) apply_filters('sffc_crm_apply_chat_decision_confidence_threshold', 0.6),
@@ -42591,7 +42969,7 @@ CRITICAL INSTRUCTIONS:
                             <nav class="sffc-crm-apply-chat__app-rail" aria-label="<?php esc_attr_e('Chat navigation', 'senna-finance'); ?>">
                                 <div class="sffc-crm-apply-chat__app-rail-brand" aria-label="<?php esc_attr_e('MENA Careers', 'senna-finance'); ?>">
                                     <span class="sffc-crm-apply-chat__app-rail-brand-mark" aria-hidden="true">
-                                        <span class="sffc-crm-apply-chat__app-rail-brand-glyph">S</span>
+                                        <img src="https://media.joinsenna.com/2026/01/sennaLogoOfficial.png" alt="" loading="lazy">
                                     </span>
                                 </div>
                                 <div class="sffc-crm-apply-chat__app-rail-group">
@@ -42612,6 +42990,12 @@ CRITICAL INSTRUCTIONS:
                                             <svg viewBox="0 0 24 24" fill="none"><path d="M5 12.2h5.2l2.1-2.6 2.2 4.2 1.8-2.2H19" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M7.2 7.2h9.6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M7.2 17h6.4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
                                         </span>
                                         <span class="sffc-crm-apply-chat__app-rail-button-label"><?php esc_html_e('Saved roles', 'senna-finance'); ?></span>
+                                    </button>
+                                    <button type="button" class="sffc-crm-apply-chat__app-rail-button" data-sffc-apply-chat-open-workspace-cv aria-label="<?php esc_attr_e('My CV', 'senna-finance'); ?>">
+                                        <span class="sffc-crm-apply-chat__app-rail-button-icon" aria-hidden="true">
+                                            <svg viewBox="0 0 24 24" fill="none"><path d="M12 5.5 18.5 12 12 18.5 5.5 12 12 5.5Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
+                                        </span>
+                                        <span class="sffc-crm-apply-chat__app-rail-button-label"><?php esc_html_e('My CV', 'senna-finance'); ?></span>
                                     </button>
                                     <button type="button" class="sffc-crm-apply-chat__app-rail-button" data-sffc-apply-chat-rail-view="sent" aria-label="<?php esc_attr_e('Career plan', 'senna-finance'); ?>" data-sffc-apply-chat-membership-gated="1">
                                         <span class="sffc-crm-apply-chat__app-rail-button-icon" aria-hidden="true">
@@ -42691,6 +43075,16 @@ CRITICAL INSTRUCTIONS:
                                                 <small class="sffc-crm-apply-chat__desk-role"><?php echo esc_html($role_context); ?></small>
                                             <?php endif; ?>
                                         </div>
+                                        <div class="sffc-crm-apply-chat__desk-language" data-sffc-apply-chat-language>
+                                            <button type="button" class="sffc-crm-apply-chat__desk-language-toggle" data-sffc-apply-chat-language-toggle aria-haspopup="true" aria-expanded="false">
+                                                <span data-sffc-apply-chat-language-label><?php esc_html_e('Languages', 'senna-finance'); ?></span>
+                                                <span aria-hidden="true">⌄</span>
+                                            </button>
+                                            <div class="sffc-crm-apply-chat__desk-language-menu" data-sffc-apply-chat-language-menu hidden>
+                                                <button type="button" data-sffc-apply-chat-language-option="en"><?php esc_html_e('English', 'senna-finance'); ?></button>
+                                                <button type="button" data-sffc-apply-chat-language-option="ar"><?php esc_html_e('Arabic', 'senna-finance'); ?></button>
+                                            </div>
+                                        </div>
                                     </div>
                                     <div class="sffc-crm-apply-chat__desk-head-actions">
                                         <div class="sffc-crm-apply-chat__desk-search" data-sffc-apply-chat-desk-search hidden>
@@ -42720,10 +43114,22 @@ CRITICAL INSTRUCTIONS:
                                         <div class="sffc-crm-apply-chat__conversation-stage" data-sffc-apply-chat-conversation-stage>
                                             <div class="sffc-crm-apply-chat__messages" data-sffc-apply-chat-messages></div>
                                             <form class="sffc-crm-apply-chat__composer" data-sffc-apply-chat-composer>
-                                                <input type="text" data-sffc-apply-chat-input autocomplete="off" placeholder="<?php esc_attr_e('Type your answer', 'senna-finance'); ?>">
+                                                <div class="sffc-crm-apply-chat__composer-input-row">
+                                                    <input type="text" data-sffc-apply-chat-input autocomplete="off" placeholder="<?php esc_attr_e('Ask Emily about a role, company, CV or job search...', 'senna-finance'); ?>">
+                                                </div>
                                                 <input type="file" data-sffc-apply-chat-file accept=".pdf,.doc,.docx,.txt">
-                                                <button type="button" class="sffc-crm-apply-chat__upload" data-sffc-apply-chat-upload hidden><?php esc_html_e('Upload CV', 'senna-finance'); ?></button>
-                                                <button type="submit" class="sffc-crm-apply-chat__send"><?php esc_html_e('Send', 'senna-finance'); ?></button>
+                                                <div class="sffc-crm-apply-chat__composer-bottom">
+                                                    <div class="sffc-crm-apply-chat__composer-tools">
+                                                        <button type="button" class="sffc-crm-apply-chat__composer-tool" data-sffc-apply-chat-upload-trigger aria-label="<?php esc_attr_e('Attach document', 'senna-finance'); ?>">+</button>
+                                                        <button type="button" class="sffc-crm-apply-chat__composer-mode is-active" data-sffc-apply-chat-search-mode>
+                                                            <span class="sffc-crm-apply-chat__composer-mode-dot" aria-hidden="true"></span>
+                                                            <span><?php esc_html_e('Search jobs', 'senna-finance'); ?></span>
+                                                        </button>
+                                                        <button type="button" class="sffc-crm-apply-chat__composer-tool sffc-crm-apply-chat__composer-tool--cv" data-sffc-apply-chat-use-cv><?php esc_html_e('Use my CV', 'senna-finance'); ?></button>
+                                                        <button type="button" class="sffc-crm-apply-chat__upload" data-sffc-apply-chat-upload hidden><?php esc_html_e('Upload CV', 'senna-finance'); ?></button>
+                                                    </div>
+                                                    <button type="submit" class="sffc-crm-apply-chat__send" aria-label="<?php esc_attr_e('Send message', 'senna-finance'); ?>"><?php esc_html_e('Send', 'senna-finance'); ?></button>
+                                                </div>
                                             </form>
                                         </div>
                                         <section class="sffc-crm-apply-chat__results-stage sffc-community-editorial sffc-crm-linkedin-jobs" data-sffc-apply-chat-results-stage hidden aria-hidden="true">
@@ -58186,6 +58592,11 @@ CRITICAL INSTRUCTIONS:
                 'searchHealth' => 'search_health',
                 'applicationOutcomeHistory' => 'application_outcome_history',
                 'preferredApplyBehavior' => 'preferred_apply_behavior',
+                'conversationContextState' => 'conversation_context_state',
+                'conversationContextHistory' => 'conversation_context_history',
+                'conversationSummary' => 'conversation_summary',
+                'profileSnapshot' => 'profile_snapshot',
+                'memoryFacts' => 'memory_facts',
                 'lastLauncherSearch' => 'last_launcher_search',
                 'locationVisaRequirements' => 'location_visa_requirements',
                 'followUpState' => 'follow_up_state',
@@ -58237,6 +58648,11 @@ CRITICAL INSTRUCTIONS:
                 'search_health' => [],
                 'application_outcome_history' => [],
                 'preferred_apply_behavior' => '',
+                'conversation_context_state' => [],
+                'conversation_context_history' => [],
+                'conversation_summary' => '',
+                'profile_snapshot' => [],
+                'memory_facts' => [],
                 'last_launcher_search' => [],
                 'location_visa_requirements' => [],
                 'updated_at' => '',
@@ -58271,13 +58687,19 @@ CRITICAL INSTRUCTIONS:
                 $payload[$list_key] = array_values(array_unique($values));
             }
 
-            foreach (['recent_result_entities', 'paused_tasks', 'user_objections', 'application_outcome_history'] as $object_list_key) {
+            foreach (['recent_result_entities', 'paused_tasks', 'user_objections', 'application_outcome_history', 'conversation_context_history', 'memory_facts'] as $object_list_key) {
                 $values = is_array($payload[$object_list_key]) ? $payload[$object_list_key] : [];
                 $payload[$object_list_key] = array_slice(array_values(array_filter($values, 'is_array')), -25);
             }
 
             $payload['current_selected_role'] = is_array($payload['current_selected_role']) ? $payload['current_selected_role'] : [];
             $payload['search_health'] = is_array($payload['search_health']) ? $payload['search_health'] : [];
+            $payload['conversation_context_state'] = is_array($payload['conversation_context_state']) ? $payload['conversation_context_state'] : [];
+            $payload['conversation_summary'] = sanitize_textarea_field((string) ($payload['conversation_summary'] ?? ''));
+            $payload['conversation_summary'] = function_exists('mb_substr')
+                ? mb_substr($payload['conversation_summary'], 0, 1200)
+                : substr($payload['conversation_summary'], 0, 1200);
+            $payload['profile_snapshot'] = is_array($payload['profile_snapshot']) ? $payload['profile_snapshot'] : [];
             $payload['inferred_career_problem'] = sanitize_text_field((string) ($payload['inferred_career_problem'] ?? ''));
             $payload['preferred_apply_behavior'] = sanitize_key((string) ($payload['preferred_apply_behavior'] ?? ''));
             $launcher_search = is_array($payload['last_launcher_search']) ? $payload['last_launcher_search'] : [];

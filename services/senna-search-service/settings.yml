@@ -1,0 +1,47 @@
+# Senna SearXNG settings.
+# Keep this file small and let SearXNG inherit upstream defaults.
+
+use_default_settings: true
+
+general:
+  debug: false
+  instance_name: "Senna Search"
+  enable_metrics: false
+
+search:
+  safe_search: 1
+  autocomplete: ""
+  favicon_resolver: ""
+  default_lang: "auto"
+  formats:
+    - html
+    - json
+
+server:
+  bind_address: "0.0.0.0"
+  port: 8080
+  secret_key: "replace-with-SEARXNG_SECRET-env"
+  limiter: false
+  public_instance: false
+  image_proxy: false
+  method: "GET"
+
+ui:
+  static_use_hash: true
+  query_in_title: false
+  default_theme: simple
+  default_locale: ""
+
+outgoing:
+  request_timeout: 5.0
+  max_request_timeout: 10.0
+  pool_connections: 50
+  pool_maxsize: 20
+
+engines:
+  - name: google
+    disabled: true
+  - name: google news
+    disabled: true
+  - name: bing
+    disabled: true
