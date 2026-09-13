@@ -12,7 +12,7 @@ RUN npm install --omit=dev
 COPY requirements.txt ./
 RUN python3 -m pip install --break-system-packages --no-cache-dir -r requirements.txt
 
-COPY server.js pyresume_bridge.py ./
+COPY server.js pyresume_bridge.py layout_bridge.py ./
 
 ENV NODE_ENV=production
 EXPOSE 3000
