@@ -663,7 +663,7 @@ Completion criteria:
 - [x] The service produces structured job queries instead of raw filler prompts.
 - [x] General/country/timing/recruiter questions route to web-answer style actions instead of selected-role clarification.
 - [x] Career-frustration prompts route to career advice with web support.
-- [ ] WordPress calls this service before falling back to the local browser-safe meaning engine.
+- [x] WordPress calls this service before falling back to the local browser-safe meaning engine.
 
 Implementation notes:
 
@@ -695,14 +695,29 @@ define('SFFC_EMILY_NLP_ENDPOINT', 'https://your-emily-nlp-service.up.railway.app
   - [x] include location/sector/context if available
 - For career advice:
   - [x] generate support query only when useful in the service.
-- [ ] Replace the current shallow `buildApplyChatWebSearchQuery(...)` behavior with service-backed meaning-aware rewrite output.
+- [x] Replace the current shallow `buildApplyChatWebSearchQuery(...)` behavior with service-backed meaning-aware rewrite output.
 
 Completion criteria:
 
 - [x] "i need help to find jobs in dubai" becomes internal job query `{ location: "Dubai" }`, not raw text in the service.
 - [x] "best recruiters in dubai" becomes web query `best recruitment agencies Dubai` in the service.
 - [x] "I'm tired of applying and getting no replies" becomes web query `job search burnout no replies improve application strategy practical steps` in the service.
-- [ ] WordPress consumes the service rewrite output in live chat.
+- [x] WordPress consumes the service rewrite output in live chat.
+
+Implementation notes:
+
+- `SFFC_EMILY_NLP_ENDPOINT` is now localized into the apply-chat article config as `emilyNlpEndpoint`.
+- The main composer submit flow calls the service through `buildConversationDecisionWithService(...)`.
+- If the service fails, times out, has low confidence, or returns an unsupported action, the existing local browser-safe decision engine remains the fallback.
+- Service-backed actions currently override only the highest-impact routes:
+  - `jobs_database_search` -> local `show_job_results`
+  - `web_answer` -> local `web_search`
+  - `career_advice_with_web_support` -> local `web_search`
+- Browser debug:
+
+```js
+window.sffcDebugEmilyMeaningWithService("when is the best time to apply for jobs in Dubai")
+```
 
 ### Phase 8: Context and Memory Integration
 

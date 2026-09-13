@@ -788,6 +788,7 @@ class SFFC_CRM_Shortcodes
         add_action('wp_ajax_nopriv_sffc_crm_apply_chat_boot_session', [$this, 'ajax_crm_apply_chat_boot_session']);
         add_action('wp_ajax_sffc_crm_apply_chat_update_memory', [$this, 'ajax_crm_apply_chat_update_memory']);
         add_action('wp_ajax_nopriv_sffc_crm_apply_chat_update_memory', [$this, 'ajax_crm_apply_chat_update_memory']);
+        add_action('wp_ajax_sffc_crm_apply_chat_application_profile', [$this, 'ajax_crm_apply_chat_application_profile']);
         add_action('wp_ajax_sffc_crm_apply_chat_log_message', [$this, 'ajax_crm_apply_chat_log_message']);
         add_action('wp_ajax_nopriv_sffc_crm_apply_chat_log_message', [$this, 'ajax_crm_apply_chat_log_message']);
         add_action('wp_ajax_sffc_crm_apply_chat_fetch_replies', [$this, 'ajax_crm_apply_chat_fetch_replies']);
@@ -41275,6 +41276,8 @@ CRITICAL INSTRUCTIONS:
                 'emilyDecisionEngineEnabled' => (bool) apply_filters('sffc_crm_apply_chat_decision_engine_enabled', true),
                 'emilyDecisionEngineShadowMode' => (bool) apply_filters('sffc_crm_apply_chat_decision_engine_shadow_mode', false),
                 'emilyDecisionConfidenceThreshold' => (float) apply_filters('sffc_crm_apply_chat_decision_confidence_threshold', 0.6),
+                'emilyNlpEndpoint' => $this->get_crm_apply_chat_emily_nlp_endpoint(),
+                'emilyNlpToken' => $this->get_crm_apply_chat_emily_nlp_token(),
                 'prefillNonce' => wp_create_nonce('sffc_sync_signup_prefill'),
                 'currencyNonce' => wp_create_nonce('sffc_member_basic_signup_currency'),
                 'membershipPanelNonce' => wp_create_nonce('sffc_apply_chat_membership_panel'),
@@ -41283,6 +41286,8 @@ CRITICAL INSTRUCTIONS:
                 'applyChatPricingOptions' => $this->get_apply_chat_pricing_options(),
                 'isLoggedIn' => is_user_logged_in(),
                 'isAdminTester' => current_user_can('manage_options'),
+                'currentUserId' => get_current_user_id(),
+                'currentUserEmail' => is_user_logged_in() ? (string) wp_get_current_user()->user_email : '',
                 'currentUserFirstName' => $this->get_crm_apply_chat_current_user_first_name(),
                 'currentUserFullName' => $this->get_crm_reddit_current_user_full_name(),
                 'currentUserAvatarUrl' => is_user_logged_in() ? (string) get_avatar_url(get_current_user_id(), ['size' => 96]) : 'https://media.joinsenna.com/2025/05/bb-profile-avatar-buddyboss.webp',
@@ -41735,6 +41740,12 @@ CRITICAL INSTRUCTIONS:
                                             <svg viewBox="0 0 24 24" fill="none"><path d="M12 5.5 18.5 12 12 18.5 5.5 12 12 5.5Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
                                         </span>
                                         <span class="sffc-crm-apply-chat__app-rail-button-label"><?php esc_html_e('My CV', 'senna-finance'); ?></span>
+                                    </button>
+                                    <button type="button" class="sffc-crm-apply-chat__app-rail-button" data-sffc-apply-chat-rail-view="profile" data-sffc-apply-chat-open-profile aria-label="<?php esc_attr_e('My profile', 'senna-finance'); ?>">
+                                        <span class="sffc-crm-apply-chat__app-rail-button-icon" aria-hidden="true">
+                                            <svg viewBox="0 0 24 24" fill="none"><path d="M8 8.5a4 4 0 1 1 8 0 4 4 0 0 1-8 0Z" stroke="currentColor" stroke-width="1.8"/><path d="M5.5 19c.65-2.75 3.05-4.5 6.5-4.5s5.85 1.75 6.5 4.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+                                        </span>
+                                        <span class="sffc-crm-apply-chat__app-rail-button-label"><?php esc_html_e('My profile', 'senna-finance'); ?></span>
                                     </button>
                                     <button type="button" class="sffc-crm-apply-chat__app-rail-button" data-sffc-apply-chat-rail-view="sent" aria-label="<?php esc_attr_e('Career plan', 'senna-finance'); ?>" data-sffc-apply-chat-membership-gated="1">
                                         <span class="sffc-crm-apply-chat__app-rail-button-icon" aria-hidden="true">
@@ -42359,6 +42370,32 @@ CRITICAL INSTRUCTIONS:
             }
             if ($token === '') {
                 $token = (string) getenv('SFFC_SEARCH_ANSWER_TOKEN');
+            }
+
+            return sanitize_text_field(trim($token));
+        }
+
+        private function get_crm_apply_chat_emily_nlp_endpoint()
+        {
+            $endpoint = '';
+            if (defined('SFFC_EMILY_NLP_ENDPOINT')) {
+                $endpoint = (string) SFFC_EMILY_NLP_ENDPOINT;
+            }
+            if ($endpoint === '') {
+                $endpoint = (string) getenv('SFFC_EMILY_NLP_ENDPOINT');
+            }
+
+            return esc_url_raw(trim($endpoint));
+        }
+
+        private function get_crm_apply_chat_emily_nlp_token()
+        {
+            $token = '';
+            if (defined('SFFC_EMILY_NLP_TOKEN')) {
+                $token = (string) SFFC_EMILY_NLP_TOKEN;
+            }
+            if ($token === '') {
+                $token = (string) getenv('SFFC_EMILY_NLP_TOKEN');
             }
 
             return sanitize_text_field(trim($token));
@@ -43573,6 +43610,8 @@ CRITICAL INSTRUCTIONS:
                 'emilyDecisionEngineEnabled' => (bool) apply_filters('sffc_crm_apply_chat_decision_engine_enabled', true),
                 'emilyDecisionEngineShadowMode' => (bool) apply_filters('sffc_crm_apply_chat_decision_engine_shadow_mode', false),
                 'emilyDecisionConfidenceThreshold' => (float) apply_filters('sffc_crm_apply_chat_decision_confidence_threshold', 0.6),
+                'emilyNlpEndpoint' => $this->get_crm_apply_chat_emily_nlp_endpoint(),
+                'emilyNlpToken' => $this->get_crm_apply_chat_emily_nlp_token(),
                 'prefillNonce' => wp_create_nonce('sffc_sync_signup_prefill'),
                 'currencyNonce' => wp_create_nonce('sffc_member_basic_signup_currency'),
                 'membershipPanelNonce' => wp_create_nonce('sffc_apply_chat_membership_panel'),
@@ -43581,6 +43620,8 @@ CRITICAL INSTRUCTIONS:
                 'applyChatPricingOptions' => $this->get_apply_chat_pricing_options(),
                 'isLoggedIn' => is_user_logged_in(),
                 'isAdminTester' => current_user_can('manage_options'),
+                'currentUserId' => get_current_user_id(),
+                'currentUserEmail' => is_user_logged_in() ? (string) wp_get_current_user()->user_email : '',
                 'currentUserFirstName' => $this->get_crm_apply_chat_current_user_first_name(),
                 'currentUserFullName' => $this->get_crm_reddit_current_user_full_name(),
                 'currentUserAvatarUrl' => is_user_logged_in() ? (string) get_avatar_url(get_current_user_id(), ['size' => 96]) : 'https://media.joinsenna.com/2025/05/bb-profile-avatar-buddyboss.webp',
@@ -43930,6 +43971,12 @@ CRITICAL INSTRUCTIONS:
                                             <svg viewBox="0 0 24 24" fill="none"><path d="M12 5.5 18.5 12 12 18.5 5.5 12 12 5.5Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
                                         </span>
                                         <span class="sffc-crm-apply-chat__app-rail-button-label"><?php esc_html_e('My CV', 'senna-finance'); ?></span>
+                                    </button>
+                                    <button type="button" class="sffc-crm-apply-chat__app-rail-button" data-sffc-apply-chat-rail-view="profile" data-sffc-apply-chat-open-profile aria-label="<?php esc_attr_e('My profile', 'senna-finance'); ?>">
+                                        <span class="sffc-crm-apply-chat__app-rail-button-icon" aria-hidden="true">
+                                            <svg viewBox="0 0 24 24" fill="none"><path d="M8 8.5a4 4 0 1 1 8 0 4 4 0 0 1-8 0Z" stroke="currentColor" stroke-width="1.8"/><path d="M5.5 19c.65-2.75 3.05-4.5 6.5-4.5s5.85 1.75 6.5 4.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+                                        </span>
+                                        <span class="sffc-crm-apply-chat__app-rail-button-label"><?php esc_html_e('My profile', 'senna-finance'); ?></span>
                                     </button>
                                     <button type="button" class="sffc-crm-apply-chat__app-rail-button" data-sffc-apply-chat-rail-view="sent" aria-label="<?php esc_attr_e('Career plan', 'senna-finance'); ?>" data-sffc-apply-chat-membership-gated="1">
                                         <span class="sffc-crm-apply-chat__app-rail-button-icon" aria-hidden="true">
@@ -45675,6 +45722,21 @@ CRITICAL INSTRUCTIONS:
 
             $candidate_name = sanitize_text_field(wp_unslash((string) ($_POST['candidate_name'] ?? '')));
             $candidate_email = sanitize_email(wp_unslash((string) ($_POST['candidate_email'] ?? '')));
+            $application_profile_raw = wp_unslash((string) ($_POST['application_profile'] ?? '{}'));
+            $application_profile = [];
+            $application_profile_decoded = json_decode($application_profile_raw, true);
+            if (is_array($application_profile_decoded)) {
+                $application_profile = $this->sanitize_crm_application_task_diagnostic_value($application_profile_decoded);
+            }
+            $profile_identity = is_array($application_profile['identity'] ?? null) ? $application_profile['identity'] : [];
+            if ($candidate_name === '') {
+                $profile_name_field = is_array($profile_identity['fullName'] ?? null) ? $profile_identity['fullName'] : [];
+                $candidate_name = sanitize_text_field((string) ($profile_name_field['value'] ?? ''));
+            }
+            if ($candidate_email === '') {
+                $profile_email_field = is_array($profile_identity['email'] ?? null) ? $profile_identity['email'] : [];
+                $candidate_email = sanitize_email((string) ($profile_email_field['value'] ?? ''));
+            }
             $application_url = esc_url_raw(wp_unslash((string) ($_POST['application_url'] ?? '')));
             $application_workspace_url = esc_url_raw(wp_unslash((string) ($_POST['application_workspace_url'] ?? '')));
             $provider = sanitize_key((string) wp_unslash($_POST['provider'] ?? ''));
@@ -45710,6 +45772,10 @@ CRITICAL INSTRUCTIONS:
             $role_title = sanitize_text_field(wp_unslash((string) ($_POST['role_title'] ?? '')));
             $company_name = sanitize_text_field(wp_unslash((string) ($_POST['company_name'] ?? '')));
             $candidate_phone = sanitize_text_field(wp_unslash((string) ($_POST['candidate_phone'] ?? '')));
+            if ($candidate_phone === '') {
+                $profile_phone_field = is_array($profile_identity['phone'] ?? null) ? $profile_identity['phone'] : [];
+                $candidate_phone = sanitize_text_field((string) ($profile_phone_field['value'] ?? ''));
+            }
             $cv_text = sanitize_textarea_field(wp_unslash((string) ($_POST['cv_text'] ?? '')));
             $cv_mode = sanitize_key((string) wp_unslash($_POST['cv_mode'] ?? 'original'));
             if (!in_array($cv_mode, ['original', 'tailored'], true)) {
@@ -45731,6 +45797,7 @@ CRITICAL INSTRUCTIONS:
                 'verification_code' => sanitize_text_field(wp_unslash((string) ($_POST['verification_code'] ?? ''))),
                 'cv_mode' => $cv_mode,
                 'tailored_cv_text' => $tailored_cv_text,
+                'application_profile' => $application_profile,
             ];
             $tailored_cv_model_raw = wp_unslash((string) ($_POST['tailored_cv_model'] ?? '{}'));
             $tailored_cv_model_decoded = json_decode($tailored_cv_model_raw, true);
@@ -47428,6 +47495,40 @@ CRITICAL INSTRUCTIONS:
             wp_send_json_success([
                 'saved' => (bool) $saved,
                 'memory' => $normalized,
+            ]);
+        }
+
+        public function ajax_crm_apply_chat_application_profile()
+        {
+            check_ajax_referer('sffc_crm_apply_chat_memory', 'nonce');
+
+            if (!is_user_logged_in()) {
+                wp_send_json_error(['message' => __('You need to be logged in to save an application profile.', 'senna-finance')], 403);
+            }
+
+            $user_id = get_current_user_id();
+            $mode = sanitize_key((string) wp_unslash($_POST['mode'] ?? 'load'));
+            $meta_key = 'sffc_crm_apply_chat_application_profile';
+
+            if ($mode === 'save') {
+                $profile_raw = wp_unslash((string) ($_POST['application_profile'] ?? '{}'));
+                $profile_decoded = json_decode($profile_raw, true);
+                $profile = is_array($profile_decoded)
+                    ? $this->sanitize_crm_application_task_diagnostic_value($profile_decoded)
+                    : [];
+                $profile['server_saved_at'] = current_time('mysql');
+                update_user_meta($user_id, $meta_key, $profile);
+                wp_send_json_success([
+                    'application_profile' => $profile,
+                    'saved_at' => $profile['server_saved_at'],
+                ]);
+            }
+
+            $saved = get_user_meta($user_id, $meta_key, true);
+            $saved = is_array($saved) ? $this->sanitize_crm_application_task_diagnostic_value($saved) : [];
+            wp_send_json_success([
+                'application_profile' => $saved,
+                'saved_at' => sanitize_text_field((string) ($saved['server_saved_at'] ?? '')),
             ]);
         }
 

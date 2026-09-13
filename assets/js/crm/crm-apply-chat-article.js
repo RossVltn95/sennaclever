@@ -25368,6 +25368,7 @@
     var applicationAnswerDraft = {};
     var applicationEmployerBulkAsked = false;
     var pendingApplicationQuestionQueueCallback = null;
+    var applicationProfileReadinessSessionConfirmed = false;
     var applicationVerificationCode = "";
     var trackedApplicationJobs = [];
     var latestPostApplicationSnapshot = null;
@@ -62591,7 +62592,8 @@
         viewName === "results" ||
         viewName === "tracked" ||
         viewName === "intros" ||
-        viewName === "sent"
+        viewName === "sent" ||
+        viewName === "profile"
           ? viewName
           : "chat";
       if (nextView === "intros" && !introsStage) {
@@ -82397,6 +82399,10 @@
       return /sffc-crm-apply-results\b/.test(String(html || ""));
     }
 
+    function containsApplicationProfileHtml(html) {
+      return /sffc-crm-apply-chat__application-profile\b/.test(String(html || ""));
+    }
+
     function deactivatePreviousApplyResultsSurfaces() {
       if (!messages) {
         return;
@@ -82624,6 +82630,8 @@
       var hasTailoredVersionCard = containsTailoredVersionCardHtml(contentHtml);
       var hasApplyResultsCard = containsApplyResultsHtml(contentHtml);
       var hasWebSearchCard = containsWebSearchCardHtml(contentHtml);
+      var hasApplicationProfileCard =
+        containsApplicationProfileHtml(contentHtml);
       var hasStructuredSurface =
         hasEditorialResults ||
         hasJobResults ||
@@ -82632,6 +82640,7 @@
         hasWorkspaceCard ||
         hasTailoredVersionCard ||
         hasWebSearchCard ||
+        hasApplicationProfileCard ||
         hasApplyResultsCard;
       var shouldTypePlainMessage =
         modifier !== "system" &&
@@ -82658,6 +82667,7 @@
         (hasTailoredVersionCard ? " has-tailored-version-card" : "") +
         (hasWorkspaceCard ? " has-workspace-card" : "") +
         (hasWebSearchCard ? " has-web-search-card" : "") +
+        (hasApplicationProfileCard ? " has-application-profile-card" : "") +
         (hasApplyResultsCard ? " has-apply-results-card" : "");
       if (hasStructuredSurface) {
         row.innerHTML =
@@ -127504,11 +127514,21 @@
             });
           });
         };
-        if (typeof ensureApplicationWorkerAnswersThenQueue === "function") {
-          ensureApplicationWorkerAnswersThenQueue(queueAfterRequiredAnswers);
+        var continueAfterProfileReadiness = function () {
+          if (typeof ensureApplicationWorkerAnswersThenQueue === "function") {
+            ensureApplicationWorkerAnswersThenQueue(queueAfterRequiredAnswers);
+            return;
+          }
+          queueAfterRequiredAnswers();
+        };
+        if (typeof ensureApplicationProfileReadinessThenQueue === "function") {
+          ensureApplicationProfileReadinessThenQueue(
+            item,
+            continueAfterProfileReadiness
+          );
           return;
         }
-        queueAfterRequiredAnswers();
+        continueAfterProfileReadiness();
       }).then(function (data) {
         if (!isCommercialApplyQueueRunCurrent(runToken)) {
           return { status: "cancelled" };
@@ -138598,6 +138618,237 @@
       };
     }
 
+    function getEmilyNlpServiceEndpoint() {
+      return cleanMessageText((getConfig() && getConfig().emilyNlpEndpoint) || "");
+    }
+
+    function getEmilyNlpServiceToken() {
+      return cleanMessageText((getConfig() && getConfig().emilyNlpToken) || "");
+    }
+
+    function buildEmilyNlpServiceContext(decision) {
+      var selectedRole = decision && decision.selectedRole;
+      var activeTask = decision && decision.activeTask;
+      var jobSearchContext = decision && decision.jobSearchContext;
+      return {
+        hasCv: hasApplyChatCvAvailable(),
+        selectedRole: selectedRole
+          ? {
+              title: cleanMessageText(selectedRole.title || roleTitle || ""),
+              company: cleanMessageText(selectedRole.company || roleCompany || ""),
+              location: cleanMessageText(selectedRole.location || roleLocation || ""),
+            }
+          : null,
+        activeTask: activeTask
+          ? {
+              type: cleanMessageText(activeTask.type || ""),
+              promptState: cleanMessageText(activeTask.promptState || ""),
+              step: cleanMessageText(activeTask.step || ""),
+              activePath: cleanMessageText(activeTask.activePath || ""),
+            }
+          : null,
+        jobSearchContext: jobSearchContext
+          ? {
+              query: cleanMessageText(jobSearchContext.query || ""),
+              location: cleanMessageText(jobSearchContext.location || ""),
+              hasSurface: !!jobSearchContext.hasSurface,
+            }
+          : null,
+        memory: decision && decision.memory ? decision.memory : null,
+      };
+    }
+
+    function fetchEmilyNlpServiceMeaning(value, localDecision) {
+      var endpoint = getEmilyNlpServiceEndpoint();
+      var token = getEmilyNlpServiceToken();
+      var controller = null;
+      var timeoutId = null;
+      var headers = {
+        "Content-Type": "application/json",
+      };
+      if (!endpoint || typeof window.fetch !== "function") {
+        return Promise.resolve(null);
+      }
+      if (token) {
+        headers.Authorization = "Bearer " + token;
+      }
+      if (typeof window.AbortController === "function") {
+        controller = new window.AbortController();
+        timeoutId = window.setTimeout(function () {
+          try {
+            controller.abort();
+          } catch (error) {}
+        }, 1800);
+      }
+      return window
+        .fetch(endpoint, {
+          method: "POST",
+          mode: "cors",
+          credentials: "omit",
+          headers: headers,
+          signal: controller ? controller.signal : undefined,
+          body: JSON.stringify({
+            message: cleanMessageText(value || ""),
+            locale: isArabicChat() ? "ar" : "en",
+            context: buildEmilyNlpServiceContext(localDecision),
+          }),
+        })
+        .then(function (response) {
+          if (!response || !response.ok) {
+            throw new Error("Emily NLP service returned " + (response && response.status));
+          }
+          return response.json();
+        })
+        .then(function (payload) {
+          return payload && payload.ok && payload.meaning ? payload.meaning : null;
+        })
+        .catch(function (error) {
+          recordConversationAuditEvent("emily_nlp_service_fallback", {
+            reason: cleanMessageText((error && error.message) || "request_failed"),
+          });
+          return null;
+        })
+        .then(function (meaning) {
+          if (timeoutId) {
+            window.clearTimeout(timeoutId);
+          }
+          return meaning;
+        });
+    }
+
+    function getEmilyNlpServiceActionQuery(meaning, target) {
+      var queries = meaning && meaning.rewrittenQueries;
+      if (!queries) {
+        return "";
+      }
+      if (target === "jobs") {
+        if (queries.jobs && typeof queries.jobs === "object") {
+          return cleanMessageText(queries.jobs.query || "");
+        }
+        return cleanMessageText(queries.jobs || "");
+      }
+      return cleanMessageText(queries.web || "");
+    }
+
+    function mapEmilyNlpServiceMeaningToDecision(meaning, localDecision, value) {
+      var action = meaning && meaning.action ? meaning.action : {};
+      var actionType = cleanMessageText(action.type || "");
+      var intent = cleanMessageText(action.intent || meaning.primaryIntent || "");
+      var confidence = Math.max(
+        0,
+        Math.min(1, Number(action.confidence || meaning.confidence || 0))
+      );
+      var mappedIntent = "";
+      var mappedAction = "";
+      var query = "";
+      var decision = localDecision;
+      if (!meaning || !decision || confidence < 0.55) {
+        return localDecision;
+      }
+      if (actionType === "jobs_database_search") {
+        mappedIntent = "job_search";
+        mappedAction = "show_job_results";
+        query = getEmilyNlpServiceActionQuery(meaning, "jobs");
+      } else if (
+        actionType === "web_answer" ||
+        actionType === "career_advice_with_web_support"
+      ) {
+        mappedIntent = "web_search";
+        mappedAction = "web_search";
+        query = getEmilyNlpServiceActionQuery(meaning, "web");
+      } else {
+        return localDecision;
+      }
+      if (!query) {
+        query =
+          mappedAction === "show_job_results"
+            ? normalizeApplyChatJobSearchQuery(value)
+            : buildApplyChatWebSearchQuery(value);
+      }
+      decision.intent = {
+        type: mappedIntent,
+        confidence: confidence,
+        rawSignals: (meaning.explanation || []).slice(0, 6),
+        source: "emily_nlp_service",
+        candidates: meaning.secondaryIntents || [],
+        routeProbability: null,
+        routeSemantic: null,
+        routeEnsemble: null,
+      };
+      decision.relationshipToTask =
+        mappedAction === "web_search" && decision.activeTask && decision.activeTask.type
+          ? "interrupts_task"
+          : mappedAction === "show_job_results" &&
+            decision.activeTask &&
+            decision.activeTask.type === "search"
+          ? "continues_task"
+          : "new_topic";
+      decision.nextAction = {
+        type: mappedAction,
+        params: { query: query },
+      };
+      decision.route = {
+        key: getEmilyDecisionRouteKey(mappedIntent, mappedAction),
+        definition: getEmilyDecisionRouteDefinition(
+          getEmilyDecisionRouteKey(mappedIntent, mappedAction)
+        ),
+      };
+      decision.questionRoute =
+        mappedAction === "web_search" ? "web_search" : "job_search";
+      decision.meaning = meaning;
+      decision.meaning.debug = Object.assign({}, decision.meaning.debug || {}, {
+        source: "emily_nlp_service",
+        localFallbackIntent:
+          localDecision && localDecision.intent
+            ? cleanMessageText(localDecision.intent.type || "")
+            : "",
+        localFallbackAction:
+          localDecision && localDecision.nextAction
+            ? cleanMessageText(localDecision.nextAction.type || "")
+            : "",
+      });
+      decision.uiSurface = getConversationDecisionUiSurface(
+        decision.nextAction,
+        {
+          selectedRole: decision.selectedRole,
+          jobSearchContext: decision.jobSearchContext,
+        }
+      );
+      decision.logging = Object.assign({}, decision.logging || {}, {
+        materialDecision: true,
+        routeKey: decision.route.key,
+        serviceMeaningSource: "emily_nlp_service",
+        serviceMeaningIntent: intent,
+        serviceMeaningAction: actionType,
+        serviceMeaningConfidence: confidence,
+        serviceRewrittenQuery: query,
+      });
+      return decision;
+    }
+
+    function buildConversationDecisionWithService(value) {
+      var localDecision = buildConversationDecision(value);
+      return fetchEmilyNlpServiceMeaning(value, localDecision).then(function (
+        serviceMeaning
+      ) {
+        if (!serviceMeaning) {
+          if (localDecision && localDecision.meaning) {
+            localDecision.meaning.debug = Object.assign(
+              {},
+              localDecision.meaning.debug || {},
+              { source: "local_fallback" }
+            );
+          }
+          return localDecision;
+        }
+        return mapEmilyNlpServiceMeaningToDecision(
+          serviceMeaning,
+          localDecision,
+          value
+        );
+      });
+    }
+
     function getConversationDecisionUiSurface(nextAction, context) {
       var actionType = nextAction && nextAction.type;
       if (
@@ -140684,6 +140935,56 @@
         return true;
       }
       return executeConversationDecision(decision, value);
+    }
+
+    function handleConversationDecisionBeforePromptAsync(value) {
+      var config = getEmilyDecisionEngineConfig();
+      recordConversationAuditEvent("decision_engine_service_check", {
+        enabled: !!config.enabled,
+        hasService: !!getEmilyNlpServiceEndpoint(),
+        shadowMode: !!config.shadowMode,
+        text: cleanMessageText(value || "").slice(0, 220),
+      });
+      if (!config.enabled || config.shadowMode || !getEmilyNlpServiceEndpoint()) {
+        return Promise.resolve(handleConversationDecisionBeforePrompt(value));
+      }
+      return buildConversationDecisionWithService(value).then(function (decision) {
+        var validation = validateConversationDecision(decision, value);
+        decision.logging = decision.logging || {};
+        decision.logging.validatorResult = validation.valid
+          ? "pass"
+          : validation.reason;
+        logConversationDecision(value, decision, validation, "live");
+        if (!validation.valid) {
+          botMessage(
+            getContextualClarifyingRouteLine(),
+            humanComposeDelay("Decision validation fallback.", 900, 1700),
+            function () {
+              focusComposer("Search, continue application, or career question?");
+            }
+          );
+          return true;
+        }
+        if (
+          decision.intent.confidence < config.confidenceThreshold ||
+          decision.nextAction.type === "defer_to_prompt_handler"
+        ) {
+          return false;
+        }
+        if (!claimConversationTurn("decision_engine", {
+          intent: cleanMessageText(
+            (decision.intent && decision.intent.type) || ""
+          ),
+          action: cleanMessageText(
+            (decision.nextAction && decision.nextAction.type) || ""
+          ),
+          confidence: Number(decision.intent.confidence || 0),
+          source: cleanMessageText((decision.intent && decision.intent.source) || ""),
+        })) {
+          return true;
+        }
+        return executeConversationDecision(decision, value);
+      });
     }
 
     function askApplyResultsSelectedRoleNextStep(selected, key) {
@@ -144029,6 +144330,1320 @@
       return suggestion;
     }
 
+    function splitApplicationProfileName(fullName) {
+      var parts = cleanMessageText(fullName || "").split(/\s+/).filter(Boolean);
+      return {
+        firstName: parts[0] || "",
+        lastName: parts.length > 1 ? parts.slice(1).join(" ") : "",
+      };
+    }
+
+    function buildApplicationProfileField(value, source, confidence, confirmed, evidence) {
+      var normalizedValue = Array.isArray(value)
+        ? value.map(cleanMessageText).filter(Boolean)
+        : typeof value === "boolean" || value === null || typeof value === "number"
+        ? value
+        : cleanMessageText(value || "");
+      return {
+        value: normalizedValue,
+        source: source || "unknown",
+        confidence: Math.max(0, Math.min(1, Number(confidence) || 0)),
+        confirmed: !!confirmed,
+        updatedAt: new Date().toISOString(),
+        evidence: cleanMessageText(evidence || ""),
+      };
+    }
+
+    function getApplicationProfileFieldValue(profile, path) {
+      var cursor = profile || {};
+      String(path || "")
+        .split(".")
+        .filter(Boolean)
+        .forEach(function (part) {
+          cursor = cursor && typeof cursor === "object" ? cursor[part] : null;
+        });
+      return cursor && typeof cursor === "object" && "value" in cursor
+        ? cursor.value
+        : "";
+    }
+
+    function getApplicationProfileField(profile, path) {
+      var cursor = profile || {};
+      String(path || "")
+        .split(".")
+        .filter(Boolean)
+        .forEach(function (part) {
+          cursor = cursor && typeof cursor === "object" ? cursor[part] : null;
+        });
+      return cursor && typeof cursor === "object" && "value" in cursor
+        ? cursor
+        : null;
+    }
+
+    function getApplicationProfileSectionItems(sections, keys, limit) {
+      var wanted = {};
+      (keys || []).forEach(function (key) {
+        wanted[String(key || "").toLowerCase()] = true;
+      });
+      return dedupeList(
+        (sections || []).reduce(function (list, section) {
+          var key = String((section && section.key) || "").toLowerCase();
+          if (!wanted[key]) {
+            return list;
+          }
+          return list.concat(
+            ((section && section.items) || [])
+              .map(stripCvBulletPrefix)
+              .map(cleanMessageText)
+              .filter(function (line) {
+                return (
+                  line &&
+                  !isCvContactLine(line) &&
+                  !getCvSectionMetaFromLine(line) &&
+                  !isCvReviewCommentLine(line)
+                );
+              })
+          );
+        }, [])
+      ).slice(0, Math.max(1, limit || 8));
+    }
+
+    function getApplicationProfileExperienceEntries(sections) {
+      return getRankedExperienceEntries(null, sections, 4).filter(function (entry) {
+        return entry && (entry.heading || entry.lines || entry.bullets);
+      });
+    }
+
+    function extractApplicationProfileRoleFromEntry(entry) {
+      var meta = entry ? buildExperienceEntryMeta(entry) : null;
+      var role = cleanMessageText((meta && meta.role) || "");
+      var heading = cleanMessageText((entry && entry.heading) || "");
+      var line = cleanMessageText(((entry && entry.lines) || [])[0] || "");
+      if (role && safeIsRealCvRoleTitle(role)) {
+        return role;
+      }
+      [heading, line].some(function (candidate) {
+        var clean = removeCvTailoringLooseDateText(
+          cleanMessageText(candidate || ""),
+          getCvTailoringDateRangeText(candidate || "")
+        );
+        clean = clean
+          .replace(/\s+(?:at|with)\s+.+$/i, "")
+          .replace(/\s+[-–—|]\s+.+$/i, "")
+          .trim();
+        if (safeIsRealCvRoleTitle(clean)) {
+          role = clean;
+          return true;
+        }
+        return false;
+      });
+      return cleanMessageText(role);
+    }
+
+    function extractApplicationProfileEmployerFromEntry(entry) {
+      var meta = entry ? buildExperienceEntryMeta(entry) : null;
+      var company = cleanMessageText((meta && meta.company) || "");
+      var heading = cleanMessageText((entry && entry.heading) || "");
+      var lines = ((entry && entry.lines) || []).map(cleanMessageText).filter(Boolean);
+      if (company) {
+        return company;
+      }
+      [heading].concat(lines.slice(0, 3)).some(function (candidate) {
+        var match = cleanMessageText(candidate || "").match(
+          /\b(?:at|with)\s+([A-Z][A-Za-z0-9&.,'’() -]{2,70})\b/
+        );
+        if (match && match[1]) {
+          company = cleanMessageText(match[1]).replace(/\s+[-–—|].+$/i, "");
+          return true;
+        }
+        return false;
+      });
+      return company;
+    }
+
+    function extractApplicationProfileYearsExperience(rawText, entries) {
+      var text = String(rawText || "");
+      var explicit =
+        text.match(/\b(\d{1,2})\+?\s*(?:years?|yrs?)\s+(?:of\s+)?(?:relevant\s+)?(?:professional\s+)?experience\b/i) ||
+        text.match(/\b(?:over|more than|around|approximately)\s+(\d{1,2})\s*(?:years?|yrs?)\b/i);
+      var year;
+      var years = [];
+      if (explicit && explicit[1]) {
+        year = parseInt(explicit[1], 10);
+        return year > 0 && year < 50
+          ? { value: year, source: "cv", confidence: 0.82, evidence: explicit[0] }
+          : { value: null, source: "unknown", confidence: 0, evidence: "" };
+      }
+      (entries || []).forEach(function (entry) {
+        [entry && entry.heading]
+          .concat((entry && entry.lines) || [])
+          .concat((entry && entry.bullets) || [])
+          .forEach(function (line) {
+            String(line || "").replace(/\b((?:19|20)\d{2})\b/g, function (_, yr) {
+              var parsed = parseInt(yr, 10);
+              if (parsed >= 1970 && parsed <= new Date().getFullYear()) {
+                years.push(parsed);
+              }
+              return _;
+            });
+          });
+      });
+      years = years.sort(function (a, b) {
+        return a - b;
+      });
+      if (years.length >= 2) {
+        year = Math.max(1, new Date().getFullYear() - years[0]);
+        if (year > 0 && year < 50) {
+          return {
+            value: year,
+            source: "inferred",
+            confidence: 0.52,
+            evidence: "estimated from CV date ranges",
+          };
+        }
+      }
+      return { value: null, source: "unknown", confidence: 0, evidence: "" };
+    }
+
+    function inferApplicationProfileSeniority(title, yearsExperience) {
+      var clean = cleanMessageText(title || "").toLowerCase();
+      var years = parseInt(yearsExperience || "0", 10) || 0;
+      if (/\b(?:chief|ceo|cfo|coo|cto|partner|managing director|executive director)\b/.test(clean)) {
+        return "Executive";
+      }
+      if (/\b(?:director|head of|vp|vice president)\b/.test(clean)) {
+        return "Director / VP";
+      }
+      if (/\b(?:manager|lead|principal)\b/.test(clean)) {
+        return "Manager / Lead";
+      }
+      if (/\b(?:senior associate|associate)\b/.test(clean)) {
+        return "Associate";
+      }
+      if (/\b(?:analyst|graduate|intern)\b/.test(clean)) {
+        return "Analyst";
+      }
+      if (years >= 12) {
+        return "Senior";
+      }
+      if (years >= 6) {
+        return "Manager / Lead";
+      }
+      if (years >= 3) {
+        return "Associate";
+      }
+      return "";
+    }
+
+    function extractApplicationProfileLanguages(sections, rawText) {
+      var source = getApplicationProfileSectionItems(sections, ["languages"], 12)
+        .join(", ");
+      var haystack = [source, String(rawText || "").slice(0, 4000)].join(" ");
+      var languages = [
+        "English",
+        "Arabic",
+        "French",
+        "Spanish",
+        "German",
+        "Italian",
+        "Hindi",
+        "Urdu",
+        "Mandarin",
+        "Cantonese",
+        "Portuguese",
+        "Russian",
+      ];
+      return languages.filter(function (language) {
+        return new RegExp("\\b" + language + "\\b", "i").test(haystack);
+      });
+    }
+
+    function extractApplicationProfileSkills(sections, rawText) {
+      var rawItems = getApplicationProfileSectionItems(
+        sections,
+        ["skills", "technical_skills", "areas_of_expertise", "competencies"],
+        24
+      )
+        .join(", ")
+        .split(/\s*(?:,|;|\u2022|\||\/)\s*/);
+      var candidates = rawItems
+        .concat(cvFacts.matchedKeywords || [])
+        .concat(extractSearchSkillSignals(String(rawText || "").slice(0, 7000)));
+      return dedupeListByKey(
+        candidates
+          .map(normalizeCvTailoringSkill)
+          .filter(function (skill) {
+            return skill && classifyCvTailoringSkill(skill) !== "Languages";
+          }),
+        getCvTailoringSkillKey
+      ).slice(0, 16);
+    }
+
+    function extractApplicationProfileEducation(sections) {
+      return extractCvTailoringEducationEntries(sections, { full: false })
+        .map(function (entry) {
+          return cleanMessageText(
+            [entry && entry.heading, entry && entry.dates]
+              .filter(Boolean)
+              .join(" · ")
+          );
+        })
+        .filter(Boolean)
+        .slice(0, 4);
+    }
+
+    function extractApplicationProfileCertifications(sections) {
+      return getApplicationProfileSectionItems(
+        sections,
+        ["certifications", "certificates", "qualifications"],
+        8
+      ).filter(function (line) {
+        return !looksLikeCvTailoringEducationLine(line);
+      });
+    }
+
+    function extractApplicationProfileProfessionalSignals(rawText) {
+      var clean = String(rawText || "");
+      var sectors = [];
+      var functions = [];
+      [
+        ["private equity", "Private equity"],
+        ["private credit", "Private credit"],
+        ["investment banking", "Investment banking"],
+        ["asset management", "Asset management"],
+        ["real estate", "Real estate"],
+        ["consulting", "Consulting"],
+        ["technology", "Technology"],
+        ["banking", "Banking"],
+      ].forEach(function (item) {
+        if (new RegExp("\\b" + item[0].replace(/\s+/g, "\\s+") + "\\b", "i").test(clean)) {
+          sectors.push(item[1]);
+        }
+      });
+      [
+        ["financial modelling|financial modeling|valuation|dcf|lbo", "Financial modelling"],
+        ["credit analysis|underwriting", "Credit analysis"],
+        ["business development|commercial", "Business development"],
+        ["operations|process improvement", "Operations"],
+        ["portfolio|asset performance", "Portfolio management"],
+        ["strategy|market research", "Strategy"],
+      ].forEach(function (item) {
+        if (new RegExp("\\b(?:" + item[0] + ")\\b", "i").test(clean)) {
+          functions.push(item[1]);
+        }
+      });
+      return {
+        sectors: dedupeList(sectors).slice(0, 6),
+        functions: dedupeList(functions).slice(0, 6),
+      };
+    }
+
+    function extractApplicationProfileFromCurrentCv() {
+      var rawText = String(capturedCvText || "");
+      var sections = rawText ? parseCvSectionsFromText(rawText) : [];
+      var headerModel = rawText
+        ? buildCvHeaderModel(rawText, sections, { allowRoleFallback: false })
+        : null;
+      var experienceEntries = getApplicationProfileExperienceEntries(sections);
+      var currentEntry = experienceEntries[0] || null;
+      var contactSuggestion = getApplyOnboardingCvContactSuggestion();
+      var name =
+        cleanMessageText(applyOnboardingFullName || "") ||
+        cleanMessageText(contactSuggestion.name || "") ||
+        extractReasonableFullName((headerModel && headerModel.name) || "") ||
+        extractReasonableFullName(currentUserFullName || getConfig().currentUserFullName || "");
+      var nameParts = splitApplicationProfileName(name);
+      var email =
+        cleanMessageText(applyOnboardingPreferredEmail || "") ||
+        cleanMessageText((contactSuggestion && contactSuggestion.email) || "") ||
+        cleanMessageText(findCvEmail(rawText) || "");
+      var phone =
+        cleanMessageText(workableTestCandidatePhone || "") ||
+        cleanMessageText(findCvPhone(rawText) || "");
+      var linkedin = cleanMessageText(findCvLinkedIn(rawText) || "");
+      var locationMatch =
+        (headerModel && headerModel.location) || findCvHeaderLocation(rawText);
+      var location = cleanMessageText(
+        locationMatch && typeof locationMatch === "object"
+          ? locationMatch.label || ""
+          : locationMatch || ""
+      );
+      var locationRegion = cleanMessageText(
+        locationMatch && typeof locationMatch === "object"
+          ? locationMatch.region || ""
+          : ""
+      );
+      var currentTitle =
+        cleanMessageText(cvFacts.experienceTitle || "") ||
+        extractApplicationProfileRoleFromEntry(currentEntry);
+      var currentEmployer =
+        cleanMessageText(cvFacts.experienceCompany || "") ||
+        extractApplicationProfileEmployerFromEntry(currentEntry);
+      var yearsInfo = extractApplicationProfileYearsExperience(
+        rawText,
+        experienceEntries
+      );
+      var yearsExperience = yearsInfo.value;
+      var seniority = inferApplicationProfileSeniority(
+        currentTitle,
+        yearsExperience
+      );
+      var skills = extractApplicationProfileSkills(sections, rawText);
+      var languages = extractApplicationProfileLanguages(sections, rawText);
+      var education = extractApplicationProfileEducation(sections);
+      var certifications = extractApplicationProfileCertifications(sections);
+      var professionalSignals =
+        extractApplicationProfileProfessionalSignals(rawText);
+      var sourceFileName = cleanMessageText(
+        (currentCvFile && currentCvFile.name) || ""
+      );
+      var confirmedFields = [];
+      var extractedFields = [];
+      var inferredFields = [];
+      var missingFields = [];
+
+      function trackField(key, field) {
+        if (!field || !field.value || (Array.isArray(field.value) && !field.value.length)) {
+          missingFields.push(key);
+          return field;
+        }
+        if (field.confirmed) {
+          confirmedFields.push(key);
+        } else if (field.source === "cv") {
+          extractedFields.push(key);
+        } else if (field.source === "inferred") {
+          inferredFields.push(key);
+        }
+        return field;
+      }
+
+      var profile = {
+        version: "1.0",
+        identity: {
+          fullName: trackField(
+            "identity.fullName",
+            buildApplicationProfileField(
+              name,
+              cleanMessageText(applyOnboardingFullName || "") ? "user_confirmed" : name ? "cv" : "unknown",
+              name ? 0.86 : 0,
+              !!cleanMessageText(applyOnboardingFullName || ""),
+              sourceFileName
+            )
+          ),
+          firstName: buildApplicationProfileField(
+            nameParts.firstName,
+            nameParts.firstName ? "inferred" : "unknown",
+            nameParts.firstName ? 0.8 : 0,
+            !!cleanMessageText(applyOnboardingFullName || ""),
+            "split from full name"
+          ),
+          lastName: buildApplicationProfileField(
+            nameParts.lastName,
+            nameParts.lastName ? "inferred" : "unknown",
+            nameParts.lastName ? 0.8 : 0,
+            !!cleanMessageText(applyOnboardingFullName || ""),
+            "split from full name"
+          ),
+          email: trackField(
+            "identity.email",
+            buildApplicationProfileField(
+              email,
+              cleanMessageText(applyOnboardingPreferredEmail || "") ? "user_confirmed" : email ? "cv" : "unknown",
+              email ? 0.9 : 0,
+              !!cleanMessageText(applyOnboardingPreferredEmail || ""),
+              sourceFileName
+            )
+          ),
+          phone: trackField(
+            "identity.phone",
+            buildApplicationProfileField(phone, phone ? "cv" : "unknown", phone ? 0.72 : 0, false, sourceFileName)
+          ),
+          linkedin: trackField(
+            "identity.linkedin",
+            buildApplicationProfileField(linkedin, linkedin ? "cv" : "unknown", linkedin ? 0.75 : 0, false, sourceFileName)
+          ),
+          portfolioUrl: buildApplicationProfileField("", "unknown", 0, false, ""),
+        },
+        location: {
+          currentLocation: trackField(
+            "location.currentLocation",
+            buildApplicationProfileField(location, location ? "cv" : "unknown", location ? 0.7 : 0, false, sourceFileName)
+          ),
+          city: buildApplicationProfileField(location, location ? "cv" : "unknown", location ? 0.58 : 0, false, sourceFileName),
+          country: buildApplicationProfileField(locationRegion, locationRegion ? "cv" : "unknown", locationRegion ? 0.65 : 0, false, sourceFileName),
+          willingToRelocate: buildApplicationProfileField(null, "unknown", 0, false, ""),
+          targetMarkets: buildApplicationProfileField([], "unknown", 0, false, ""),
+          noticePeriod: buildApplicationProfileField("1 month", "default", 0.35, false, "Senna safe default"),
+        },
+        workAuthorization: {
+          uae: buildApplicationProfileField("", "unknown", 0, false, ""),
+          saudi: buildApplicationProfileField("", "unknown", 0, false, ""),
+          uk: buildApplicationProfileField("", "unknown", 0, false, ""),
+          eu: buildApplicationProfileField("", "unknown", 0, false, ""),
+          requiresSponsorship: buildApplicationProfileField("No", "default", 0.45, false, "Senna draft default; confirm if the employer asks"),
+          notes: buildApplicationProfileField("", "unknown", 0, false, ""),
+        },
+        professional: {
+          currentTitle: trackField(
+            "professional.currentTitle",
+            buildApplicationProfileField(currentTitle, currentTitle ? "cv" : "unknown", currentTitle ? 0.7 : 0, false, sourceFileName)
+          ),
+          currentEmployer: trackField(
+            "professional.currentEmployer",
+            buildApplicationProfileField(currentEmployer, currentEmployer ? "cv" : "unknown", currentEmployer ? 0.68 : 0, false, sourceFileName)
+          ),
+          yearsExperience: trackField(
+            "professional.yearsExperience",
+            buildApplicationProfileField(yearsExperience, yearsInfo.source, yearsInfo.confidence, false, yearsInfo.evidence)
+          ),
+          seniority: trackField(
+            "professional.seniority",
+            buildApplicationProfileField(seniority, seniority ? "inferred" : "unknown", seniority ? 0.58 : 0, false, currentTitle || yearsInfo.evidence)
+          ),
+          sectors: trackField(
+            "professional.sectors",
+            buildApplicationProfileField(professionalSignals.sectors, professionalSignals.sectors.length ? "inferred" : "unknown", professionalSignals.sectors.length ? 0.55 : 0, false, "CV sector signals")
+          ),
+          functions: trackField(
+            "professional.functions",
+            buildApplicationProfileField(professionalSignals.functions, professionalSignals.functions.length ? "inferred" : "unknown", professionalSignals.functions.length ? 0.6 : 0, false, "CV function signals")
+          ),
+          skills: trackField(
+            "professional.skills",
+            buildApplicationProfileField(skills, skills.length ? "cv" : "unknown", skills.length ? 0.72 : 0, false, sourceFileName)
+          ),
+          languages: trackField(
+            "professional.languages",
+            buildApplicationProfileField(languages, languages.length ? "cv" : "unknown", languages.length ? 0.7 : 0, false, sourceFileName)
+          ),
+          education: trackField(
+            "professional.education",
+            buildApplicationProfileField(education, education.length ? "cv" : "unknown", education.length ? 0.68 : 0, false, sourceFileName)
+          ),
+          certifications: trackField(
+            "professional.certifications",
+            buildApplicationProfileField(certifications, certifications.length ? "cv" : "unknown", certifications.length ? 0.66 : 0, false, sourceFileName)
+          ),
+        },
+        applicationDefaults: {
+          salaryExpectation: buildApplicationProfileField("Open to discussion", "default", 0.35, false, "Senna safe default"),
+          currentSalary: buildApplicationProfileField("", "unknown", 0, false, ""),
+          sourceAnswer: buildApplicationProfileField("LinkedIn", "default", 0.45, false, "Senna safe default"),
+          motivationBase: buildApplicationProfileField("", "unknown", 0, false, ""),
+          relocationReason: buildApplicationProfileField("", "unknown", 0, false, ""),
+          emiratiNational: buildApplicationProfileField("No", "default", 0.55, false, "Senna draft default; confirm if the employer asks"),
+          reasonableAdjustments: buildApplicationProfileField("No", "default", 0.45, false, "Senna draft default; confirm if the employer asks"),
+          considerOtherRoles: buildApplicationProfileField("Yes", "default", 0.55, false, "Senna draft default"),
+          preferredCvMode: buildApplicationProfileField("ask", "default", 0.5, false, "Senna safe default"),
+          submitPreference: buildApplicationProfileField("ask_before_submit", "default", 0.8, false, "Senna safe default"),
+          readinessConfirmedAt: buildApplicationProfileField("", "unknown", 0, false, ""),
+        },
+        answerMemory: {
+          screeningAnswers: [],
+          customQuestionDrafts: [],
+          approvedAnswers: [],
+          rejectedAnswers: [],
+        },
+        evidence: {
+          sourceCvId: "",
+          sourceCvFileName: sourceFileName,
+          extractedFields: extractedFields,
+          confirmedFields: confirmedFields,
+          inferredFields: inferredFields,
+          defaultedFields: [
+            "location.noticePeriod",
+            "applicationDefaults.salaryExpectation",
+            "applicationDefaults.sourceAnswer",
+            "applicationDefaults.emiratiNational",
+            "applicationDefaults.reasonableAdjustments",
+            "applicationDefaults.considerOtherRoles",
+            "applicationDefaults.preferredCvMode",
+            "applicationDefaults.submitPreference",
+            "applicationDefaults.readinessConfirmedAt",
+          ],
+          missingFields: missingFields,
+          unsafeFields: [
+            "identity.dateOfBirth",
+            "identity.nationality",
+            "identity.passportNumber",
+            "applicationDefaults.currentSalary",
+            "professional.licenses",
+            "professional.exactGrades",
+            "professional.referenceContacts",
+          ],
+          confidenceByField: {},
+        },
+      };
+
+      [
+        "identity.fullName",
+        "identity.email",
+        "identity.phone",
+        "identity.linkedin",
+        "location.currentLocation",
+        "professional.currentTitle",
+        "professional.currentEmployer",
+        "professional.yearsExperience",
+        "professional.seniority",
+        "professional.sectors",
+        "professional.functions",
+        "professional.skills",
+        "professional.languages",
+        "professional.education",
+        "professional.certifications",
+      ].forEach(function (key) {
+        var field = getApplicationProfileFieldValue(profile, key);
+        var cursor = profile;
+        key.split(".").forEach(function (part) {
+          cursor = cursor && cursor[part];
+        });
+        profile.evidence.confidenceByField[key] =
+          cursor && typeof cursor === "object" ? cursor.confidence || 0 : field ? 0.5 : 0;
+      });
+
+      return profile;
+    }
+
+    function getApplicationProfileStorageKey() {
+      var config = getConfig();
+      var isLoggedInUser = !!(config && config.isLoggedIn);
+      var userKey =
+        cleanMessageText((config && config.currentUserId) || "") ||
+        cleanMessageText((config && config.currentUserEmail) || "") ||
+        "guest";
+      if (isLoggedInUser && userKey !== "guest") {
+        return "sffcApplyChatApplicationProfile:v1:user:" + userKey;
+      }
+      return (
+        "sffcApplyChatApplicationProfile:v1:guest:" +
+        ensureApplyChatSessionToken()
+      );
+    }
+
+    function cloneApplicationProfile(profile) {
+      try {
+        return JSON.parse(JSON.stringify(profile || {}));
+      } catch (error) {
+        return {};
+      }
+    }
+
+    function readStoredApplicationProfile() {
+      var storage;
+      var raw;
+      try {
+        storage = getConfig().isLoggedIn ? window.localStorage : window.sessionStorage;
+        raw = storage ? storage.getItem(getApplicationProfileStorageKey()) : "";
+        return raw ? JSON.parse(raw) : null;
+      } catch (error) {
+        return null;
+      }
+    }
+
+    function storeApplicationProfile(profile) {
+      var storage;
+      try {
+        storage = getConfig().isLoggedIn ? window.localStorage : window.sessionStorage;
+        if (storage) {
+          storage.setItem(
+            getApplicationProfileStorageKey(),
+            JSON.stringify(profile || {})
+          );
+        }
+      } catch (error) {}
+    }
+
+    var applicationProfileServerSnapshot = null;
+    var applicationProfileServerLoadPromise = null;
+
+    function saveApplicationProfileToServer(profile) {
+      var config = getConfig();
+      var formData;
+      if (!config.isLoggedIn || !config.ajaxUrl || !config.memoryNonce) {
+        return Promise.resolve(null);
+      }
+      formData = new FormData();
+      formData.append("action", "sffc_crm_apply_chat_application_profile");
+      formData.append("nonce", config.memoryNonce);
+      formData.append("mode", "save");
+      formData.append("application_profile", JSON.stringify(profile || {}));
+      return fetch(config.ajaxUrl, {
+        method: "POST",
+        credentials: "same-origin",
+        body: formData,
+      })
+        .then(function (response) {
+          return response.json();
+        })
+        .then(function (payload) {
+          var savedProfile =
+            payload &&
+            payload.success &&
+            payload.data &&
+            payload.data.application_profile;
+          if (savedProfile && typeof savedProfile === "object") {
+            applicationProfileServerSnapshot = savedProfile;
+          }
+          return payload;
+        })
+        .catch(function () {
+          return null;
+        });
+    }
+
+    function loadApplicationProfileFromServer() {
+      var config = getConfig();
+      var formData;
+      if (!config.isLoggedIn || !config.ajaxUrl || !config.memoryNonce) {
+        return Promise.resolve(null);
+      }
+      if (applicationProfileServerLoadPromise) {
+        return applicationProfileServerLoadPromise;
+      }
+      formData = new FormData();
+      formData.append("action", "sffc_crm_apply_chat_application_profile");
+      formData.append("nonce", config.memoryNonce);
+      formData.append("mode", "load");
+      applicationProfileServerLoadPromise = fetch(config.ajaxUrl, {
+        method: "POST",
+        credentials: "same-origin",
+        body: formData,
+      })
+        .then(function (response) {
+          return response.json();
+        })
+        .then(function (payload) {
+          var savedProfile =
+            payload &&
+            payload.success &&
+            payload.data &&
+            payload.data.application_profile;
+          if (savedProfile && typeof savedProfile === "object") {
+            applicationProfileServerSnapshot = savedProfile;
+            storeApplicationProfile(savedProfile);
+          }
+          return savedProfile || null;
+        })
+        .catch(function () {
+          return null;
+        });
+      return applicationProfileServerLoadPromise;
+    }
+
+    function setApplicationProfileFieldValue(profile, path, value, source) {
+      var parts = String(path || "").split(".").filter(Boolean);
+      var cursor = profile;
+      var last = parts.pop();
+      if (!last) {
+        return profile;
+      }
+      parts.forEach(function (part) {
+        if (!cursor[part] || typeof cursor[part] !== "object") {
+          cursor[part] = {};
+        }
+        cursor = cursor[part];
+      });
+      cursor[last] = buildApplicationProfileField(
+        value,
+        source || "user_confirmed",
+        cleanMessageText(value || "") ? 1 : 0,
+        !!cleanMessageText(value || ""),
+        "edited in My profile"
+      );
+      return profile;
+    }
+
+    function shouldMergeSavedApplicationProfileField(baseField, savedField) {
+      var savedValue = savedField && savedField.value;
+      var baseValue = baseField && baseField.value;
+      var hasSavedValue =
+        savedValue !== "" &&
+        savedValue !== null &&
+        typeof savedValue !== "undefined" &&
+        !(Array.isArray(savedValue) && !savedValue.length);
+      var hasBaseValue =
+        baseValue !== "" &&
+        baseValue !== null &&
+        typeof baseValue !== "undefined" &&
+        !(Array.isArray(baseValue) && !baseValue.length);
+      if (!hasSavedValue) {
+        return false;
+      }
+      if (savedField.confirmed || savedField.source === "user_confirmed" || savedField.source === "profile") {
+        return true;
+      }
+      return !hasBaseValue;
+    }
+
+    function mergeApplicationProfiles(baseProfile, savedProfile) {
+      var merged = cloneApplicationProfile(baseProfile || {});
+      var saved = savedProfile || {};
+      [
+        "identity.fullName",
+        "identity.email",
+        "identity.phone",
+        "identity.linkedin",
+        "identity.portfolioUrl",
+        "location.currentLocation",
+        "location.noticePeriod",
+        "location.willingToRelocate",
+        "workAuthorization.uae",
+        "workAuthorization.saudi",
+        "workAuthorization.uk",
+        "workAuthorization.eu",
+        "workAuthorization.requiresSponsorship",
+        "workAuthorization.notes",
+        "professional.currentTitle",
+        "professional.currentEmployer",
+        "professional.yearsExperience",
+        "professional.seniority",
+        "professional.sectors",
+        "professional.functions",
+        "professional.skills",
+        "professional.languages",
+        "professional.education",
+        "professional.certifications",
+        "applicationDefaults.salaryExpectation",
+        "applicationDefaults.currentSalary",
+        "applicationDefaults.sourceAnswer",
+        "applicationDefaults.motivationBase",
+        "applicationDefaults.relocationReason",
+        "applicationDefaults.emiratiNational",
+        "applicationDefaults.reasonableAdjustments",
+        "applicationDefaults.considerOtherRoles",
+        "applicationDefaults.preferredCvMode",
+        "applicationDefaults.submitPreference",
+        "applicationDefaults.readinessConfirmedAt",
+      ].forEach(function (path) {
+        var savedField = getApplicationProfileField(saved, path);
+        var baseField = getApplicationProfileField(merged, path);
+        var savedValue = savedField && savedField.value;
+        if (shouldMergeSavedApplicationProfileField(baseField, savedField)) {
+          setApplicationProfileFieldValue(
+            merged,
+            path,
+            Array.isArray(savedValue) ? savedValue.join(", ") : savedValue,
+            savedField.source === "user_confirmed" || savedField.confirmed
+              ? "user_confirmed"
+              : "profile"
+          );
+        }
+      });
+      return merged;
+    }
+
+    function getCurrentApplicationProfile() {
+      var profile = mergeApplicationProfiles(
+        extractApplicationProfileFromCurrentCv(),
+        mergeApplicationProfiles(
+          readStoredApplicationProfile(),
+          applicationProfileServerSnapshot
+        )
+      );
+      storeApplicationProfile(profile);
+      return profile;
+    }
+
+    function getApplicationProfileFieldStatus(profile, path) {
+      var cursor = profile || {};
+      String(path || "")
+        .split(".")
+        .filter(Boolean)
+        .forEach(function (part) {
+          cursor = cursor && typeof cursor === "object" ? cursor[part] : null;
+        });
+      if (!cursor || typeof cursor !== "object" || !cursor.value) {
+        return "Missing";
+      }
+      if (cursor.confirmed || cursor.source === "user_confirmed") {
+        return "Confirmed";
+      }
+      if (cursor.source === "cv") {
+        return "From CV";
+      }
+      if (cursor.source === "default") {
+        return "Default";
+      }
+      if (cursor.source === "inferred" || cursor.confidence < 0.7) {
+        return "Needs confirmation";
+      }
+      return "Saved";
+    }
+
+    function renderApplicationProfileInput(profile, path, label, placeholder) {
+      var value = getApplicationProfileFieldValue(profile, path);
+      var status = getApplicationProfileFieldStatus(profile, path);
+      if (Array.isArray(value)) {
+        value = value.join(", ");
+      }
+      return (
+        '<label class="sffc-crm-apply-chat__application-profile-field">' +
+        '<span class="sffc-crm-apply-chat__application-profile-field-head">' +
+        '<strong>' +
+        escapeHtml(label) +
+        "</strong>" +
+        '<em data-sffc-apply-profile-status="' +
+        escapeHtml(status.toLowerCase().replace(/\s+/g, "-")) +
+        '">' +
+        escapeHtml(status) +
+        "</em>" +
+        "</span>" +
+        '<input type="text" value="' +
+        escapeHtml(value || "") +
+        '" placeholder="' +
+        escapeHtml(placeholder || "") +
+        '" data-sffc-apply-profile-field="' +
+        escapeHtml(path) +
+        '">' +
+        "</label>"
+      );
+    }
+
+    function renderApplicationProfileSection(profile, title, fields) {
+      return (
+        '<section class="sffc-crm-apply-chat__application-profile-section">' +
+        "<h3>" +
+        escapeHtml(title) +
+        "</h3>" +
+        '<div class="sffc-crm-apply-chat__application-profile-grid">' +
+        fields
+          .map(function (field) {
+            return renderApplicationProfileInput(
+              profile,
+              field.path,
+              field.label,
+              field.placeholder
+            );
+          })
+          .join("") +
+        "</div>" +
+        "</section>"
+      );
+    }
+
+    function renderApplicationProfilePanel(profile) {
+      var missing =
+        profile && profile.evidence && Array.isArray(profile.evidence.missingFields)
+          ? profile.evidence.missingFields.length
+          : 0;
+      var confirmed =
+        profile && profile.evidence && Array.isArray(profile.evidence.confirmedFields)
+          ? profile.evidence.confirmedFields.length
+          : 0;
+      return (
+        '<div class="sffc-crm-apply-chat__application-profile" data-sffc-apply-profile-panel>' +
+        '<div class="sffc-crm-apply-chat__application-profile-head">' +
+        "<div><span>Application profile</span><h2>Details Emily can use for employer forms</h2><p>I’ll use confirmed details first, CV evidence next, and safe defaults only where they will not materially affect eligibility.</p></div>" +
+        '<div class="sffc-crm-apply-chat__application-profile-summary"><strong>' +
+        escapeHtml(String(confirmed)) +
+        '</strong><span>confirmed</span><strong>' +
+        escapeHtml(String(missing)) +
+        '</strong><span>to check</span></div>' +
+        "</div>" +
+        renderApplicationProfileSection(profile, "Contact", [
+          { path: "identity.fullName", label: "Full name", placeholder: "Name used on applications" },
+          { path: "identity.email", label: "Email", placeholder: "Application email" },
+          { path: "identity.phone", label: "Phone", placeholder: "Phone number" },
+          { path: "identity.linkedin", label: "LinkedIn", placeholder: "LinkedIn URL" },
+        ]) +
+        renderApplicationProfileSection(profile, "Location and eligibility", [
+          { path: "location.currentLocation", label: "Current location", placeholder: "City, country" },
+          { path: "location.noticePeriod", label: "Notice period", placeholder: "e.g. 30 days" },
+          { path: "workAuthorization.uae", label: "UAE work authorisation", placeholder: "Confirmed status" },
+          { path: "workAuthorization.saudi", label: "Saudi work authorisation", placeholder: "Confirmed status" },
+          { path: "workAuthorization.requiresSponsorship", label: "Needs sponsorship", placeholder: "Yes or No" },
+        ]) +
+        renderApplicationProfileSection(profile, "Experience", [
+          { path: "professional.currentTitle", label: "Current title", placeholder: "Current role" },
+          { path: "professional.currentEmployer", label: "Current employer", placeholder: "Current employer" },
+          { path: "professional.yearsExperience", label: "Years experience", placeholder: "e.g. 5" },
+          { path: "professional.seniority", label: "Seniority", placeholder: "e.g. Associate" },
+          { path: "professional.sectors", label: "Sector signals", placeholder: "e.g. Private credit, banking" },
+          { path: "professional.functions", label: "Function signals", placeholder: "e.g. Financial modelling" },
+          { path: "professional.skills", label: "Core skills", placeholder: "Comma-separated skills" },
+          { path: "professional.languages", label: "Languages", placeholder: "Comma-separated languages" },
+          { path: "professional.education", label: "Education", placeholder: "Degrees or institutions" },
+          { path: "professional.certifications", label: "Certifications", placeholder: "Relevant certifications" },
+        ]) +
+        renderApplicationProfileSection(profile, "Application defaults", [
+          { path: "applicationDefaults.salaryExpectation", label: "Salary expectation", placeholder: "e.g. Open to discussion" },
+          { path: "applicationDefaults.currentSalary", label: "Current salary", placeholder: "Optional" },
+          { path: "applicationDefaults.sourceAnswer", label: "How you heard", placeholder: "e.g. LinkedIn" },
+          { path: "applicationDefaults.emiratiNational", label: "Emirati national", placeholder: "Yes or No" },
+          { path: "applicationDefaults.reasonableAdjustments", label: "Reasonable adjustments", placeholder: "Yes or No" },
+          { path: "applicationDefaults.considerOtherRoles", label: "Consider other roles", placeholder: "Yes or No" },
+          { path: "applicationDefaults.submitPreference", label: "Submit preference", placeholder: "ask_before_submit" },
+        ]) +
+        '<div class="sffc-crm-apply-chat__application-profile-actions">' +
+        '<button type="button" class="sffc-crm-apply-chat__application-profile-save" data-sffc-apply-profile-save>Save profile</button>' +
+        '<button type="button" class="sffc-crm-apply-chat__application-profile-secondary" data-sffc-apply-profile-use>Use for next application</button>' +
+        "</div>" +
+        "</div>"
+      );
+    }
+
+    function openApplicationProfilePanel() {
+      var profile = getCurrentApplicationProfile();
+      var row;
+      activeRailView = "profile";
+      renderRailNavigation();
+      row = botMessageNow(renderApplicationProfilePanel(profile), null, {
+        skipChatLog: true,
+        skipTypewriter: true,
+      });
+      loadApplicationProfileFromServer().then(function (serverProfile) {
+        var panel;
+        if (!serverProfile || !row || !messages || !messages.contains(row)) {
+          return;
+        }
+        profile = getCurrentApplicationProfile();
+        panel = row.querySelector(".sffc-crm-apply-chat__application-profile");
+        if (panel) {
+          panel.outerHTML = renderApplicationProfilePanel(profile);
+        }
+      });
+      focusComposer("Update your profile or search for another role");
+    }
+
+    function persistApplicationProfileFromPanel(panel) {
+      var profile = getCurrentApplicationProfile();
+      if (!panel) {
+        return profile;
+      }
+      panel
+        .querySelectorAll("[data-sffc-apply-profile-field]")
+        .forEach(function (input) {
+          var path = input.getAttribute("data-sffc-apply-profile-field") || "";
+          var value = input.value || "";
+          setApplicationProfileFieldValue(profile, path, value, "user_confirmed");
+      });
+      storeApplicationProfile(profile);
+      saveApplicationProfileToServer(profile);
+      return profile;
+    }
+
+    function hasApplicationProfileReadinessConfirmation(profile) {
+      var value = cleanMessageText(
+        getApplicationProfileFieldValue(
+          profile,
+          "applicationDefaults.readinessConfirmedAt"
+        ) || ""
+      );
+      return !!(applicationProfileReadinessSessionConfirmed || value);
+    }
+
+    function markApplicationProfileReadinessConfirmed() {
+      var profile = getCurrentApplicationProfile();
+      applicationProfileReadinessSessionConfirmed = true;
+      setApplicationProfileFieldValue(
+        profile,
+        "applicationDefaults.readinessConfirmedAt",
+        new Date().toISOString(),
+        "user_confirmed"
+      );
+      storeApplicationProfile(profile);
+      saveApplicationProfileToServer(profile);
+      return profile;
+    }
+
+    function getApplicationProfileReadinessField(profile, path, fallback) {
+      return cleanMessageText(
+        getApplicationProfileFieldValue(profile, path) || fallback || ""
+      );
+    }
+
+    function getApplicationProfileReadinessDefaults(profile) {
+      var defaults = [
+        {
+          path: "workAuthorization.requiresSponsorship",
+          label: "Needs sponsorship",
+        },
+        {
+          path: "applicationDefaults.emiratiNational",
+          label: "Emirati national",
+        },
+        {
+          path: "applicationDefaults.reasonableAdjustments",
+          label: "Reasonable adjustments",
+        },
+        {
+          path: "location.noticePeriod",
+          label: "Notice period",
+        },
+      ];
+      return defaults
+        .map(function (item) {
+          var field = getApplicationProfileField(profile, item.path);
+          var value = cleanMessageText((field && field.value) || "");
+          if (!field || !value || field.confirmed) {
+            return null;
+          }
+          if (field.source !== "default") {
+            return null;
+          }
+          return Object.assign({}, item, { value: value });
+        })
+        .filter(Boolean);
+    }
+
+    function buildApplicationProfileReadinessReview(queueItem) {
+      var item = queueItem || {};
+      var profile = getCurrentApplicationProfile();
+      var cvPayload = buildApplicationTailoredCvPayload(item);
+      var applicationUrl = getExternalEmployerApplicationUrlFromItem(item);
+      var cvText =
+        cvPayload && cvPayload.mode === "tailored" && cvPayload.text
+          ? cvPayload.text
+          : cleanMessageText(capturedCvText || "");
+      var missing = [];
+      var warnings = [];
+      if (!applicationUrl || isInternalSennaApplicationUrl(applicationUrl)) {
+        missing.push({
+          key: "application_url",
+          label: "Employer application link",
+          message:
+            "I do not have a clean employer application link for this role yet.",
+        });
+      }
+      if (
+        !getApplicationProfileReadinessField(
+          profile,
+          "identity.fullName",
+          applyOnboardingFullName
+        )
+      ) {
+        missing.push({
+          key: "identity.fullName",
+          label: "Full name",
+          placeholder: "Type your full name",
+        });
+      }
+      if (
+        !getApplicationProfileReadinessField(
+          profile,
+          "identity.email",
+          applyOnboardingPreferredEmail
+        )
+      ) {
+        missing.push({
+          key: "identity.email",
+          label: "Email",
+          placeholder: "Type the email address to use",
+        });
+      }
+      if (!cvText && !canAppendUploadedCvFile(currentCvFile)) {
+        missing.push({
+          key: "cv",
+          label: "CV",
+          message:
+            "I need a CV before I can prepare the employer application properly.",
+        });
+      }
+      if (
+        !getApplicationProfileReadinessField(
+          profile,
+          "identity.phone",
+          workableTestCandidatePhone
+        )
+      ) {
+        warnings.push("Phone number is not confirmed yet.");
+      }
+      return {
+        profile: profile,
+        missing: missing,
+        warnings: warnings,
+        defaults: getApplicationProfileReadinessDefaults(profile),
+      };
+    }
+
+    function renderApplicationProfileReadinessCard(review, queueItem) {
+      var item = queueItem || {};
+      var role = cleanMessageText(item.title || roleTitle || "this role");
+      var company = cleanMessageText(item.company || roleCompany || "");
+      var defaults = (review && review.defaults) || [];
+      var warnings = (review && review.warnings) || [];
+      var defaultRows = defaults.length
+        ? defaults
+            .map(function (field) {
+              return (
+                '<li><span>' +
+                escapeHtml(field.label) +
+                "</span><strong>" +
+                escapeHtml(field.value) +
+                "</strong></li>"
+              );
+            })
+            .join("")
+        : "<li><span>Safe defaults</span><strong>Ready</strong></li>";
+      var warningHtml = warnings.length
+        ? '<p class="sffc-crm-apply-chat__application-readiness-note">' +
+          escapeHtml(warnings.slice(0, 2).join(" ")) +
+          "</p>"
+        : "";
+      return (
+        '<div class="sffc-crm-apply-chat__application-readiness" data-sffc-application-readiness-card>' +
+        '<div class="sffc-crm-apply-chat__application-readiness-head">' +
+        "<span>Application details</span>" +
+        "<h2>Ready to start the employer form</h2>" +
+        "<p>I’ll use your confirmed profile and CV for " +
+        escapeHtml(role) +
+        (company ? " at " + escapeHtml(company) : "") +
+        ". If the employer asks any of these, I’ll use the draft answers below unless you edit them.</p>" +
+        "</div>" +
+        '<ul class="sffc-crm-apply-chat__application-readiness-list">' +
+        defaultRows +
+        "</ul>" +
+        warningHtml +
+        '<div class="sffc-crm-apply-chat__application-readiness-actions">' +
+        '<button type="button" class="sffc-crm-apply-chat__inline-action is-primary" data-sffc-application-readiness-confirm>Looks right</button>' +
+        '<button type="button" class="sffc-crm-apply-chat__inline-action" data-sffc-application-readiness-edit>Edit profile</button>' +
+        "</div>" +
+        "</div>"
+      );
+    }
+
+    function askApplicationProfileReadinessField(
+      queueItem,
+      field,
+      startQueueCallback
+    ) {
+      var label = cleanMessageText((field && field.label) || "this detail");
+      var key = cleanMessageText((field && field.key) || "");
+      var message =
+        (field && field.message) ||
+        "Before I can queue the application, I need the " +
+          label.toLowerCase() +
+          " you want me to use.";
+      botMessage(message, humanComposeDelay(message, 900, 1800), function () {
+        if (key === "cv") {
+          focusComposer("Upload your CV, then I’ll continue");
+          return;
+        }
+        if (key === "application_url") {
+          focusComposer("Choose another role or open the employer link");
+          return;
+        }
+        setPromptState(
+          "application_profile_readiness_field",
+          {
+            other: function (value) {
+              var clean = cleanMessageText(value || "");
+              if (!clean) {
+                focusComposer((field && field.placeholder) || "Type the detail");
+                return;
+              }
+              if (key === "identity.email" && !extractEmailCandidate(clean)) {
+                botMessage(
+                  "Send the email address you want attached to this application.",
+                  humanComposeDelay("Email required.", 800, 1500),
+                  function () {
+                    focusComposer("Type your email address");
+                  },
+                  humanReadDelay(value, 350)
+                );
+                return;
+              }
+              var profile = getCurrentApplicationProfile();
+              var savedValue =
+                key === "identity.email"
+                  ? extractEmailCandidate(clean) || clean
+                  : clean;
+              setApplicationProfileFieldValue(
+                profile,
+                key,
+                savedValue,
+                "user_confirmed"
+              );
+              if (key === "identity.fullName") {
+                applyOnboardingFullName = savedValue;
+              }
+              if (key === "identity.email") {
+                applyOnboardingPreferredEmail = savedValue;
+              }
+              storeApplicationProfile(profile);
+              saveApplicationProfileToServer(profile);
+              clearPromptState();
+              echoPromptChoice(value);
+              window.setTimeout(function () {
+                ensureApplicationProfileReadinessThenQueue(
+                  queueItem,
+                  startQueueCallback
+                );
+              }, randomBetween(450, 900));
+            },
+          },
+          (field && field.placeholder) || "Type the detail",
+          { application_profile_readiness_key: key }
+        );
+        focusComposer((field && field.placeholder) || "Type the detail");
+      });
+    }
+
+    function ensureApplicationProfileReadinessThenQueue(
+      queueItem,
+      startQueueCallback
+    ) {
+      var review = buildApplicationProfileReadinessReview(queueItem);
+      var blocking = (review.missing || [])[0];
+      if (blocking) {
+        askApplicationProfileReadinessField(
+          queueItem,
+          blocking,
+          startQueueCallback
+        );
+        return;
+      }
+      if (
+        hasApplicationProfileReadinessConfirmation(review.profile) ||
+        !(review.defaults || []).length
+      ) {
+        startQueueCallback();
+        return;
+      }
+      botMessage(
+        renderApplicationProfileReadinessCard(review, queueItem),
+        humanComposeDelay("Application readiness check.", 900, 1800),
+        function () {
+          setPromptState(
+            "application_profile_readiness_confirm",
+            {
+              yes: function (value) {
+                markApplicationProfileReadinessConfirmed();
+                clearPromptState();
+                echoPromptChoice(value || "Looks right");
+                startQueueCallback();
+              },
+              no: function (value) {
+                clearPromptState();
+                echoPromptChoice(value || "Edit profile");
+                openApplicationProfilePanel();
+              },
+              other: function (value) {
+                var clean = cleanMessageText(value || "").toLowerCase();
+                if (/^(?:yes|y|looks right|correct|ok|okay|go ahead|use|continue)\b/.test(clean)) {
+                  markApplicationProfileReadinessConfirmed();
+                  clearPromptState();
+                  echoPromptChoice(value);
+                  startQueueCallback();
+                  return;
+                }
+                if (/\b(?:edit|change|wrong|correct|profile|no)\b/.test(clean)) {
+                  clearPromptState();
+                  echoPromptChoice(value);
+                  openApplicationProfilePanel();
+                  return;
+                }
+                focusComposer("Looks right, or edit profile");
+              },
+            },
+            "Looks right, or edit profile",
+            { application_profile_readiness: true }
+          );
+          focusComposer("Looks right, or edit profile");
+        }
+      );
+    }
+
     function buildPrefilledApplySignupUrl() {
       var state = ensureApplyIntroState();
       var url;
@@ -144892,6 +146507,7 @@
           cvPayload.mode === "tailored" && cvPayload.text
             ? cvPayload.text
             : cleanMessageText(capturedCvText || "");
+        var applicationProfile = getCurrentApplicationProfile();
         var candidatePhone = cleanMessageText(workableTestCandidatePhone || "");
         if (!candidatePhone && capturedCvText) {
           candidatePhone = cleanMessageText(findCvPhone(capturedCvText) || "");
@@ -144959,13 +146575,30 @@
         formData.append("company_name", itemCompanyName);
         formData.append(
           "candidate_name",
-          cleanMessageText(applyOnboardingFullName || "")
+          cleanMessageText(
+            getApplicationProfileFieldValue(
+              applicationProfile,
+              "identity.fullName"
+            ) ||
+              applyOnboardingFullName ||
+              ""
+          )
         );
         formData.append(
           "candidate_email",
-          cleanMessageText(applyOnboardingPreferredEmail || "")
+          cleanMessageText(
+            getApplicationProfileFieldValue(applicationProfile, "identity.email") ||
+              applyOnboardingPreferredEmail ||
+              ""
+          )
         );
-        formData.append("candidate_phone", candidatePhone);
+        formData.append(
+          "candidate_phone",
+          cleanMessageText(
+            getApplicationProfileFieldValue(applicationProfile, "identity.phone") ||
+              candidatePhone
+          )
+        );
         formData.append("provider", itemProvider);
         formData.append("application_url", itemApplicationUrl);
         formData.append(
@@ -144989,6 +146622,11 @@
           "application_answers",
           JSON.stringify(resolvedApplicationAnswers || {})
         );
+        formData.append(
+          "application_profile",
+          JSON.stringify(applicationProfile || {})
+        );
+        saveApplicationProfileToServer(applicationProfile);
         formData.append(
           "successfactors_profile",
           JSON.stringify(successFactorsProfilePayload || {})
@@ -152338,8 +153976,18 @@
           var decision = buildConversationDecision(value || "");
           return decision && decision.meaning ? decision.meaning : null;
         },
+        buildEmilyMeaningObjectWithService: function (value) {
+          return buildConversationDecisionWithService(value || "").then(
+            function (decision) {
+              return decision && decision.meaning ? decision.meaning : null;
+            }
+          );
+        },
         buildConversationDecision: function (value) {
           return buildConversationDecision(value || "");
+        },
+        buildConversationDecisionWithService: function (value) {
+          return buildConversationDecisionWithService(value || "");
         },
         buildConversationReasoningPlan: function (value) {
           var decision = buildConversationDecision(value || "");
@@ -152386,6 +154034,9 @@
         },
         getCareerConversationMemory: function () {
           return JSON.parse(JSON.stringify(careerConversationMemory || {}));
+        },
+        getApplicationProfileReadinessReview: function (queueItem) {
+          return buildApplicationProfileReadinessReview(queueItem || {});
         },
         getPromptState: function () {
           return promptState || "";
@@ -152544,6 +154195,7 @@
           successFactorsAccountPreference = "";
           successFactorsAccountPassword = "";
           successFactorsProfileDraft = {};
+          applicationProfileReadinessSessionConfirmed = false;
           workableTestMode = false;
           greenhouseTestMode = false;
           teamtailorTestMode = false;
@@ -152672,6 +154324,11 @@
       };
       window.sffcDebugEmilyMeaning = function (value) {
         return root.__sffcApplyChatTest.buildEmilyMeaningObject(value || "");
+      };
+      window.sffcDebugEmilyMeaningWithService = function (value) {
+        return root.__sffcApplyChatTest.buildEmilyMeaningObjectWithService(
+          value || ""
+        );
       };
     }
 
@@ -152963,6 +154620,10 @@
         if (!railView || button.disabled) {
           return;
         }
+        if (button.hasAttribute("data-sffc-apply-chat-open-profile")) {
+          openApplicationProfilePanel();
+          return;
+        }
         setRailView(railView);
       });
     });
@@ -152977,6 +154638,28 @@
           renderRailNavigation();
         });
       });
+
+    root.addEventListener("click", function (event) {
+      var profileSaveButton = event.target.closest
+        ? event.target.closest("[data-sffc-apply-profile-save]")
+        : null;
+      var profileUseButton = event.target.closest
+        ? event.target.closest("[data-sffc-apply-profile-use]")
+        : null;
+      var button = profileSaveButton || profileUseButton;
+      var panel;
+      if (!button || !root.contains(button)) {
+        return;
+      }
+      panel = button.closest("[data-sffc-apply-profile-panel]");
+      persistApplicationProfileFromPanel(panel);
+      button.textContent = profileSaveButton ? "Saved" : "Ready for next application";
+      window.setTimeout(function () {
+        button.textContent = profileSaveButton
+          ? "Save profile"
+          : "Use for next application";
+      }, 1800);
+    });
 
     root
       .querySelectorAll("[data-sffc-apply-chat-upload-trigger]")
@@ -155797,16 +157480,19 @@
               );
               return;
             }
-            ensureApplicationAnswers(function () {
-              ensureWorkdayAccountChoiceThenQueue(activeQueueItem, function () {
-                ensureSuccessFactorsProfileThenQueue(
-                  activeQueueItem,
-                  function () {
-                    ensureSuccessFactorsAccountChoiceThenQueue(
+            ensureApplicationProfileReadinessThenQueue(
+              activeQueueItem,
+              function () {
+                ensureApplicationAnswers(function () {
+                  ensureWorkdayAccountChoiceThenQueue(activeQueueItem, function () {
+                    ensureSuccessFactorsProfileThenQueue(
                       activeQueueItem,
                       function () {
-                        queueApplicationTask(activeQueueItem)
-                          .then(function (data) {
+                        ensureSuccessFactorsAccountChoiceThenQueue(
+                          activeQueueItem,
+                          function () {
+                            queueApplicationTask(activeQueueItem)
+                              .then(function (data) {
                             var taskId = cleanMessageText(
                               (data && data.task_uuid) || ""
                             );
@@ -155830,8 +157516,8 @@
                                 );
                               }
                             );
-                          })
-                          .catch(function (error) {
+                              })
+                              .catch(function (error) {
                             var message =
                               cleanMessageText(
                                 (error && error.message) || ""
@@ -155847,13 +157533,15 @@
                                 );
                               }
                             );
-                          });
+                              });
+                          }
+                        );
                       }
                     );
-                  }
-                );
-              });
-            });
+                  });
+                });
+              }
+            );
           }
         );
         return;
@@ -157785,16 +159473,19 @@
           return;
         }
 
-        if (handleConversationDecisionBeforePrompt(value)) {
-          clearResponseWatchdog();
-          return;
-        }
+        handleConversationDecisionBeforePromptAsync(value).then(function (
+          decisionHandled
+        ) {
+          if (decisionHandled) {
+            clearResponseWatchdog();
+            return;
+          }
 
-        if (maybeHandlePromptReply(value)) {
-          return;
-        }
+          if (maybeHandlePromptReply(value)) {
+            return;
+          }
 
-        if (activePath === "member_desk") {
+          if (activePath === "member_desk") {
           markConversationTurnOwner("member_desk", {
             step: cleanMessageText(step || ""),
           });
@@ -157802,9 +159493,9 @@
           if (handleStandaloneMemberDeskReply(value)) {
             return;
           }
-        }
+          }
 
-        if (step === "choice") {
+          if (step === "choice") {
           markConversationTurnOwner("legacy_step_choice", {
             step: cleanMessageText(step || ""),
           });
@@ -158121,6 +159812,15 @@
           analyzeCv(value);
           focusComposer("You can jump in while I review");
         }
+        }).catch(function () {
+          if (handleConversationDecisionBeforePrompt(value)) {
+            clearResponseWatchdog();
+            return;
+          }
+          if (maybeHandlePromptReply(value)) {
+            return;
+          }
+        });
       }, 0);
     });
 
