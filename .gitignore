@@ -3,6 +3,7 @@
 .env.*
 !.env.example
 node_modules/
+services/*/.npm-cache/
 application-worker/node_modules/
 application-worker/.cache/
 npm-debug.log*

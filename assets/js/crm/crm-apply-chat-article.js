@@ -8444,6 +8444,456 @@
         "london or gcc",
       ],
     },
+    skillFamilies: [
+      {
+        canonical: "recruitment",
+        patterns: [
+          /\brecruit(?:ment|ing|er|ers)\b/i,
+          /\btalent acquisition\b/i,
+          /\bsourcing\b/i,
+          /\bhiring\b/i,
+          /\bstaffing\b/i,
+          /\bheadhunt(?:ing|er|ers)?\b/i,
+        ],
+      },
+      {
+        canonical: "HR operations",
+        patterns: [
+          /\bhr operations?\b/i,
+          /\bhuman resources?\b/i,
+          /\bemployee relations?\b/i,
+          /\bonboarding\b/i,
+          /\bworkforce planning\b/i,
+          /\bhris\b/i,
+          /\bpayroll\b/i,
+          /\bbenefits?\b/i,
+          /\bcompensation\b/i,
+          /\bperformance management\b/i,
+        ],
+      },
+      {
+        canonical: "financial modelling",
+        patterns: [
+          /\bfinancial mod(?:e)?ll?ing\b/i,
+          /\b(?:dcf|lbo|merger|valuation)\s+models?\b/i,
+          /\bmodels?\s+(?:for|across|using).*\b(?:dcf|lbo|valuation)\b/i,
+        ],
+      },
+      {
+        canonical: "valuation",
+        patterns: [
+          /\bvaluation\b/i,
+          /\bdcf\b/i,
+          /\blbo\b/i,
+          /\bcomparable companies?\b/i,
+          /\bprecedent transactions?\b/i,
+        ],
+      },
+      {
+        canonical: "due diligence",
+        patterns: [/\bdue diligence\b/i, /\bdd\b/i, /\bdiligence\b/i],
+      },
+      {
+        canonical: "M&A",
+        patterns: [
+          /\bm&a\b/i,
+          /\bmergers?\s+and\s+acquisitions?\b/i,
+          /\bdeal execution\b/i,
+          /\btransaction execution\b/i,
+        ],
+      },
+      {
+        canonical: "credit analysis",
+        patterns: [
+          /\bcredit analysis\b/i,
+          /\bcredit underwriting\b/i,
+          /\bcredit risk\b/i,
+          /\bloans?\b/i,
+          /\bprivate credit\b/i,
+        ],
+      },
+      {
+        canonical: "equity research",
+        patterns: [
+          /\bequity research\b/i,
+          /\bresearch analyst\b/i,
+          /\bcompany analysis\b/i,
+          /\binvestment research\b/i,
+        ],
+      },
+      {
+        canonical: "portfolio management",
+        patterns: [
+          /\bportfolio management\b/i,
+          /\bportfolio monitoring\b/i,
+          /\basset allocation\b/i,
+          /\bfund management\b/i,
+        ],
+      },
+      {
+        canonical: "investor relations",
+        patterns: [/\binvestor relations?\b/i, /\bstakeholder relations?\b/i],
+      },
+      {
+        canonical: "capital markets",
+        patterns: [
+          /\bcapital markets?\b/i,
+          /\bdcm\b/i,
+          /\becm\b/i,
+          /\bdebt capital markets?\b/i,
+          /\bequity capital markets?\b/i,
+        ],
+      },
+      {
+        canonical: "accounting",
+        patterns: [
+          /\baccounting\b/i,
+          /\bifrs\b/i,
+          /\baudit(?:ing)?\b/i,
+          /\bmanagement accounts?\b/i,
+          /\breconciliation\b/i,
+        ],
+      },
+      {
+        canonical: "FP&A",
+        patterns: [
+          /\bfp\s*&\s*a\b/i,
+          /\bfinancial planning\b/i,
+          /\bbudget(?:ing)?\b/i,
+          /\bforecast(?:ing)?\b/i,
+          /\bvariance analysis\b/i,
+        ],
+      },
+      {
+        canonical: "risk management",
+        patterns: [
+          /\brisk management\b/i,
+          /\bmarket risk\b/i,
+          /\boperational risk\b/i,
+          /\brisk assessment\b/i,
+          /\bvar\b/i,
+        ],
+      },
+      {
+        canonical: "data analysis",
+        patterns: [
+          /\bdata analysis\b/i,
+          /\banalytics?\b/i,
+          /\bdashboard(?:ing|s)?\b/i,
+          /\breporting\b/i,
+          /\bautomation\b/i,
+        ],
+      },
+      {
+        canonical: "Python",
+        patterns: [/\bpython\b/i],
+      },
+      {
+        canonical: "SQL",
+        patterns: [/\bsql\b/i, /\bpostgres(?:ql)?\b/i, /\bmysql\b/i],
+      },
+      {
+        canonical: "Excel",
+        patterns: [/\bexcel\b/i, /\bvba\b/i, /\bpower query\b/i],
+      },
+      {
+        canonical: "Power BI",
+        patterns: [/\bpower\s*bi\b/i, /\btableau\b/i],
+      },
+      {
+        canonical: "Bloomberg / Capital IQ",
+        patterns: [
+          /\bbloomberg\b/i,
+          /\bcapital iq\b/i,
+          /\bs&p capital iq\b/i,
+          /\bfactset\b/i,
+          /\brefinitiv\b/i,
+        ],
+      },
+      {
+        canonical: "project management",
+        patterns: [
+          /\bproject management\b/i,
+          /\bprogramme management\b/i,
+          /\bprogram management\b/i,
+          /\bdelivery management\b/i,
+        ],
+      },
+      {
+        canonical: "business development",
+        patterns: [
+          /\bbusiness development\b/i,
+          /\bclient relationship\b/i,
+          /\bmarket research\b/i,
+          /\bcommercial strategy\b/i,
+        ],
+      },
+    ],
+    companySignals: [
+      {
+        canonical: "recruitment agency",
+        patterns: [
+          /\brecruitment agenc(?:y|ies)\b/i,
+          /\brecruiters?\b/i,
+          /\bheadhunter(?:s)?\b/i,
+          /\bstaffing agenc(?:y|ies)\b/i,
+        ],
+      },
+      {
+        canonical: "bank",
+        patterns: [
+          /\bbanks?\b/i,
+          /\bcommercial bank\b/i,
+          /\binvestment bank\b/i,
+          /\bstandard chartered\b/i,
+          /\bmashreq\b/i,
+          /\badcb\b/i,
+          /\babu dhabi commercial bank\b/i,
+        ],
+      },
+      {
+        canonical: "fund",
+        patterns: [
+          /\bfunds?\b/i,
+          /\basset manager\b/i,
+          /\binvestment manager\b/i,
+          /\bfamily office\b/i,
+          /\bsovereign wealth fund\b/i,
+          /\bpif\b/i,
+          /\bmubadala\b/i,
+          /\bpermira\b/i,
+          /\btikehau\b/i,
+          /\bfasanara\b/i,
+          /\bmerak capital\b/i,
+        ],
+      },
+      {
+        canonical: "real estate employer",
+        patterns: [
+          /\breal estate\b/i,
+          /\bdeveloper\b/i,
+          /\bsavills\b/i,
+          /\bal[- ]?futtaim\b/i,
+          /\bqiddiya\b/i,
+        ],
+      },
+      {
+        canonical: "consulting firm",
+        patterns: [
+          /\bconsulting\b/i,
+          /\bconsultancy\b/i,
+          /\bbig four\b/i,
+          /\bdeloitte\b/i,
+          /\bpwc\b/i,
+          /\bkpmg\b/i,
+          /\bey\b/i,
+        ],
+      },
+      {
+        canonical: "startup",
+        patterns: [/\bstartup\b/i, /\bscaleup\b/i, /\bearly stage\b/i],
+      },
+    ],
+    marketSignals: [
+      {
+        canonical: "market timing",
+        patterns: [
+          /\bbest time\b/i,
+          /\bwhen should i apply\b/i,
+          /\bhiring season\b/i,
+          /\bpeak hiring\b/i,
+          /\bjob market\b/i,
+        ],
+      },
+      {
+        canonical: "salary research",
+        patterns: [
+          /\bsalar(?:y|ies)\b/i,
+          /\bpay\b/i,
+          /\bcompensation\b/i,
+          /\bpackage\b/i,
+          /\bbonus\b/i,
+        ],
+      },
+      {
+        canonical: "visa and relocation",
+        patterns: [
+          /\bvisa\b/i,
+          /\bsponsor(?:ship)?\b/i,
+          /\bwork permit\b/i,
+          /\brelocat(?:e|ion)\b/i,
+          /\biqama\b/i,
+        ],
+      },
+      {
+        canonical: "country and lifestyle",
+        patterns: [
+          /\bwhat is .* like\b/i,
+          /\bliving in\b/i,
+          /\blife in\b/i,
+          /\bcost of living\b/i,
+          /\bsafety\b/i,
+          /\bculture\b/i,
+        ],
+      },
+      {
+        canonical: "company research",
+        patterns: [
+          /\bcompany research\b/i,
+          /\bwhat does .* do\b/i,
+          /\bwho are\b/i,
+          /\breputation\b/i,
+          /\bstability\b/i,
+        ],
+      },
+      {
+        canonical: "recruiter research",
+        patterns: [
+          /\bbest recruiters?\b/i,
+          /\brecruitment agenc(?:y|ies)\b/i,
+          /\bheadhunter(?:s)?\b/i,
+        ],
+      },
+    ],
+    intentArchetypes: [
+      {
+        id: "job_search_location",
+        intent: "job_search",
+        route: "job_search",
+        text: "find jobs in Dubai Riyadh Abu Dhabi London show me roles opportunities vacancies location",
+      },
+      {
+        id: "job_search_sector_location",
+        intent: "job_search",
+        route: "job_search",
+        text: "find finance investment banking private equity credit analyst asset management jobs in Dubai Riyadh",
+      },
+      {
+        id: "job_search_help",
+        intent: "job_search",
+        route: "job_search",
+        text: "i need help finding jobs show me current live roles search openings nearby",
+      },
+      {
+        id: "search_refinement_seniority",
+        intent: "search_refinement",
+        route: "job_search",
+        text: "these are too junior too senior only manager director analyst associate level refine results",
+      },
+      {
+        id: "search_refinement_location",
+        intent: "search_refinement",
+        route: "job_search",
+        text: "only Dubai only Riyadh not London change location filter search results",
+      },
+      {
+        id: "web_recruiters",
+        intent: "web_answer",
+        route: "web_search",
+        text: "best recruiters recruitment agencies headhunters executive search firms in Dubai Saudi Arabia Riyadh",
+      },
+      {
+        id: "web_market_timing",
+        intent: "web_answer",
+        route: "web_search",
+        text: "when is the best time hiring season apply for jobs in Dubai UAE Saudi Arabia",
+      },
+      {
+        id: "web_salary",
+        intent: "web_answer",
+        route: "web_search",
+        text: "salary compensation pay package bonus average salary for analyst manager finance HR Dubai Riyadh",
+      },
+      {
+        id: "web_country_life",
+        intent: "web_answer",
+        route: "web_search",
+        text: "what is Saudi Arabia Dubai Riyadh UAE like living working culture cost of living safety lifestyle",
+      },
+      {
+        id: "web_company_research",
+        intent: "web_answer",
+        route: "web_search",
+        text: "what does this company do reputation stability sectors investments company research employer information",
+      },
+      {
+        id: "career_advice_stuck",
+        intent: "career_question",
+        route: "career_advice",
+        text: "i am tired stuck frustrated exhausted job search not getting replies what should i do advice",
+      },
+      {
+        id: "career_advice_direction",
+        intent: "career_question",
+        route: "career_advice",
+        text: "should i move jobs stay direction career plan decide next step salary progression",
+      },
+      {
+        id: "career_advice_interviews",
+        intent: "career_question",
+        route: "career_advice",
+        text: "why am i not getting interviews callbacks replies recruiters application response rate improve",
+      },
+      {
+        id: "cv_review",
+        intent: "cv_task",
+        route: "cv_task",
+        text: "review improve fix rewrite tailor my CV resume profile for this role application",
+      },
+      {
+        id: "apply_action",
+        intent: "apply_action",
+        route: "application_flow",
+        text: "apply submit application send it use tailored CV use original CV get started",
+      },
+      {
+        id: "application_pause",
+        intent: "application_pause",
+        route: "application_flow",
+        text: "do not apply yet pause stop hold off cancel application not ready",
+      },
+      {
+        id: "account_support",
+        intent: "support",
+        route: "support",
+        text: "login sign in account membership subscription payment billing refund password support",
+      },
+    ],
+    intentClassifierExamples: [
+      { label: "job_search", text: "find me jobs in Dubai" },
+      { label: "job_search", text: "show finance roles in Riyadh" },
+      { label: "job_search", text: "i need help to find jobs in Saudi Arabia" },
+      { label: "job_search", text: "search current investment analyst openings" },
+      { label: "job_search", text: "look for HR manager roles in UAE" },
+      { label: "search_refinement", text: "these are too junior" },
+      { label: "search_refinement", text: "only show me senior roles" },
+      { label: "search_refinement", text: "remove London and keep Dubai" },
+      { label: "search_refinement", text: "focus on private credit not real estate" },
+      { label: "web_answer", text: "best recruitment agencies in Dubai" },
+      { label: "web_answer", text: "when is the best time to apply for jobs in Dubai" },
+      { label: "web_answer", text: "what is Saudi Arabia like to work in" },
+      { label: "web_answer", text: "average salary for finance analyst in Riyadh" },
+      { label: "web_answer", text: "what does this company invest in" },
+      { label: "career_question", text: "i am tired of my job search what should i do" },
+      { label: "career_question", text: "why am i not getting interviews" },
+      { label: "career_question", text: "should i move jobs or stay" },
+      { label: "career_question", text: "help me decide my next career move" },
+      { label: "career_question", text: "how can i improve my response rate" },
+      { label: "cv_task", text: "review my CV" },
+      { label: "cv_task", text: "tailor my resume for this role" },
+      { label: "cv_task", text: "rewrite my profile summary" },
+      { label: "cv_task", text: "compare my CV with the job description" },
+      { label: "apply_action", text: "apply now" },
+      { label: "apply_action", text: "submit the application" },
+      { label: "apply_action", text: "use the tailored CV" },
+      { label: "apply_action", text: "get started with this role" },
+      { label: "application_pause", text: "do not apply yet" },
+      { label: "application_pause", text: "pause the application" },
+      { label: "application_pause", text: "hold off for now" },
+      { label: "support", text: "i forgot my password" },
+      { label: "support", text: "how do i cancel my membership" },
+      { label: "support", text: "billing payment refund issue" },
+    ],
     locations: [
       { canonical: "Dubai", patterns: [/\b(?:dubai|dubay|dbi|dxb|دبي)\b/i] },
       {
@@ -8673,6 +9123,665 @@
       .filter(Boolean);
   }
 
+  function hasMeaningCanonical(values, targets) {
+    var targetMap = {};
+    (targets || []).forEach(function (target) {
+      targetMap[cleanMessageText(target || "").toLowerCase()] = true;
+    });
+    return (values || []).some(function (value) {
+      return !!targetMap[cleanMessageText(value || "").toLowerCase()];
+    });
+  }
+
+  function getMeaningRegexFlags(pattern) {
+    var flags = "";
+    if (pattern && pattern.ignoreCase) {
+      flags += "i";
+    }
+    if (pattern && pattern.multiline) {
+      flags += "m";
+    }
+    if (pattern && pattern.unicode) {
+      flags += "u";
+    }
+    return flags || "i";
+  }
+
+  function getMeaningLexiconHits(text, entries, family) {
+    var clean = cleanMessageText(text || "");
+    var hits = [];
+    (entries || []).forEach(function (entry) {
+      var matched = null;
+      ((entry && entry.patterns) || []).some(function (pattern) {
+        var regex;
+        var match;
+        try {
+          regex = new RegExp(pattern.source, getMeaningRegexFlags(pattern));
+          match = regex.exec(clean);
+        } catch (error) {
+          match = null;
+        }
+        if (match) {
+          matched = {
+            family: family,
+            canonical: cleanMessageText((entry && entry.canonical) || ""),
+            text: cleanMessageText(match[0] || ""),
+            index: Math.max(0, Number(match.index || 0)),
+            length: cleanMessageText(match[0] || "").length,
+          };
+          return true;
+        }
+        return false;
+      });
+      if (matched) {
+        hits.push(matched);
+      }
+    });
+    return hits;
+  }
+
+  function getMeaningModifierHits(text) {
+    var clean = cleanMessageText(text || "");
+    var hits = [];
+    Object.keys(chatSignalLexicon.meaningModifiers || {}).forEach(function (key) {
+      (chatSignalLexicon.meaningModifiers[key] || []).some(function (pattern) {
+        var regex;
+        var match;
+        try {
+          regex = new RegExp(pattern.source, getMeaningRegexFlags(pattern));
+          match = regex.exec(clean);
+        } catch (error) {
+          match = null;
+        }
+        if (match) {
+          hits.push({
+            family: "modifier",
+            canonical: key,
+            text: cleanMessageText(match[0] || ""),
+            index: Math.max(0, Number(match.index || 0)),
+            length: cleanMessageText(match[0] || "").length,
+          });
+          return true;
+        }
+        return false;
+      });
+    });
+    return hits;
+  }
+
+  function filterMeaningHits(hits, canonicals) {
+    var wanted = {};
+    (canonicals || []).forEach(function (canonical) {
+      wanted[cleanMessageText(canonical || "").toLowerCase()] = true;
+    });
+    return (hits || []).filter(function (hit) {
+      return !!wanted[
+        cleanMessageText((hit && hit.canonical) || "").toLowerCase()
+      ];
+    });
+  }
+
+  function getClosestMeaningHitDistance(leftHits, rightHits) {
+    var best = null;
+    (leftHits || []).forEach(function (left) {
+      (rightHits || []).forEach(function (right) {
+        var distance = Math.abs(
+          Number((left && left.index) || 0) - Number((right && right.index) || 0)
+        );
+        if (best === null || distance < best.distance) {
+          best = {
+            distance: distance,
+            left: left,
+            right: right,
+          };
+        }
+      });
+    });
+    return best;
+  }
+
+  function scoreMeaningDistance(distance) {
+    if (distance === null || typeof distance === "undefined") {
+      return 0;
+    }
+    if (distance <= 18) {
+      return 1;
+    }
+    if (distance <= 45) {
+      return 0.82;
+    }
+    if (distance <= 85) {
+      return 0.58;
+    }
+    if (distance <= 140) {
+      return 0.32;
+    }
+    return 0.12;
+  }
+
+  function addMeaningScore(scores, key, amount, reason) {
+    if (!key || !amount) {
+      return;
+    }
+    if (!scores[key]) {
+      scores[key] = { score: 0, reasons: [] };
+    }
+    scores[key].score += amount;
+    if (reason && scores[key].reasons.indexOf(reason) === -1) {
+      scores[key].reasons.push(reason);
+    }
+  }
+
+  function addMeaningProximityScore(
+    output,
+    name,
+    route,
+    leftHits,
+    rightHits,
+    weight
+  ) {
+    var closest = getClosestMeaningHitDistance(leftHits, rightHits);
+    var score;
+    if (!closest) {
+      return;
+    }
+    score = Number((scoreMeaningDistance(closest.distance) * weight).toFixed(4));
+    if (score <= 0) {
+      return;
+    }
+    output.push({
+      name: name,
+      route: route,
+      score: score,
+      distance: closest.distance,
+      left: closest.left ? closest.left.canonical : "",
+      right: closest.right ? closest.right.canonical : "",
+    });
+  }
+
+  function stemMeaningBm25Token(token) {
+    var clean = cleanMessageText(token || "").toLowerCase();
+    clean = clean.replace(/[^a-z0-9&+.#-]/g, "");
+    if (clean.length > 5 && /ies$/.test(clean)) {
+      clean = clean.replace(/ies$/, "y");
+    } else if (clean.length > 6 && /ing$/.test(clean)) {
+      clean = clean.replace(/ing$/, "");
+    } else if (clean.length > 5 && /ed$/.test(clean)) {
+      clean = clean.replace(/ed$/, "");
+    } else if (clean.length > 4 && /s$/.test(clean) && !/ss$/.test(clean)) {
+      clean = clean.replace(/s$/, "");
+    }
+    return clean;
+  }
+
+  function tokenizeMeaningBm25Text(text) {
+    var stopWords = {
+      a: true,
+      an: true,
+      and: true,
+      are: true,
+      as: true,
+      at: true,
+      be: true,
+      but: true,
+      can: true,
+      do: true,
+      does: true,
+      for: true,
+      from: true,
+      have: true,
+      help: false,
+      i: true,
+      im: true,
+      in: false,
+      is: true,
+      it: true,
+      me: true,
+      my: true,
+      of: true,
+      on: true,
+      or: true,
+      please: true,
+      that: true,
+      the: true,
+      this: true,
+      to: true,
+      want: true,
+      what: false,
+      when: false,
+      where: false,
+      who: false,
+      why: false,
+      with: true,
+      you: true,
+    };
+    return normalizeCareerIntentText(cleanMessageText(text || ""))
+      .toLowerCase()
+      .split(/\s+/)
+      .map(stemMeaningBm25Token)
+      .filter(function (token) {
+        return token && token.length > 1 && !stopWords[token];
+      });
+  }
+
+  function countMeaningBm25Tokens(tokens) {
+    var counts = {};
+    (tokens || []).forEach(function (token) {
+      counts[token] = (counts[token] || 0) + 1;
+    });
+    return counts;
+  }
+
+  function scoreMeaningIntentArchetypes(text) {
+    var archetypes = chatSignalLexicon.intentArchetypes || [];
+    var queryTokens = tokenizeMeaningBm25Text(text);
+    var docs;
+    var docFreq = {};
+    var avgLength = 1;
+    var totalLength = 0;
+    var k1 = 1.2;
+    var b = 0.75;
+    var results = [];
+
+    if (!queryTokens.length || !archetypes.length) {
+      return [];
+    }
+
+    docs = archetypes.map(function (item) {
+      var tokens = tokenizeMeaningBm25Text(
+        [item.text, item.intent, item.route].join(" ")
+      );
+      var counts = countMeaningBm25Tokens(tokens);
+      Object.keys(counts).forEach(function (token) {
+        docFreq[token] = (docFreq[token] || 0) + 1;
+      });
+      totalLength += tokens.length;
+      return {
+        item: item,
+        tokens: tokens,
+        counts: counts,
+        length: tokens.length || 1,
+      };
+    });
+    avgLength = totalLength / Math.max(1, docs.length);
+
+    docs.forEach(function (doc) {
+      var score = 0;
+      var matched = [];
+      dedupeList(queryTokens).forEach(function (token) {
+        var tf = doc.counts[token] || 0;
+        var df = docFreq[token] || 0;
+        var idf;
+        var denom;
+        if (!tf) {
+          return;
+        }
+        idf = Math.log(1 + (docs.length - df + 0.5) / (df + 0.5));
+        denom = tf + k1 * (1 - b + b * (doc.length / avgLength));
+        score += idf * ((tf * (k1 + 1)) / denom);
+        matched.push(token);
+      });
+      if (score > 0) {
+        results.push({
+          id: doc.item.id,
+          intent: doc.item.intent,
+          route: doc.item.route,
+          score: Number(score.toFixed(4)),
+          normalizedScore: 0,
+          matched: matched.slice(0, 8),
+        });
+      }
+    });
+
+    results.sort(function (a, b) {
+      return b.score - a.score;
+    });
+    if (results.length) {
+      var topScore = Math.max(0.0001, results[0].score);
+      results.forEach(function (item) {
+        item.normalizedScore = Number(
+          Math.min(1, item.score / topScore).toFixed(4)
+        );
+      });
+    }
+    return results.slice(0, 6);
+  }
+
+  function scoreMeaningNaiveBayesIntents(text) {
+    var examples = chatSignalLexicon.intentClassifierExamples || [];
+    var queryTokens = tokenizeMeaningBm25Text(text);
+    var classes = {};
+    var vocabulary = {};
+    var totalDocs = 0;
+    var results = [];
+
+    if (!queryTokens.length || !examples.length) {
+      return [];
+    }
+
+    examples.forEach(function (example) {
+      var label = cleanMessageText((example && example.label) || "");
+      var tokens = tokenizeMeaningBm25Text((example && example.text) || "");
+      if (!label || !tokens.length) {
+        return;
+      }
+      if (!classes[label]) {
+        classes[label] = {
+          label: label,
+          docs: 0,
+          tokenTotal: 0,
+          tokenCounts: {},
+        };
+      }
+      classes[label].docs += 1;
+      totalDocs += 1;
+      tokens.forEach(function (token) {
+        vocabulary[token] = true;
+        classes[label].tokenCounts[token] =
+          (classes[label].tokenCounts[token] || 0) + 1;
+        classes[label].tokenTotal += 1;
+      });
+    });
+
+    if (!totalDocs || !Object.keys(classes).length) {
+      return [];
+    }
+
+    var vocabularySize = Math.max(1, Object.keys(vocabulary).length);
+    Object.keys(classes).forEach(function (label) {
+      var klass = classes[label];
+      var logProb = Math.log(klass.docs / totalDocs);
+      var matched = [];
+      queryTokens.forEach(function (token) {
+        var count = klass.tokenCounts[token] || 0;
+        if (count) {
+          matched.push(token);
+        }
+        logProb += Math.log(
+          (count + 1) / (klass.tokenTotal + vocabularySize)
+        );
+      });
+      results.push({
+        intent: label,
+        route:
+          label === "web_answer"
+            ? "web_search"
+            : label === "career_question"
+              ? "career_advice"
+              : label === "cv_task"
+                ? "cv_task"
+                : label === "apply_action" || label === "application_pause"
+                  ? "application_flow"
+                  : label === "support"
+                    ? "support"
+                    : "job_search",
+        logProbability: logProb,
+        probability: 0,
+        matched: dedupeList(matched).slice(0, 8),
+      });
+    });
+
+    var maxLog = results.reduce(function (best, item) {
+      return Math.max(best, item.logProbability);
+    }, -Infinity);
+    var total = 0;
+    results.forEach(function (item) {
+      item.probability = Math.exp(item.logProbability - maxLog);
+      total += item.probability;
+    });
+    results.forEach(function (item) {
+      item.probability = Number(
+        (item.probability / Math.max(0.0001, total)).toFixed(4)
+      );
+      item.logProbability = Number(item.logProbability.toFixed(4));
+    });
+    results.sort(function (a, b) {
+      return b.probability - a.probability;
+    });
+    return results.slice(0, 6);
+  }
+
+  function buildMeaningFrameScoring(text, frame) {
+    var hits = {
+      actions: getMeaningLexiconHits(
+        text,
+        chatSignalLexicon.meaningActions,
+        "action"
+      ),
+      topics: getMeaningLexiconHits(
+        text,
+        chatSignalLexicon.meaningTopics,
+        "topic"
+      ),
+      roles: getMeaningLexiconHits(text, chatSignalLexicon.roleFamilies, "role"),
+      locations: getMeaningLexiconHits(
+        text,
+        chatSignalLexicon.locations,
+        "location"
+      ),
+      seniority: getMeaningLexiconHits(
+        text,
+        chatSignalLexicon.seniorityEntries,
+        "seniority"
+      ),
+      skills: getMeaningLexiconHits(
+        text,
+        chatSignalLexicon.skillFamilies,
+        "skill"
+      ),
+      companies: getMeaningLexiconHits(
+        text,
+        chatSignalLexicon.companySignals,
+        "company"
+      ),
+      markets: getMeaningLexiconHits(
+        text,
+        chatSignalLexicon.marketSignals,
+        "market"
+      ),
+      modifiers: getMeaningModifierHits(text),
+    };
+    var tokenScores = {};
+    var phraseScores = [];
+    var proximityScores = [];
+    var archetypeScores = scoreMeaningIntentArchetypes(text);
+    var classifierScores = scoreMeaningNaiveBayesIntents(text);
+    var actions = frame.actions || [];
+    var topics = frame.topics || [];
+    var roles = frame.roles || [];
+    var locations = frame.locations || [];
+    var skills = frame.skills || [];
+    var companies = frame.companies || [];
+    var markets = frame.markets || [];
+    var modifiers = frame.modifiers || [];
+
+    if (
+      hasMeaningCanonical(actions, ["find"]) &&
+      hasMeaningCanonical(topics, ["role", "job_search"])
+    ) {
+      addMeaningScore(tokenScores, "job_search", 0.38, "find_job_phrase");
+      phraseScores.push({
+        name: "find + job",
+        route: "job_search",
+        score: 0.38,
+      });
+    }
+    if (
+      locations.length &&
+      (hasMeaningCanonical(topics, ["role", "job_search"]) ||
+        roles.length ||
+        skills.length)
+    ) {
+      addMeaningScore(tokenScores, "job_search", 0.3, "job_or_skill_with_location");
+    }
+    if (hasMeaningCanonical(topics, ["recruiter"]) && locations.length) {
+      addMeaningScore(
+        tokenScores,
+        "web_research",
+        0.35,
+        "recruiter_location_research"
+      );
+      phraseScores.push({
+        name: "recruiter + location",
+        route: "web_research",
+        score: 0.35,
+      });
+    }
+    if (
+      hasMeaningCanonical(topics, ["salary"]) ||
+      hasMeaningCanonical(markets, ["salary research"])
+    ) {
+      addMeaningScore(tokenScores, "web_research", 0.26, "salary_market_research");
+    }
+    if (
+      hasMeaningCanonical(markets, [
+        "market timing",
+        "country and lifestyle",
+        "company research",
+        "recruiter research",
+      ])
+    ) {
+      addMeaningScore(tokenScores, "web_research", 0.34, "market_research_signal");
+    }
+    if (
+      hasMeaningCanonical(modifiers, ["frustration", "difficulty"]) &&
+      hasMeaningCanonical(topics, ["job_search", "application", "interview"])
+    ) {
+      addMeaningScore(
+        tokenScores,
+        "career_advice",
+        0.42,
+        "emotional_job_search_signal"
+      );
+      phraseScores.push({
+        name: "emotion + job search",
+        route: "career_advice",
+        score: 0.42,
+      });
+    }
+    if (
+      hasMeaningCanonical(actions, ["apply"]) &&
+      (roles.length || companies.length || hasMeaningCanonical(topics, ["role", "application"]))
+    ) {
+      addMeaningScore(tokenScores, "application_flow", 0.36, "apply_role_or_company");
+      phraseScores.push({
+        name: "apply + role/company",
+        route: "application_flow",
+        score: 0.36,
+      });
+    }
+    if (
+      frame.question_word &&
+      (markets.length ||
+        hasMeaningCanonical(topics, [
+          "company",
+          "salary",
+          "recruiter",
+          "culture",
+          "location",
+        ]))
+    ) {
+      addMeaningScore(
+        tokenScores,
+        "web_research",
+        0.22,
+        "question_about_external_topic"
+      );
+    }
+
+    addMeaningProximityScore(
+      proximityScores,
+      "sector/skill near job-search term",
+      "job_search",
+      hits.roles.concat(hits.skills),
+      filterMeaningHits(hits.topics, ["role", "job_search"]),
+      0.28
+    );
+    addMeaningProximityScore(
+      proximityScores,
+      "job-search term near location",
+      "job_search",
+      filterMeaningHits(hits.topics, ["role", "job_search"]),
+      hits.locations,
+      0.32
+    );
+    addMeaningProximityScore(
+      proximityScores,
+      "recruiter term near location",
+      "web_research",
+      filterMeaningHits(hits.topics, ["recruiter"]).concat(
+        filterMeaningHits(hits.companies, ["recruitment agency"])
+      ),
+      hits.locations,
+      0.34
+    );
+    addMeaningProximityScore(
+      proximityScores,
+      "salary term near role/location",
+      "web_research",
+      filterMeaningHits(hits.topics, ["salary"]).concat(
+        filterMeaningHits(hits.markets, ["salary research"])
+      ),
+      hits.roles.concat(hits.locations),
+      0.26
+    );
+    addMeaningProximityScore(
+      proximityScores,
+      "emotion near job-search term",
+      "career_advice",
+      filterMeaningHits(hits.modifiers, ["frustration", "difficulty"]),
+      filterMeaningHits(hits.topics, ["job_search", "application", "interview"]),
+      0.38
+    );
+    addMeaningProximityScore(
+      proximityScores,
+      "apply term near role/company",
+      "application_flow",
+      filterMeaningHits(hits.actions, ["apply"]),
+      hits.roles.concat(hits.companies),
+      0.3
+    );
+
+    proximityScores.forEach(function (item) {
+      addMeaningScore(tokenScores, item.route, item.score, "proximity:" + item.name);
+    });
+    archetypeScores.slice(0, 3).forEach(function (item) {
+      addMeaningScore(
+        tokenScores,
+        item.route,
+        Math.min(0.42, item.normalizedScore * 0.42),
+        "bm25:" + item.id
+      );
+    });
+    classifierScores.slice(0, 3).forEach(function (item) {
+      addMeaningScore(
+        tokenScores,
+        item.route,
+        Math.min(0.34, item.probability * 0.34),
+        "naive_bayes:" + item.intent
+      );
+    });
+    Object.keys(tokenScores).forEach(function (key) {
+      tokenScores[key].score = Number(
+        Math.min(1, tokenScores[key].score).toFixed(4)
+      );
+    });
+    proximityScores.sort(function (a, b) {
+      return b.score - a.score;
+    });
+    phraseScores.sort(function (a, b) {
+      return b.score - a.score;
+    });
+
+    return {
+      token_scores: tokenScores,
+      phrase_scores: phraseScores.slice(0, 8),
+      proximity_scores: proximityScores.slice(0, 8),
+      archetype_scores: archetypeScores,
+      classifier_scores: classifierScores,
+    };
+  }
+
   function extractMeaningFrame(text) {
     var clean = cleanMessageText(text || "");
     var normalized = normalizeCareerIntentText(clean);
@@ -8682,7 +9791,11 @@
     var roleSignals = [];
     var locationSignals = [];
     var senioritySignals = [];
+    var skillSignals = [];
+    var companySignals = [];
+    var marketSignals = [];
     var modifiers = [];
+    var scoring = null;
     var clauseFrames = [];
     var clauseCount = 0;
     var clauseParts;
@@ -8695,6 +9808,16 @@
         roles: [],
         locations: [],
         seniority: [],
+        skills: [],
+        companies: [],
+        markets: [],
+        scoring: {
+          token_scores: {},
+          phrase_scores: [],
+          proximity_scores: [],
+          archetype_scores: [],
+          classifier_scores: [],
+        },
         modifiers: [],
         clauses: [],
         compact: "",
@@ -8728,6 +9851,18 @@
       normalized,
       chatSignalLexicon.seniorityEntries
     );
+    skillSignals = extractLexiconCanonicals(
+      normalized,
+      chatSignalLexicon.skillFamilies
+    );
+    companySignals = extractLexiconCanonicals(
+      normalized,
+      chatSignalLexicon.companySignals
+    );
+    marketSignals = extractLexiconCanonicals(
+      normalized,
+      chatSignalLexicon.marketSignals
+    );
     modifiers = Object.keys(chatSignalLexicon.meaningModifiers).filter(
       function (key) {
         return lexiconMatchesAny(
@@ -8736,6 +9871,18 @@
         );
       }
     );
+    scoring = buildMeaningFrameScoring(normalized, {
+      question_word: questionWord,
+      actions: actions,
+      topics: topics,
+      roles: roleSignals,
+      locations: locationSignals,
+      seniority: senioritySignals,
+      skills: skillSignals,
+      companies: companySignals,
+      markets: marketSignals,
+      modifiers: modifiers,
+    });
     clauseParts = splitMeaningClauses(normalized);
     clauseCount = clauseParts.length;
     clauseFrames = clauseParts.map(function (part) {
@@ -8755,6 +9902,12 @@
           part,
           chatSignalLexicon.seniorityEntries
         ),
+        skills: extractLexiconCanonicals(part, chatSignalLexicon.skillFamilies),
+        companies: extractLexiconCanonicals(
+          part,
+          chatSignalLexicon.companySignals
+        ),
+        markets: extractLexiconCanonicals(part, chatSignalLexicon.marketSignals),
         modifiers: Object.keys(chatSignalLexicon.meaningModifiers).filter(
           function (key) {
             return lexiconMatchesAny(
@@ -8773,11 +9926,19 @@
       roles: roleSignals,
       locations: locationSignals,
       seniority: senioritySignals,
+      skills: skillSignals,
+      companies: companySignals,
+      markets: marketSignals,
+      scoring: scoring,
       modifiers: modifiers,
       clauses: clauseFrames,
       compact: [questionWord]
         .concat(actions.slice(0, 2))
         .concat(topics.slice(0, 2))
+        .concat(roleSignals.slice(0, 1))
+        .concat(skillSignals.slice(0, 1))
+        .concat(locationSignals.slice(0, 1))
+        .concat(marketSignals.slice(0, 1))
         .concat(modifiers.slice(0, 2))
         .filter(Boolean)
         .join(" "),
@@ -133343,6 +134504,16 @@
           roles: (meaningFrame.roles || []).slice(0, 8),
           locations: (meaningFrame.locations || []).slice(0, 8),
           seniority: (meaningFrame.seniority || []).slice(0, 8),
+          skills: (meaningFrame.skills || []).slice(0, 12),
+          companies: (meaningFrame.companies || []).slice(0, 8),
+          markets: (meaningFrame.markets || []).slice(0, 8),
+          scoring: meaningFrame.scoring || {
+            token_scores: {},
+            phrase_scores: [],
+            proximity_scores: [],
+            archetype_scores: [],
+            classifier_scores: [],
+          },
           modifiers: (meaningFrame.modifiers || []).slice(0, 8),
           clauseCount: Number(meaningFrame.clause_count || 0),
           compact: cleanMessageText(meaningFrame.compact || ""),
@@ -136989,6 +138160,246 @@
       };
     }
 
+    function getConversationMeaningSecondaryIntents(intent, routeEnsemble) {
+      var seen = {};
+      var output = [];
+      function push(type, score, source) {
+        var cleanType = cleanMessageText(type || "");
+        if (!cleanType || seen[cleanType]) {
+          return;
+        }
+        seen[cleanType] = true;
+        output.push({
+          intent: cleanType,
+          score: Number(Number(score || 0).toFixed(4)),
+          source: cleanMessageText(source || ""),
+        });
+      }
+      ((intent && intent.candidates) || []).forEach(function (candidate) {
+        push(candidate && candidate.type, candidate && candidate.probability, "intent_candidate");
+      });
+      ((routeEnsemble && routeEnsemble.candidates) || []).forEach(function (
+        candidate
+      ) {
+        push(
+          getPrimaryEmilyDecisionIntentForRoute(candidate && candidate.route),
+          candidate && (candidate.calibratedProbability || candidate.score),
+          "route_ensemble"
+        );
+      });
+      return output.slice(0, 6);
+    }
+
+    function getConversationMeaningEmotion(features, intent) {
+      var modifiers =
+        features && features.semantic && features.semantic.modifiers
+          ? features.semantic.modifiers
+          : [];
+      var rawSignals = (intent && intent.rawSignals) || [];
+      var hasFrustration =
+        modifiers.indexOf("frustration") !== -1 ||
+        rawSignals.join(" ").indexOf("frustration") !== -1;
+      var hasDifficulty =
+        modifiers.indexOf("difficulty") !== -1 ||
+        rawSignals.join(" ").indexOf("difficulty") !== -1;
+      var hasUrgency = modifiers.indexOf("urgency") !== -1;
+      if (hasFrustration) {
+        return { label: "frustrated", score: 0.78 };
+      }
+      if (hasDifficulty) {
+        return { label: "stuck", score: 0.68 };
+      }
+      if (hasUrgency) {
+        return { label: "urgent", score: 0.58 };
+      }
+      return { label: "neutral", score: 0 };
+    }
+
+    function getConversationMeaningRewrittenQueries(value, nextAction) {
+      var actionType = cleanMessageText((nextAction && nextAction.type) || "");
+      var params = (nextAction && nextAction.params) || {};
+      return {
+        jobs:
+          actionType === "show_job_results"
+            ? cleanMessageText(params.query || normalizeApplyChatJobSearchQuery(value))
+            : null,
+        web:
+          actionType === "web_search"
+            ? cleanMessageText(params.query || buildApplyChatWebSearchQuery(value))
+            : null,
+      };
+    }
+
+    function buildConversationMeaningExplanation(
+      features,
+      intent,
+      nextAction,
+      relationship,
+      routeKey
+    ) {
+      var explanation = [];
+      var featureFlags =
+        features && features.text && features.text.flags
+          ? features.text.flags
+          : [];
+      var routeFlags =
+        features && features.routeHints && features.routeHints.flags
+          ? features.routeHints.flags
+          : [];
+      var riskFlags =
+        features && features.risk && features.risk.flags
+          ? features.risk.flags
+          : [];
+      if (intent && intent.source) {
+        explanation.push("Intent source: " + cleanMessageText(intent.source));
+      }
+      if (intent && intent.rawSignals && intent.rawSignals.length) {
+        explanation.push(
+          "Signals: " + intent.rawSignals.slice(0, 4).join(", ")
+        );
+      }
+      if (routeFlags.length) {
+        explanation.push("Route hints: " + routeFlags.slice(0, 4).join(", "));
+      }
+      if (featureFlags.length) {
+        explanation.push("Text flags: " + featureFlags.slice(0, 4).join(", "));
+      }
+      if (riskFlags.length) {
+        explanation.push("Risks: " + riskFlags.slice(0, 4).join(", "));
+      }
+      explanation.push(
+        "Action: " +
+          cleanMessageText((nextAction && nextAction.type) || "") +
+          " via " +
+          cleanMessageText(routeKey || "unknown_route") +
+          " (" +
+          cleanMessageText(relationship || "unclear") +
+          ")."
+      );
+      return explanation.slice(0, 8);
+    }
+
+    function buildConversationMeaningObject(
+      value,
+      context,
+      intent,
+      relationship,
+      nextAction,
+      routeKey,
+      plan
+    ) {
+      var features = (context && context.decisionFeatures) || {};
+      var semantic = features.semantic || {};
+      var routeEnsemble = context && context.routeEnsemble;
+      return {
+        schemaVersion: 1,
+        raw: cleanMessageText(value || ""),
+        normalized:
+          features && features.text
+            ? cleanMessageText(features.text.normalized || "")
+            : cleanMessageText(value || "").toLowerCase(),
+        primaryIntent: cleanMessageText((intent && intent.type) || "unknown"),
+        confidence: Number(
+          Number(
+            (plan && plan.confidence) || (intent && intent.confidence) || 0
+          ).toFixed(4)
+        ),
+        secondaryIntents: getConversationMeaningSecondaryIntents(
+          intent,
+          routeEnsemble
+        ),
+        emotion: getConversationMeaningEmotion(features, intent),
+        entities: {
+          roles: (semantic.roles || []).slice(0, 8),
+          sectors: (semantic.topics || []).slice(0, 12),
+          skills: (semantic.skills || []).slice(0, 12),
+          locations: (semantic.locations || []).slice(0, 8),
+          companies: (semantic.companies || []).slice(0, 8),
+          markets: (semantic.markets || []).slice(0, 8),
+          seniority: (semantic.seniority || []).slice(0, 8),
+        },
+        scores: semantic.scoring || {
+          token_scores: {},
+          phrase_scores: [],
+          proximity_scores: [],
+          archetype_scores: [],
+          classifier_scores: [],
+        },
+        context: {
+          hasCv: hasApplyChatCvAvailable(),
+          selectedRole: !!(context && context.selectedRole),
+          referencedRole: !!(context && context.referencedRole),
+          activeApplicationFlow: !!(
+            context &&
+            context.activeTask &&
+            /apply|application|selected_role/.test(
+              cleanMessageText(context.activeTask.type || "")
+            )
+          ),
+          activeSearch: !!(
+            context &&
+            context.activeTask &&
+            cleanMessageText(context.activeTask.type || "") === "search"
+          ),
+          hasActivePrompt: !!(
+            context &&
+            context.activeTask &&
+            context.activeTask.promptState
+          ),
+        },
+        action: {
+          type: cleanMessageText((nextAction && nextAction.type) || ""),
+          route: cleanMessageText(routeKey || ""),
+          relationshipToTask: cleanMessageText(relationship || ""),
+          shouldSearchJobs:
+            cleanMessageText((nextAction && nextAction.type) || "") ===
+            "show_job_results",
+          shouldSearchWeb:
+            cleanMessageText((nextAction && nextAction.type) || "") ===
+            "web_search",
+          shouldAskClarification:
+            cleanMessageText((nextAction && nextAction.type) || "") ===
+            "ask_clarifying_question",
+        },
+        rewrittenQueries: getConversationMeaningRewrittenQueries(
+          value,
+          nextAction
+        ),
+        explanation: buildConversationMeaningExplanation(
+          features,
+          intent,
+          nextAction,
+          relationship,
+          routeKey
+        ),
+        debug: {
+          featureFlags:
+            features && features.text && features.text.flags
+              ? features.text.flags.slice(0, 12)
+              : [],
+          routeHintFlags:
+            features && features.routeHints && features.routeHints.flags
+              ? features.routeHints.flags.slice(0, 16)
+              : [],
+          riskFlags:
+            features && features.risk && features.risk.flags
+              ? features.risk.flags.slice(0, 16)
+              : [],
+          routeEnsemble: routeEnsemble
+            ? {
+                route: routeEnsemble.route,
+                score: routeEnsemble.score,
+                calibratedProbability: routeEnsemble.calibratedProbability,
+                calibrationBand: routeEnsemble.calibrationBand,
+                runnerUp: routeEnsemble.runnerUp,
+                runnerUpScore: routeEnsemble.runnerUpScore,
+                margin: routeEnsemble.margin,
+              }
+            : null,
+        },
+      };
+    }
+
     function buildConversationDecision(value) {
       var context = {
         config: getEmilyDecisionEngineConfig(),
@@ -137045,6 +138456,15 @@
         relationship,
         nextAction
       );
+      var meaning = buildConversationMeaningObject(
+        value,
+        context,
+        intent,
+        relationship,
+        nextAction,
+        routeKey,
+        plan
+      );
       recordConversationBeliefState(
         context.beliefState,
         intent,
@@ -137084,6 +138504,7 @@
         jobSearchContext: context.jobSearchContext,
         activeTask: context.activeTask,
         memory: context.memory,
+        meaning: meaning,
         beliefState: context.beliefState,
         decisionFeatures: context.decisionFeatures,
         reasoningPlan: plan,
@@ -138552,6 +139973,13 @@
         actionType: cleanMessageText(
           (decision && decision.nextAction && decision.nextAction.type) || ""
         ),
+        meaningIntent: cleanMessageText(
+          decision && decision.meaning ? decision.meaning.primaryIntent || "" : ""
+        ),
+        rewrittenQueries:
+          decision && decision.meaning && decision.meaning.rewrittenQueries
+            ? decision.meaning.rewrittenQueries
+            : null,
         confidence:
           Number(
             (decision && decision.reasoningPlan && decision.reasoningPlan.confidence) ||
@@ -150906,6 +152334,10 @@
         detectIntent: function (value) {
           return detectIntent(value || "");
         },
+        buildEmilyMeaningObject: function (value) {
+          var decision = buildConversationDecision(value || "");
+          return decision && decision.meaning ? decision.meaning : null;
+        },
         buildConversationDecision: function (value) {
           return buildConversationDecision(value || "");
         },
@@ -151237,6 +152669,9 @@
         isSimpleDropAdminTestEnabled: function () {
           return isSimpleDropAdminTestEnabled();
         },
+      };
+      window.sffcDebugEmilyMeaning = function (value) {
+        return root.__sffcApplyChatTest.buildEmilyMeaningObject(value || "");
       };
     }
 

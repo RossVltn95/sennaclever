@@ -1,0 +1,23 @@
+{
+  "name": "senna-emily-nlp-service",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Dependency-backed meaning engine for Emily chat routing and query rewriting.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "check": "node --check server.js && node --check meaning-engine.js && node --check test.js",
+    "test": "node test.js"
+  },
+  "dependencies": {
+    "chrono-node": "^2.8.4",
+    "express": "^5.1.0",
+    "wink-bm25-text-search": "*",
+    "wink-eng-lite-web-model": "*",
+    "wink-naive-bayes-text-classifier": "*",
+    "wink-nlp": "*"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
