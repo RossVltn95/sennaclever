@@ -47729,7 +47729,7 @@
         policy.defaultMode = "remote_browser";
         policy.requiresRemoteBrowserForApply = true;
         policy.iframeBlockedHosts = ["myworkdayjobs.com", "workdayjobs.com"];
-        policy.statusLabel = "Workday assisted browser fallback";
+        policy.statusLabel = "Workday secure browser fallback";
         policy.reason = "workday_remote_browser_default";
         return policy;
       }
@@ -47744,7 +47744,7 @@
         policy.defaultMode = "remote_browser";
         policy.requiresRemoteBrowserForApply = true;
         policy.iframeBlockedHosts = ["successfactors.com", "sapsf.com"];
-        policy.statusLabel = "SAP SuccessFactors assisted browser fallback";
+        policy.statusLabel = "SAP SuccessFactors secure browser fallback";
         policy.reason = "successfactors_remote_browser_default";
         return policy;
       }
@@ -47766,7 +47766,7 @@
         policy.iframeBlockedHosts = ["teamtailor.com"];
         policy.statusLabel =
           policy.defaultMode === "remote_browser"
-            ? "Teamtailor assisted browser fallback"
+            ? "Teamtailor secure browser fallback"
             : "Teamtailor page route";
         policy.reason =
           policy.defaultMode === "remote_browser"
@@ -48139,10 +48139,20 @@
           (!isNoVncTransport || allowPublicNoVnc),
         serviceUrl: cleanMessageText(serviceUrl || ""),
         transport: transport || "novnc",
+        surface: isNoVncTransport ? "internal_novnc" : "managed_live_browser",
         isNoVncTransport: isNoVncTransport,
         isManagedLiveTransport: isManagedLiveTransport,
         allowPublicNoVnc: allowPublicNoVnc,
       };
+    }
+
+    function isApplyChatLiveBrowserSurface(surface) {
+      var cleanSurface = cleanMessageText(surface || "");
+      return (
+        cleanSurface === "managed_live_browser" ||
+        cleanSurface === "internal_novnc" ||
+        cleanSurface === "remote_browser"
+      );
     }
 
     function getApplicationEmbedPolicy(provider, url, item) {
@@ -48170,7 +48180,7 @@
       if (isKnownFrameBlockedApplicationUrl(url, provider)) {
         policy.defaultMode = "remote_browser";
         policy.requiresRemoteBrowserForApply = true;
-        policy.statusLabel = policy.label + " assisted browser fallback";
+        policy.statusLabel = policy.label + " secure browser fallback";
         policy.reason = "known_blocked_host_remote_browser_default";
         return policy;
       }
@@ -48203,7 +48213,7 @@
           surface = "static_preview";
           reason = "mode_requests_static_preview";
         } else if (policy.defaultMode === "remote_browser" || knownBlocked) {
-          surface = remoteBrowser.enabled ? "remote_browser" : "static_preview";
+          surface = remoteBrowser.enabled ? remoteBrowser.surface : "static_preview";
           reason = remoteBrowser.enabled
             ? policy.reason || "remote_browser_available"
             : (policy.reason || "remote_browser_default") +
@@ -48227,14 +48237,22 @@
         mode: mode,
         policy: policy,
         surface: surface,
+        transport:
+          surface === "iframe_embed"
+            ? "iframe"
+            : surface === "static_preview"
+              ? "screenshot"
+              : surface === "external_link_only"
+                ? "external_link"
+                : remoteBrowser.transport,
         reason: reason,
         canFrameUrl: canFrameUrl,
         knownBlocked: knownBlocked,
         shouldRenderIframe: surface === "iframe_embed",
         shouldRequestScreenshot:
           surface === "static_preview" ||
-          (surface === "remote_browser" && !remoteBrowser.enabled),
-        shouldStartRemoteBrowser: surface === "remote_browser",
+          (isApplyChatLiveBrowserSurface(surface) && !remoteBrowser.enabled),
+        shouldStartRemoteBrowser: isApplyChatLiveBrowserSurface(surface),
         remoteBrowserEnabled: remoteBrowser.enabled,
         remoteBrowserUrl: remoteBrowser.serviceUrl,
         remoteBrowserTransport: remoteBrowser.transport,
@@ -49096,7 +49114,11 @@
           '" data-sffc-apply-results-review-panel="' +
           escapeHtml(key) +
           '" data-sffc-apply-results-review-mode="' +
+          escapeHtml(reviewDecision.mode) +
+          '" data-sffc-apply-results-review-surface="' +
           escapeHtml(reviewDecision.surface) +
+          '" data-sffc-apply-results-review-transport="' +
+          escapeHtml(reviewDecision.transport) +
           '" data-sffc-apply-results-review-reason="' +
           escapeHtml(reviewDecision.reason) +
           '">' +
@@ -49128,10 +49150,10 @@
             : '<div class="sffc-crm-apply-results__review-fallback">' +
               escapeHtml(
                 url
-                  ? reviewDecision.surface === "remote_browser"
+                  ? isApplyChatLiveBrowserSurface(reviewDecision.surface)
                     ? uiText(
-                        "This employer blocks normal embedded forms. I can open an assisted browser view, or you can use the employer link directly.",
-                        "تحظر جهة العمل النماذج المضمنة العادية. يمكنني فتح عرض متصفح مساعد، أو يمكنك استخدام رابط جهة العمل مباشرة."
+                        "This employer blocks embedded forms. I can open it in a secure live browser session, or you can open the employer page directly.",
+                        "تحظر جهة العمل النماذج المضمنة. يمكنني فتحها في جلسة متصفح آمنة ومباشرة، أو يمكنك فتح رابط جهة العمل مباشرة."
                       )
                     : uiText(
                         "This employer form may block embedded previews. Open it in a new tab to review the role and apply yourself.",
@@ -128899,7 +128921,11 @@
             cleanMessageText(root.getAttribute("data-crm-post-id") || "")
           ) +
           '" data-sffc-apply-results-review-mode="' +
+          escapeHtml(reviewDecision.mode) +
+          '" data-sffc-apply-results-review-surface="' +
           escapeHtml(reviewDecision.surface) +
+          '" data-sffc-apply-results-review-transport="' +
+          escapeHtml(reviewDecision.transport) +
           '" data-sffc-apply-results-review-reason="' +
           escapeHtml(reviewDecision.reason) +
           '">' +
@@ -128977,10 +129003,10 @@
             ? '<div class="sffc-crm-apply-results__review-fallback">' +
               escapeHtml(
                 url
-                  ? reviewDecision.surface === "remote_browser"
+                  ? isApplyChatLiveBrowserSurface(reviewDecision.surface)
                     ? uiText(
-                        "This employer blocks normal embedded forms. I can open an assisted browser view, or you can use the employer link directly.",
-                        "تحظر جهة العمل النماذج المضمنة العادية. يمكنني فتح عرض متصفح مساعد، أو يمكنك استخدام رابط جهة العمل مباشرة."
+                        "This employer blocks embedded forms. I can open it in a secure live browser session, or you can open the employer page directly.",
+                        "تحظر جهة العمل النماذج المضمنة. يمكنني فتحها في جلسة متصفح آمنة ومباشرة، أو يمكنك فتح رابط جهة العمل مباشرة."
                       )
                     : uiText(
                         "This employer form may block embeds. I’ll show a preview where possible and keep the employer form link ready.",
@@ -131261,7 +131287,11 @@
         String(itemIndex || 0);
       return (
         '<section class="sffc-crm-apply-results sffc-crm-apply-results--fallback" data-sffc-apply-results-fallback-card data-sffc-apply-results-review-mode="' +
+        escapeHtml(reviewDecision.mode) +
+        '" data-sffc-apply-results-review-surface="' +
         escapeHtml(reviewDecision.surface) +
+        '" data-sffc-apply-results-review-transport="' +
+        escapeHtml(reviewDecision.transport) +
         '" data-sffc-apply-results-review-reason="' +
         escapeHtml(reviewDecision.reason) +
         '" data-sffc-apply-results-review-provider="' +
@@ -131302,8 +131332,8 @@
           ? !reviewDecision.shouldRenderIframe
             ? '<div class="sffc-crm-apply-results__review-fallback">' +
               escapeHtml(
-                reviewDecision.surface === "remote_browser"
-                  ? "This employer blocks normal embedded forms. I can open an assisted browser view, or you can use the employer link directly."
+                isApplyChatLiveBrowserSurface(reviewDecision.surface)
+                  ? "This employer blocks embedded forms. I can open it in a secure live browser session, or you can open the employer page directly."
                   : "This employer form may block embeds. I’ll show a preview where possible and keep the employer form link ready."
               ) +
               "</div>"
@@ -155606,12 +155636,16 @@
         return "";
       }
       return (
-        '<section class="sffc-crm-apply-results__remote-browser' +
+        '<section class="sffc-crm-apply-results__remote-browser sffc-crm-apply-results__live-browser' +
         (visible ? " is-loading" : "") +
         '"' +
         (visible ? "" : " hidden") +
         ' data-sffc-apply-results-remote-browser' +
-        ' data-sffc-remote-browser-url="' +
+        ' data-sffc-remote-browser-surface="' +
+        escapeHtml(reviewDecision.surface || remoteConfig.surface || "") +
+        '" data-sffc-remote-browser-transport="' +
+        escapeHtml(reviewDecision.transport || remoteConfig.transport || "") +
+        '" data-sffc-remote-browser-url="' +
         escapeHtml(url) +
         '" data-sffc-remote-browser-provider="' +
         escapeHtml(provider || "") +
@@ -155639,12 +155673,12 @@
         '">' +
         '<div class="sffc-crm-apply-results__remote-browser-bar">' +
         '<div><strong>' +
-        escapeHtml(uiText("Assisted employer view", "عرض جهة العمل بمساعدة")) +
+        escapeHtml(uiText("Employer form", "نموذج جهة العمل")) +
         "</strong><span>" +
         escapeHtml(
           uiText(
-            "Opening the employer page in a managed browser view.",
-            "نفتح صفحة جهة العمل في عرض متصفح مُدار."
+            "Opening in a secure live browser session.",
+            "نفتحها في جلسة متصفح آمنة ومباشرة."
           )
         ) +
         "</span></div>" +
@@ -155667,8 +155701,8 @@
         '<div class="sffc-crm-apply-results__remote-browser-viewport" data-sffc-remote-browser-viewport>' +
         renderApplyResultsPreviewLoader(
           uiText(
-            "Starting assisted browser view...",
-            "جار تشغيل عرض المتصفح المساعد..."
+            "Starting secure live browser...",
+            "جار تشغيل المتصفح الآمن..."
           )
         ) +
         "</div>" +
@@ -155986,8 +156020,8 @@
         escapeHtml(
           message ||
             uiText(
-              "I could not start the assisted browser view. I’ll show the preview fallback instead.",
-              "تعذر تشغيل عرض المتصفح المساعد. سأعرض المعاينة الاحتياطية بدلاً من ذلك."
+              "I could not open the secure live browser session. I’ll show the preview fallback instead.",
+              "تعذر فتح جلسة المتصفح الآمنة. سأعرض المعاينة الاحتياطية بدلاً من ذلك."
             )
         ) +
         "</div>";
@@ -156004,7 +156038,12 @@
         "remote_browser_error",
         {
           state: "error",
-          surface: "remote_browser",
+          surface:
+            remoteBrowser.getAttribute("data-sffc-remote-browser-surface") ||
+            "managed_live_browser",
+          transport:
+            remoteBrowser.getAttribute("data-sffc-remote-browser-transport") ||
+            "",
           reason: message || "remote_browser_error",
           url: remoteBrowser.getAttribute("data-sffc-remote-browser-url") || "",
           provider:
@@ -156110,7 +156149,12 @@
         "remote_browser_ready",
         {
           state: "ready",
-          surface: "remote_browser",
+          surface:
+            remoteBrowser.getAttribute("data-sffc-remote-browser-surface") ||
+            "managed_live_browser",
+          transport:
+            remoteBrowser.getAttribute("data-sffc-remote-browser-transport") ||
+            "",
           url: remoteBrowser.getAttribute("data-sffc-remote-browser-url") || "",
           provider:
             remoteBrowser.getAttribute("data-sffc-remote-browser-provider") ||
@@ -156146,8 +156190,8 @@
         setApplyResultsRemoteBrowserError(
           remoteBrowser,
           uiText(
-            "The assisted browser view is not configured yet.",
-            "لم يتم إعداد عرض المتصفح المساعد بعد."
+            "The secure live browser is not configured yet.",
+            "لم يتم إعداد المتصفح الآمن بعد."
           )
         );
         return;
@@ -156156,8 +156200,8 @@
         setApplyResultsRemoteBrowserError(
           remoteBrowser,
           uiText(
-            "I need a valid employer page before I can open the assisted browser view.",
-            "أحتاج إلى صفحة جهة عمل صالحة قبل فتح عرض المتصفح المساعد."
+            "I need a valid employer page before I can open the secure live browser.",
+            "أحتاج إلى صفحة جهة عمل صالحة قبل فتح المتصفح الآمن."
           )
         );
         return;
@@ -156173,7 +156217,12 @@
         "remote_browser_requested",
         {
           state: "loading",
-          surface: "remote_browser",
+          surface:
+            remoteBrowser.getAttribute("data-sffc-remote-browser-surface") ||
+            "managed_live_browser",
+          transport:
+            remoteBrowser.getAttribute("data-sffc-remote-browser-transport") ||
+            "",
           url: url,
           provider: provider,
         }
@@ -156220,8 +156269,8 @@
             throw new Error(
               (data && data.message) ||
                 uiText(
-                  "The assisted browser did not return a session.",
-                  "لم يرجع عرض المتصفح المساعد جلسة."
+                  "The secure live browser did not return a session.",
+                  "لم يرجع المتصفح الآمن جلسة."
                 )
             );
           }
@@ -156238,8 +156287,8 @@
             remoteBrowser,
             (error && error.message) ||
               uiText(
-                "I could not start the assisted browser view.",
-                "تعذر تشغيل عرض المتصفح المساعد."
+                "I could not open the secure live browser session.",
+                "تعذر فتح جلسة المتصفح الآمنة."
               )
           );
           if (preview) {
@@ -156298,8 +156347,8 @@
             setApplyResultsRemoteBrowserError(
               remoteBrowser,
               uiText(
-                "The assisted browser controls are not configured yet.",
-                "لم يتم إعداد عناصر التحكم في المتصفح المساعد بعد."
+                "The secure live browser controls are not configured yet.",
+                "لم يتم إعداد عناصر التحكم في المتصفح الآمن بعد."
               )
             );
         return;
@@ -156365,12 +156414,25 @@
       if (panel) {
         panel.setAttribute(
           "data-sffc-apply-results-review-current-mode",
-          remoteBrowser ? "remote_browser" : "static_preview"
+          remoteBrowser
+            ? remoteBrowser.getAttribute("data-sffc-remote-browser-surface") ||
+                "managed_live_browser"
+            : "static_preview"
         );
       }
       logApplyResultsReviewSurfaceEvent(panel, "iframe_fallback_shown", {
-        state: remoteBrowser ? "remote_browser" : "static_preview",
-        surface: remoteBrowser ? "remote_browser" : "static_preview",
+        state: remoteBrowser
+          ? remoteBrowser.getAttribute("data-sffc-remote-browser-surface") ||
+            "managed_live_browser"
+          : "static_preview",
+        surface: remoteBrowser
+          ? remoteBrowser.getAttribute("data-sffc-remote-browser-surface") ||
+            "managed_live_browser"
+          : "static_preview",
+        transport: remoteBrowser
+          ? remoteBrowser.getAttribute("data-sffc-remote-browser-transport") ||
+            ""
+          : "screenshot",
         url: frame
           ? frame.getAttribute("data-src") || frame.getAttribute("src") || ""
           : "",
@@ -156402,10 +156464,13 @@
     }
 
     function shouldProbeApplyResultsIframe(panel) {
+      var surface = cleanMessageText(
+        panel ? panel.getAttribute("data-sffc-apply-results-review-surface") : ""
+      );
       var mode = cleanMessageText(
         panel ? panel.getAttribute("data-sffc-apply-results-review-mode") : ""
       );
-      return !mode || mode === "iframe_embed";
+      return surface === "iframe_embed" || (!surface && (!mode || mode === "iframe_embed" || mode === "embed" || mode === "auto"));
     }
 
     function logApplyResultsReviewSurfaceEvent(panel, eventName, extra) {
@@ -156470,7 +156535,15 @@
         "surface",
         cleanMessageText(
           payload.surface ||
-            panel.getAttribute("data-sffc-apply-results-review-mode") ||
+            panel.getAttribute("data-sffc-apply-results-review-surface") ||
+            ""
+        )
+      );
+      formData.append(
+        "transport",
+        cleanMessageText(
+          payload.transport ||
+            panel.getAttribute("data-sffc-apply-results-review-transport") ||
             ""
         )
       );

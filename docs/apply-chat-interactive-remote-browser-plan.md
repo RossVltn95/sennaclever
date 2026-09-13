@@ -56,7 +56,7 @@ Emily: I couldn’t open an interactive browser window right now, so I’m showi
 The user should always understand which state they are in:
 
 - `Embedded employer form`
-- `Assisted employer view`
+- `Secure live browser session`
 - `Preview only`
 - `Waiting for verification`
 - `Needs user input`
@@ -74,7 +74,9 @@ type EmployerReviewSurfaceDecision = {
   provider: 'workable' | 'greenhouse' | 'workday' | 'successfactors' | 'teamtailor' | 'simple_form' | 'unknown';
   employerUrl: string;
   embedUrl: string;
-  mode: 'iframe_embed' | 'remote_browser' | 'static_preview' | 'external_link_only';
+  mode: 'auto' | 'embed' | 'remote_browser' | 'screenshot';
+  surface: 'iframe_embed' | 'managed_live_browser' | 'internal_novnc' | 'static_preview' | 'external_link_only';
+  transport: 'iframe' | 'cloudflare_live_view' | 'browserless_live_url' | 'novnc_internal' | 'screenshot' | 'external_link';
   reason:
     | 'known_embed_allowed'
     | 'known_embed_blocked'
@@ -92,13 +94,15 @@ type EmployerReviewSurfaceDecision = {
     finalSubmitAllowed: boolean;
   };
   fallback: {
-    nextMode: 'remote_browser' | 'static_preview' | 'external_link_only' | null;
+    nextSurface: 'managed_live_browser' | 'static_preview' | 'external_link_only' | null;
     message: string;
   };
 };
 ```
 
 Every UI render path should consume this decision. No component should independently decide iframe vs screenshot vs remote browser.
+
+Status: updated. `remote_browser` is retained only as a stored/admin compatibility mode. Candidate UI must branch on `surface` and `transport`, not on the old overloaded mode.
 
 ## GitHub And Railway Deployment Model
 
@@ -167,6 +171,9 @@ Required environment variables for the new remote-browser service:
 ```bash
 SFFC_REMOTE_BROWSER_TOKEN=...
 SFFC_REMOTE_BROWSER_PUBLIC_URL=https://<railway-remote-browser-domain>
+SFFC_REMOTE_BROWSER_TRANSPORT=cloudflare_live_view
+SFFC_REMOTE_BROWSER_INTERNAL_FALLBACK=novnc
+SFFC_REMOTE_BROWSER_ALLOW_NOVNC_PUBLIC=0
 SFFC_REMOTE_BROWSER_MAX_SESSIONS=5
 SFFC_REMOTE_BROWSER_SESSION_TTL_SECONDS=900
 SFFC_REMOTE_BROWSER_IDLE_TTL_SECONDS=180
@@ -180,6 +187,8 @@ Required WordPress/plugin configuration:
 ```php
 define('SFFC_REMOTE_BROWSER_URL', 'https://<railway-remote-browser-domain>');
 define('SFFC_REMOTE_BROWSER_TOKEN', 'same-token-as-railway-service');
+define('SFFC_REMOTE_BROWSER_TRANSPORT', 'cloudflare_live_view');
+define('SFFC_REMOTE_BROWSER_ALLOW_NOVNC_PUBLIC', false);
 ```
 
 WordPress should be the broker between apply-chat and the remote-browser service:
@@ -378,9 +387,9 @@ Required service endpoints:
 
 Acceptance criteria:
 
-- A blocked iframe can create a remote session within an acceptable timeout once WordPress broker endpoints are added.
-- The returned noVNC `streamUrl` can be embedded by the apply-chat remote browser component.
-- The user can click, type, scroll, and interact with the employer page inside chat through noVNC.
+- A blocked iframe can create a managed live-browser session within an acceptable timeout once WordPress broker endpoints are added.
+- The returned managed `streamUrl` can be embedded by the apply-chat live-browser component.
+- The user can click, type, scroll, and interact with the employer page inside chat without seeing raw noVNC controls.
 - The remote browser is isolated per user/session with its own display, Chrome profile, VNC port, and viewer token.
 - Closing the chat or switching roles can call `POST /sessions/:id/close`.
 - Expired and idle sessions are cleaned up automatically.
@@ -389,23 +398,23 @@ Acceptance criteria:
 
 Goal: add a polished UI surface that fits the chat.
 
-Status: implemented as the first apply-chat integration pass. The chat now has a `sffc-crm-apply-results__remote-browser` component, WordPress broker endpoints for create/status/close, server-side session ownership checks, and iframe-failure escalation from direct embed to assisted browser before static screenshot fallback.
+Status: implemented as the first apply-chat integration pass, then updated for managed browser transport. The chat keeps the compatible `sffc-crm-apply-results__remote-browser` wrapper and adds `sffc-crm-apply-results__live-browser`, WordPress broker endpoints for create/status/close, server-side session ownership checks, and iframe-failure escalation from direct embed to a secure live browser before static screenshot fallback.
 
 New component class:
 
 ```text
 sffc-crm-apply-results__remote-browser
+sffc-crm-apply-results__live-browser
 ```
 
 Suggested structure:
 
 ```html
-<section class="sffc-crm-apply-results__remote-browser">
+<section class="sffc-crm-apply-results__remote-browser sffc-crm-apply-results__live-browser">
   <header class="sffc-crm-apply-results__remote-browser-bar">
-    <span>Assisted employer view</span>
-    <strong>Workable application route</strong>
-    <a>Open employer form</a>
-    <button>Refresh</button>
+    <span>Employer form</span>
+    <strong>Opening in a secure live browser session.</strong>
+    <a>Open tab</a>
     <button>Close</button>
   </header>
   <div class="sffc-crm-apply-results__remote-browser-viewport">
@@ -932,12 +941,13 @@ define('SFFC_REMOTE_BROWSER_PAYING_BETA', false);
 - WordPress must send the configured transport to `/remote-browser-service`; it must not hard-code `novnc`.
 - The frontend must not expose raw noVNC unless `SFFC_REMOTE_BROWSER_ALLOW_NOVNC_PUBLIC=1`.
 - If Cloudflare Live View fails, fall back to screenshot preview plus direct employer link.
-- Candidate-facing copy should say `assisted browser view`, not `noVNC`, `VNC`, `websockify`, or `remote desktop`.
+- Candidate-facing copy should say `secure live browser session` or `employer form`, not `assisted browser view`, `noVNC`, `VNC`, `websockify`, or `remote desktop`.
 
 ### Acceptance Checks
 
-- `remote-browser-service /health` reports `transport: cloudflare_live_view`.
+- `remote-browser-service /health` reports `transport: cloudflare_live_view` and `internalFallback: novnc`.
 - A Workable/Greenhouse embed-safe role renders `sffc-crm-apply-results__review-frame` first.
 - A blocked Workday/SuccessFactors role creates a Cloudflare-backed session and returns a live `streamUrl`.
+- The frontend review decision uses `surface: managed_live_browser` for Cloudflare/Browserless and `surface: internal_novnc` for internal noVNC.
 - No candidate UI contains noVNC controls, VNC connection forms, or websockify settings.
 - With Cloudflare disabled or failing, the UI shows static preview fallback and the direct employer link.

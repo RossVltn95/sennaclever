@@ -191,11 +191,11 @@ const html = String.raw`<!doctype html>
             <div class="sffc-crm-apply-results__review" hidden id="review-1" data-sffc-apply-results-review-panel="role-1">
               <a class="sffc-crm-apply-results__review-link" href="https://example.com/apply" target="_blank" rel="noopener noreferrer">Open form</a>
               <iframe class="sffc-crm-apply-results__review-frame" data-sffc-apply-results-review-frame data-src="https://example.com/apply"></iframe>
-              <div class="sffc-crm-apply-results__remote-browser is-ready" data-sffc-apply-results-remote-browser>
+              <div class="sffc-crm-apply-results__remote-browser sffc-crm-apply-results__live-browser is-ready" data-sffc-apply-results-remote-browser data-sffc-remote-browser-surface="managed_live_browser" data-sffc-remote-browser-transport="cloudflare_live_view">
                 <div class="sffc-crm-apply-results__remote-browser-bar">
                   <div>
-                    <strong>Assisted employer view</strong>
-                    <p>Opening the employer page inside this chat.</p>
+                    <strong>Employer form</strong>
+                    <p>Opening in a secure live browser session.</p>
                   </div>
                   <div class="sffc-crm-apply-results__remote-browser-actions">
                     <button type="button" class="is-primary">Take control</button>
@@ -203,7 +203,7 @@ const html = String.raw`<!doctype html>
                     <a href="https://example.com/apply" target="_blank" rel="noopener noreferrer">Open tab</a>
                   </div>
                 </div>
-                <iframe class="sffc-crm-apply-results__remote-browser-frame" src="https://example.com/live-view" title="Assisted employer view"></iframe>
+                <iframe class="sffc-crm-apply-results__remote-browser-frame" src="https://example.com/live-view" title="Secure employer browser"></iframe>
               </div>
             </div>
           </article>
@@ -323,14 +323,14 @@ async function assertViewport(page, viewport) {
     };
   });
   if (remoteBrowserState.width < 240 || !remoteBrowserState.frameSrc) {
-    throw new Error("assisted browser panel is not sized or hydrated correctly");
+    throw new Error("secure live browser panel is not sized or hydrated correctly");
   }
   if (/noVNC|websockify|Ctrl\+Alt\+Del|Clipboard|Scaling Mode|Repeater ID/i.test(remoteBrowserState.text)) {
-    throw new Error("assisted browser panel exposes noVNC controls in the user-facing UI");
+    throw new Error("secure live browser panel exposes noVNC controls in the user-facing UI");
   }
   ["Take control", "Let Emily drive", "Open tab"].forEach((label) => {
     if (!remoteBrowserState.buttons.includes(label)) {
-      throw new Error(`assisted browser panel missing ${label} action`);
+      throw new Error(`secure live browser panel missing ${label} action`);
     }
   });
   const screenshotDir = "reports/apply-chat-ui";

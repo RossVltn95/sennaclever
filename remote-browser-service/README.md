@@ -35,6 +35,7 @@ If the service is created from the repository root instead of setting the Railwa
 SFFC_REMOTE_BROWSER_TOKEN=replace-with-shared-token
 SFFC_REMOTE_BROWSER_PUBLIC_URL=https://replace-with-railway-domain
 SFFC_REMOTE_BROWSER_TRANSPORT=cloudflare_live_view
+SFFC_REMOTE_BROWSER_INTERNAL_FALLBACK=novnc
 SFFC_REMOTE_BROWSER_ALLOW_NOVNC_PUBLIC=0
 SFFC_REMOTE_BROWSER_ADMIN_ONLY=0
 SFFC_REMOTE_BROWSER_PAYING_BETA=0
@@ -139,7 +140,7 @@ The older Puppeteer screenshot/control protocol remains available as a developme
 
 ## Transport
 
-The safe default is `SFFC_REMOTE_BROWSER_TRANSPORT=novnc` with `SFFC_REMOTE_BROWSER_ALLOW_NOVNC_PUBLIC=0`, which prevents the WordPress apply-chat UI from exposing noVNC to candidates. Set a managed transport before enabling the public assisted browser path.
+The safe default is `SFFC_REMOTE_BROWSER_TRANSPORT=cloudflare_live_view` with `SFFC_REMOTE_BROWSER_ALLOW_NOVNC_PUBLIC=0`, which prevents the WordPress apply-chat UI from exposing noVNC to candidates. Keep `SFFC_REMOTE_BROWSER_INTERNAL_FALLBACK=novnc` for internal/operator debugging only.
 
 Managed live browser transports:
 

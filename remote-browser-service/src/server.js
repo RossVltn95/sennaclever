@@ -108,6 +108,7 @@ async function handleHealth(response, corsHeaders) {
   const capacity = getCapacitySnapshot();
   const runtime = {
     transport: cleanText(process.env.SFFC_REMOTE_BROWSER_TRANSPORT || "novnc").toLowerCase(),
+    internalFallback: cleanText(process.env.SFFC_REMOTE_BROWSER_INTERNAL_FALLBACK || "novnc").toLowerCase(),
     chromeAvailable: Boolean(getBrowserExecutablePath()),
     noVncAvailable: isNoVncAvailable(),
   };

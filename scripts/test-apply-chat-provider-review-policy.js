@@ -99,7 +99,7 @@ const reviewSurfaceBuilderRegion =
     label: "Workday",
     expectedMode: "remote_browser",
     reason: "workday_remote_browser_default",
-    route: "Workday assisted browser fallback",
+    route: "Workday secure browser fallback",
     blockedHost: "myworkdayjobs.com",
   },
   {
@@ -107,7 +107,7 @@ const reviewSurfaceBuilderRegion =
     label: "SAP SuccessFactors",
     expectedMode: "remote_browser",
     reason: "successfactors_remote_browser_default",
-    route: "SAP SuccessFactors assisted browser fallback",
+    route: "SAP SuccessFactors secure browser fallback",
     blockedHost: "successfactors.com",
   },
   {
@@ -115,7 +115,7 @@ const reviewSurfaceBuilderRegion =
     label: "Teamtailor",
     expectedMode: "remote_browser",
     reason: "teamtailor_application_remote_browser_default",
-    route: "Teamtailor assisted browser fallback",
+    route: "Teamtailor secure browser fallback",
     blockedHost: "teamtailor.com",
   },
   {
@@ -169,10 +169,26 @@ const reviewSurfaceBuilderRegion =
   "providerStatusLabel: policy.statusLabel || providerLabel",
   "shouldRenderIframe: surface === \"iframe_embed\"",
   "shouldRequestScreenshot:",
-  "shouldStartRemoteBrowser: surface === \"remote_browser\"",
+  "shouldStartRemoteBrowser: isApplyChatLiveBrowserSurface(surface)",
+  "transport:",
+  "remoteBrowserIsManagedLive",
 ].forEach((needle) => {
   if (!decisionBody.includes(needle)) {
     failures.push(`Review surface decision missing ${needle}`);
+  }
+});
+
+[
+  "function isApplyChatLiveBrowserSurface(surface)",
+  "managed_live_browser",
+  "internal_novnc",
+  "external_link_only",
+  "data-sffc-remote-browser-surface",
+  "data-sffc-remote-browser-transport",
+  "sffc-crm-apply-results__live-browser",
+].forEach((needle) => {
+  if (!source.includes(needle)) {
+    failures.push(`Frontend managed live-browser surface support missing ${needle}`);
   }
 });
 
@@ -230,9 +246,14 @@ if (!normalizeActualJobPostSearchItemBody.includes("applyUrl: externalEmployerUr
 
 [
   "build_crm_apply_chat_review_surface_decision",
+  "get_crm_apply_chat_remote_browser_surface",
   "persist_crm_apply_chat_review_surface_metadata",
   "remote_browser_supported",
   "invalid_external_url",
+  "external_link_only",
+  "managed_live_browser",
+  "internal_novnc",
+  "transport",
   "remote_browser_unavailable",
   "provider_prefers_remote_browser",
   "remote_browser_not_available_or_url_blocked",
@@ -277,11 +298,14 @@ if (!normalizeActualJobPostSearchItemBody.includes("applyUrl: externalEmployerUr
 if (source.includes("This employer form blocks a standard embed. I’ll use the secure browser route when it is available")) {
   failures.push("Review-surface copy still describes secure browser as conditional iframe fallback.");
 }
-if (!source.includes("This employer blocks normal embedded forms. I can open an assisted browser view")) {
-  failures.push("Review-surface copy does not describe assisted browser as the blocked-embed fallback.");
+if (!source.includes("This employer blocks embedded forms. I can open it in a secure live browser session")) {
+  failures.push("Review-surface copy does not describe secure live browser as the blocked-embed fallback.");
 }
 if (source.includes("I’ll open this employer form in Senna’s secure browser so you can review it inside the chat")) {
   failures.push("Review-surface copy still presents the noVNC-style secure browser as the primary product surface.");
+}
+if (source.includes("Assisted employer view")) {
+  failures.push("Candidate-facing browser header still says Assisted employer view.");
 }
 
 [

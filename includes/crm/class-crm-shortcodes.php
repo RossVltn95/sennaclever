@@ -10535,8 +10535,9 @@ CSS;
 
             if (!$this->is_crm_apply_chat_external_application_url($application_url)) {
                 return [
-                    'mode' => 'screenshot',
-                    'surface' => 'static_preview',
+                    'mode' => 'external_link_only',
+                    'surface' => 'external_link_only',
+                    'transport' => 'external_link',
                     'status' => 'invalid_external_url',
                     'remote_browser_supported' => false,
                     'reason' => 'missing_or_internal_application_url',
@@ -10554,10 +10555,12 @@ CSS;
                 $remote_browser_supported = $this->can_crm_apply_chat_use_remote_browser()
                     && $this->is_crm_apply_chat_remote_browser_url_allowed($application_url)
                     && $this->is_crm_apply_chat_remote_browser_provider_url_match($provider, $application_url);
+                $remote_browser_surface = $remote_browser_supported ? $this->get_crm_apply_chat_remote_browser_surface() : 'static_preview';
 
                 return [
                     'mode' => 'remote_browser',
-                    'surface' => $remote_browser_supported ? 'remote_browser' : 'static_preview',
+                    'surface' => $remote_browser_surface,
+                    'transport' => $this->get_crm_apply_chat_remote_browser_transport(),
                     'status' => $remote_browser_supported ? 'remote_browser_supported' : 'remote_browser_unavailable',
                     'remote_browser_supported' => $remote_browser_supported,
                     'reason' => $remote_browser_supported ? 'provider_prefers_remote_browser' : 'remote_browser_not_available_or_url_blocked',
@@ -10568,6 +10571,7 @@ CSS;
                 return [
                     'mode' => 'embed',
                     'surface' => 'iframe_embed',
+                    'transport' => 'iframe',
                     'status' => 'embed_candidate',
                     'remote_browser_supported' => false,
                     'reason' => 'explicit_embed_mode',
@@ -10578,6 +10582,7 @@ CSS;
                 return [
                     'mode' => 'screenshot',
                     'surface' => 'static_preview',
+                    'transport' => 'screenshot',
                     'status' => 'screenshot_fallback',
                     'remote_browser_supported' => false,
                     'reason' => 'explicit_screenshot_mode',
@@ -10587,6 +10592,7 @@ CSS;
             return [
                 'mode' => 'embed',
                 'surface' => 'iframe_embed',
+                'transport' => 'iframe',
                 'status' => 'embed_candidate',
                 'remote_browser_supported' => false,
                 'reason' => 'fallback_iframe_first',
@@ -10754,6 +10760,18 @@ CSS;
                 && $this->current_user_can_use_crm_apply_chat_remote_browser_rollout()
                 && $this->get_crm_apply_chat_remote_browser_service_url() !== ''
                 && $this->get_crm_apply_chat_remote_browser_token() !== '';
+        }
+
+        private function get_crm_apply_chat_remote_browser_surface()
+        {
+            $transport = $this->get_crm_apply_chat_remote_browser_transport();
+            if ($transport === 'novnc') {
+                return 'internal_novnc';
+            }
+            if (in_array($transport, ['cloudflare', 'cloudflare_live_view', 'browserless', 'browserless_live_url', 'managed_live_browser'], true)) {
+                return 'managed_live_browser';
+            }
+            return 'static_preview';
         }
 
         private function fetch_crm_apply_chat_successfactors_schema_from_job_url($jobs_post_id)
@@ -46352,6 +46370,7 @@ CRITICAL INSTRUCTIONS:
                 'jobs_post_id' => $jobs_post_id,
                 'mode' => $decision['mode'] ?? '',
                 'surface' => $decision['surface'] ?? '',
+                'transport' => $decision['transport'] ?? '',
                 'status' => $decision['status'] ?? '',
             ]);
 
@@ -46393,6 +46412,7 @@ CRITICAL INSTRUCTIONS:
 
             $mode = sanitize_key($this->get_crm_apply_chat_post_scalar('mode'));
             $surface = sanitize_key($this->get_crm_apply_chat_post_scalar('surface'));
+            $transport = sanitize_key($this->get_crm_apply_chat_post_scalar('transport'));
             $state = sanitize_key($this->get_crm_apply_chat_post_scalar('state'));
             $reason = sanitize_key($this->get_crm_apply_chat_post_scalar('reason'));
             $status = $state !== '' ? $state : $event;
@@ -46403,7 +46423,7 @@ CRITICAL INSTRUCTIONS:
                 if ($mode !== '') {
                     update_post_meta($jobs_post_id, '_sffc_application_embed_mode', $this->normalize_crm_apply_chat_application_embed_mode($mode));
                 }
-                if ($surface === 'remote_browser' || $event === 'remote_browser_ready') {
+                if (in_array($surface, ['remote_browser', 'managed_live_browser', 'internal_novnc'], true) || $event === 'remote_browser_ready') {
                     update_post_meta($jobs_post_id, '_sffc_application_remote_browser_supported', '1');
                 }
             }
@@ -46415,6 +46435,7 @@ CRITICAL INSTRUCTIONS:
                 'crm_post_id' => $crm_post_id,
                 'mode' => $mode,
                 'surface' => $surface,
+                'transport' => $transport,
                 'state' => $state,
                 'reason' => $reason,
             ]);
@@ -46427,15 +46448,15 @@ CRITICAL INSTRUCTIONS:
             check_ajax_referer('sffc_crm_apply_chat_remote_browser', 'nonce');
 
             if (!$this->can_crm_apply_chat_use_remote_browser()) {
-                wp_send_json_error(['message' => __('The assisted browser view is not enabled yet.', 'senna-finance')], 503);
+                wp_send_json_error(['message' => __('The secure live browser is not enabled yet.', 'senna-finance')], 503);
             }
             if ($this->is_crm_apply_chat_remote_browser_rate_limited('create', 8, 60)) {
-                wp_send_json_error(['message' => __('Too many assisted browser requests. Please wait and try again.', 'senna-finance')], 429);
+                wp_send_json_error(['message' => __('Too many secure live browser requests. Please wait and try again.', 'senna-finance')], 429);
             }
 
             $application_url = esc_url_raw($this->get_crm_apply_chat_post_first_scalar(['application_url', 'employer_url']));
             if (!$this->is_crm_apply_chat_remote_browser_url_allowed($application_url)) {
-                wp_send_json_error(['message' => __('I need a valid external employer application URL before I can open the assisted browser view.', 'senna-finance')], 422);
+                wp_send_json_error(['message' => __('I need a valid external employer application URL before I can open the secure live browser.', 'senna-finance')], 422);
             }
 
             $session_token = sanitize_text_field($this->get_crm_apply_chat_post_scalar('session_token'));
@@ -46491,7 +46512,7 @@ CRITICAL INSTRUCTIONS:
             $remote_session_id = sanitize_text_field((string) ($session['sessionId'] ?? ''));
             if ($remote_session_id === '' || empty($session['streamUrl'])) {
                 wp_send_json_error([
-                    'message' => __('The assisted browser service did not return a usable session.', 'senna-finance'),
+                    'message' => __('The secure live browser service did not return a usable session.', 'senna-finance'),
                     'fallback' => 'static_preview',
                 ], 502);
             }
@@ -46511,7 +46532,9 @@ CRITICAL INSTRUCTIONS:
             wp_send_json_success([
                 'session' => $session,
                 'mode' => 'remote_browser',
-                'message' => __('I opened the employer page in an assisted browser view.', 'senna-finance'),
+                'surface' => $this->get_crm_apply_chat_remote_browser_surface(),
+                'transport' => $this->get_crm_apply_chat_remote_browser_transport(),
+                'message' => __('I opened the employer page in a secure live browser session.', 'senna-finance'),
             ]);
         }
 
@@ -46519,19 +46542,19 @@ CRITICAL INSTRUCTIONS:
         {
             check_ajax_referer('sffc_crm_apply_chat_remote_browser', 'nonce');
             if ($this->is_crm_apply_chat_remote_browser_rate_limited('status', 120, 60)) {
-                wp_send_json_error(['message' => __('Too many assisted browser status checks. Please wait and try again.', 'senna-finance')], 429);
+                wp_send_json_error(['message' => __('Too many secure live browser status checks. Please wait and try again.', 'senna-finance')], 429);
             }
 
             $session_id = sanitize_text_field($this->get_crm_apply_chat_post_scalar('session_id'));
             if ($session_id === '') {
-                wp_send_json_error(['message' => __('Missing assisted browser session ID.', 'senna-finance')], 422);
+                wp_send_json_error(['message' => __('Missing secure live browser session ID.', 'senna-finance')], 422);
             }
             $session_token = sanitize_text_field($this->get_crm_apply_chat_post_scalar('session_token'));
             if (!$this->current_user_can_access_crm_apply_chat_remote_browser_session($session_id, $session_token)) {
                 $this->log_crm_apply_chat_remote_browser_event('status_forbidden', [
                     'session_id' => $session_id,
                 ]);
-                wp_send_json_error(['message' => __('You do not have access to this assisted browser session.', 'senna-finance')], 403);
+                wp_send_json_error(['message' => __('You do not have access to this secure live browser session.', 'senna-finance')], 403);
             }
 
             $result = $this->crm_apply_chat_remote_browser_request('GET', '/sessions/' . rawurlencode($session_id));
@@ -46548,19 +46571,19 @@ CRITICAL INSTRUCTIONS:
         {
             check_ajax_referer('sffc_crm_apply_chat_remote_browser', 'nonce');
             if ($this->is_crm_apply_chat_remote_browser_rate_limited('control', 60, 60)) {
-                wp_send_json_error(['message' => __('Too many assisted browser control changes. Please wait and try again.', 'senna-finance')], 429);
+                wp_send_json_error(['message' => __('Too many secure live browser control changes. Please wait and try again.', 'senna-finance')], 429);
             }
 
             $session_id = sanitize_text_field($this->get_crm_apply_chat_post_scalar('session_id'));
             if ($session_id === '') {
-                wp_send_json_error(['message' => __('Missing assisted browser session ID.', 'senna-finance')], 422);
+                wp_send_json_error(['message' => __('Missing secure live browser session ID.', 'senna-finance')], 422);
             }
             $session_token = sanitize_text_field($this->get_crm_apply_chat_post_scalar('session_token'));
             if (!$this->current_user_can_access_crm_apply_chat_remote_browser_session($session_id, $session_token)) {
                 $this->log_crm_apply_chat_remote_browser_event('control_forbidden', [
                     'session_id' => $session_id,
                 ]);
-                wp_send_json_error(['message' => __('You do not have access to this assisted browser session.', 'senna-finance')], 403);
+                wp_send_json_error(['message' => __('You do not have access to this secure live browser session.', 'senna-finance')], 403);
             }
 
             $control = sanitize_key($this->get_crm_apply_chat_post_scalar('control'));
@@ -46571,7 +46594,7 @@ CRITICAL INSTRUCTIONS:
                 'read_only',
             ];
             if (!in_array($control, $allowed_controls, true)) {
-                wp_send_json_error(['message' => __('Unsupported assisted browser control state.', 'senna-finance')], 422);
+                wp_send_json_error(['message' => __('Unsupported secure live browser control state.', 'senna-finance')], 422);
             }
 
             $this->log_crm_apply_chat_remote_browser_event('control_requested', [
@@ -46603,19 +46626,19 @@ CRITICAL INSTRUCTIONS:
         {
             check_ajax_referer('sffc_crm_apply_chat_remote_browser', 'nonce');
             if ($this->is_crm_apply_chat_remote_browser_rate_limited('close', 60, 60)) {
-                wp_send_json_error(['message' => __('Too many assisted browser requests. Please wait and try again.', 'senna-finance')], 429);
+                wp_send_json_error(['message' => __('Too many secure live browser requests. Please wait and try again.', 'senna-finance')], 429);
             }
 
             $session_id = sanitize_text_field($this->get_crm_apply_chat_post_scalar('session_id'));
             if ($session_id === '') {
-                wp_send_json_error(['message' => __('Missing assisted browser session ID.', 'senna-finance')], 422);
+                wp_send_json_error(['message' => __('Missing secure live browser session ID.', 'senna-finance')], 422);
             }
             $session_token = sanitize_text_field($this->get_crm_apply_chat_post_scalar('session_token'));
             if (!$this->current_user_can_access_crm_apply_chat_remote_browser_session($session_id, $session_token)) {
                 $this->log_crm_apply_chat_remote_browser_event('close_forbidden', [
                     'session_id' => $session_id,
                 ]);
-                wp_send_json_error(['message' => __('You do not have access to this assisted browser session.', 'senna-finance')], 403);
+                wp_send_json_error(['message' => __('You do not have access to this secure live browser session.', 'senna-finance')], 403);
             }
 
             $this->log_crm_apply_chat_remote_browser_event('close_requested', [
