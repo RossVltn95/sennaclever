@@ -34,14 +34,16 @@ If the service is created from the repository root instead of setting the Railwa
 ```bash
 SFFC_REMOTE_BROWSER_TOKEN=replace-with-shared-token
 SFFC_REMOTE_BROWSER_PUBLIC_URL=https://replace-with-railway-domain
+SFFC_REMOTE_BROWSER_TRANSPORT=cloudflare_live_view
+SFFC_REMOTE_BROWSER_ALLOW_NOVNC_PUBLIC=0
+SFFC_CLOUDFLARE_ACCOUNT_ID=replace-with-cloudflare-account-id
+SFFC_CLOUDFLARE_API_TOKEN=replace-with-cloudflare-browser-run-token
 SFFC_REMOTE_BROWSER_MAX_SESSIONS=5
 SFFC_REMOTE_BROWSER_SESSION_TTL_SECONDS=900
 SFFC_REMOTE_BROWSER_IDLE_TTL_SECONDS=180
 SFFC_REMOTE_BROWSER_ALLOWED_ORIGIN=https://joinsenna.com
 SFFC_REMOTE_BROWSER_CHROME_EXECUTABLE=/usr/bin/google-chrome-stable
 SFFC_REMOTE_BROWSER_PROFILE_ROOT=/tmp/sffc-remote-browser
-SFFC_REMOTE_BROWSER_TRANSPORT=novnc
-SFFC_REMOTE_BROWSER_ALLOW_NOVNC_PUBLIC=0
 SFFC_REMOTE_BROWSER_NOVNC_WEB_ROOT=/usr/share/novnc
 SFFC_REMOTE_BROWSER_DISPLAY_BASE=100
 SFFC_REMOTE_BROWSER_RFB_PORT_BASE=5900
@@ -57,6 +59,8 @@ WordPress should call this service server-to-server using the same token:
 ```php
 define('SFFC_REMOTE_BROWSER_URL', 'https://replace-with-railway-domain');
 define('SFFC_REMOTE_BROWSER_TOKEN', 'replace-with-shared-token');
+define('SFFC_REMOTE_BROWSER_TRANSPORT', 'cloudflare_live_view');
+define('SFFC_REMOTE_BROWSER_ALLOW_NOVNC_PUBLIC', false);
 ```
 
 The browser service should not be called directly by unauthenticated frontend code.

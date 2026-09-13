@@ -75,7 +75,7 @@ function enforceRateLimit(request, response, corsHeaders, scope, limit, windowMs
     client: getClientKey(request),
     limit: result.limit,
   });
-  sendError(response, 429, "Too many secure browser requests. Please wait and try again.", {}, corsHeaders);
+  sendError(response, 429, "Too many assisted browser requests. Please wait and try again.", {}, corsHeaders);
   return false;
 }
 

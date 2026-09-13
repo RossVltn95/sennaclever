@@ -161,7 +161,14 @@ async function getBrowserlessLiveUrl(page) {
     interactable: true,
     resizable: true,
   });
-  const liveUrl = cleanText(result && result.liveURL);
+  const liveUrl = cleanText(
+    result &&
+      (result.liveURL ||
+        result.liveUrl ||
+        result.url ||
+        result.browserUrl ||
+        result.browserURL)
+  );
   if (!liveUrl) {
     throw new Error("Browserless did not return a usable live view URL.");
   }
@@ -187,7 +194,15 @@ async function getCloudflareLiveViewUrl(page) {
     params.targetId = target.targetId;
   }
   const result = await cdp.send("Cloudflare.getLiveView", params);
-  const liveUrl = cleanText(result && result.devtoolsFrontendUrl);
+  const liveUrl = cleanText(
+    result &&
+      (result.devtoolsFrontendUrl ||
+        result.liveViewUrl ||
+        result.liveViewURL ||
+        result.liveUrl ||
+        result.liveURL ||
+        result.url)
+  );
   if (!liveUrl) {
     throw new Error("Cloudflare Browser Run did not return a usable live view URL.");
   }

@@ -6116,10 +6116,10 @@ class SFFC_CRM_Admin
                             <select name="application_embed_mode" id="application_embed_mode">
                                 <option value="auto" <?php selected($application_embed_mode, 'auto'); ?>><?php esc_html_e('Auto detect', 'senna-finance'); ?></option>
                                 <option value="embed" <?php selected($application_embed_mode, 'embed'); ?>><?php esc_html_e('Embed friendly', 'senna-finance'); ?></option>
-                                <option value="remote_browser" <?php selected($application_embed_mode, 'remote_browser'); ?>><?php esc_html_e('Secure browser', 'senna-finance'); ?></option>
+                                <option value="remote_browser" <?php selected($application_embed_mode, 'remote_browser'); ?>><?php esc_html_e('Assisted browser fallback', 'senna-finance'); ?></option>
                                 <option value="screenshot" <?php selected($application_embed_mode, 'screenshot'); ?>><?php esc_html_e('Screenshot fallback', 'senna-finance'); ?></option>
                             </select>
-                            <p class="description"><?php esc_html_e('Use Embed friendly for links that work in the chat iframe, Secure browser for employer portals that block frames but should remain interactive, and Screenshot fallback only for static previews.', 'senna-finance'); ?></p>
+                            <p class="description"><?php esc_html_e('Use Embed friendly for links that work in the chat iframe, Assisted browser fallback for employer portals that block frames but should remain interactive, and Screenshot fallback only for static previews.', 'senna-finance'); ?></p>
                             <div id="sffc-crm-embed-test" class="sffc-crm-embed-test" aria-live="polite">
                                 <div class="sffc-crm-embed-test__bar">
                                     <span id="sffc-crm-embed-test-status" class="sffc-crm-embed-test__status"><?php esc_html_e('Not tested', 'senna-finance'); ?></span>

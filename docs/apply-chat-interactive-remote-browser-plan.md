@@ -56,7 +56,7 @@ Emily: I couldn’t open an interactive browser window right now, so I’m showi
 The user should always understand which state they are in:
 
 - `Embedded employer form`
-- `Secure browser session`
+- `Assisted employer view`
 - `Preview only`
 - `Waiting for verification`
 - `Needs user input`
@@ -389,7 +389,7 @@ Acceptance criteria:
 
 Goal: add a polished UI surface that fits the chat.
 
-Status: implemented as the first apply-chat integration pass. The chat now has a `sffc-crm-apply-results__remote-browser` component, WordPress broker endpoints for create/status/close, server-side session ownership checks, and iframe-failure escalation from direct embed to secure browser before static screenshot fallback.
+Status: implemented as the first apply-chat integration pass. The chat now has a `sffc-crm-apply-results__remote-browser` component, WordPress broker endpoints for create/status/close, server-side session ownership checks, and iframe-failure escalation from direct embed to assisted browser before static screenshot fallback.
 
 New component class:
 
@@ -402,7 +402,7 @@ Suggested structure:
 ```html
 <section class="sffc-crm-apply-results__remote-browser">
   <header class="sffc-crm-apply-results__remote-browser-bar">
-    <span>Secure browser session</span>
+    <span>Assisted employer view</span>
     <strong>Workable application route</strong>
     <a>Open employer form</a>
     <button>Refresh</button>
@@ -578,7 +578,7 @@ Never allow:
 
 ## Phase 9: WordPress Plugin Changes
 
-Status: first pass implemented. The apply-chat plugin now exposes the review-surface decision AJAX endpoint, localizes its nonce, accepts `remote_browser` as a valid admin/import/runtime embed mode, persists the last review decision metadata on jobs posts, and keeps provider-to-URL safety checks in the broker before starting secure browser sessions.
+Status: first pass implemented. The apply-chat plugin now exposes the review-surface decision AJAX endpoint, localizes its nonce, accepts `remote_browser` as a valid admin/import/runtime embed mode, persists the last review decision metadata on jobs posts, and keeps provider-to-URL safety checks in the broker before starting assisted browser sessions.
 
 New AJAX endpoints:
 
@@ -661,11 +661,15 @@ Minimum environment variables:
 
 ```text
 SFFC_REMOTE_BROWSER_ENABLED=1
-SFFC_REMOTE_BROWSER_SERVICE_URL=
-SFFC_REMOTE_BROWSER_SERVICE_TOKEN=
+SFFC_REMOTE_BROWSER_URL=
+SFFC_REMOTE_BROWSER_TOKEN=
+SFFC_REMOTE_BROWSER_TRANSPORT=cloudflare_live_view
+SFFC_REMOTE_BROWSER_ALLOW_NOVNC_PUBLIC=0
+SFFC_CLOUDFLARE_ACCOUNT_ID=
+SFFC_CLOUDFLARE_API_TOKEN=
 SFFC_REMOTE_BROWSER_MAX_SESSIONS=
 SFFC_REMOTE_BROWSER_SESSION_TTL_SECONDS=1200
-SFFC_REMOTE_BROWSER_ALLOWED_HOSTS=
+SFFC_REMOTE_BROWSER_ALLOWED_ORIGIN=https://joinsenna.com
 ```
 
 Railway setup:

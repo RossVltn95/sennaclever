@@ -287,7 +287,7 @@ if (source.includes("I’ll open this employer form in Senna’s secure browser 
 [
   "remote_browser",
   "<option value=\"remote_browser\"",
-  "Secure browser",
+  "Assisted browser fallback",
 ].forEach((needle) => {
   if (!adminPhp.includes(needle)) {
     failures.push(`Admin embed-mode enum/UI missing ${needle}`);

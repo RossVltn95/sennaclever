@@ -156220,7 +156220,7 @@
             throw new Error(
               (data && data.message) ||
                 uiText(
-                  "The secure browser did not return a session.",
+                  "The assisted browser did not return a session.",
                   "لم يرجع عرض المتصفح المساعد جلسة."
                 )
             );
