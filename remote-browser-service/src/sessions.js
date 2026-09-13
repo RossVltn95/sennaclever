@@ -3,6 +3,7 @@ import { cleanText } from "./auth.js";
 import {
   closeBrowserSession,
   createBrowserSession,
+  createManagedLiveBrowserSession,
   getPageSnapshot,
   navigateSession,
 } from "./browser.js";
@@ -68,9 +69,15 @@ export function listSessionSummaries() {
 
 export function serializeSession(session) {
   const publicBase = getPublicBaseUrl().replace(/\/+$/g, "");
+  const liveStreamUrl =
+    session.runtime?.kind === "cloudflare_live_view" ||
+    session.runtime?.kind === "browserless_live_url"
+      ? cleanText(session.runtime.liveUrl || "")
+      : "";
   const relativeStreamUrl = session.runtime?.kind === "novnc"
     ? getNoVncStreamPath(session.sessionId, session.viewerToken, publicBase)
-    : `/sessions/${encodeURIComponent(session.sessionId)}/screenshot`;
+    : liveStreamUrl ||
+      `/sessions/${encodeURIComponent(session.sessionId)}/screenshot`;
   return {
     sessionId: session.sessionId,
     taskUuid: session.taskUuid,
@@ -83,7 +90,10 @@ export function serializeSession(session) {
     title: session.title,
     status: session.status,
     control: session.control,
-    streamUrl: publicBase ? publicBase + relativeStreamUrl : relativeStreamUrl,
+    streamUrl:
+      /^https?:\/\//i.test(relativeStreamUrl) || !publicBase
+        ? relativeStreamUrl
+        : publicBase + relativeStreamUrl,
     controlUrl: publicBase ? `${publicBase}/sessions/${encodeURIComponent(session.sessionId)}/control` : `/sessions/${encodeURIComponent(session.sessionId)}/control`,
     transport: session.runtime?.kind || session.transport,
     expiresAt: new Date(session.expiresAt).toISOString(),
@@ -180,6 +190,22 @@ export async function createSession(payload) {
       session.runtime = await createNoVncSession(sessionId, session.employerUrl, session.provider, session.slot);
       session.finalUrl = session.employerUrl;
       session.title = "";
+    } else if (
+      transport === "cloudflare" ||
+      transport === "cloudflare_live_view" ||
+      transport === "browserless" ||
+      transport === "browserless_live_url" ||
+      transport === "managed_live_browser"
+    ) {
+      session.runtime = await createManagedLiveBrowserSession(
+        sessionId,
+        session.employerUrl,
+        session.provider,
+        transport
+      );
+      const snapshot = await getPageSnapshot(session.runtime);
+      session.finalUrl = snapshot.finalUrl;
+      session.title = snapshot.title;
     } else {
       session.runtime = await createBrowserSession(sessionId, session.employerUrl, session.provider);
       const snapshot = await getPageSnapshot(session.runtime);

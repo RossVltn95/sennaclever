@@ -624,7 +624,7 @@ Compatibility rule:
 Implementation notes:
 
 - The admin job editor now preserves `remote_browser` instead of downgrading it to `auto`.
-- Feed/import inference now stores `remote_browser` for Workday, SuccessFactors, and Teamtailor application-form URLs that should use the secure browser route.
+- Feed/import inference can store `remote_browser` for Workday, SuccessFactors, and Teamtailor application-form URLs that should use the managed browser fallback.
 - The review-surface endpoint rejects missing/internal Senna URLs as static fallback decisions rather than allowing them into employer application routing.
 - Review decisions are logged and persisted so later UI and worker phases can inspect the last chosen surface.
 
@@ -843,3 +843,88 @@ If an employer can embed, show the iframe.
 If it cannot embed, show a secure interactive browser.
 
 If even that fails, show a static preview honestly labelled as preview-only, with a clear next action.
+
+## Cloudflare Live View Correction
+
+Status: implementation in progress.
+
+The deployed service already exists in GitHub and Railway:
+
+```text
+GitHub repository: https://github.com/RossVltn95/sennaclever
+Railway service root: /remote-browser-service
+```
+
+Keep this as a separate Railway service inside the same Railway project. Do not merge it into `application-worker`.
+
+The corrected product hierarchy is:
+
+```text
+1. Direct iframe embed when the employer allows it.
+2. Cloudflare Browser Run Live View when iframe is blocked and a live browser is needed.
+3. Static screenshot preview if Cloudflare Live View is unavailable.
+4. Direct employer link always available.
+5. noVNC only for internal/debug fallback unless explicitly enabled.
+```
+
+### Railway Configuration
+
+The Railway `/remote-browser-service` should use Cloudflare as the public managed browser transport:
+
+```text
+SFFC_REMOTE_BROWSER_ENABLED=1
+SFFC_REMOTE_BROWSER_TRANSPORT=cloudflare_live_view
+SFFC_REMOTE_BROWSER_ALLOW_NOVNC_PUBLIC=0
+SFFC_REMOTE_BROWSER_TOKEN=<shared WordPress-to-service token>
+SFFC_REMOTE_BROWSER_PUBLIC_URL=<Railway remote-browser-service URL>
+SFFC_CLOUDFLARE_ACCOUNT_ID=<Cloudflare account id>
+SFFC_CLOUDFLARE_API_TOKEN=<Cloudflare Browser Run token>
+```
+
+Optional override if Cloudflare changes or provides a direct websocket endpoint:
+
+```text
+SFFC_CLOUDFLARE_BROWSER_WS_ENDPOINT=wss://api.cloudflare.com/client/v4/accounts/<account-id>/browser-run/devtools/browser?keep_alive=600000
+```
+
+Keep noVNC available only as an internal fallback:
+
+```text
+SFFC_REMOTE_BROWSER_TRANSPORT=novnc
+SFFC_REMOTE_BROWSER_ALLOW_NOVNC_PUBLIC=0
+```
+
+Only set this for internal testing, never normal candidate traffic:
+
+```text
+SFFC_REMOTE_BROWSER_ALLOW_NOVNC_PUBLIC=1
+```
+
+### WordPress Configuration
+
+WordPress should continue calling the Railway service server-to-server:
+
+```php
+define('SFFC_REMOTE_BROWSER_ENABLED', true);
+define('SFFC_REMOTE_BROWSER_URL', 'https://<railway-remote-browser-service>');
+define('SFFC_REMOTE_BROWSER_TOKEN', '<shared WordPress-to-service token>');
+define('SFFC_REMOTE_BROWSER_TRANSPORT', 'cloudflare_live_view');
+define('SFFC_REMOTE_BROWSER_ALLOW_NOVNC_PUBLIC', false);
+```
+
+### Required Behaviour
+
+- Workable, Greenhouse, simple forms, unknown providers, and Teamtailor public job pages are iframe-first.
+- Workday, SuccessFactors, known blocked hosts, and Teamtailor application-form URLs can escalate to Cloudflare Live View.
+- WordPress must send the configured transport to `/remote-browser-service`; it must not hard-code `novnc`.
+- The frontend must not expose raw noVNC unless `SFFC_REMOTE_BROWSER_ALLOW_NOVNC_PUBLIC=1`.
+- If Cloudflare Live View fails, fall back to screenshot preview plus direct employer link.
+- Candidate-facing copy should say `assisted browser view`, not `noVNC`, `VNC`, `websockify`, or `remote desktop`.
+
+### Acceptance Checks
+
+- `remote-browser-service /health` reports `transport: cloudflare_live_view`.
+- A Workable/Greenhouse embed-safe role renders `sffc-crm-apply-results__review-frame` first.
+- A blocked Workday/SuccessFactors role creates a Cloudflare-backed session and returns a live `streamUrl`.
+- No candidate UI contains noVNC controls, VNC connection forms, or websockify settings.
+- With Cloudflare disabled or failing, the UI shows static preview fallback and the direct employer link.

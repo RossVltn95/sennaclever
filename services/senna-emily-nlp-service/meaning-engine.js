@@ -238,6 +238,7 @@ const LEXICON = {
     "manama",
     "qatar",
     "riyadh",
+    "saudi",
     "saudi arabia",
     "uae",
     "united arab emirates",
@@ -317,6 +318,13 @@ function normalizeText(value) {
     .replace(/[’‘]/g, "'")
     .replace(/[“”]/g, '"')
     .replace(/&/g, " and ")
+    .replace(/\bfund\s+(?=(?:a\s+)?(?:job|jobs|role|roles|opening|openings)\b)/gi, "find ")
+    .replace(/\bsaudia\b/gi, "saudi arabia")
+    .replace(/\bsaudiya\b/gi, "saudi arabia")
+    .replace(/\bksa\b/gi, "saudi arabia")
+    .replace(/\buae\b/gi, "united arab emirates")
+    .replace(/\brecuiters?\b/gi, "recruiters")
+    .replace(/\brecruiterers?\b/gi, "recruiters")
     .replace(/\s+/g, " ")
     .trim()
     .toLowerCase();
@@ -361,16 +369,63 @@ function findDictionaryMatches(text, list) {
   const normalized = normalizeText(text);
   const seen = new Set();
   return list
-    .filter((item) => {
+    .map((item) => {
       const key = normalizeText(item);
-      const matched = key.includes(" ")
-        ? normalized.includes(key)
-        : new RegExp(`\\b${escapeRegExp(key)}\\b`, "i").test(normalized);
-      if (!matched || seen.has(key)) return false;
+      let index = -1;
+      if (key.includes(" ")) {
+        index = normalized.indexOf(key);
+      } else {
+        const match = new RegExp(`\\b${escapeRegExp(key)}\\b`, "i").exec(normalized);
+        index = match ? match.index : -1;
+      }
+      if (index < 0 || seen.has(key)) return null;
       seen.add(key);
-      return true;
+      return {
+        label: item,
+        score: item.includes(" ") ? 0.9 : 0.68,
+        index,
+        end: index + key.length,
+      };
     })
-    .map((label) => ({ label, score: label.includes(" ") ? 0.9 : 0.68 }));
+    .filter(Boolean)
+    .sort((a, b) => {
+      const aWords = normalizeText(a.label).split(/\s+/).length;
+      const bWords = normalizeText(b.label).split(/\s+/).length;
+      if (bWords !== aWords) return bWords - aWords;
+      if (b.label.length !== a.label.length) return b.label.length - a.label.length;
+      return b.score - a.score;
+    });
+}
+
+function isNegatedDictionaryMatch(text, match) {
+  const normalized = normalizeText(text);
+  const start = Number(match?.index || 0);
+  const before = normalized.slice(Math.max(0, start - 52), start);
+  if (!before) return false;
+  return /(?:^|\b)(?:but\s+)?(?:not|no|exclude|excluding|without|except|avoid|dont want|do not want|other than)\s+(?:any\s+)?(?:\w+\s+){0,4}$/i.test(
+    before
+  );
+}
+
+function splitExcludedMatches(text, list) {
+  const matches = findDictionaryMatches(text, list);
+  const included = [];
+  const excluded = [];
+  matches.forEach((match) => {
+    if (isNegatedDictionaryMatch(text, match)) excluded.push(match);
+    else included.push(match);
+  });
+  return { included, excluded };
+}
+
+function uniqueMatches(values) {
+  const seen = new Set();
+  return (values || []).filter((item) => {
+    const key = normalizeText(item && item.label);
+    if (!key || seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
 }
 
 function indexedFamilyHits(text) {
@@ -453,11 +508,34 @@ function scoreRoutes(text, context) {
     routeScores[item.intent] = (routeScores[item.intent] || 0) + item.score * 0.34;
   });
 
-  if (context?.selectedRole && routeScores.web_research > 0.35) {
-    routeScores.web_research += 0.18;
-    routeScores.application_flow -= 0.12;
+  const contextProfile = getCvProfileContext(context);
+  const hasSelectedRole = !!getSelectedRoleLabel(context);
+  const shortLocationFollowUp = isShortFollowUpLocationQuestion(normalized, {
+    locations: findDictionaryMatches(normalized, LEXICON.locations),
+  });
+  const webResearchShape = hasWebResearchShape(normalized);
+  const explicitApplicationCommand = /\b(apply|submit|continue|form|tailor)\b/i.test(normalized);
+
+  if (hasSelectedRole && webResearchShape) {
+    routeScores.web_research += 0.22;
+    if (!explicitApplicationCommand) routeScores.application_flow -= 0.2;
   }
   if (context?.hasCv && routeScores.cv_profile > 0.2) routeScores.cv_profile += 0.12;
+  if (contextProfile && routeScores.career_advice > 0.2) {
+    routeScores.career_advice += 0.12;
+  }
+  if (shortLocationFollowUp && getContextRoleOrSector(context)) {
+    routeScores.job_search += 0.3;
+    routeScores.web_research -= 0.08;
+    explanation.push("Short location follow-up reused the previous role or sector context.");
+  }
+  if (context?.activeTask?.type === "search" && shortLocationFollowUp) {
+    routeScores.job_search += 0.14;
+  }
+  if (context?.activeTask?.type === "application" && !explicitApplicationCommand && webResearchShape) {
+    routeScores.web_research += 0.16;
+    routeScores.application_flow -= 0.18;
+  }
   if (/\?$/.test(String(text || "").trim())) routeScores.web_research += 0.08;
   if (!hasConcreteJobSearchShape(normalized)) routeScores.job_search -= 0.1;
 
@@ -480,6 +558,83 @@ function scoreRoutes(text, context) {
   };
 }
 
+function getCvProfileContext(context) {
+  const profile = context?.cvProfile || context?.memory?.profileSnapshot || null;
+  if (!profile || typeof profile !== "object") return null;
+  return profile;
+}
+
+function normalizeContextList(values, limit = 8) {
+  if (!Array.isArray(values)) return [];
+  return values
+    .map((value) => {
+      if (typeof value === "string") return value;
+      if (value && typeof value === "object") return value.label || value.role || value.title || value.name || "";
+      return "";
+    })
+    .map((value) => normalizeText(value))
+    .filter(Boolean)
+    .slice(0, limit);
+}
+
+function getSelectedRoleLabel(context) {
+  const role = context?.selectedRole;
+  if (!role) return "";
+  if (typeof role === "string") return cleanContextText(role);
+  return [role.title, role.company, role.location].map(cleanContextText).filter(Boolean).join(" ");
+}
+
+function getContextLocation(context) {
+  const direct =
+    context?.searchPreferences?.preferredLocation ||
+    context?.jobSearchContext?.location ||
+    context?.selectedRole?.location ||
+    "";
+  if (direct) return normalizeLocation(direct);
+  const profileLocations = normalizeContextList(getCvProfileContext(context)?.locations || [], 6);
+  return normalizeLocation(profileLocations[0] || "");
+}
+
+function getContextRoleOrSector(context) {
+  const currentQuery = cleanContextText(
+    context?.searchPreferences?.currentQuery || context?.jobSearchContext?.query || ""
+  );
+  if (currentQuery) return currentQuery;
+  const profile = getCvProfileContext(context);
+  const title = cleanContextText(profile?.title || "");
+  if (title) return title;
+  const families = normalizeContextList(profile?.families || [], 4);
+  if (families.length) return families[0].replace(/_/g, " ");
+  const roleTerms = normalizeContextList(profile?.roleTerms || [], 6);
+  return roleTerms.slice(0, 3).join(" ");
+}
+
+function getContextCareerFocus(context) {
+  const profile = getCvProfileContext(context);
+  if (!profile) return "";
+  const title = cleanContextText(profile.title || "");
+  const families = normalizeContextList(profile.families || [], 3).map((item) => item.replace(/_/g, " "));
+  const skills = normalizeContextList(profile.skills || [], 5);
+  return [title, families[0], skills.slice(0, 3).join(" ")].filter(Boolean).join(" ");
+}
+
+function isShortFollowUpLocationQuestion(text, entities) {
+  const clean = normalizeText(text);
+  const hasLocation = (entities?.locations || []).length > 0 || findDictionaryMatches(clean, LEXICON.locations).length > 0;
+  if (!hasLocation) return false;
+  const words = tokenize(clean);
+  return (
+    words.length <= 6 &&
+    /\b(what about|how about|and|also|in|near|around)\b/i.test(clean) &&
+    !findDictionaryMatches(clean, LEXICON.roles).length &&
+    !findDictionaryMatches(clean, LEXICON.sectors).length
+  );
+}
+
+function cleanContextText(value) {
+  return String(value || "").replace(/\s+/g, " ").trim();
+}
+
 function hasConcreteJobSearchShape(text) {
   return (
     /\b(find|search|show|look|need|want)\b.{0,24}\b(job|jobs|role|roles|opening|opportunities)\b/i.test(text) ||
@@ -494,18 +649,31 @@ function buildMeaning(input) {
   const normalized = normalizeText(message);
   const tokens = tokenize(normalized);
   const route = scoreRoutes(normalized, context);
+  const roleMatches = splitExcludedMatches(normalized, LEXICON.roles);
+  const sectorMatches = splitExcludedMatches(normalized, LEXICON.sectors);
+  const skillMatches = splitExcludedMatches(normalized, LEXICON.skills);
+  const locationMatches = splitExcludedMatches(normalized, LEXICON.locations);
+  const seniorityMatches = splitExcludedMatches(normalized, LEXICON.seniority);
+  const constraints = {
+    excludedRoles: uniqueMatches(roleMatches.excluded),
+    excludedSectors: uniqueMatches(sectorMatches.excluded),
+    excludedSkills: uniqueMatches(skillMatches.excluded),
+    excludedLocations: uniqueMatches(locationMatches.excluded),
+    excludedSeniority: uniqueMatches(seniorityMatches.excluded),
+  };
   const entities = {
-    roles: findDictionaryMatches(normalized, LEXICON.roles),
-    sectors: findDictionaryMatches(normalized, LEXICON.sectors),
-    skills: findDictionaryMatches(normalized, LEXICON.skills),
-    locations: findDictionaryMatches(normalized, LEXICON.locations),
+    roles: roleMatches.included,
+    sectors: sectorMatches.included,
+    skills: skillMatches.included,
+    locations: locationMatches.included,
     companies: findDictionaryMatches(normalized, LEXICON.companies),
     markets: findDictionaryMatches(normalized, LEXICON.markets),
-    seniority: findDictionaryMatches(normalized, LEXICON.seniority),
+    seniority: seniorityMatches.included,
     dates: parseDates(message),
+    constraints,
   };
   const emotion = detectEmotion(normalized);
-  const rewrittenQueries = rewriteQueries(normalized, entities, route.primaryIntent, emotion);
+  const rewrittenQueries = rewriteQueries(normalized, entities, route.primaryIntent, emotion, context);
   const action = decideAction(route, entities, context, rewrittenQueries, normalized);
 
   return {
@@ -527,7 +695,23 @@ function buildMeaning(input) {
     },
     action,
     rewrittenQueries,
+    contextSignals: buildContextSignals(context, normalized, entities),
     explanation: route.explanation.concat(action.explanation),
+  };
+}
+
+function buildContextSignals(context, normalized, entities) {
+  const profile = getCvProfileContext(context);
+  return {
+    hasCv: !!context?.hasCv,
+    selectedRole: getSelectedRoleLabel(context),
+    activeTaskType: cleanContextText(context?.activeTask?.type || ""),
+    currentQuery: cleanContextText(context?.searchPreferences?.currentQuery || context?.jobSearchContext?.query || ""),
+    contextRoleOrSector: getContextRoleOrSector(context),
+    contextLocation: getContextLocation(context),
+    cvTitle: cleanContextText(profile?.title || ""),
+    cvFamilies: normalizeContextList(profile?.families || [], 4),
+    shortLocationFollowUp: isShortFollowUpLocationQuestion(normalized, entities),
   };
 }
 
@@ -542,22 +726,46 @@ function detectEmotion(text) {
   return { label: "neutral", score: 0.35 };
 }
 
-function rewriteQueries(text, entities, primaryIntent, emotion) {
+function rewriteQueries(text, entities, primaryIntent, emotion, context = {}) {
   const role = firstLabel(entities.roles);
   const sector = firstLabel(entities.sectors);
   const location = normalizeLocation(firstLabel(entities.locations));
-  const seniority = firstLabel(entities.seniority);
+  const contextLocation = getContextLocation(context);
+  const contextRoleOrSector = getContextRoleOrSector(context);
+  const careerFocus = getContextCareerFocus(context);
+  let seniority = firstLabel(entities.seniority);
   const company = firstLabel(entities.companies);
   const market = firstLabel(entities.markets);
   const skills = entities.skills.slice(0, 5).map((item) => item.label);
+  const constraints = buildQueryConstraints(entities);
+  const excludedLocationLabels = new Set(
+    constraints.excludeLocations.map((item) => normalizeLocation(item).toLowerCase())
+  );
+  const usableContextLocation =
+    contextLocation && !excludedLocationLabels.has(contextLocation.toLowerCase())
+      ? contextLocation
+      : "";
 
-  const jobsParts = [seniority, role || sector, location].filter(Boolean);
+  const shortLocationFollowUp = isShortFollowUpLocationQuestion(text, entities);
+  if (role && seniority && normalizeText(role).includes(normalizeText(seniority))) {
+    seniority = "";
+  }
+  const jobsParts = [
+    seniority,
+    role || sector || (shortLocationFollowUp ? contextRoleOrSector : ""),
+    location || (primaryIntent === "job_search" ? usableContextLocation : ""),
+  ].filter(Boolean);
   let jobs = jobsParts.join(" ").trim() || null;
   if (!jobs && primaryIntent === "job_search" && location) jobs = location;
 
   let web = null;
   if (primaryIntent === "career_advice" || emotion.label !== "neutral") {
-    web = "job search burnout no replies improve application strategy practical steps";
+    web = [
+      "job search burnout no replies improve application strategy practical steps",
+      careerFocus,
+    ]
+      .filter(Boolean)
+      .join(" ");
   } else if (/\bbest time\b|\bwhen\b|\btiming\b|\bseason\b/i.test(text)) {
     web = ["best time to apply for jobs", location || sector || "middle east"].filter(Boolean).join(" ");
   } else if (/\brecruit/i.test(text)) {
@@ -580,10 +788,29 @@ function rewriteQueries(text, entities, primaryIntent, emotion) {
           sector: sector || "",
           location: location || "",
           seniority: seniority || "",
+          constraints,
         }
       : null,
     web: web ? compactQuery(web) : null,
+    constraints,
   };
+}
+
+function buildQueryConstraints(entities) {
+  const constraints = entities?.constraints || {};
+  return {
+    excludeRoles: matchLabels(constraints.excludedRoles),
+    excludeSectors: matchLabels(constraints.excludedSectors),
+    excludeSkills: matchLabels(constraints.excludedSkills),
+    excludeLocations: matchLabels(constraints.excludedLocations).map(normalizeLocation),
+    excludeSeniority: matchLabels(constraints.excludedSeniority),
+  };
+}
+
+function matchLabels(values) {
+  return (Array.isArray(values) ? values : [])
+    .map((item) => cleanContextText(item && item.label))
+    .filter(Boolean);
 }
 
 function decideAction(route, entities, context, rewrittenQueries, normalized) {
@@ -597,10 +824,22 @@ function decideAction(route, entities, context, rewrittenQueries, normalized) {
   let intent = primary.intent;
   let type = "web_answer";
 
-  if (webResearchShape && byIntent.web_research >= 0.24) {
+  if (isCareerQuestionClarificationAnswer(normalized, context)) {
+    intent = "career_advice";
+    type = "career_context_confirmation";
+    explanation.push("User answered the active clarification by choosing career advice.");
+  } else if (webResearchShape && byIntent.web_research >= 0.24) {
     intent = "web_research";
     type = "web_answer";
     explanation.push("Market, timing, recruiter, country, salary, or company-research shape detected.");
+  } else if (
+    isShortFollowUpLocationQuestion(normalized, entities) &&
+    getContextRoleOrSector(context) &&
+    byIntent.job_search >= 0.24
+  ) {
+    intent = "job_search";
+    type = "jobs_database_search";
+    explanation.push("Location follow-up reused the previous role or search focus.");
   } else if (
     byIntent.job_search >= 0.32 &&
     (hasLocation || hasRoleOrSector || hasConcreteJobSearchShape(normalized)) &&
@@ -649,6 +888,19 @@ function decideAction(route, entities, context, rewrittenQueries, normalized) {
   };
 }
 
+function isCareerQuestionClarificationAnswer(text, context) {
+  const clean = normalizeText(text);
+  if (!clean) return false;
+  const promptState = cleanContextText(context?.activeTask?.promptState || "");
+  const hasActivePrompt = !!promptState || !!context?.activeTask?.state;
+  return (
+    hasActivePrompt &&
+    /\b(?:career question|career advice|general career advice|talking through a career question|answer this as general career advice)\b/i.test(
+      clean
+    )
+  );
+}
+
 function hasWebResearchShape(text) {
   return /\b(best|top|list|when|timing|season|salary|compensation|visa|market|culture|living|like|research|compare|recruiter|recruiters|agenc(?:y|ies))\b/i.test(
     text
@@ -675,6 +927,7 @@ function firstLabel(values) {
 function normalizeLocation(value) {
   const clean = normalizeText(value);
   if (clean === "uae") return "United Arab Emirates";
+  if (clean === "saudi") return "Saudi Arabia";
   if (clean === "saudi arabia") return "Saudi Arabia";
   if (clean === "united arab emirates") return "United Arab Emirates";
   if (clean === "dubai") return "Dubai";

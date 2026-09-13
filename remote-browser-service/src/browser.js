@@ -90,6 +90,168 @@ export async function createBrowserSession(sessionId, employerUrl, provider = ""
   };
 }
 
+function buildCloudflareBrowserEndpoint() {
+  const configured = cleanText(
+    process.env.SFFC_CLOUDFLARE_BROWSER_WS_ENDPOINT ||
+      process.env.CLOUDFLARE_BROWSER_WS_ENDPOINT ||
+      ""
+  );
+  if (configured) {
+    return configured;
+  }
+  const accountId = cleanText(
+    process.env.SFFC_CLOUDFLARE_ACCOUNT_ID ||
+      process.env.CLOUDFLARE_ACCOUNT_ID ||
+      ""
+  );
+  if (!accountId) {
+    return "";
+  }
+  const keepAlive = Math.max(
+    60,
+    Number(process.env.SFFC_CLOUDFLARE_BROWSER_KEEP_ALIVE_MS || 600000) ||
+      600000
+  );
+  return `wss://api.cloudflare.com/client/v4/accounts/${encodeURIComponent(accountId)}/browser-run/devtools/browser?keep_alive=${encodeURIComponent(String(keepAlive))}`;
+}
+
+function getCloudflareBrowserToken() {
+  return cleanText(
+    process.env.SFFC_CLOUDFLARE_API_TOKEN ||
+      process.env.CLOUDFLARE_API_TOKEN ||
+      ""
+  );
+}
+
+function getBrowserlessEndpoint() {
+  return cleanText(
+    process.env.SFFC_BROWSERLESS_WS_ENDPOINT ||
+      process.env.BROWSERLESS_WS_ENDPOINT ||
+      ""
+  );
+}
+
+function normalizeManagedTransport(transport = "") {
+  const clean = cleanText(transport).toLowerCase();
+  if (clean === "cloudflare" || clean === "cloudflare_live_view") {
+    return "cloudflare_live_view";
+  }
+  if (clean === "browserless" || clean === "browserless_live_url") {
+    return "browserless_live_url";
+  }
+  return "managed_live_browser";
+}
+
+async function getPrimaryPage(browser) {
+  const pages = await browser.pages().catch(() => []);
+  if (pages && pages[0]) {
+    return pages[0];
+  }
+  return browser.newPage();
+}
+
+async function getBrowserlessLiveUrl(page) {
+  const cdp = await page.createCDPSession();
+  const result = await cdp.send("Browserless.liveURL", {
+    quality: Number(process.env.SFFC_BROWSERLESS_LIVE_VIEW_QUALITY || 80) || 80,
+    type: cleanText(process.env.SFFC_BROWSERLESS_LIVE_VIEW_TYPE || "jpeg") || "jpeg",
+    timeout:
+      Number(process.env.SFFC_BROWSERLESS_LIVE_VIEW_TIMEOUT_MS || 300000) ||
+      300000,
+    interactable: true,
+    resizable: true,
+  });
+  const liveUrl = cleanText(result && result.liveURL);
+  if (!liveUrl) {
+    throw new Error("Browserless did not return a usable live view URL.");
+  }
+  return liveUrl;
+}
+
+async function getCloudflareLiveViewUrl(page) {
+  const cdp = await page.createCDPSession();
+  const targets = await cdp.send("Target.getTargets").catch(() => ({}));
+  const targetInfos = Array.isArray(targets.targetInfos) ? targets.targetInfos : [];
+  const currentUrl = cleanText(page.url());
+  const target =
+    targetInfos.find((item) => item.type === "page" && currentUrl && item.url === currentUrl) ||
+    targetInfos.find((item) => item.type === "page") ||
+    null;
+  const params = {
+    mode: cleanText(process.env.SFFC_CLOUDFLARE_LIVE_VIEW_MODE || "tab") || "tab",
+    expiresInMs:
+      Number(process.env.SFFC_CLOUDFLARE_LIVE_VIEW_EXPIRES_MS || 300000) ||
+      300000,
+  };
+  if (target && target.targetId) {
+    params.targetId = target.targetId;
+  }
+  const result = await cdp.send("Cloudflare.getLiveView", params);
+  const liveUrl = cleanText(result && result.devtoolsFrontendUrl);
+  if (!liveUrl) {
+    throw new Error("Cloudflare Browser Run did not return a usable live view URL.");
+  }
+  return liveUrl;
+}
+
+export async function createManagedLiveBrowserSession(
+  sessionId,
+  employerUrl,
+  provider = "",
+  transport = ""
+) {
+  const cleanUrl = cleanText(employerUrl);
+  const managedTransport = normalizeManagedTransport(transport);
+  if (!isValidEmployerUrl(cleanUrl)) {
+    throw new Error("Managed browser sessions require a valid external employer URL.");
+  }
+
+  let browser;
+  let page;
+  let liveUrl = "";
+  if (managedTransport === "browserless_live_url") {
+    const endpoint = getBrowserlessEndpoint();
+    if (!endpoint) {
+      throw new Error("Browserless live browser endpoint is not configured.");
+    }
+    browser = await puppeteer.connect({ browserWSEndpoint: endpoint });
+    page = await getPrimaryPage(browser);
+    await page.goto(cleanUrl, {
+      waitUntil: "domcontentloaded",
+      timeout: Number(process.env.SFFC_REMOTE_BROWSER_NAVIGATION_TIMEOUT_MS || 60000),
+    });
+    liveUrl = await getBrowserlessLiveUrl(page);
+  } else if (managedTransport === "cloudflare_live_view") {
+    const endpoint = buildCloudflareBrowserEndpoint();
+    const token = getCloudflareBrowserToken();
+    if (!endpoint || !token) {
+      throw new Error("Cloudflare Browser Run endpoint or token is not configured.");
+    }
+    browser = await puppeteer.connect({
+      browserWSEndpoint: endpoint,
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    page = await getPrimaryPage(browser);
+    await page.goto(cleanUrl, {
+      waitUntil: "domcontentloaded",
+      timeout: Number(process.env.SFFC_REMOTE_BROWSER_NAVIGATION_TIMEOUT_MS || 60000),
+    });
+    liveUrl = await getCloudflareLiveViewUrl(page);
+  } else {
+    throw new Error("A managed live browser provider is not configured.");
+  }
+
+  debugLog("managed live browser ready", sessionId, provider, managedTransport, page.url());
+  return {
+    kind: managedTransport,
+    browser,
+    page,
+    liveUrl,
+  };
+}
+
 export async function closeBrowserSession(runtime) {
   if (!runtime) {
     return;

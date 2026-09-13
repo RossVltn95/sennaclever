@@ -81,17 +81,17 @@ const reviewSurfaceBuilderRegion =
   {
     provider: "workable",
     label: "Workable",
-    expectedMode: "remote_browser",
-    reason: "remote_browser_default",
-    route: "Workable secure browser route",
+    expectedMode: "iframe_embed",
+    reason: "workable_iframe_probe",
+    route: "Workable route",
     allowedHost: "apply.workable.com",
   },
   {
     provider: "greenhouse",
     label: "Greenhouse",
-    expectedMode: "remote_browser",
-    reason: "remote_browser_default",
-    route: "Greenhouse secure browser route",
+    expectedMode: "iframe_embed",
+    reason: "greenhouse_iframe_probe",
+    route: "Greenhouse route",
     allowedHost: "job-boards.greenhouse.io",
   },
   {
@@ -99,7 +99,7 @@ const reviewSurfaceBuilderRegion =
     label: "Workday",
     expectedMode: "remote_browser",
     reason: "workday_remote_browser_default",
-    route: "Workday secure browser route",
+    route: "Workday assisted browser fallback",
     blockedHost: "myworkdayjobs.com",
   },
   {
@@ -107,7 +107,7 @@ const reviewSurfaceBuilderRegion =
     label: "SAP SuccessFactors",
     expectedMode: "remote_browser",
     reason: "successfactors_remote_browser_default",
-    route: "SAP SuccessFactors secure browser route",
+    route: "SAP SuccessFactors assisted browser fallback",
     blockedHost: "successfactors.com",
   },
   {
@@ -115,15 +115,15 @@ const reviewSurfaceBuilderRegion =
     label: "Teamtailor",
     expectedMode: "remote_browser",
     reason: "teamtailor_application_remote_browser_default",
-    route: "Teamtailor secure browser route",
+    route: "Teamtailor assisted browser fallback",
     blockedHost: "teamtailor.com",
   },
   {
     provider: "simple_form",
     label: "Simple form",
-    expectedMode: "remote_browser",
-    reason: "remote_browser_default",
-    route: "Simple form secure browser route",
+    expectedMode: "iframe_embed",
+    reason: "simple_form_iframe_probe",
+    route: "Simple form route",
   },
 ].forEach((check) => {
   if (!policyBody.includes(check.provider)) {
@@ -156,8 +156,9 @@ const reviewSurfaceBuilderRegion =
   "explicit_static_preview_mode",
   "explicit_remote_browser_mode",
   "known_blocked_host_remote_browser_default",
-  "remote_browser_default",
+  "provider_policy_iframe_first",
   "policy.defaultMode = \"remote_browser\"",
+  "policy.defaultMode = \"iframe_embed\"",
 ].forEach((needle) => {
   if (!embedPolicyBody.includes(needle)) {
     failures.push(`Embed policy missing ${needle}`);
@@ -233,8 +234,9 @@ if (!normalizeActualJobPostSearchItemBody.includes("applyUrl: externalEmployerUr
   "remote_browser_supported",
   "invalid_external_url",
   "remote_browser_unavailable",
-  "remote_browser_default",
-  "remote_browser_default_unavailable",
+  "provider_prefers_remote_browser",
+  "remote_browser_not_available_or_url_blocked",
+  "fallback_iframe_first",
   "static_preview",
 ].forEach((needle) => {
   if (!reviewSurfaceBuilderRegion.includes(needle) && !reviewSurfaceEndpointRegion.includes(needle)) {
@@ -275,8 +277,11 @@ if (!normalizeActualJobPostSearchItemBody.includes("applyUrl: externalEmployerUr
 if (source.includes("This employer form blocks a standard embed. I’ll use the secure browser route when it is available")) {
   failures.push("Review-surface copy still describes secure browser as conditional iframe fallback.");
 }
-if (!source.includes("I’ll open this employer form in Senna’s secure browser")) {
-  failures.push("Review-surface copy does not describe secure browser as the default route.");
+if (!source.includes("This employer blocks normal embedded forms. I can open an assisted browser view")) {
+  failures.push("Review-surface copy does not describe assisted browser as the blocked-embed fallback.");
+}
+if (source.includes("I’ll open this employer form in Senna’s secure browser so you can review it inside the chat")) {
+  failures.push("Review-surface copy still presents the noVNC-style secure browser as the primary product surface.");
 }
 
 [

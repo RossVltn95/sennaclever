@@ -1800,7 +1800,8 @@ async function declineOptionalTeamtailorSurvey(page) {
   return { attempted: true, clicked: true, beforeUrl: surveyState.currentUrl, afterUrl: page.url() };
 }
 
-async function processTeamtailorTask(page, task, candidate, cvPath, url) {
+async function processTeamtailorTask(page, task, candidate, cvPath, url, adapterInput = null) {
+  task.__sffc_adapter_input = adapterInput || task.__sffc_adapter_input || buildApplicationAdapterInput(task, { candidate, url });
   await dismissCookieBanners(page).catch(() => false);
   debugLog(task.task_uuid || "teamtailor", "teamtailor_form_ready_check");
   const formReady = await ensureTeamtailorApplicationFormReady(page, task, url);
@@ -3595,6 +3596,15 @@ function getGreenhouseSyntheticAnswerForQuestion(question, answers = {}, task = 
     answerByPatterns(answers, [/visa/i, /sponsor/i, /work.*authori/i]) ||
     getGreenhouseProfileAnswer(task, ["visaSponsorship", "visa_sponsorship", "right_to_work"]);
   const needsVisa = /yes|need|require|sponsor/i.test(visaProfile);
+  const universalDefault = getUniversalApplicationQuestionDefaultAnswer(question, {
+    answers,
+    task,
+    cvText,
+  });
+
+  if (universalDefault) {
+    return getGreenhouseChoiceOrText(universalDefault, choices, [new RegExp(escapeRegExp(universalDefault), "i")]);
+  }
 
   if (/race|ethnic|hispanic|latinx/.test(haystack)) {
     return getGreenhouseChoiceOrText("I don't wish to answer", choices, [/prefer.*not|decline|undisclosed|not.*say|not.*answer|wish.*not/i]);
@@ -3646,11 +3656,12 @@ function getGreenhouseSyntheticAnswerForQuestion(question, answers = {}, task = 
     return getGreenhouseChoiceOrText(preferred, choices, patterns);
   }
   if (/which country are you applying from|country.*applying from|current country|country.*located/.test(haystack)) {
-    const country = getGreenhouseProfileAnswer(task, ["country", "country_of_residence", "current_country"]) || inferCountryFromText(cvText) || "United Arab Emirates";
+    const country = getGreenhouseProfileAnswer(task, ["country", "country_of_residence", "current_country"]) || inferCountryFromText(cvText);
+    if (!country) return "";
     return getGreenhouseChoiceOrText(country, choices, [new RegExp(escapeRegExp(country), "i"), /united arab emirates|uae|united kingdom|uk|saudi arabia/i]);
   }
   if (/city|state|province/.test(haystack) && /located|applying from|current/.test(haystack)) {
-    return getGreenhouseProfileAnswer(task, ["city", "current_city", "location"]) || cleanText(task?.candidate_location || "") || "Dubai";
+    return getGreenhouseProfileAnswer(task, ["city", "current_city", "location"]) || cleanText(task?.candidate_location || "");
   }
   if (/industry.*currently|current industry|which industry/.test(haystack)) {
     return getGreenhouseChoiceOrText(
@@ -3791,6 +3802,12 @@ function getSimpleFormSyntheticAnswerForQuestion(question, answers = {}, candida
   const cvText = getCvText(task);
   const cvHas = (patterns) => patterns.some((pattern) => pattern.test(cvText));
   const yesNoFromCv = (patterns) => choiceOrText(cvHas(patterns) ? "Yes" : "No", [cvHas(patterns) ? /^yes\b/i : /^no\b/i]);
+  const universalDefault = getUniversalApplicationQuestionDefaultAnswer(question, {
+    answers,
+    task,
+    candidate,
+    cvText,
+  });
   if (/gender|sex|ethnic|ethnicity|race/.test(haystack)) {
     return choices.find((choice) => /prefer.*not|decline|not.*say/i.test(choice)) || "Prefer not to say";
   }
@@ -3807,8 +3824,9 @@ function getSimpleFormSyntheticAnswerForQuestion(question, answers = {}, candida
   }
   if (/\bemail\b|e-?mail/.test(haystack)) return candidate.email || "";
   if (/phone|mobile|telephone/.test(haystack)) return candidate.phone || fromAnswers([/\bphone\b/, /\bmobile\b/, /telephone/]);
+  if (universalDefault) return universalDefault;
   if (/location|city|country|residence/.test(haystack)) {
-    return candidate.address || fromAnswers([/current location/, /\blocation\b/, /\bcity\b/, /\bcountry\b/], "London, United Kingdom");
+    return candidate.address || fromAnswers([/current location/, /\blocation\b/, /\bcity\b/, /\bcountry\b/]);
   }
   if (/linkedin/.test(haystack)) return fromAnswers([/linkedin/], "N/A");
   if (/where.*stud|school|university|college|education institution|institution/.test(haystack)) {
@@ -3955,6 +3973,227 @@ function getApplicationAnswers(task) {
   return answers && typeof answers === "object" ? answers : {};
 }
 
+function getApplicationProfileContract(task) {
+  const payload = getTaskPayload(task);
+  const applicationProfile =
+    payload.application_profile && typeof payload.application_profile === "object"
+      ? payload.application_profile
+      : {};
+  const answerMemorySnapshot =
+    payload.answer_memory_snapshot &&
+    typeof payload.answer_memory_snapshot === "object"
+      ? payload.answer_memory_snapshot
+      : {};
+  const submitPreference = cleanText(
+    payload.submit_preference || "ask_before_submit"
+  );
+  return {
+    application_profile: applicationProfile,
+    profile_version_id: cleanText(payload.profile_version_id || ""),
+    answer_memory_snapshot: answerMemorySnapshot,
+    submit_preference:
+      submitPreference === "submit_when_ready"
+        ? "submit_when_ready"
+        : "ask_before_submit",
+  };
+}
+
+function getApplicationProfileVersionId(task) {
+  return getApplicationProfileContract(task).profile_version_id;
+}
+
+function getApplicationAnswerMemorySnapshot(task) {
+  return getApplicationProfileContract(task).answer_memory_snapshot;
+}
+
+function getApplicationSubmitPreference(task) {
+  return getApplicationProfileContract(task).submit_preference;
+}
+
+function normalizeApplicationSubmitPolicy(value = "") {
+  const clean = cleanText(value || "").toLowerCase();
+  if (clean === "allow_submit" || clean === "submit_when_ready") {
+    return "allow_submit";
+  }
+  if (clean === "prepare_only" || clean === "draft_only") {
+    return "prepare_only";
+  }
+  return "ask_before_submit";
+}
+
+function normalizeApplicationAdapterProvider(task = {}, url = "") {
+  const provider = cleanText(task?.provider || getApplicationSchema(task).provider || "").toLowerCase();
+  if (isWorkableApplication(task, url) || provider === "workable_board") {
+    return "workable";
+  }
+  if (isGreenhouseApplication(task, url)) {
+    return "greenhouse";
+  }
+  if (isTeamtailorApplication(task, url)) {
+    return "teamtailor";
+  }
+  if (isWorkdayApplication(task, url)) {
+    return "workday";
+  }
+  if (isSuccessFactorsApplication(task, url) || provider === "sap successfactors") {
+    return "successfactors";
+  }
+  if (isSimpleFormApplication(task, url)) {
+    return "simple_form";
+  }
+  return provider || "unknown";
+}
+
+function buildApplicationAdapterCandidate(task = {}) {
+  const profileAnswers = getCandidateProfileAnswers(task);
+  const candidate = {
+    name: cleanText(profileAnswers.name || profileAnswers.full_name || task.candidate_name || ""),
+    email: cleanText(profileAnswers.email || task.candidate_email || ""),
+    phone: cleanText(profileAnswers.phone || profileAnswers.mobile || getCandidatePhone(task)),
+    address: cleanText(profileAnswers.current_location || profileAnswers.location || getCandidateAddress(task)),
+    current_title: cleanText(profileAnswers.current_title || profileAnswers.currentTitle || ""),
+    current_employer: cleanText(profileAnswers.current_employer || profileAnswers.currentEmployer || ""),
+    years_experience: cleanText(profileAnswers.years_experience || profileAnswers.yearsExperience || ""),
+    seniority: cleanText(profileAnswers.seniority || ""),
+    skills: cleanText(profileAnswers.skills || ""),
+    languages: cleanText(profileAnswers.languages || ""),
+    education: cleanText(profileAnswers.education || ""),
+    linkedin: cleanText(profileAnswers.linkedin || profileAnswers.linkedin_url || ""),
+    notice_period: cleanText(profileAnswers.notice_period || profileAnswers.availability || ""),
+    salary_expectation: cleanText(profileAnswers.salary_expectation || profileAnswers.expected_salary || profileAnswers.desired_salary || profileAnswers.target_compensation || ""),
+    current_salary: cleanText(profileAnswers.current_salary || profileAnswers.current_compensation || ""),
+    requires_sponsorship: cleanText(profileAnswers.requires_sponsorship || profileAnswers.visa_sponsorship || profileAnswers.sponsorship || ""),
+    emirati_national: cleanText(profileAnswers.emirati_national || profileAnswers.uae_national || ""),
+    reasonable_adjustments: cleanText(profileAnswers.reasonable_adjustments || profileAnswers.accommodation || ""),
+    consider_other_roles: cleanText(profileAnswers.consider_other_roles || profileAnswers.other_opportunities || ""),
+  };
+  const { firstName, lastName } = splitName(candidate.name);
+  candidate.firstName = cleanText(profileAnswers.first_name || profileAnswers.firstName || firstName);
+  candidate.lastName = cleanText(profileAnswers.last_name || profileAnswers.lastName || lastName);
+  return candidate;
+}
+
+function buildApplicationAdapterInput(task = {}, overrides = {}) {
+  const payload = getTaskPayload(task);
+  const applicationUrl = cleanText(
+    overrides.url ||
+      task.application_workspace_url ||
+      task.application_url ||
+      payload.application_url ||
+      ""
+  );
+  const contract = getApplicationProfileContract(task);
+  const candidate = overrides.candidate || buildApplicationAdapterCandidate(task);
+  const answerMemory = contract.answer_memory_snapshot || {};
+  const cvMode = cleanText(payload.cv_mode || task.cv_mode || "original") || "original";
+  return {
+    contract_version: "application_profile_v1",
+    provider: normalizeApplicationAdapterProvider(task, applicationUrl),
+    applicationUrl,
+    role: {
+      title: cleanText(task.role_title || task.job_title || payload.role_title || payload.job_title || ""),
+      company: cleanText(task.company_name || payload.company_name || ""),
+      location: cleanText(task.location || task.role_location || payload.location || payload.role_location || ""),
+      url: cleanText(payload.role_url || task.role_url || ""),
+    },
+    applicationProfile: contract.application_profile || {},
+    candidate,
+    cv: {
+      mode: cvMode,
+      fileUrl: cleanText(task.cv_file_url || payload.cv_file_url || ""),
+      fileName: cleanText(task.cv_file_name || payload.cv_file_name || ""),
+      text: cleanText(overrides.cvText || getCvText(task) || ""),
+      tailoredText: cleanText(payload.tailored_cv_text || task.tailored_cv_text || ""),
+      tailoredModel: payload.tailored_cv_model && typeof payload.tailored_cv_model === "object"
+        ? payload.tailored_cv_model
+        : {},
+    },
+    answerMemory,
+    explicitAnswers: getApplicationAnswers(task),
+    submitPolicy: normalizeApplicationSubmitPolicy(contract.submit_preference),
+    profileVersionId: contract.profile_version_id,
+    fieldResolutionOrder: [
+      "user_confirmed_profile",
+      "logged_in_profile",
+      "approved_answer_memory",
+      "cv_extracted",
+      "safe_inference",
+      "safe_default",
+      "ask_user",
+    ],
+  };
+}
+
+function summarizeApplicationAdapterInput(adapterInput = {}) {
+  const candidate = adapterInput.candidate || {};
+  const applicationProfile = adapterInput.applicationProfile || {};
+  const answerMemory = adapterInput.answerMemory || {};
+  const hasCandidateValue = (key) => cleanText(candidate[key] || "").length > 0;
+  const screeningAnswers = Array.isArray(answerMemory.screeningAnswers)
+    ? answerMemory.screeningAnswers.length
+    : 0;
+  const approvedAnswers = Array.isArray(answerMemory.approvedAnswers)
+    ? answerMemory.approvedAnswers.length
+    : 0;
+  const customDrafts = Array.isArray(answerMemory.customQuestionDrafts)
+    ? answerMemory.customQuestionDrafts.length
+    : 0;
+  return {
+    contract_version: adapterInput.contract_version || "application_profile_v1",
+    provider: adapterInput.provider || "unknown",
+    profile_version_id: adapterInput.profileVersionId || "",
+    submit_policy: adapterInput.submitPolicy || "ask_before_submit",
+    has_application_profile: Object.keys(applicationProfile).length > 0,
+    candidate_fields: [
+      "name",
+      "email",
+      "phone",
+      "address",
+      "current_title",
+      "current_employer",
+      "notice_period",
+      "salary_expectation",
+      "requires_sponsorship",
+      "emirati_national",
+    ].filter(hasCandidateValue),
+    answer_memory_counts: {
+      screening_answers: screeningAnswers,
+      approved_answers: approvedAnswers,
+      custom_question_drafts: customDrafts,
+    },
+    field_resolution_order: adapterInput.fieldResolutionOrder || [],
+  };
+}
+
+function withApplicationAdapterResultContract(task = {}, result = {}, adapterInput = null) {
+  const normalizedResult = result && typeof result === "object" ? result : {};
+  const context = adapterInput || task.__sffc_adapter_input || buildApplicationAdapterInput(task, {
+    url: normalizedResult.url || normalizedResult.final_url || "",
+  });
+  const summary = summarizeApplicationAdapterInput(context);
+  const draftSources = [
+    normalizedResult.workable_answer_plan,
+    normalizedResult.greenhouse_answer_plan,
+    normalizedResult.simple_form_answer_plan,
+    normalizedResult.workday_answer_plan,
+  ].filter((plan) => plan && typeof plan === "object");
+  const customQuestionDrafts = Array.isArray(normalizedResult.custom_question_drafts)
+    ? normalizedResult.custom_question_drafts
+    : draftSources.flatMap((plan) =>
+        Array.isArray(plan.custom_question_drafts) ? plan.custom_question_drafts : []
+      );
+  return {
+    ...normalizedResult,
+    provider: cleanText(normalizedResult.provider || summary.provider || task.provider || ""),
+    application_adapter_contract_version: summary.contract_version,
+    application_adapter_input: summary,
+    custom_question_drafts: customQuestionDrafts.slice(0, 12),
+    custom_question_drafts_count: customQuestionDrafts.length,
+    profile_version_id: cleanText(normalizedResult.profile_version_id || summary.profile_version_id || ""),
+    submit_policy: cleanText(normalizedResult.submit_policy || summary.submit_policy || "ask_before_submit"),
+  };
+}
+
 function setTaskApplicationAnswers(task, answers) {
   if (!task || !answers || typeof answers !== "object") {
     return;
@@ -3963,6 +4202,242 @@ function setTaskApplicationAnswers(task, answers) {
   if (task.payload && typeof task.payload === "object") {
     task.payload.application_answers = answers;
   }
+}
+
+function getProfileAnswerValue(task, keys = []) {
+  const profile = getCandidateProfileAnswers(task);
+  return getFirstProfileValue(profile, keys);
+}
+
+function matchApplicationChoice(value, choices = [], patterns = []) {
+  const cleanValue = cleanText(value);
+  const choiceLabels = (choices || []).map(cleanText).filter(Boolean);
+  if (!choiceLabels.length) {
+    return cleanValue;
+  }
+  const patternMatch = choiceLabels.find((choice) =>
+    (patterns || []).some((pattern) => pattern.test(choice))
+  );
+  return patternMatch || getBestChoiceLabel(cleanValue, choiceLabels) || cleanValue;
+}
+
+function getUniversalApplicationQuestionDefault(question, context = {}) {
+  const label = getQuestionLabel(question);
+  const fieldNames = getQuestionFieldNames(question);
+  const fieldTypes = getQuestionFieldTypes(question);
+  const choices = getQuestionChoiceLabels(question).map(cleanText).filter(Boolean);
+  const task = context.task || {};
+  const answers = context.answers || {};
+  const candidate = context.candidate || {};
+  const cvText = context.cvText || getCvText(task);
+  const haystack = cleanText(`${label} ${fieldNames.join(" ")} ${fieldTypes.join(" ")} ${choices.join(" ")}`).toLowerCase();
+  const choice = (value, patterns = []) => matchApplicationChoice(value, choices, patterns);
+  const explicit = (patterns) => answerByPatterns(answers, patterns);
+  const profile = (keys) => getProfileAnswerValue(task, keys);
+
+  if (!haystack) {
+    return null;
+  }
+
+  if (/passport\s*(?:no|number)|government\s*id|national\s*id|social\s*security|ssn|tax\s*id|national\s*insurance|license\s*number|licence\s*number|certification\s*number|reference\s+contact|exact\s+gpa|exact\s+grade|sat\s*score|act\s*score|salary\s+history/.test(haystack)) {
+    return {
+      answer: "",
+      source: "unsafe",
+      safeToUse: false,
+      confirmationRequired: true,
+      reason: "unsupported_sensitive_fact",
+    };
+  }
+
+  if (/race|racial|ethnic|ethnicity|hispanic|latino|latina|latinx|gender|sexual\s+orientation|religion|disability|disabled|veteran|military|armed\s+forces/.test(haystack)) {
+    return {
+      answer: choice("Prefer not to say", [/prefer.*not|decline|not.*say|not.*answer|wish.*not|undisclosed/i, /^no\b/i]),
+      source: "default",
+      safeToUse: true,
+      confirmationRequired: false,
+      reason: "optional_demographic_default",
+    };
+  }
+
+  if (/uae\s+national|emirati\s+national|national\s+of\s+the\s+uae|emirati\s+family\s+book|khulasat|family\s+book/.test(haystack)) {
+    const explicitAnswer = explicit([/uae\s+national/i, /emirati/i, /family\s+book/i]) ||
+      profile(["emirati_national", "uae_national"]);
+    return {
+      answer: explicitAnswer || choice("No", [/^no\b|not applicable|none/i]),
+      source: explicitAnswer ? "profile" : "default",
+      safeToUse: true,
+      confirmationRequired: !explicitAnswer,
+      reason: "eligibility_default_confirm",
+    };
+  }
+
+  if (/sponsor|sponsorship|visa\s+support|work\s+permit\s+support/.test(haystack)) {
+    const explicitAnswer = explicit([/sponsor/i, /sponsorship/i, /visa\s+support/i]) ||
+      profile(["requires_sponsorship", "visa_sponsorship", "sponsorship"]);
+    const needsSponsorship = /yes|need|require|sponsor/i.test(explicitAnswer);
+    return {
+      answer: explicitAnswer
+        ? choice(needsSponsorship ? "Yes" : "No", needsSponsorship ? [/^yes\b/i] : [/^no\b/i])
+        : choice("No", [/^no\b|not required|do not/i]),
+      source: explicitAnswer ? "profile" : "default",
+      safeToUse: true,
+      confirmationRequired: !explicitAnswer,
+      reason: "sponsorship_default_confirm",
+    };
+  }
+
+  if (/legally authorized|legally authorised|authori[sz]ed to work|eligible to work|right to work|work authori[sz]ation|work lawfully/.test(haystack)) {
+    const explicitAnswer = explicit([/work.*authori/i, /right\s+to\s+work/i, /eligible.*work/i]) ||
+      profile(["right_to_work", "work_authorization", "work_authorisation"]);
+    return {
+      answer: explicitAnswer || choice("Yes", [/^yes\b|authori[sz]ed|eligible|work without restriction/i]),
+      source: explicitAnswer ? "profile" : "default",
+      safeToUse: true,
+      confirmationRequired: !explicitAnswer,
+      reason: "work_authorization_default_confirm",
+    };
+  }
+
+  if (/current\s+salary|salary\s+history|current\s+compensation|current\s+remuneration|current\s+base\s+salary/.test(haystack)) {
+    const explicitAnswer = explicit([/current.*salary/i, /current.*compensation/i]) ||
+      profile(["current_salary", "current_compensation"]);
+    return {
+      answer: explicitAnswer || choice("Prefer not to say", [/prefer.*not|decline|not.*say|not.*answer/i]),
+      source: explicitAnswer ? "profile" : "default",
+      safeToUse: Boolean(explicitAnswer || choices.length),
+      confirmationRequired: !explicitAnswer,
+      reason: explicitAnswer ? "profile_salary" : "current_salary_not_guessed",
+    };
+  }
+
+  if (/expected\s+salary|desired\s+salary|salary\s+expect|compensation\s+expect|pay\s+expect|target\s+compensation/.test(haystack)) {
+    const explicitAnswer = explicit([/expected.*salary/i, /desired.*salary/i, /salary.*expect/i, /target.*compensation/i]) ||
+      profile(["salary_expectation", "expected_salary", "desired_salary", "target_compensation"]);
+    return {
+      answer: explicitAnswer || choice("Open to discussion", [/open|negotiable|market|discuss/i]),
+      source: explicitAnswer ? "profile" : "default",
+      safeToUse: true,
+      confirmationRequired: !explicitAnswer,
+      reason: "salary_expectation_default",
+    };
+  }
+
+  if (/privacy|consent|terms|declaration|accurate|true|confirm|certify|acknowledge|understand|data\s+processing|personal\s+data|gdpr/.test(haystack)) {
+    return {
+      answer: choice("Yes", [/^yes\b|agree|accept|confirm|acknowledge|consent/i]),
+      source: "default",
+      safeToUse: true,
+      confirmationRequired: true,
+      reason: "declaration_default_confirm",
+    };
+  }
+
+  if (/criminal|conviction|arrest|charge|awaiting\s+trial|\btrial\b|conflict\s+of\s+interest|family\s+member|relative|close\s+personal|politically\s+exposed|financial\s+interest|outside\s+business|non.?compete|non.?solicit|restrictive\s+covenant|previously\s+employed|former\s+employee|current\s+employee|worked\s+(?:for|at)\s+(?:us|the company)|previously\s+applied|interviewed.*(?:before|last)/.test(haystack)) {
+    const affirmativeNever = /never|i\s+confirm\s+i\s+have\s+not|confirm.*not/.test(haystack);
+    return {
+      answer: affirmativeNever
+        ? choice("Yes", [/^yes\b|confirm|agree/i])
+        : choice("No", [/^no\b|none|not applicable/i]),
+      source: "default",
+      safeToUse: true,
+      confirmationRequired: true,
+      reason: "legal_declaration_default_confirm",
+    };
+  }
+
+  if (/how.*(?:hear|heard|find).*job|source|referral|where.*(?:hear|heard|find)/.test(haystack)) {
+    const explicitAnswer = explicit([/how.*(?:hear|heard|find).*job/i, /source/i, /referral/i]) ||
+      profile(["source", "how_did_you_hear"]);
+    return {
+      answer: explicitAnswer || choice("LinkedIn", [/linkedin/i, /job\s*board/i, /website/i, /other/i]),
+      source: explicitAnswer ? "profile" : "default",
+      safeToUse: true,
+      confirmationRequired: false,
+      reason: "source_default",
+    };
+  }
+
+  if (/notice\s*period|availability|available\s+to\s+start|earliest\s+start|start\s+date/.test(haystack)) {
+    const explicitAnswer = explicit([/notice\s*period/i, /availability/i, /available.*start/i, /start\s+date/i]) ||
+      profile(["notice_period", "availability"]);
+    return {
+      answer: explicitAnswer || choice("1 month", [/1\s+month|one\s+month|30\s+days|immediate/i]),
+      source: explicitAnswer ? "profile" : "default",
+      safeToUse: true,
+      confirmationRequired: !explicitAnswer,
+      reason: "notice_period_default",
+    };
+  }
+
+  if (/at least 18|18 years of age|18 years old/.test(haystack)) {
+    return {
+      answer: choice("Yes", [/^yes\b|true/i]),
+      source: "default",
+      safeToUse: true,
+      confirmationRequired: true,
+      reason: "age_default_confirm",
+    };
+  }
+
+  if (/reasonable\s+adjustments|adjustments.*recruitment|accommodation/.test(haystack)) {
+    const explicitAnswer = explicit([/reasonable\s+adjustments/i, /accommodation/i]) ||
+      profile(["reasonable_adjustments", "accommodation"]);
+    return {
+      answer: explicitAnswer || choice("No", [/^no\b|not required|none|not applicable/i]),
+      source: explicitAnswer ? "profile" : "default",
+      safeToUse: true,
+      confirmationRequired: !explicitAnswer,
+      reason: "adjustments_default_confirm",
+    };
+  }
+
+  if (/considered for other opportunities|consider.*other opportunities|other opportunities with|similar roles|future roles/.test(haystack)) {
+    const explicitAnswer = explicit([/other opportunities/i, /similar roles/i]) ||
+      profile(["consider_other_roles", "other_opportunities"]);
+    return {
+      answer: explicitAnswer || choice("Yes", [/^yes\b/i]),
+      source: explicitAnswer ? "profile" : "default",
+      safeToUse: true,
+      confirmationRequired: false,
+      reason: "other_opportunities_default",
+    };
+  }
+
+  if (/current\s+location|where.*located|\blocation\b|\bcity\b|country.*residence|residence.*country|current.*country/.test(haystack)) {
+    const explicitAnswer =
+      cleanText(candidate.address || "") ||
+      explicit([/current\s+location/i, /\blocation\b/i, /\bcity\b/i, /\bcountry\b/i]) ||
+      profile(["current_location", "location", "city", "country"]);
+    if (!explicitAnswer) {
+      return null;
+    }
+    return {
+      answer: choice(explicitAnswer, [new RegExp(escapeRegExp(explicitAnswer), "i")]),
+      source: "profile",
+      safeToUse: true,
+      confirmationRequired: false,
+      reason: "profile_location",
+    };
+  }
+
+  if (/linkedin|portfolio|website/.test(haystack)) {
+    const explicitAnswer = explicit([/linkedin/i, /portfolio/i, /website/i]) ||
+      profile(["linkedin", "linkedin_url", "portfolio", "portfolio_url"]);
+    return {
+      answer: explicitAnswer || choice("N/A", [/n\/a|not applicable|none/i]),
+      source: explicitAnswer ? "profile" : "default",
+      safeToUse: true,
+      confirmationRequired: false,
+      reason: explicitAnswer ? "profile_link" : "missing_optional_link_default",
+    };
+  }
+
+  return null;
+}
+
+function getUniversalApplicationQuestionDefaultAnswer(question, context = {}) {
+  const policy = getUniversalApplicationQuestionDefault(question, context);
+  return policy && policy.safeToUse ? cleanText(policy.answer || "") : "";
 }
 
 function escapeRegExp(value) {
@@ -3992,20 +4467,29 @@ function getSuccessFactorsSyntheticAnswerForQuestion(question, answers, task, ca
     }
     return value;
   };
+  const universalDefault = getUniversalApplicationQuestionDefaultAnswer(question, {
+    answers,
+    task,
+    candidate,
+    cvText,
+  });
 
   if (fieldNames.some((name) => /fbclc_fname|first.?name|given.?name/.test(name)) || /first\s*name|given\s*name/.test(labelText)) return candidate.firstName || "";
   if (fieldNames.some((name) => /fbclc_lname|last.?name|family.?name|surname/.test(name)) || /last\s*name|family\s*name|surname/.test(labelText)) return candidate.lastName || "";
   if (fieldNames.some((name) => /fbclc_username|fbclc_emailconf|email/.test(name)) || /\bemail\b|e-?mail/.test(labelText)) return candidate.email || "";
   if (/phone|mobile|telephone/.test(haystack)) return candidate.phone || answers.phone || "";
+  if (universalDefault) return universalDefault;
   if (/country.*residence|residence.*country|current.*country|country$|location/.test(haystack)) {
-    return choiceOrText(inferredCountry || "United Arab Emirates", [
-      new RegExp(escapeRegExp(inferredCountry || "United Arab Emirates"), "i"),
+    if (!inferredCountry) return "";
+    return choiceOrText(inferredCountry, [
+      new RegExp(escapeRegExp(inferredCountry), "i"),
       /united arab emirates|uae/i,
       /saudi arabia|qatar|singapore|united kingdom/i,
     ]);
   }
   if (/nationality|citizenship/.test(haystack)) {
-    const nationality = cleanText(profile.nationality || answers.nationality || "") || inferredCountry || "United Kingdom";
+    const nationality = cleanText(profile.nationality || answers.nationality || "");
+    if (!nationality) return "";
     return choiceOrText(nationality, [
       new RegExp(escapeRegExp(nationality), "i"),
       /united kingdom|british|uk/i,
@@ -4064,12 +4548,113 @@ function getSuccessFactorsSyntheticAnswerForQuestion(question, answers, task, ca
 
 function getCandidateProfileAnswers(task) {
   const payload = getTaskPayload(task);
+  const applicationProfileAnswers = flattenApplicationProfileAnswers(payload.application_profile || {});
+  const answerMemoryAnswers = flattenApplicationAnswerMemorySnapshot(
+    getApplicationAnswerMemorySnapshot(task)
+  );
   const answers = {
     ...(payload.candidate_profile && typeof payload.candidate_profile === "object" ? payload.candidate_profile : {}),
+    ...applicationProfileAnswers,
+    ...answerMemoryAnswers,
     ...(payload.successfactors_profile && typeof payload.successfactors_profile === "object" ? payload.successfactors_profile : {}),
     ...getApplicationAnswers(task),
   };
   return answers && typeof answers === "object" ? answers : {};
+}
+
+function getApplicationProfileFieldValue(profile, group, key) {
+  const field = profile && profile[group] && profile[group][key];
+  if (field && typeof field === "object" && Object.prototype.hasOwnProperty.call(field, "value")) {
+    return field.value;
+  }
+  return "";
+}
+
+function flattenApplicationProfileAnswers(profile) {
+  if (!profile || typeof profile !== "object") {
+    return {};
+  }
+  const answers = {};
+  const assign = (keys, value) => {
+    const cleanValue = Array.isArray(value)
+      ? value.map(cleanText).filter(Boolean).join(", ")
+      : typeof value === "number"
+        ? String(value)
+        : cleanText(value || "");
+    if (!cleanValue) {
+      return;
+    }
+    keys.forEach((key) => {
+      answers[key] = cleanValue;
+    });
+  };
+  assign(["name", "full_name", "fullName", "candidate_name"], getApplicationProfileFieldValue(profile, "identity", "fullName"));
+  assign(["first_name", "firstName", "given_name"], getApplicationProfileFieldValue(profile, "identity", "firstName"));
+  assign(["last_name", "lastName", "family_name", "surname"], getApplicationProfileFieldValue(profile, "identity", "lastName"));
+  assign(["email", "candidate_email"], getApplicationProfileFieldValue(profile, "identity", "email"));
+  assign(["phone", "mobile", "telephone", "candidate_phone"], getApplicationProfileFieldValue(profile, "identity", "phone"));
+  assign(["linkedin", "linkedin_url"], getApplicationProfileFieldValue(profile, "identity", "linkedin"));
+  assign(["portfolio", "portfolio_url"], getApplicationProfileFieldValue(profile, "identity", "portfolioUrl"));
+  assign(["current_location", "location", "candidate_location"], getApplicationProfileFieldValue(profile, "location", "currentLocation"));
+  assign(["city"], getApplicationProfileFieldValue(profile, "location", "city"));
+  assign(["country"], getApplicationProfileFieldValue(profile, "location", "country"));
+  assign(["notice_period", "availability"], getApplicationProfileFieldValue(profile, "location", "noticePeriod") || getApplicationProfileFieldValue(profile, "applicationDefaults", "noticePeriod"));
+  assign(["requires_sponsorship", "visa_sponsorship", "sponsorship"], getApplicationProfileFieldValue(profile, "workAuthorization", "requiresSponsorship"));
+  assign(["salary_expectation", "expected_salary"], getApplicationProfileFieldValue(profile, "applicationDefaults", "salaryExpectation"));
+  assign(["current_salary"], getApplicationProfileFieldValue(profile, "applicationDefaults", "currentSalary"));
+  assign(["source", "how_did_you_hear"], getApplicationProfileFieldValue(profile, "applicationDefaults", "sourceAnswer"));
+  assign(["emirati_national", "uae_national"], getApplicationProfileFieldValue(profile, "applicationDefaults", "emiratiNational"));
+  assign(["reasonable_adjustments", "accommodation"], getApplicationProfileFieldValue(profile, "applicationDefaults", "reasonableAdjustments"));
+  assign(["consider_other_roles", "other_opportunities"], getApplicationProfileFieldValue(profile, "applicationDefaults", "considerOtherRoles"));
+  assign(["current_title", "job_title"], getApplicationProfileFieldValue(profile, "professional", "currentTitle"));
+  assign(["current_employer", "employer", "company"], getApplicationProfileFieldValue(profile, "professional", "currentEmployer"));
+  assign(["years_experience", "years_of_experience"], getApplicationProfileFieldValue(profile, "professional", "yearsExperience"));
+  assign(["seniority"], getApplicationProfileFieldValue(profile, "professional", "seniority"));
+  assign(["skills"], getApplicationProfileFieldValue(profile, "professional", "skills"));
+  assign(["languages"], getApplicationProfileFieldValue(profile, "professional", "languages"));
+  assign(["education"], getApplicationProfileFieldValue(profile, "professional", "education"));
+  return answers;
+}
+
+function flattenApplicationAnswerMemorySnapshot(snapshot) {
+  if (!snapshot || typeof snapshot !== "object") {
+    return {};
+  }
+  const answers = {};
+  const assignObject = (source) => {
+    if (!source || typeof source !== "object" || Array.isArray(source)) {
+      return;
+    }
+    for (const [key, value] of Object.entries(source)) {
+      const cleanKey = normalizeKey(key);
+      const cleanValue = Array.isArray(value)
+        ? value.map(cleanText).filter(Boolean).join(", ")
+        : cleanText(value);
+      if (cleanKey && cleanValue && !answers[cleanKey]) {
+        answers[cleanKey] = cleanValue;
+      }
+    }
+  };
+  const assignArray = (items) => {
+    for (const item of items || []) {
+      if (!item || typeof item !== "object") {
+        continue;
+      }
+      const cleanKey = normalizeKey(
+        item.key || item.field || item.question || item.label || ""
+      );
+      const cleanValue = cleanText(
+        item.value || item.answer || item.response || item.text || ""
+      );
+      if (cleanKey && cleanValue && !answers[cleanKey]) {
+        answers[cleanKey] = cleanValue;
+      }
+    }
+  };
+  assignObject(snapshot.currentDraftAnswers);
+  assignArray(snapshot.approvedAnswers);
+  assignArray(snapshot.screeningAnswers);
+  return answers;
 }
 
 function getCvText(task) {
@@ -4424,6 +5009,15 @@ function getWorkableDeterministicAnswerForQuestion(question, answers = {}, task 
   if (isWorkableFeedbackQuestion(question)) {
     return "";
   }
+  const universalDefault = getUniversalApplicationQuestionDefaultAnswer(question, {
+    answers,
+    task,
+    candidate,
+    cvText,
+  });
+  if (universalDefault) {
+    return selectChoice(universalDefault, [new RegExp(escapeRegExp(universalDefault), "i")]);
+  }
   if (/privacy|consent|acknowledge|declaration|accurate|true|terms|notice|confirm|certify|understand|data\s+processing|personal\s+data|recruitment\s+process/.test(haystack)) {
     return selectChoice("Yes", [/^yes$/i, /agree/i, /accept/i, /confirm/i]);
   }
@@ -4448,13 +5042,13 @@ function getWorkableDeterministicAnswerForQuestion(question, answers = {}, task 
     return selectChoice(noticePeriod, [/1\s+month/i, /one\s+month/i, /30\s+days/i]);
   }
   if (/current.*salary|monthly.*salary|salary.*monthly/.test(haystack)) {
-    return answers["current salary"] || answers["current monthly salary"] || getFirstProfileValue(profile, ["current_salary", "current_monthly_salary"]) || "18000";
+    return answers["current salary"] || answers["current monthly salary"] || getFirstProfileValue(profile, ["current_salary", "current_monthly_salary"]) || "";
   }
   if (/expected.*salary|salary.*expect|desired.*salary|compensation/.test(haystack)) {
-    return answers["expected salary"] || answers["desired salary"] || getFirstProfileValue(profile, ["expected_salary", "desired_salary", "target_compensation"]) || "18000";
+    return answers["expected salary"] || answers["desired salary"] || getFirstProfileValue(profile, ["expected_salary", "desired_salary", "target_compensation"]) || "Open to discussion";
   }
   if (/current\s+location|where.*located|\blocation\b|\bcity\b/.test(haystack)) {
-    return location || "Dubai, UAE";
+    return location || "";
   }
   if (/years.*experience|relevant.*experience|experience.*years/.test(haystack)) {
     return yearsExperience || "5";
@@ -4486,6 +5080,191 @@ function getWorkableDeterministicAnswerForQuestion(question, answers = {}, task 
     return selectChoice("No", [/^no$/i]);
   }
   return "";
+}
+
+function getApplicationQuestionKey(question = {}) {
+  const label = getQuestionLabel(question);
+  const fieldNames = getQuestionFieldNames(question);
+  return normalizeKey(fieldNames[0] || label || "");
+}
+
+function isCustomNarrativeApplicationQuestion(question = {}) {
+  if (questionLooksChoiceBased(question)) {
+    return false;
+  }
+  const haystack = cleanText(
+    `${getQuestionLabel(question)} ${getQuestionFieldNames(question).join(" ")} ${getQuestionFieldTypes(question).join(" ")}`
+  ).toLowerCase();
+  return /cover\s*letter|supporting statement|personal statement|motivation|why.*(?:role|company|apply|interested)|interest in this position|describe|tell us|explain|what makes you|relevant experience|fit(?:\s|$)|suitable|strengths?|achievement|project|example of|how would you|contribute|team|additional information|message to|note to|recruiter/i.test(haystack);
+}
+
+function classifyCustomNarrativeQuestion(question = {}) {
+  const label = cleanText(getQuestionLabel(question)).toLowerCase();
+  if (/cover\s*letter|supporting statement|personal statement/.test(label)) return "cover_letter";
+  if (/why.*(?:company|organisation|organization)|interest.*(?:company|organisation|organization)/.test(label)) return "why_company";
+  if (/why.*(?:role|position|job|apply|interested)|motivation|interest in this position/.test(label)) return "motivation";
+  if (/team|contribute|fit/.test(label)) return "team_fit";
+  if (/achievement|project|example|situation/.test(label)) return "evidence_example";
+  if (/leaving|notice|available|start/.test(label)) return "career_move";
+  if (/recruiter|message|note/.test(label)) return "recruiter_note";
+  return "general_fit";
+}
+
+function getApplicationRoleContext(task = {}) {
+  const payload = getTaskPayload(task);
+  return {
+    title: cleanText(task.role_title || task.job_title || payload.role_title || payload.job_title || "this role"),
+    company: cleanText(task.company_name || payload.company_name || task.company || "the company"),
+    location: cleanText(task.location || task.role_location || payload.location || payload.role_location || ""),
+    description: cleanText(payload.job_description || payload.description || payload.content || payload.job_content || task.job_description || ""),
+  };
+}
+
+function getCandidateEvidenceForDraft(task = {}, candidate = {}) {
+  const profile = getCandidateProfileAnswers(task);
+  const cvText = getCvText(task);
+  const latest = extractLatestExperienceFromCv(cvText);
+  const extractDraftKeywords = (text, limit = 8) => {
+    const common = new Set([
+      "and", "the", "with", "for", "from", "that", "this", "have", "has", "was",
+      "were", "are", "role", "roles", "experience", "responsible", "including",
+      "within", "across", "their", "your", "candidate", "company", "team",
+    ]);
+    return Array.from(
+      String(text || "")
+        .toLowerCase()
+        .matchAll(/\b[a-z][a-z+\-/]{3,}\b/g)
+    )
+      .map((match) => match[0])
+      .filter((word) => !common.has(word))
+      .reduce((acc, word) => {
+        acc[word] = (acc[word] || 0) + 1;
+        return acc;
+      }, {});
+  };
+  const fallbackSignals = Object.entries(extractDraftKeywords(cvText, 8))
+    .sort((a, b) => b[1] - a[1])
+    .map(([word]) => word)
+    .slice(0, 6);
+  const skills = cleanText(profile.skills || candidate.skills || "")
+    .split(/\s*,\s*|\s*;\s*|\s*\|\s*/)
+    .map(cleanText)
+    .filter(Boolean)
+    .slice(0, 6);
+  const functions = cleanText(profile.functions || "")
+    .split(/\s*,\s*|\s*;\s*|\s*\|\s*/)
+    .map(cleanText)
+    .filter(Boolean)
+    .slice(0, 4);
+  const sectors = cleanText(profile.sectors || "")
+    .split(/\s*,\s*|\s*;\s*|\s*\|\s*/)
+    .map(cleanText)
+    .filter(Boolean)
+    .slice(0, 4);
+  return {
+    currentTitle: cleanText(candidate.current_title || profile.current_title || latest.title || ""),
+    currentEmployer: cleanText(candidate.current_employer || profile.current_employer || latest.company || ""),
+    yearsExperience: cleanText(candidate.years_experience || profile.years_experience || inferYearsOfExperienceFromCv(cvText) || ""),
+    seniority: cleanText(candidate.seniority || profile.seniority || ""),
+    skills: skills.length ? skills : fallbackSignals,
+    functions,
+    sectors,
+    education: cleanText(profile.education || candidate.education || ""),
+    languages: cleanText(profile.languages || candidate.languages || ""),
+  };
+}
+
+function buildCustomNarrativeAnswerText(task = {}, candidate = {}, question = {}) {
+  const role = getApplicationRoleContext(task);
+  const evidence = getCandidateEvidenceForDraft(task, candidate);
+  const type = classifyCustomNarrativeQuestion(question);
+  const title = evidence.currentTitle || "my current background";
+  const employer = evidence.currentEmployer ? ` at ${evidence.currentEmployer}` : "";
+  const skills = evidence.skills.length ? evidence.skills.join(", ") : "analysis, stakeholder work, and structured execution";
+  const sectors = evidence.sectors.length ? evidence.sectors.join(", ") : cleanText(task.sector || task.industry || "the relevant sector");
+  const company = role.company || "your organisation";
+  const roleTitle = role.title || "this role";
+
+  if (type === "cover_letter") {
+    return `Dear Hiring Team,\n\nI am writing to apply for ${roleTitle} at ${company}. My background as ${title}${employer} has given me practical exposure to ${skills}, and I would bring that evidence-led approach to the requirements of this role.\n\nWhat interests me about this opportunity is the chance to contribute in a role where commercial judgement, clear analysis, and disciplined execution matter. I would welcome the opportunity to discuss how my experience can support the team.\n\nKind regards,\n${candidate.name || "Candidate"}`;
+  }
+  if (type === "why_company") {
+    return `I am interested in ${company} because the role appears to sit close to the kind of work where my background is strongest: ${skills}. I would want to contribute in a practical way, bringing structured analysis, clear communication, and ownership of the details that matter to the team.`;
+  }
+  if (type === "motivation") {
+    return `I am interested in ${roleTitle} because it aligns with the strongest parts of my experience, particularly ${skills}. I am looking for a role where I can apply that background in a focused way and keep building responsibility in ${sectors}.`;
+  }
+  if (type === "team_fit") {
+    return `I would fit into the team by bringing a practical, analytical approach and a habit of making complex information easier to act on. My experience in ${skills} should help me contribute quickly, while I would also be careful to learn the team's processes and priorities before assuming too much.`;
+  }
+  if (type === "evidence_example") {
+    return `A relevant example from my background is the way I have had to combine ${skills} with clear stakeholder communication. That has meant turning detailed information into decisions or actions others can use, which is directly relevant to a role that requires both judgement and execution.`;
+  }
+  if (type === "career_move") {
+    return `I am looking for a move that gives me stronger alignment with the work I want to do next. This role is interesting because it appears to connect with my existing experience in ${skills}, while also giving me scope to build deeper responsibility in ${sectors}.`;
+  }
+  if (type === "recruiter_note") {
+    return `Hi, I am interested in ${roleTitle} at ${company}. My background includes ${skills}, and I would be grateful if you could let me know whether my profile is relevant for this role or similar opportunities.`;
+  }
+  return `My background gives me a useful base for this role, particularly around ${skills}. I would bring a structured, evidence-led approach, communicate clearly with stakeholders, and focus on the parts of the role where I can add value quickly while continuing to build any role-specific context.`;
+}
+
+function buildCustomQuestionDraft(task = {}, candidate = {}, question = {}, provider = "unknown", index = 0) {
+  const label = getQuestionLabel(question);
+  const answer = buildCustomNarrativeAnswerText(task, candidate, question);
+  return {
+    key: getApplicationQuestionKey(question) || `custom_question_${index + 1}`,
+    index,
+    provider: normalizeApplicationAdapterProvider({ ...task, provider }, task.application_workspace_url || task.application_url || ""),
+    type: classifyCustomNarrativeQuestion(question),
+    label,
+    field_names: getQuestionFieldNames(question),
+    required: questionIsRequired(question),
+    draft_answer: answer,
+    source: "profile_cv_job_draft",
+    confidence: 0.72,
+    safe_to_use: false,
+    requires_approval: true,
+    approval_status: "pending",
+    evidence: {
+      role: getApplicationRoleContext(task),
+      candidate: getCandidateEvidenceForDraft(task, candidate),
+    },
+  };
+}
+
+function buildCustomQuestionDrafts(task = {}, candidate = {}, entries = [], provider = "unknown") {
+  return (entries || [])
+    .filter((entry) => entry && isCustomNarrativeApplicationQuestion(entry.question))
+    .map((entry, draftIndex) =>
+      buildCustomQuestionDraft(task, candidate, entry.question, provider, Number(entry.index || draftIndex))
+    )
+    .slice(0, 12);
+}
+
+function addCustomQuestionDraftsToPlan(plan = {}, task = {}, candidate = {}, unresolved = [], provider = "unknown") {
+  const drafts = buildCustomQuestionDrafts(task, candidate, unresolved, provider);
+  const draftedKeys = new Set(drafts.map((draft) => draft.key).filter(Boolean));
+  const needsHuman = [
+    ...(Array.isArray(plan.needs_human) ? plan.needs_human : []),
+    ...drafts.map((draft) => ({
+      index: draft.index,
+      label: draft.label,
+      key: draft.key,
+      reason: "custom_question_requires_approval",
+      draft_available: true,
+    })),
+  ];
+  return {
+    ...plan,
+    drafted_count: drafts.length,
+    custom_question_drafts: drafts,
+    needs_human: needsHuman.slice(0, 40),
+    unresolved_count: Math.max(
+      0,
+      Number(plan.unresolved_count || 0) - (unresolved || []).filter((entry) => draftedKeys.has(getApplicationQuestionKey(entry.question))).length
+    ),
+  };
 }
 
 function buildWorkableClaudeAnswerPrompt({ task, candidate, cvText, questions }) {
@@ -4581,7 +5360,8 @@ async function generateWorkableApplicationAnswerPlan(task, candidate = {}, schem
   }
 
   const needsHuman = [];
-  if (workableClaudeAnswersEnabled && unresolved.length && getClaudeApiKey()) {
+  const useExternalAnswerGenerator = false;
+  if (useExternalAnswerGenerator && workableClaudeAnswersEnabled && unresolved.length && getClaudeApiKey()) {
     const claude = await callClaudeJson(buildWorkableClaudeAnswerPrompt({
       task,
       candidate,
@@ -4632,14 +5412,17 @@ async function generateWorkableApplicationAnswerPlan(task, candidate = {}, schem
 
   const mergedAnswers = { ...generated, ...answers };
   setTaskApplicationAnswers(task, mergedAnswers);
-  return {
+  return addCustomQuestionDraftsToPlan({
     generated_count: items.length,
     unresolved_count: Math.max(0, questions.length - items.length),
-    claude_enabled: workableClaudeAnswersEnabled,
-    claude_available: Boolean(getClaudeApiKey()),
+    engine: "senna_rule_draft",
+    engine_enabled: true,
+    engine_available: true,
+    claude_enabled: false,
+    claude_available: false,
     items: items.slice(0, 50),
     needs_human: needsHuman.slice(0, 20),
-  };
+  }, task, candidate, unresolved, "workable");
 }
 
 function buildGreenhouseClaudeAnswerPrompt({ task, candidate, cvText, questions }) {
@@ -4771,7 +5554,8 @@ async function generateGreenhouseApplicationAnswerPlan(task, candidate = {}, sch
     items.push({ label, fieldNames, answer: normalized, source: "rule", confidence: 1 });
   }
 
-  if (greenhouseClaudeAnswersEnabled && unresolved.length && getClaudeApiKey()) {
+  const useExternalAnswerGenerator = false;
+  if (useExternalAnswerGenerator && greenhouseClaudeAnswersEnabled && unresolved.length && getClaudeApiKey()) {
     const claude = await callClaudeJson(buildGreenhouseClaudeAnswerPrompt({
       task,
       candidate,
@@ -4822,14 +5606,17 @@ async function generateGreenhouseApplicationAnswerPlan(task, candidate = {}, sch
 
   const mergedAnswers = { ...generated, ...answers };
   setTaskApplicationAnswers(task, mergedAnswers);
-  return {
+  return addCustomQuestionDraftsToPlan({
     generated_count: items.length,
     unresolved_count: Math.max(0, questions.length - items.length),
-    claude_enabled: greenhouseClaudeAnswersEnabled,
-    claude_available: Boolean(getClaudeApiKey()),
+    engine: "senna_rule_draft",
+    engine_enabled: true,
+    engine_available: true,
+    claude_enabled: false,
+    claude_available: false,
     items: items.slice(0, 80),
     needs_human: needsHuman.slice(0, 40),
-  };
+  }, task, candidate, unresolved, "greenhouse");
 }
 
 function buildSimpleFormClaudeAnswerPrompt({ task, candidate, cvText, questions, provider = "simple_form" }) {
@@ -4950,7 +5737,7 @@ async function generateSimpleFormApplicationAnswerPlan(task, candidate = {}, sch
 
   for (let index = 0; index < questions.length; index += 1) {
     const question = questions[index];
-    if (teamtailorClaudeAnswersEnabled && getClaudeApiKey() && simpleFormQuestionPrefersClaude(question)) {
+    if (isCustomNarrativeApplicationQuestion(question) || simpleFormQuestionPrefersClaude(question)) {
       unresolved.push({ index, question });
       continue;
     }
@@ -4976,7 +5763,8 @@ async function generateSimpleFormApplicationAnswerPlan(task, candidate = {}, sch
     items.push({ label, fieldNames, answer: normalized, source: "rule", confidence: 1 });
   }
 
-  if (teamtailorClaudeAnswersEnabled && unresolved.length && getClaudeApiKey()) {
+  const useExternalAnswerGenerator = false;
+  if (useExternalAnswerGenerator && teamtailorClaudeAnswersEnabled && unresolved.length && getClaudeApiKey()) {
     const claude = await callClaudeJson(buildSimpleFormClaudeAnswerPrompt({
       task,
       candidate,
@@ -5026,20 +5814,21 @@ async function generateSimpleFormApplicationAnswerPlan(task, candidate = {}, sch
     if (Array.isArray(claude?.data?.needs_human)) {
       needsHuman.push(...claude.data.needs_human);
     }
-  } else if (unresolved.length && !getClaudeApiKey()) {
-    needsHuman.push({ reason: "claude_missing_api_key", count: unresolved.length });
   }
 
   const mergedAnswers = { ...generated, ...answers };
   setTaskApplicationAnswers(task, mergedAnswers);
-  return {
+  return addCustomQuestionDraftsToPlan({
     generated_count: items.length,
     unresolved_count: Math.max(0, questions.length - items.length),
-    claude_enabled: teamtailorClaudeAnswersEnabled,
-    claude_available: Boolean(getClaudeApiKey()),
+    engine: "senna_rule_draft",
+    engine_enabled: true,
+    engine_available: true,
+    claude_enabled: false,
+    claude_available: false,
     items: items.slice(0, 80),
     needs_human: needsHuman.slice(0, 40),
-  };
+  }, task, candidate, unresolved, provider);
 }
 
 function workdayQuestionRequiresHumanAnswer(question) {
@@ -5058,6 +5847,16 @@ function getWorkdaySyntheticAnswerForQuestion(question, answers = {}, task = {},
   const fallback = getWorkdayFieldFallbackAnswer(task, label, candidate);
   if (answerHasValue(fallback)) {
     return fallback;
+  }
+  const universalDefault = getUniversalApplicationQuestionDefaultAnswer(question, {
+    answers,
+    task,
+    candidate,
+  });
+  if (universalDefault) {
+    return questionLooksChoiceBased(question)
+      ? getBestChoiceLabel(universalDefault, getQuestionChoiceLabels(question)) || universalDefault
+      : universalDefault;
   }
   const defaultChoices = getWorkdayDefaultAnswerForQuestion(label);
   if (questionLooksChoiceBased(question)) {
@@ -5219,7 +6018,8 @@ async function generateWorkdayApplicationAnswerPlan(task, candidate = {}, schema
     items.push({ label, fieldNames, answer: normalized, source: "rule", confidence: 1 });
   }
 
-  if (workdayClaudeAnswersEnabled && unresolved.length && getClaudeApiKey()) {
+  const useExternalAnswerGenerator = false;
+  if (useExternalAnswerGenerator && workdayClaudeAnswersEnabled && unresolved.length && getClaudeApiKey()) {
     const claude = await callClaudeJson(buildWorkdayClaudeAnswerPrompt({
       task,
       candidate,
@@ -5266,20 +6066,21 @@ async function generateWorkdayApplicationAnswerPlan(task, candidate = {}, schema
     if (Array.isArray(claude?.data?.needs_human)) {
       needsHuman.push(...claude.data.needs_human);
     }
-  } else if (unresolved.length && !getClaudeApiKey()) {
-    needsHuman.push({ reason: "claude_missing_api_key", count: unresolved.length });
   }
 
   const mergedAnswers = { ...generated, ...answers };
   setTaskApplicationAnswers(task, mergedAnswers);
-  return {
+  return addCustomQuestionDraftsToPlan({
     generated_count: items.length,
     unresolved_count: Math.max(0, questions.length - items.length),
-    claude_enabled: workdayClaudeAnswersEnabled,
-    claude_available: Boolean(getClaudeApiKey()),
+    engine: "senna_rule_draft",
+    engine_enabled: true,
+    engine_available: true,
+    claude_enabled: false,
+    claude_available: false,
     items: items.slice(0, 80),
     needs_human: needsHuman.slice(0, 40),
-  };
+  }, task, candidate, unresolved, "workday");
 }
 
 function normalizeMonthNameToNumber(value) {
@@ -7960,7 +8761,7 @@ async function waitForWorkdayVerificationAndContinue(page, task, preflight, flow
         last_error: message,
       };
     }
-    await completeTask(task.task_uuid, "verification_required", {
+    await completeTask(task.task_uuid, "verification_required", withApplicationAdapterResultContract(task, {
       provider: "workday",
       url: task.application_workspace_url || task.application_url || "",
       workday: { preflight, flow, final_state: await getWorkdayVisibleState(page) },
@@ -7972,7 +8773,7 @@ async function waitForWorkdayVerificationAndContinue(page, task, preflight, flow
       submission_confirmed: false,
       last_error: message,
       status: "verification_required",
-    });
+    }));
     const code = await waitForVerificationCode(task.task_uuid, usedCodes);
     if (!code) {
       return { attempted: true, completed: false, timed_out: true, state: await getWorkdayVisibleState(page) };
@@ -8396,7 +9197,7 @@ function getWorkdayFieldFallbackAnswer(task, label, candidate = {}) {
   }
   if (/overall result|gpa/.test(lower)) {
     const education = extractWorkdayEducationEntriesFromCv(getCvText(task))[0] || {};
-    return cleanText(education.gradeAverage || getWorkdayAnswerValue(task, [/gpa/, /grade average/, /overall result/], "8/10"));
+    return cleanText(education.gradeAverage || getWorkdayAnswerValue(task, [/gpa/, /grade average/, /overall result/], ""));
   }
   if (/sat|act score|combined score/.test(lower)) {
     return getWorkdayAnswerValue(task, [/sat/, /act score/, /combined score/], "N/A");
@@ -10606,7 +11407,7 @@ function getWorkdayDefaultAnswerForQuestion(questionText) {
   if (/consent|privacy|terms|considering you|artificial intelligence|ai/.test(text)) {
     return ["Yes", "True", "I consent", "I agree"];
   }
-  return ["No", "False", "No, I do not", "N/A", "Not Applicable"];
+  return [];
 }
 
 async function repairVisibleWorkdaySelectOneQuestions(page) {
@@ -16908,6 +17709,7 @@ async function advanceWorkdaySteps(page, task, candidate, apiSchema = null, pref
           { generated_count: 0, unresolved_count: mergedSchema.questions.length, timeout: true, items: [], needs_human: [] }
         ).catch((error) => ({ generated_count: 0, unresolved_count: mergedSchema.questions.length, error: error?.message || String(error), items: [], needs_human: [] }));
         task.__sffc_workday_answer_plan_signature = questionSignature;
+        task.__sffc_workday_answer_plan = workdayAnswerPlan;
         answersFilled.field_diagnostics.push({ workday_answer_plan: workdayAnswerPlan });
         debugLog(task.task_uuid || "task", "workday_answer_plan_result", JSON.stringify({
           generated_count: workdayAnswerPlan.generated_count || 0,
@@ -17160,7 +17962,8 @@ async function advanceWorkdaySteps(page, task, candidate, apiSchema = null, pref
   return { states, uploaded_resume: uploadedResume, resume_upload: resumeUpload, application_answers: answersFilled };
 }
 
-async function processWorkdayTask(page, task, candidate, cvPath, url) {
+async function processWorkdayTask(page, task, candidate, cvPath, url, adapterInput = null) {
+  task.__sffc_adapter_input = adapterInput || task.__sffc_adapter_input || buildApplicationAdapterInput(task, { candidate, url });
   task.__sffc_cv_path = cvPath;
   const preflight = await getWorkdayPreflight(task, url);
   const targetUrl = preflight.canonicalUrl || url;
@@ -17842,6 +18645,7 @@ async function processWorkdayTask(page, task, candidate, cvPath, url) {
       application_choice_answers_filled: advanced.application_answers.choice_filled,
       application_field_diagnostics: advanced.application_answers.field_diagnostics || [],
       application_answer_items: advanced.application_answers.items || [],
+      workday_answer_plan: task.__sffc_workday_answer_plan || null,
       complete_required_fields: formCompletion.complete_required_fields,
       missing_required_fields: (await normalizeWorkdayCompletionForKnownSelections(
         page,
@@ -17892,6 +18696,7 @@ async function processWorkdayTask(page, task, candidate, cvPath, url) {
     application_choice_answers_filled: advanced.application_answers.choice_filled,
     application_field_diagnostics: advanced.application_answers.field_diagnostics || [],
     application_answer_items: advanced.application_answers.items || [],
+    workday_answer_plan: task.__sffc_workday_answer_plan || null,
     complete_required_fields: formCompletion.complete_required_fields,
     missing_required_fields: formCompletion.missing_required_fields,
     page_title: await page.title().catch(() => ""),
@@ -18050,7 +18855,7 @@ function isCoveredByCandidateData(question, candidate, hasResume, coverLetterReq
     return hasResume;
   }
   if (/cover[_\s-]*letter/.test(haystack)) {
-    return true;
+    return coverLetterRequested;
   }
   if (/linkedin/.test(haystack)) {
     return true;
@@ -18203,15 +19008,20 @@ async function fillApplicationAnswers(page, task, overrideSchema = null, candida
     .map((question) => {
       const label = getQuestionLabel(question);
       const key = getQuestionFieldNames(question)[0] || label.toLowerCase();
-      const rawAnswer =
+      const approvedAnswer =
         getAnswerForQuestion(question, answers) ||
         answers[key] ||
         answers[String(key).toLowerCase()] ||
         answers[label.toLowerCase()] ||
-        (isGreenhouse ? getGreenhouseSyntheticAnswerForQuestion(question, answers, task) : "") ||
-        (isWorkable ? getWorkableSyntheticAnswerForQuestion(question, answers) : "") ||
-        (isSimpleForm || isTeamtailor ? getSimpleFormSyntheticAnswerForQuestion(question, answers, candidate, task) : "") ||
-        (isSuccessFactors ? getSuccessFactorsSyntheticAnswerForQuestion(question, answers, task, candidate) : "");
+        "";
+      const rawAnswer = approvedAnswer
+        ? approvedAnswer
+        : isCustomNarrativeApplicationQuestion(question)
+          ? ""
+          : (isGreenhouse ? getGreenhouseSyntheticAnswerForQuestion(question, answers, task) : "") ||
+            (isWorkable ? getWorkableSyntheticAnswerForQuestion(question, answers, task, candidate, getCvText(task)) : "") ||
+            (isSimpleForm || isTeamtailor ? getSimpleFormSyntheticAnswerForQuestion(question, answers, candidate, task) : "") ||
+            (isSuccessFactors ? getSuccessFactorsSyntheticAnswerForQuestion(question, answers, task, candidate) : "");
       const answer =
         isWorkday && /phone number/i.test(label) && !/country phone code/i.test(label)
           ? normalizePhoneForDialCode(rawAnswer, answers["Country Phone Code"] || answers.country_phone_code || "")
@@ -29636,7 +30446,8 @@ async function clickButtonByText(page, patterns) {
   }, patterns.map((pattern) => pattern.source)).catch(() => false);
 }
 
-async function processSuccessFactorsTask(page, task, candidate, cvPath, url) {
+async function processSuccessFactorsTask(page, task, candidate, cvPath, url, adapterInput = null) {
+  task.__sffc_adapter_input = adapterInput || task.__sffc_adapter_input || buildApplicationAdapterInput(task, { candidate, url });
   await dismissCookieBanners(page);
   debugLog(task.task_uuid || "successfactors", "successfactors_entry_start", url);
   let entry = await openSuccessFactorsApplicationEntry(page, task, url);
@@ -30466,7 +31277,8 @@ async function processSuccessFactorsTask(page, task, candidate, cvPath, url) {
   };
 }
 
-async function processSimpleFormTask(page, task, candidate, cvPath, url) {
+async function processSimpleFormTask(page, task, candidate, cvPath, url, adapterInput = null) {
+  task.__sffc_adapter_input = adapterInput || task.__sffc_adapter_input || buildApplicationAdapterInput(task, { candidate, url });
   await dismissCookieBanners(page);
   debugLog(task.task_uuid || "simple_form", "simple_form_ready_check");
   const formReady = await ensureSimpleApplicationFormReady(page);
@@ -30689,9 +31501,11 @@ async function processSimpleFormTask(page, task, candidate, cvPath, url) {
 async function processTask(task) {
   const url = task.application_workspace_url || task.application_url;
   const payload = getTaskPayload(task);
+  const adapterInput = buildApplicationAdapterInput(task, { url });
+  task.__sffc_adapter_input = adapterInput;
   if (!isValidExternalApplicationUrl(url)) {
     return {
-      provider: cleanText(task.provider || "unknown"),
+      provider: adapterInput.provider || cleanText(task.provider || "unknown"),
       url,
       final_url: url,
       clicked_submit: false,
@@ -30715,16 +31529,9 @@ async function processTask(task) {
     return await processApplicationPreviewTask(task);
   }
   const verificationCode = getVerificationCode(task);
-  const candidate = {
-    name: task.candidate_name || "",
-    email: task.candidate_email || "",
-    phone: getCandidatePhone(task),
-    address: getCandidateAddress(task),
-  };
-  const { firstName, lastName } = splitName(candidate.name);
-  candidate.firstName = firstName;
-  candidate.lastName = lastName;
+  const candidate = adapterInput.candidate;
   const cvPath = await downloadFile(task.cv_file_url, task.cv_file_name);
+  adapterInput.cv.localPath = cvPath;
   const photoPath = await downloadFile(
     task.photo_file_url || payload.photo_file_url || task.candidate_photo_url || payload.candidate_photo_url,
     task.photo_file_name || payload.photo_file_name || task.candidate_photo_name || payload.candidate_photo_name || "candidate-photo.jpg"
@@ -30733,8 +31540,10 @@ async function processTask(task) {
     return "";
   });
   task.__sffc_cv_text = getCvText(task) || await extractTextFromLocalCvFile(cvPath);
+  adapterInput.cv.text = task.__sffc_cv_text || adapterInput.cv.text || "";
   debugLog(task.task_uuid || "task", "cv_downloaded", Boolean(cvPath));
   debugLog(task.task_uuid || "task", "photo_downloaded", Boolean(photoPath));
+  debugLog(task.task_uuid || "task", "adapter_contract", JSON.stringify(summarizeApplicationAdapterInput(adapterInput)));
   const executablePath = getBrowserExecutablePath();
   const browserLaunchSettings = getBrowserLaunchSettings(task, url);
   debugLog(task.task_uuid || "task", "launching_browser", executablePath || "puppeteer-managed");
@@ -30759,13 +31568,13 @@ async function processTask(task) {
     }
     if (isWorkdayApplication(task, url)) {
       debugLog(task.task_uuid || "task", "workday_adapter_start");
-      return await processWorkdayTask(page, task, candidate, cvPath, url);
+      return await processWorkdayTask(page, task, candidate, cvPath, url, adapterInput);
     }
     if (isSuccessFactorsApplication(task, url)) {
       debugLog(task.task_uuid || "task", "successfactors_adapter_start");
       const successFactorsTimeoutMs = Number(process.env.SFFC_SUCCESSFACTORS_TASK_TIMEOUT_MS || 300000);
       const successFactorsResult = await withTimeout(
-        processSuccessFactorsTask(page, task, candidate, cvPath, url),
+        processSuccessFactorsTask(page, task, candidate, cvPath, url, adapterInput),
         successFactorsTimeoutMs,
         null
       );
@@ -30799,11 +31608,11 @@ async function processTask(task) {
     }
     if (isTeamtailorApplication(task, url)) {
       debugLog(task.task_uuid || "task", "teamtailor_adapter_start");
-      return await processTeamtailorTask(page, task, candidate, cvPath, url);
+      return await processTeamtailorTask(page, task, candidate, cvPath, url, adapterInput);
     }
     if (isSimpleFormApplication(task, url)) {
       debugLog(task.task_uuid || "task", "simple_form_adapter_start");
-      return await processSimpleFormTask(page, task, candidate, cvPath, url);
+      return await processSimpleFormTask(page, task, candidate, cvPath, url, adapterInput);
     }
     const isWorkable = isWorkableApplication(task, url);
     debugLog(task.task_uuid || "task", isWorkable ? "workable_form_ready_check" : "form_ready_check");
@@ -31769,7 +32578,7 @@ async function processTask(task) {
           await completeTask(
             task.task_uuid,
             "verification_required",
-            await buildVerificationRequiredResult(message, submitResult)
+            withApplicationAdapterResultContract(task, await buildVerificationRequiredResult(message, submitResult))
           );
           nextVerificationCode = await waitForVerificationCode(task.task_uuid, usedVerificationCodes);
         }
@@ -31993,7 +32802,7 @@ async function runOnce() {
     }
 
     lastTaskStatus = `processing:${task.task_uuid}`;
-    const result = await processTask(task);
+    const result = withApplicationAdapterResultContract(task, await processTask(task));
     await completeTask(task.task_uuid, result.status, result);
     lastTaskStatus = `${task.task_uuid}:${result.status}`;
     const logProvider = cleanText(result.provider || task.provider || "unknown");
@@ -32092,6 +32901,9 @@ export {
   isSuccessFactorsApplication,
   getMissingRequiredSchemaQuestions,
   getRequiredFormCompletionState,
+  buildApplicationAdapterInput,
+  buildApplicationAdapterCandidate,
+  withApplicationAdapterResultContract,
   processSuccessFactorsTask,
   uploadWorkdayResume,
   processTask,

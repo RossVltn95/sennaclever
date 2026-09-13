@@ -71,8 +71,25 @@ const checks = [
     command: [process.execPath, "scripts/test-emily-runtime-safety.js"],
   },
   {
+    id: "observability_wiring",
+    command: [process.execPath, "scripts/test-emily-observability-wiring.js"],
+  },
+  {
+    id: "production_readiness",
+    command: [process.execPath, "scripts/test-emily-production-readiness.js"],
+  },
+  {
+    id: "optional_service_smoke",
+    command: [process.execPath, "scripts/smoke-emily-services.js"],
+  },
+  {
     id: "golden_decision_engine",
     command: [process.execPath, "scripts/test-apply-chat-decision-engine.js"],
+  },
+  {
+    id: "emily_nlp_service_golden_prompts",
+    command: ["npm", "test"],
+    cwd: path.join(root, "services", "senna-emily-nlp-service"),
   },
 ];
 
@@ -80,7 +97,7 @@ function runCheck(check) {
   const started = Date.now();
   try {
     const output = childProcess.execFileSync(check.command[0], check.command.slice(1), {
-      cwd: root,
+      cwd: check.cwd || root,
       encoding: "utf8",
       stdio: ["ignore", "pipe", "pipe"],
     });

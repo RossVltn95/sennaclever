@@ -14189,42 +14189,24 @@
       .toLowerCase();
     if (isArabicChat()) {
       if (key === "all_access") {
-        return "افتحي الدعم الكامل";
+        return "ابدئي الدعم";
       }
       if (key === "mentorship") {
-        return "اختاري خطتك";
+        return "ابدئي التواصل";
       }
       return "ابدئي بإرسال الفرص لي";
     }
     if (key === "all_access") {
-      return "Open Full Support";
+      return "Start Support";
     }
     if (key === "mentorship") {
-      return "Choose My Plan";
+      return "Start Outreach";
     }
     return "Get Roles Sent to Me";
   }
 
   function buildMembershipInlineActionRow(accountType, label) {
-    var selection =
-      String(accountType || "")
-        .trim()
-        .toLowerCase() || "platform";
-    var actionLabel = cleanMessageText(
-      label || getMembershipInlineActionLabel(selection)
-    );
-    return (
-      '<div class="sffc-crm-apply-chat__inline-action-row">' +
-      '<button type="button" class="sffc-crm-apply-chat__inline-action" data-sffc-apply-chat-open-membership="' +
-      escapeHtml(selection) +
-      '">' +
-      "<span>" +
-      escapeHtml(actionLabel) +
-      "</span>" +
-      '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>' +
-      "</button>" +
-      "</div>"
-    );
+    return "";
   }
 
   var monetizationState;
@@ -14272,6 +14254,13 @@
 
   function getMonetizationChromeContext() {
     var state = ensureMonetizationState();
+    return {
+      visible: false,
+      accountType: "platform",
+      planLabel: "",
+      actionLabel: "",
+      menuLabel: "",
+    };
     var selectedPackage =
       state.packageSelected || jobSearchSelectedPackage || "";
     var recentRolesAvailable = !!state.recentRolesAvailable;
@@ -14348,7 +14337,7 @@
             : selectedPackage === "all_in_one"
             ? isArabicChat()
               ? "افتحي الدعم الكامل"
-              : "Open Full Support"
+              : "Start Support"
             : isArabicChat()
             ? "كمّلي الإعداد"
             : "Continue Setup",
@@ -14368,7 +14357,7 @@
       accountType: "mentorship",
       planLabel: isArabicChat() ? "الخطة المجانية" : "Free plan",
       actionLabel: isArabicChat() ? "انضمي إلى سِنّا" : "Join MENA Careers",
-      menuLabel: isArabicChat() ? "الاشتراك" : "Subscription",
+      menuLabel: "",
     };
   }
 
@@ -14376,10 +14365,7 @@
     var context = getMonetizationChromeContext();
     if (typeof deskUpgradeButton !== "undefined" && deskUpgradeButton) {
       deskUpgradeButton.hidden = !context.visible;
-      deskUpgradeButton.setAttribute(
-        "data-sffc-apply-chat-open-membership",
-        context.accountType
-      );
+      deskUpgradeButton.removeAttribute("data-sffc-apply-chat-open-membership");
       deskUpgradeButton.setAttribute(
         "aria-label",
         cleanMessageText(
@@ -14400,12 +14386,8 @@
           []
       )
       .forEach(function (item) {
-        item.setAttribute(
-          "data-sffc-apply-chat-open-membership",
-          context.accountType
-        );
-        item.textContent =
-          context.menuLabel || (isArabicChat() ? "الاشتراك" : "Subscription");
+        item.hidden = true;
+        item.setAttribute("aria-hidden", "true");
       });
   }
 
@@ -14426,8 +14408,8 @@
         : "Understood. If you do not want to keep checking manually, I can keep this tight and only send you roles that look worth your time.";
     } else if (trigger === "locked_contact") {
       copy = isArabicChat()
-        ? "إذا كان هذا النوع من الأدوار هو الصحيح، أستطيع أيضاً فتح جهات التواصل المرتبطة به عندما تكون موجودة."
-        : "If these are the right kinds of roles, I can also unlock the recruiter contacts attached to them where they exist.";
+        ? "إذا كان هذا النوع من الأدوار هو الصحيح، أستطيع أيضاً استخدام جهات التواصل المرتبطة به عندما تكون موجودة."
+        : "If these are the right kinds of roles, I can also use the recruiter contacts attached to them where they exist.";
     } else {
       copy = isArabicChat()
         ? "إذا أردتِ، لا داعي لأن تعودي وتكرري نفس البحث كل مرة. أستطيع أن أبقيه مستمراً وأرسل لك الأقوى أولاً."
@@ -21214,19 +21196,11 @@
   }
 
   function getRecruiterAccessCtaCopy(isUserLoggedIn) {
-    if (isUserLoggedIn) {
-      return {
-        line: isArabicChat()
-          ? "إذا أردت الاسم الكامل وبيانات التواصل، افتح العضوية."
-          : "If you want the full name and contact details, unlock membership.",
-        action: isArabicChat() ? "افتح العضوية" : "Unlock membership",
-      };
-    }
     return {
       line: isArabicChat()
-        ? "إذا أردت الاسم الكامل وبيانات التواصل، أكمل التسجيل."
-        : "If you want the full contact details, complete the sign up.",
-      action: isArabicChat() ? "أكمل التسجيل" : "Complete sign up",
+        ? "أستطيع استخدام تفاصيل التواصل المتاحة لصياغة رسالة مناسبة لهذا الدور."
+        : "I can use the available contact details to draft a targeted recruiter message for this role.",
+      action: isArabicChat() ? "جهزي الرسالة" : "Draft message",
     };
   }
 
@@ -22145,7 +22119,7 @@
     var activeRailView = "chat";
     var activeProfileSurface = "community";
     var isLoggedIn = root.getAttribute("data-is-logged-in") === "1";
-    var hasPremiumAccess = root.getAttribute("data-has-premium-access") === "1";
+    var hasPremiumAccess = true;
     var membershipTier = cleanMessageText(
       root.getAttribute("data-member-tier") || ""
     );
@@ -25368,6 +25342,10 @@
     var applicationAnswerDraft = {};
     var applicationEmployerBulkAsked = false;
     var pendingApplicationQuestionQueueCallback = null;
+    var pendingApplicationCustomQuestionDrafts = [];
+    var pendingApplicationCustomQuestionDraftQueueItem = null;
+    var applicationProgressCardState = null;
+    var applicationProgressCardRow = null;
     var applicationProfileReadinessSessionConfirmed = false;
     var applicationVerificationCode = "";
     var trackedApplicationJobs = [];
@@ -27775,7 +27753,7 @@
     }
 
     function hasPremiumMemberChatAccess() {
-      return !!(isLoggedIn && hasPremiumAccess);
+      return true;
     }
 
     function getNormalizedPremiumDeliveryFrequency(value) {
@@ -28959,7 +28937,7 @@
     function getInterfaceCopy(key) {
       var english = {
         language_gate_intro:
-          "Hi, I’m Emily. I’ll help you search for roles, compare them against your CV, and decide what to apply for.",
+          "Search for a role or upload your CV. I’ll use the CV to judge fit and prepare the application details, then ask only for anything missing.",
         language_gate_reminder:
           "Please choose English or Arabic so I can keep the conversation in one language. You can just reply with a sentence in the language you prefer too.<br><br>يرجى اختيار العربية أو الإنجليزية حتى أكمل معك بلغة واحدة. ويمكنك أيضاً أن ترد بجملة قصيرة باللغة التي تفضلها.",
         language_gate_placeholder: "Choose English or Arabic",
@@ -29066,7 +29044,7 @@
       var market = cleanMessageText(context.market || "");
       var copy = {
         welcome:
-          "Hi, I’m Emily. I’ll help you search for roles, compare them against your CV, and decide what to apply for.",
+          "Search for a role or upload your CV. I’ll use the CV to judge fit and prepare the application details, then ask only for anything missing.",
         search_start: market
           ? "I’m checking current roles in " + market + " against the brief."
           : "I’m checking the current job posts for that.",
@@ -36511,24 +36489,17 @@
         items
           .map(function (item) {
             var recruiter = getRoleRecruiterPreview(item);
-            var contactLine =
-              hasPremiumAccess && recruiter.name
-                ? [item.company, "Contact: " + recruiter.name]
-                    .filter(Boolean)
-                    .join(" | ")
-                : cleanMessageText(item.company || "");
-            var recruiterLine = hasPremiumAccess
-              ? [
-                  recruiter.email ? "E-mail " + recruiter.email : "",
-                  recruiter.linkedin ? "LinkedIn available" : "",
-                ]
+            var contactLine = recruiter.name
+              ? [item.company, "Contact: " + recruiter.name]
                   .filter(Boolean)
-                  .join(" · ")
-              : recruiter.email
-              ? "E-mail " + maskRecruiterEmailForDisplay(recruiter.email)
-              : recruiter.name
-              ? "Recruiter contact available with membership"
-              : "";
+                  .join(" | ")
+              : cleanMessageText(item.company || "");
+            var recruiterLine = [
+              recruiter.email ? "E-mail " + recruiter.email : "",
+              recruiter.linkedin ? "LinkedIn available" : "",
+            ]
+              .filter(Boolean)
+              .join(" · ");
             var badge = getRoleMatchBadge(item);
             var badgeSide = cleanMessageText(
               item.sector || item.seniority || "match"
@@ -36554,10 +36525,7 @@
                 ) +
                 "</strong></span>";
             var href = item.url || "#";
-            var revealContactButton =
-              !hasPremiumAccess && recruiter.email
-                ? '<button type="button" class="sffc-crm-apply-chat__inline-action" data-sffc-apply-chat-open-membership="mentorship">Reveal Contact</button>'
-                : "";
+            var revealContactButton = "";
             return (
               "" +
               '<article class="sffc-crm-apply-chat__match-role">' +
@@ -36841,71 +36809,6 @@
       if (!items.length) {
         matchingRecruitersHtmlCacheValue =
           '<div class="sffc-crm-apply-chat__workspace-empty"><strong>No matching recruiters yet</strong><p>Once the search is focused, the most relevant recruiter contacts will appear here.</p></div>';
-        matchingRecruitersHtmlCacheKey = cacheKey;
-        return matchingRecruitersHtmlCacheValue;
-      }
-      if (!hasPremiumAccess) {
-        var recruiterPreview = items[0] || null;
-        var teaserCount = Math.max(1, items.length);
-        var previewHtml = "";
-        if (recruiterPreview) {
-          var previewAvatar = recruiterPreview.avatar
-            ? '<span class="sffc-crm-apply-chat__match-recruiter-avatar has-image"><img src="' +
-              escapeHtml(recruiterPreview.avatar) +
-              '" alt="' +
-              escapeHtml(recruiterPreview.name || "Recruiter") +
-              '"></span>'
-            : '<span class="sffc-crm-apply-chat__match-recruiter-avatar"><strong>' +
-              escapeHtml(
-                ((recruiterPreview.name || "R").charAt(0) || "R").toUpperCase()
-              ) +
-              "</strong></span>";
-          var previewLocationLine = [
-            recruiterPreview.location,
-            recruiterPreview.regions,
-          ]
-            .filter(Boolean)
-            .join(" · ");
-          previewHtml =
-            '<div class="sffc-crm-apply-chat__match-list sffc-crm-apply-chat__match-list--recruiters">' +
-            '<article class="sffc-crm-apply-chat__match-recruiter is-preview-only">' +
-            previewAvatar +
-            '<div class="sffc-crm-apply-chat__match-recruiter-copy">' +
-            "<strong>" +
-            escapeHtml(recruiterPreview.name || "Recruiter") +
-            "</strong>" +
-            (recruiterPreview.title
-              ? "<span>" + escapeHtml(recruiterPreview.title) + "</span>"
-              : "") +
-            (recruiterPreview.company
-              ? "<h4>" + escapeHtml(recruiterPreview.company) + "</h4>"
-              : "") +
-            (previewLocationLine
-              ? "<p>" + escapeHtml(previewLocationLine) + "</p>"
-              : "") +
-            "</div>" +
-            '<div class="sffc-crm-apply-chat__match-recruiter-side">' +
-            '<div class="sffc-crm-apply-chat__match-recruiter-contact"><span>Recruiter preview</span></div>' +
-            "</div>" +
-            "</article>" +
-            "</div>";
-        }
-        matchingRecruitersHtmlCacheValue =
-          previewHtml +
-          '<section class="sffc-crm-apply-chat__match-lock is-recruiters">' +
-          '<div class="sffc-crm-apply-chat__match-lock-blur" aria-hidden="true">' +
-          '<div class="sffc-crm-apply-chat__match-lock-row"></div>' +
-          '<div class="sffc-crm-apply-chat__match-lock-row is-short"></div>' +
-          '<div class="sffc-crm-apply-chat__match-lock-row"></div>' +
-          "</div>" +
-          '<div class="sffc-crm-apply-chat__match-lock-card">' +
-          "<strong>" +
-          teaserCount +
-          " recruiter matches</strong>" +
-          "<p>Unlock recruiter access with MENA Careers Pro.</p>" +
-          '<button type="button" class="sffc-crm-apply-chat__match-lock-action" data-sffc-apply-chat-unlock-pro>Unlock MENA Careers Pro</button>' +
-          "</div>" +
-          "</section>";
         matchingRecruitersHtmlCacheKey = cacheKey;
         return matchingRecruitersHtmlCacheValue;
       }
@@ -45841,37 +45744,19 @@
         ? resultsStage.querySelectorAll("[data-sffc-apply-chat-results-filter]")
         : [];
 
-      if (finder && !getConfig().isLoggedIn) {
-        finder.addEventListener("click", function (event) {
-          event.preventDefault();
-          window.open("/memberships", "_blank", "noopener");
-        });
-        if (searchInput) {
-          searchInput.addEventListener("focus", function (event) {
-            event.preventDefault();
-            searchInput.blur();
-            window.open("/memberships", "_blank", "noopener");
-          });
-        }
-      }
-
       filterButtons.forEach(function (button) {
         if (button.dataset.sffcResultsFilterBound === "true") {
           return;
         }
         button.dataset.sffcResultsFilterBound = "true";
         button.addEventListener("click", function () {
-          if (!getConfig().isLoggedIn) {
-            window.open("/memberships", "_blank", "noopener");
-            return;
-          }
           var filterKey =
             button.getAttribute("data-sffc-apply-chat-results-filter") || "";
           handleResultsFilterClick(filterKey);
         });
       });
 
-      if (searchInput && getConfig().isLoggedIn) {
+      if (searchInput) {
         searchInput.addEventListener("input", function () {
           handleResultsSearchInput(searchInput.value || "");
         });
@@ -46079,6 +45964,38 @@
         return "jobs in " + normalized;
       }
       return normalized || clean;
+    }
+
+    function getApplyChatJobSearchIntroCopy(query, providerLabel) {
+      var clean = cleanMessageText(query || "");
+      var display = clean
+        .replace(
+          /\b(?:i|me|my|you|emily|please|can|could|would|help|need|want|to|find|search|show|look for|get me)\b/gi,
+          " "
+        )
+        .replace(/\s+/g, " ")
+        .trim();
+      var provider = cleanMessageText(providerLabel || "");
+      if (isArabicChat()) {
+        return provider
+          ? "سأبحث في الوظائف الحالية مع فلتر " + provider + "."
+          : "سأبحث في الوظائف الحالية وأرتب النتائج حسب الصلة.";
+      }
+      if (provider) {
+        return (
+          "I’ll search the current roles with the " +
+          provider +
+          " route filter applied."
+        );
+      }
+      if (display && display.length <= 80) {
+        return (
+          "I’ll search the current roles for " +
+          display +
+          " and rank the closest matches."
+        );
+      }
+      return "I’ll search the current roles and rank the closest matches.";
     }
 
     function getApplyResultsQueryTokenVariants(token) {
@@ -47812,7 +47729,7 @@
         policy.defaultMode = "remote_browser";
         policy.requiresRemoteBrowserForApply = true;
         policy.iframeBlockedHosts = ["myworkdayjobs.com", "workdayjobs.com"];
-        policy.statusLabel = "Workday secure browser route";
+        policy.statusLabel = "Workday assisted browser fallback";
         policy.reason = "workday_remote_browser_default";
         return policy;
       }
@@ -47827,7 +47744,7 @@
         policy.defaultMode = "remote_browser";
         policy.requiresRemoteBrowserForApply = true;
         policy.iframeBlockedHosts = ["successfactors.com", "sapsf.com"];
-        policy.statusLabel = "SAP SuccessFactors secure browser route";
+        policy.statusLabel = "SAP SuccessFactors assisted browser fallback";
         policy.reason = "successfactors_remote_browser_default";
         return policy;
       }
@@ -47849,7 +47766,7 @@
         policy.iframeBlockedHosts = ["teamtailor.com"];
         policy.statusLabel =
           policy.defaultMode === "remote_browser"
-            ? "Teamtailor secure browser route"
+            ? "Teamtailor assisted browser fallback"
             : "Teamtailor page route";
         policy.reason =
           policy.defaultMode === "remote_browser"
@@ -48198,12 +48115,33 @@
         (config && config.remoteBrowserUrl) ||
         root.getAttribute("data-remote-browser-url") ||
         "";
+      var transport = cleanMessageText(
+        (config && config.remoteBrowserTransport) ||
+          root.getAttribute("data-remote-browser-transport") ||
+          "novnc"
+      ).toLowerCase();
+      var allowPublicNoVnc = !!(
+        (config && config.remoteBrowserAllowNoVncPublic) ||
+        root.getAttribute("data-remote-browser-allow-novnc-public") === "1"
+      );
+      var isNoVncTransport = transport === "novnc" || transport === "vnc";
+      var isManagedLiveTransport =
+        transport === "cloudflare" ||
+        transport === "cloudflare_live_view" ||
+        transport === "browserless" ||
+        transport === "browserless_live_url" ||
+        transport === "managed_live_browser";
       return {
         enabled:
-          enabledValue === true ||
-          enabledValue === "1" ||
-          enabledValue === "true",
+          (enabledValue === true ||
+            enabledValue === "1" ||
+            enabledValue === "true") &&
+          (!isNoVncTransport || allowPublicNoVnc),
         serviceUrl: cleanMessageText(serviceUrl || ""),
+        transport: transport || "novnc",
+        isNoVncTransport: isNoVncTransport,
+        isManagedLiveTransport: isManagedLiveTransport,
+        allowPublicNoVnc: allowPublicNoVnc,
       };
     }
 
@@ -48232,14 +48170,14 @@
       if (isKnownFrameBlockedApplicationUrl(url, provider)) {
         policy.defaultMode = "remote_browser";
         policy.requiresRemoteBrowserForApply = true;
-        policy.statusLabel = policy.label + " secure browser route";
+        policy.statusLabel = policy.label + " assisted browser fallback";
         policy.reason = "known_blocked_host_remote_browser_default";
         return policy;
       }
-      policy.defaultMode = "remote_browser";
-      policy.requiresRemoteBrowserForApply = true;
-      policy.statusLabel = policy.label + " secure browser route";
-      policy.reason = "remote_browser_default";
+      policy.defaultMode = "iframe_embed";
+      policy.requiresRemoteBrowserForApply = false;
+      policy.statusLabel = "Direct embed check";
+      policy.reason = "provider_policy_iframe_first";
       return policy;
     }
 
@@ -48299,6 +48237,9 @@
         shouldStartRemoteBrowser: surface === "remote_browser",
         remoteBrowserEnabled: remoteBrowser.enabled,
         remoteBrowserUrl: remoteBrowser.serviceUrl,
+        remoteBrowserTransport: remoteBrowser.transport,
+        remoteBrowserIsNoVnc: remoteBrowser.isNoVncTransport,
+        remoteBrowserIsManagedLive: remoteBrowser.isManagedLiveTransport,
         providerLabel: providerLabel,
         providerStatusLabel: policy.statusLabel || providerLabel,
       };
@@ -48476,21 +48417,14 @@
     }
 
     function hasApplicationWorkerProAccess() {
-      return !!(isLoggedIn && hasPremiumAccess);
+      return true;
     }
 
     function renderApplicationWorkerAction(canWorkerSubmit) {
       if (!canWorkerSubmit) {
         return "";
       }
-      if (hasApplicationWorkerProAccess()) {
-        return '<button type="button" class="sffc-crm-apply-chat__application-action" data-sffc-application-worker-queue>Apply for me</button>';
-      }
-      return (
-        '<button type="button" class="sffc-crm-apply-chat__application-action is-locked" data-sffc-application-worker-locked>' +
-        '<span class="sffc-crm-apply-chat__pro-badge">Pro+</span>' +
-        "Apply for me</button>"
-      );
+      return '<button type="button" class="sffc-crm-apply-chat__application-action" data-sffc-application-worker-queue>Apply for me</button>';
     }
 
     function isGreenhouseApplicationUrl(url) {
@@ -49196,8 +49130,8 @@
                 url
                   ? reviewDecision.surface === "remote_browser"
                     ? uiText(
-                        "I’ll open this employer form in Senna’s secure browser so you can review it inside the chat. If the browser is unavailable, I’ll fall back to a preview and the employer link.",
-                        "سأفتح نموذج جهة العمل في متصفح Senna الآمن حتى تتمكن من مراجعته داخل المحادثة. إذا لم يكن المتصفح متاحاً، سأستخدم معاينة احتياطية ورابط جهة العمل."
+                        "This employer blocks normal embedded forms. I can open an assisted browser view, or you can use the employer link directly.",
+                        "تحظر جهة العمل النماذج المضمنة العادية. يمكنني فتح عرض متصفح مساعد، أو يمكنك استخدام رابط جهة العمل مباشرة."
                       )
                     : uiText(
                         "This employer form may block embedded previews. Open it in a new tab to review the role and apply yourself.",
@@ -49466,6 +49400,38 @@
         );
       }
 
+      var renderedResultCards = displayItems
+        .map(function (item, index) {
+          try {
+            return renderResult(item, index);
+          } catch (error) {
+            if (window.console && window.console.error) {
+              window.console.error(
+                "[sffc-apply-chat] job result card render failed",
+                {
+                  index: index,
+                  item: item || null,
+                  message: error && error.message ? error.message : String(error),
+                  stack: error && error.stack ? error.stack : "",
+                }
+              );
+            }
+            recordConversationAuditEvent("actual_job_post_card_render_failed", {
+              index: index,
+              title: cleanMessageText((item && item.title) || ""),
+              company: cleanMessageText((item && item.company) || ""),
+              message: error && error.message ? error.message : String(error),
+            });
+            return "";
+          }
+        })
+        .filter(Boolean)
+        .join("");
+
+      if (!renderedResultCards) {
+        return emptyResultsHtml;
+      }
+
       return (
         (renderOptions.hideSummary
           ? ""
@@ -49544,7 +49510,7 @@
         ) +
         "</span></div>" +
         '<div class="sffc-crm-apply-results__list">' +
-        displayItems.map(renderResult).join("") +
+        renderedResultCards +
         "</div>" +
         "</section>"
       );
@@ -49624,6 +49590,7 @@
         ? getContextualApplyChatSearchQuery()
         : normalizeApplyChatProviderSearchQuery(value || "", providerFilter);
       var requestToken;
+      var searchIntro;
       if (clearsProviderFilter) {
         conversationFacts.providerFilter = "";
         clean = getContextualApplyChatSearchQuery();
@@ -49641,13 +49608,10 @@
       step = "job_search_results";
       actualJobPostSearchRequestToken += 1;
       requestToken = actualJobPostSearchRequestToken;
+      searchIntro = getApplyChatJobSearchIntroCopy(clean, providerLabel);
       botMessage(
-        "I’m checking the current job posts for that.",
-        humanComposeDelay(
-          "I’m checking the current job posts for that.",
-          700,
-          1300
-        )
+        searchIntro,
+        humanComposeDelay(searchIntro, 700, 1300)
       );
       fetchActualJobPostsWithFallbacks(
         getApplyChatJobSearchFallbackQueries(clean),
@@ -49979,6 +49943,28 @@
         .slice(0, 220);
     }
 
+    function getApplyChatWebSearchIntroCopy(query) {
+      var clean = normalizeCareerIntentText(
+        cleanMessageText(query || "")
+      ).toLowerCase();
+      if (isArabicChat()) {
+        return "سأتحقق من مصادر الويب العامة وألخص لك أهم ما يفيد القرار.";
+      }
+      if (/\b(?:when|best time|timing|season)\b/i.test(clean)) {
+        return "I’ll check current public sources and turn the timing signals into a practical answer.";
+      }
+      if (/\b(?:salary|compensation|pay|bonus)\b/i.test(clean)) {
+        return "I’ll check current public salary sources and separate useful signals from noise.";
+      }
+      if (/\b(?:recruiter|recruiters|agency|agencies|headhunter|executive search)\b/i.test(clean)) {
+        return "I’ll look up current recruiter and agency signals, then summarise the useful names and caveats.";
+      }
+      if (/\b(?:what is|what's|like|living|culture|visa|market|country|city|saudi|dubai|riyadh|uae|qatar)\b/i.test(clean)) {
+        return "I’ll check public sources and give you the practical version, not just links.";
+      }
+      return "I’ll check public web sources and summarise what is useful for your career decision.";
+    }
+
     function fetchApplyChatWebSearch(query, limit) {
       var config = getConfig();
       var clean = buildApplyChatWebSearchQuery(query || "");
@@ -50241,15 +50227,15 @@
 
     function searchWebInApplyChat(value) {
       var query = buildApplyChatWebSearchQuery(value || "");
+      var introCopy;
       if (!query) {
         return false;
       }
       clearResponseWatchdog();
+      introCopy = getApplyChatWebSearchIntroCopy(query);
       botMessage(
-        isArabicChat()
-          ? "سأتحقق من مصادر الويب العامة لهذا السؤال."
-          : "I’ll check public web sources for that.",
-        humanComposeDelay("Checking public web sources.", 700, 1300)
+        introCopy,
+        humanComposeDelay(introCopy, 700, 1300)
       );
       fetchApplyChatWebSearch(query, 6)
         .then(function (payload) {
@@ -53739,38 +53725,10 @@
     }
 
     function goToMembershipPage(accountType, options) {
-      var selection =
-        cleanMessageText(
-          accountType || applySelectedPricingOption || ""
-        ).toLowerCase() || "platform";
-      var openInNewTab = !options || options.newTab !== false;
-      var targetUrl = "";
-      applySelectedPricingOption = selection;
-      syncApplyChatSignupPrefill(selection)
-        .then(function () {
-          targetUrl = buildMembershipRedirectUrl(selection);
-          sendAutoApplyContactCapture(selection, targetUrl).finally(
-            function () {
-              if (openInNewTab) {
-                window.open(targetUrl, "_blank", "noopener");
-                return;
-              }
-              window.location.href = targetUrl;
-            }
-          );
-        })
-        .catch(function () {
-          targetUrl = buildMembershipRedirectUrl(selection);
-          sendAutoApplyContactCapture(selection, targetUrl).finally(
-            function () {
-              if (openInNewTab) {
-                window.open(targetUrl, "_blank", "noopener");
-                return;
-              }
-              window.location.href = targetUrl;
-            }
-          );
-        });
+      applySelectedPricingOption =
+        cleanMessageText(accountType || applySelectedPricingOption || "")
+          .toLowerCase() || "platform";
+      focusComposer("Tell me the role, market, company, or application you want Emily to work on");
     }
 
     function getLockedResultsMembershipAccountType() {
@@ -53782,25 +53740,21 @@
     }
 
     function getLockedResultsDetailsLabel() {
-      return getConfig().isLoggedIn
-        ? "Upgrade for Details"
-        : "Login for Details";
+      return "View Details";
     }
 
     function getLockedResultsDetailsActionHtml() {
       return (
-        '<a class="sffc-community-editorial__button is-primary" href="' +
-        escapeHtml(getApplyForMeMembershipUrl()) +
-        '">Apply for Me</a>'
+        '<button type="button" class="sffc-community-editorial__button is-primary">View Details</button>'
       );
     }
 
     function handleLockedResultsDetailsIntent() {
-      window.location.href = getApplyForMeMembershipUrl();
+      focusComposer("Tell me which role you want to inspect or apply to");
     }
 
     function shouldUseLockedResultsPreviewMode() {
-      return !hasPremiumMemberChatAccess();
+      return false;
     }
 
     function shouldLockResultsListCard(listKey) {
@@ -62570,24 +62524,6 @@
     }
 
     function setRailView(viewName) {
-      var config = getConfig();
-      var gatedButton = root.querySelector(
-        '[data-sffc-apply-chat-rail-view="' +
-          viewName +
-          '"][data-sffc-apply-chat-membership-gated="1"]'
-      );
-      if (
-        gatedButton &&
-        !config.isLoggedIn &&
-        (viewName === "intros" || viewName === "sent")
-      ) {
-        window.open(
-          config.membershipsUrl || "/memberships/",
-          "_blank",
-          "noopener,noreferrer"
-        );
-        return;
-      }
       var nextView =
         viewName === "results" ||
         viewName === "tracked" ||
@@ -63922,10 +63858,10 @@
     }
 
     function openMembershipWorkspace(accountType) {
-      goToMembershipPage(
+      applySelectedPricingOption =
         accountType ||
-          getMembershipAccountTypeFromJobSearchPackage(jobSearchSelectedPackage)
-      );
+        getMembershipAccountTypeFromJobSearchPackage(jobSearchSelectedPackage);
+      revealWorkspaceForApplicationProfile();
     }
 
     function revealWorkspaceForCvUpload() {
@@ -82403,6 +82339,12 @@
       return /sffc-crm-apply-chat__application-profile\b/.test(String(html || ""));
     }
 
+    function containsApplicationProgressHtml(html) {
+      return /sffc-crm-apply-chat__application-progress\b/.test(
+        String(html || "")
+      );
+    }
+
     function deactivatePreviousApplyResultsSurfaces() {
       if (!messages) {
         return;
@@ -82632,6 +82574,8 @@
       var hasWebSearchCard = containsWebSearchCardHtml(contentHtml);
       var hasApplicationProfileCard =
         containsApplicationProfileHtml(contentHtml);
+      var hasApplicationProgressCard =
+        containsApplicationProgressHtml(contentHtml);
       var hasStructuredSurface =
         hasEditorialResults ||
         hasJobResults ||
@@ -82641,6 +82585,7 @@
         hasTailoredVersionCard ||
         hasWebSearchCard ||
         hasApplicationProfileCard ||
+        hasApplicationProgressCard ||
         hasApplyResultsCard;
       var shouldTypePlainMessage =
         modifier !== "system" &&
@@ -82668,6 +82613,7 @@
         (hasWorkspaceCard ? " has-workspace-card" : "") +
         (hasWebSearchCard ? " has-web-search-card" : "") +
         (hasApplicationProfileCard ? " has-application-profile-card" : "") +
+        (hasApplicationProgressCard ? " has-application-progress-card" : "") +
         (hasApplyResultsCard ? " has-apply-results-card" : "");
       if (hasStructuredSurface) {
         row.innerHTML =
@@ -83342,9 +83288,9 @@
 
     function getEmilyGuestWelcomeCopy() {
       if (isArabicChat()) {
-        return "مرحباً، أنا إيميلي. سأساعدك في البحث عن الوظائف، ومقارنتها بسيرتك الذاتية، وتحديد ما يستحق التقديم.";
+        return "ابدئي بدور أو ارفعي سيرتك الذاتية. سأستخدمها لتقييم الملاءمة وتجهيز تفاصيل التقديم، وأسألك فقط عما ينقصنا.";
       }
-      return "Hi, I’m Emily. I’ll help you search for roles, compare them against your CV, and decide what to apply for.";
+      return "Search for a role or upload your CV. I’ll use the CV to judge fit and prepare the application details, then ask only for anything missing.";
     }
 
     function hasEmilyGuestWelcomeInTranscript() {
@@ -83387,12 +83333,12 @@
 
     function getGuestColdLauncherIntroCopy() {
       if (isArabicChat()) {
-        return "أقدر أوضح لك الفرص الأكثر صلة بسرعة، وأعمل من دور محدد إذا كنتِ تريدين التحقق من الملاءمة أو الوصول مباشرة إلى جهة التقديم.";
+        return "اكتبي الدور أو السوق الذي تريدينه، أو ارفعي سيرتك الذاتية لأطابق النتائج مع خبرتك مباشرة.";
       }
       return pickVariant("guest_cold_launcher_contextual", [
-        "Tell me the kind of role you want and I’ll search the live posts from there. If you already have a CV, upload it and I’ll use it to judge fit instead of guessing.",
-        "We can start either way: search the market first, or upload your CV so I can find and judge roles around your actual background.",
-        "Send a role, sector, company, or location and I’ll bring back live results. Add your CV whenever you want the matching to become personal.",
+        "Type the role or market you want, or upload your CV so I can match live roles against your actual background.",
+        "Search first, or add your CV and I’ll use it to judge fit, prepare the application details, and flag only what needs your confirmation.",
+        "Send a role, sector, company, or location and I’ll bring back live results. Add your CV whenever you want the matching to become specific.",
       ]);
     }
 
@@ -83966,10 +83912,10 @@
       return pickVariant("role_entry_intro_guest", [
         "You’re looking at " +
           subject +
-          ". I can keep this practical: check fit, improve the CV where it matters, or help you search for similar roles.",
+          ". I can keep this practical: check fit, prepare the application details, or help you search for similar roles.",
         "I’ve got " +
           subject +
-          " in focus. Start with the CV if you want a fit check, or ask about the role before you decide.",
+          " in focus. Upload your CV if you want a fit check, or ask about the role before you decide.",
         "This role is selected: " +
           subject +
           ". I can help you judge it properly before you spend time applying.",
@@ -84023,21 +83969,17 @@
         return;
       }
 
-      // For guests: show Emily intro and let the user choose the path
-      var guestWelcomeItem = getEmilyGuestWelcomeMessageItem(120);
+      // For guests: keep role pages to one focused launcher message.
       var roleIntroCopy = getRoleEntryLauncherIntroCopy();
       var intro =
         getRoleEntryLanguageSwitchHtml() +
         '<div class="sffc-crm-apply-chat__formatted"><p>' +
         escapeHtml(roleIntroCopy) +
-        "</p></div>" +
+          "</p></div>" +
         getDetectedJobPostCardHtml() +
         buildRoleEntryActionChoicesHtml();
       var sequenceItems = [];
-
-      if (guestWelcomeItem) {
-        sequenceItems.push(guestWelcomeItem);
-      }
+      guestWelcomeShown = true;
 
       sequenceItems.push({
         html: intro,
@@ -84049,7 +83991,7 @@
         if (runId !== roleEntryLauncherRunId) {
           return;
         }
-        markRecentAssistantMessages(messageTag, sequenceItems.length);
+        markRecentAssistantMessages(messageTag, 1);
       });
     }
 
@@ -87394,10 +87336,6 @@
           summaryLine +
           "<br><br>" +
           ctaLine +
-          buildMembershipInlineActionRow(
-            getApplyIntroMembershipAccountType(),
-            isArabicChat() ? "أكملي التسجيل" : "Complete sign up"
-          ) +
           "<br>" +
           afterLine,
         humanComposeDelay(
@@ -87407,101 +87345,19 @@
         ),
         function () {
           applySelectedPricingOption = getApplyIntroMembershipAccountType();
-          setPromptState(
-            "apply_waiting_for_signup",
-            {
-              yes: function (value) {
-                echoPromptChoice(
-                  value ||
-                    (isArabicChat() ? "أكملت التسجيل" : "I'm signed up now")
-                );
-                clearPromptState();
-                applyMembershipCompleted = true;
-                botMessage(
-                  isArabicChat()
-                    ? state.supportMode === "applications"
-                      ? "ممتاز. بما أن التسجيل اكتمل، سأبدأ الآن بالتقديمات."
-                      : state.supportMode === "intros"
-                      ? "ممتاز. بما أن التسجيل اكتمل، سأبدأ الآن بالتعريفات."
-                      : "ممتاز. بما أن التسجيل اكتمل، سأبدأ الآن بالتقديمات والتعريفات."
-                    : state.supportMode === "applications"
-                    ? "Perfect. Now that the sign up is done, I'll get started on the applications."
-                    : state.supportMode === "intros"
-                    ? "Perfect. Now that the sign up is done, I'll get started on the intros."
-                    : "Perfect. Now that the sign up is done, I'll get started on the applications and intros.",
-                  humanComposeDelay(
-                    cleanMessageText(
-                      isArabicChat()
-                        ? state.supportMode === "applications"
-                          ? "ممتاز. بما أن التسجيل اكتمل، سأبدأ الآن بالتقديمات."
-                          : state.supportMode === "intros"
-                          ? "ممتاز. بما أن التسجيل اكتمل، سأبدأ الآن بالتعريفات."
-                          : "ممتاز. بما أن التسجيل اكتمل، سأبدأ الآن بالتقديمات والتعريفات."
-                        : state.supportMode === "applications"
-                        ? "Perfect. Now that the sign up is done, I'll get started on the applications."
-                        : state.supportMode === "intros"
-                        ? "Perfect. Now that the sign up is done, I'll get started on the intros."
-                        : "Perfect. Now that the sign up is done, I'll get started on the applications and intros."
-                    ),
-                    1400,
-                    2400
-                  ),
-                  function () {
-                    focusComposer(getComposerPlaceholder("reply"));
-                  }
-                );
-              },
-              other: function (value) {
-                var paymentIssue = detectPaymentFailureBucket(value);
-                var intent = detectIntent(value);
-                var answer = intent ? getKnowledgeAnswer(intent, value) : "";
-                if (
-                  paymentIssue.bucket ||
-                  paymentIssue.genericFailure ||
-                  intent === "payment_support"
-                ) {
-                  askForPaymentFailureDetails(value);
-                  return;
-                }
-                if (
-                  /^(?:membership_objection|pricing_trust|membership_benefits|membership_value|sign_in_membership|support_complaint|job_guarantee)$/.test(
-                    intent
-                  ) &&
-                  answer
-                ) {
-                  botMessage(
-                    answer,
-                    humanComposeDelay(cleanMessageText(answer), 1400, 2600),
-                    function () {
-                      focusComposer(getFlowPlaceholder("signed_up"));
-                    },
-                    humanReadDelay(value, 450)
-                  );
-                  return;
-                }
-                botMessage(
-                  isArabicChat()
-                    ? "تمام. عندما يكتمل التسجيل فقط أخبريني هنا، وإذا ظهرت لك مشكلة في الدفع أو سؤال عن العضوية اكتبِيه هنا."
-                    : "Alright. Once the sign up is done, just let me know here. If you run into a payment issue or a question about the membership, send it here.",
-                  humanComposeDelay(
-                    cleanMessageText(
-                      isArabicChat()
-                        ? "تمام. عندما يكتمل التسجيل فقط أخبريني هنا، وإذا ظهرت لك مشكلة في الدفع أو سؤال عن العضوية اكتبِيه هنا."
-                        : "Alright. Once the sign up is done, just let me know here. If you run into a payment issue or a question about the membership, send it here."
-                    ),
-                    1400,
-                    2600
-                  ),
-                  function () {
-                    focusComposer(getFlowPlaceholder("signed_up"));
-                  },
-                  humanReadDelay(value, 450)
-                );
-              },
-            },
-            getFlowPlaceholder("signed_up")
+          clearPromptState();
+          applyMembershipCompleted = true;
+          botMessage(
+            state.supportMode === "applications"
+              ? "Perfect. I’ll start from the strongest matching roles and prepare each application inside your rules."
+              : state.supportMode === "intros"
+              ? "Perfect. I’ll start with recruiter outreach and keep the messaging tied to your target roles."
+              : "Perfect. I’ll start with matching roles, tailored applications, and recruiter outreach inside your rules.",
+            humanComposeDelay("Start managed application work.", 1100, 2200),
+            function () {
+              focusComposer(getComposerPlaceholder("reply"));
+            }
           );
-          focusComposer(getFlowPlaceholder("signed_up"));
         }
       );
     }
@@ -105553,10 +105409,10 @@
       }
 
       if (intent === "senna_pro_clarification" || intent === "trial_question") {
-        var membershipFollowUp = pickVariant("membership_follow_up", [
-          "MENA Careers Pro fits into the search once you want the work to keep moving beyond one manual step.",
-          "The paid layer is for keeping the search, applications, and follow-up moving in one place.",
-          "The practical distinction is simple: free gives you direction; Pro keeps the execution moving.",
+        var membershipFollowUp = pickVariant("service_follow_up", [
+          "The practical workflow is simple: I help define the target, find roles, prepare applications, and track what happens next.",
+          "Once the brief is clear, I can keep the search, applications, and follow-up moving in one place.",
+          "The useful distinction is advice versus execution: I can help you think it through, then turn the decision into applications and recruiter outreach.",
         ]);
         var membershipAccountType =
           getSuggestedMembershipAccountTypeForIntent(intent);
@@ -108314,11 +108170,11 @@
       if (promptKey === "apply_select_pricing_option") {
         return {
           message: isArabicChat()
-            ? "اختاري أحد الخيارات أعلاه وسأفتح لك الـcheckout المناسب."
-            : "Choose one of the options above and I'll open the right checkout for you.",
+            ? "سأجهز الطلب هنا باستخدام السيرة الذاتية وتفاصيل الملف الشخصي."
+            : "I’ll prepare the application here using the CV and profile details we have.",
           placeholder: isArabicChat()
-            ? "اختاري أحد الخيارات أعلاه"
-            : "Choose one of the options above",
+            ? "اكتبي أي تعديل قبل المتابعة"
+            : "Tell me anything to adjust before we continue",
         };
       }
       if (promptKey === "apply_confirm_preferred_email") {
@@ -108334,9 +108190,9 @@
       if (promptKey === "apply_waiting_for_signup") {
         return {
           message: isArabicChat()
-            ? "فقط أخبريني عندما يكتمل التسجيل وسأتابع من هناك."
-            : "Just let me know once you're signed up and I'll pick it up from there.",
-          placeholder: getFlowPlaceholder("signed_up"),
+            ? "سأتابع تجهيز الطلب هنا وأسألك فقط عن التفاصيل الناقصة."
+            : "I’ll keep preparing the application here and ask only for missing details.",
+          placeholder: getComposerPlaceholder("reply"),
         };
       }
       if (promptKey === "continue_fix") {
@@ -112740,39 +112596,39 @@
       if (hasDirectAutoSubmitCapability()) {
         return composeSemanticReply("apply_account_question_direct_submit", {
           opener: {
-            direct: ["Do you already have a MENA Careers account?"],
+            direct: ["I need the contact details for the application."],
             warm: [
-              "Before I prepare the application queue, do you already have a MENA Careers account set up?",
+              "Before I prepare the application queue, I need the name and email to use.",
             ],
-            measured: ["Do you have a MENA Careers account already?"],
-            sharp: ["Do you already have the MENA Careers account?"],
+            measured: ["What name and email should I use for this application?"],
+            sharp: ["Confirm the application name and email."],
           },
           action: {
             direct: [
               "This role uses " +
                 directSubmitProvider +
-                ", and I need the account so I can keep the application materials and follow-up in one place.",
+                ", and I’ll keep the application materials and follow-up tied to those details.",
             ],
             warm: [
               "I’ll keep the employer form accessible from the queue where possible and flag anything important before you send it.",
             ],
             measured: [],
-            sharp: ["I need it for the application queue."],
+            sharp: ["I need those details for the application queue."],
           },
         });
       }
       return composeSemanticReply("apply_account_question_dynamic", {
         opener: {
-          direct: ["Do you already have a MENA Careers account?"],
+          direct: ["I need the contact details for the application."],
           warm: [
-            "Before I take this forward, do you already have a MENA Careers account set up?",
+            "Before I take this forward, I need the name and email to use.",
           ],
-          measured: ["Do you have a MENA Careers account already?"],
-          sharp: ["Do you already have the MENA Careers account?"],
+          measured: ["What name and email should I use for this application?"],
+          sharp: ["Confirm the application name and email."],
         },
         action: {
           direct: [
-            "I need that so I can send the materials and application confirmation properly.",
+            "I need that so I can prepare the employer form and send confirmation properly.",
           ],
           warm: ["That's how I'll send the final materials and confirmation."],
           measured: [
@@ -113964,10 +113820,10 @@
       if (kind === "account") {
         return composeSemanticReply("apply_binary_nudge_account_dynamic", {
           opener: {
-            direct: ["Tell me if you already have the account set up."],
-            warm: ["Let me know whether the account is already set up."],
-            measured: ["Quick check: do you already have the account?"],
-            sharp: ["Just tell me whether the account is already there."],
+            direct: ["Tell me which name and email I should use."],
+            warm: ["Send the name and email you want on the application."],
+            measured: ["Quick check: what contact details should I use?"],
+            sharp: ["Send the application name and email."],
           },
         });
       }
@@ -114021,10 +113877,10 @@
           "apply_binary_placeholder_account_dynamic",
           {
             opener: {
-              direct: ["Tell me if you already have the account"],
-              warm: ["Let me know whether the account is already set up"],
-              measured: ["Tell me if you've created the account already"],
-              sharp: ["Tell me whether the account is there already"],
+              direct: ["Name and email for the application"],
+              warm: ["Send the contact details to use"],
+              measured: ["Tell me the application name and email"],
+              sharp: ["Send name and email"],
             },
           }
         );
@@ -114174,13 +114030,13 @@
           },
           action: {
             direct: [
-              "just let me know if you already have a MENA Careers account.",
+              "we can confirm the name and email to use for the application.",
             ],
             warm: [
-              "just tell me whether you already have a MENA Careers account.",
+              "we can confirm the application contact details.",
             ],
-            measured: ["whether you already have a MENA Careers account."],
-            sharp: ["just let me know whether the account is already set up."],
+            measured: ["the application name and email."],
+            sharp: ["we can confirm the contact details."],
           },
         }
       );
@@ -122566,6 +122422,15 @@
         providerKey === "teamtailor" || providerKey === "teamtailor_rss";
       var answerPlan =
         (data &&
+        data.workable_answer_plan &&
+        typeof data.workable_answer_plan === "object"
+          ? data.workable_answer_plan
+          : resultPayload &&
+            resultPayload.workable_answer_plan &&
+            typeof resultPayload.workable_answer_plan === "object"
+          ? resultPayload.workable_answer_plan
+          : null) ||
+        (data &&
         data.simple_form_answer_plan &&
         typeof data.simple_form_answer_plan === "object"
           ? data.simple_form_answer_plan
@@ -122582,7 +122447,25 @@
             resultPayload.greenhouse_answer_plan &&
             typeof resultPayload.greenhouse_answer_plan === "object"
           ? resultPayload.greenhouse_answer_plan
+          : null) ||
+        (data &&
+        data.workday_answer_plan &&
+        typeof data.workday_answer_plan === "object"
+          ? data.workday_answer_plan
+          : resultPayload &&
+            resultPayload.workday_answer_plan &&
+            typeof resultPayload.workday_answer_plan === "object"
+          ? resultPayload.workday_answer_plan
           : null);
+      var customQuestionDrafts = Array.isArray(
+        data && data.custom_question_drafts
+      )
+        ? data.custom_question_drafts
+        : Array.isArray(resultPayload && resultPayload.custom_question_drafts)
+        ? resultPayload.custom_question_drafts
+        : Array.isArray(answerPlan && answerPlan.custom_question_drafts)
+        ? answerPlan.custom_question_drafts
+        : [];
       var surveyDecline =
         data && data.survey_decline && typeof data.survey_decline === "object"
           ? data.survey_decline
@@ -122631,6 +122514,15 @@
       var needsHumanCount = Array.isArray(answerPlan && answerPlan.needs_human)
         ? answerPlan.needs_human.length
         : 0;
+      var customDraftCount =
+        customQuestionDrafts.length ||
+        Number((answerPlan && answerPlan.drafted_count) || 0) ||
+        Number(
+          (data && data.custom_question_drafts_count) ||
+            (resultPayload && resultPayload.custom_question_drafts_count) ||
+            0
+        ) ||
+        0;
       var uploadedResume = !!(
         (data && data.uploaded_resume) ||
         (resultPayload && resultPayload.uploaded_resume)
@@ -122698,6 +122590,7 @@
           .filter(Boolean)
           .slice(0, 5),
         milestones: [],
+        customQuestionDrafts: customQuestionDrafts.slice(0, 5),
       };
 
       if (/^ready$/.test(lower)) {
@@ -122757,7 +122650,16 @@
         lower === "needs answers" ||
         lower === "needs answer"
       ) {
-        if (status.missingFields.length) {
+        if (customDraftCount > 0) {
+          status.label = "Review draft answers";
+          status.tone = "blocked";
+          status.summary =
+            "Emily drafted " +
+            String(customDraftCount) +
+            " employer answer" +
+            (customDraftCount === 1 ? "" : "s") +
+            ". Review them before they go into the application.";
+        } else if (status.missingFields.length) {
           status.label = "Needs answers";
           status.tone = "blocked";
           status.summary = isTeamtailorProvider
@@ -122819,14 +122721,18 @@
             {
               key: "answers",
               label: "Answers",
-              state: status.missingFields.length
+              state: customDraftCount > 0
+                ? "blocked"
+                : status.missingFields.length
                 ? "blocked"
                 : answersAttempted > 0 && answersFilled >= answersAttempted
                 ? "done"
                 : answersFilled > 0
                 ? "active"
                 : "pending",
-              detail: answersAttempted
+              detail: customDraftCount > 0
+                ? String(customDraftCount) + " draft" + (customDraftCount === 1 ? "" : "s")
+                : answersAttempted
                 ? String(answersFilled) + "/" + String(answersAttempted)
                 : "Checking",
             },
@@ -122847,14 +122753,16 @@
             {
               key: "answer_drafting",
               label: "Answer drafting",
-              state:
-                generatedAnswers > 0
+              state: customDraftCount > 0
+                ? "blocked"
+                : generatedAnswers > 0
                   ? "done"
                   : answerGeneratorAvailable
                   ? "active"
                   : "pending",
-              detail:
-                generatedAnswers > 0
+              detail: customDraftCount > 0
+                ? String(customDraftCount) + " needs review"
+                : generatedAnswers > 0
                   ? String(generatedAnswers) + " generated"
                   : answerGeneratorAvailable
                   ? "Available"
@@ -122991,13 +122899,17 @@
             {
               key: "questions",
               label: "Questions",
-              state: status.missingFields.length
+              state: customDraftCount > 0
+                ? "blocked"
+                : status.missingFields.length
                 ? "blocked"
                 : reachedSubmitStage ||
                   /ready to submit|submitted/i.test(status.label)
                 ? "done"
                 : "pending",
-              detail: status.missingFields.length
+              detail: customDraftCount > 0
+                ? String(customDraftCount) + " draft" + (customDraftCount === 1 ? "" : "s")
+                : status.missingFields.length
                 ? String(status.missingFields.length) + " needed"
                 : "Checked",
             },
@@ -129067,8 +128979,8 @@
                 url
                   ? reviewDecision.surface === "remote_browser"
                     ? uiText(
-                        "I’ll open this employer form in Senna’s secure browser so you can review it inside the chat. If the browser is unavailable, I’ll fall back to a preview and the employer link.",
-                        "سأفتح نموذج جهة العمل في متصفح Senna الآمن حتى تتمكن من مراجعته داخل المحادثة. إذا لم يكن المتصفح متاحاً، سأستخدم معاينة احتياطية ورابط جهة العمل."
+                        "This employer blocks normal embedded forms. I can open an assisted browser view, or you can use the employer link directly.",
+                        "تحظر جهة العمل النماذج المضمنة العادية. يمكنني فتح عرض متصفح مساعد، أو يمكنك استخدام رابط جهة العمل مباشرة."
                       )
                     : uiText(
                         "This employer form may block embeds. I’ll show a preview where possible and keep the employer form link ready.",
@@ -131391,7 +131303,7 @@
             ? '<div class="sffc-crm-apply-results__review-fallback">' +
               escapeHtml(
                 reviewDecision.surface === "remote_browser"
-                  ? "I’ll open this employer form in Senna’s secure browser so you can review it inside the chat. If the browser is unavailable, I’ll fall back to a preview and the employer link."
+                  ? "This employer blocks normal embedded forms. I can open an assisted browser view, or you can use the employer link directly."
                   : "This employer form may block embeds. I’ll show a preview where possible and keep the employer form link ready."
               ) +
               "</div>"
@@ -136698,6 +136610,10 @@
               routeProbability,
               routeSemantic
             );
+      var highConfidenceWebSearch = looksLikeHighConfidenceWebSearchRequest(
+        clean,
+        detectedIntent
+      );
       var referencedRole =
         context && context.referencedRole ? context.referencedRole : null;
       var activeTask = context && context.activeTask ? context.activeTask : {};
@@ -138630,8 +138546,47 @@
       var selectedRole = decision && decision.selectedRole;
       var activeTask = decision && decision.activeTask;
       var jobSearchContext = decision && decision.jobSearchContext;
+      var memory = decision && decision.memory ? decision.memory : null;
+      var hasCv = hasApplyChatCvAvailable();
+      var cvProfile = null;
+      var cvRoleProfile = null;
+      if (hasCv) {
+        try {
+          cvRoleProfile = buildCvRoleMatchProfile({ cvOnly: true });
+        } catch (error) {
+          cvRoleProfile = null;
+        }
+      }
+      if (cvRoleProfile) {
+        cvProfile = {
+          title: cleanMessageText(cvRoleProfile.title || ""),
+          company: cleanMessageText(cvRoleProfile.company || ""),
+          years: Number(cvRoleProfile.years || 0) || 0,
+          currentSeniorityLevel:
+            Number(cvRoleProfile.currentSeniorityLevel || 0) || 0,
+          maxSeniorityLevel: Number(cvRoleProfile.maxSeniorityLevel || 0) || 0,
+          families: (cvRoleProfile.families || []).slice(0, 8),
+          roleTerms: (cvRoleProfile.roleTerms || []).slice(0, 14),
+          skills: (cvRoleProfile.skills || []).slice(0, 18),
+          qualifications: (cvRoleProfile.qualifications || []).slice(0, 8),
+          locations: (cvRoleProfile.locations || []).slice(0, 8),
+          recentRoles: (cvRoleProfile.roleContexts || []).slice(0, 5).map(function (
+            context
+          ) {
+            return {
+              role: cleanMessageText((context && context.role) || ""),
+              company: cleanMessageText((context && context.company) || ""),
+              label: cleanMessageText((context && context.label) || ""),
+            };
+          }),
+          summaryText: cleanMessageText(cvRoleProfile.summaryText || "").slice(
+            0,
+            360
+          ),
+        };
+      }
       return {
-        hasCv: hasApplyChatCvAvailable(),
+        hasCv: hasCv,
         selectedRole: selectedRole
           ? {
               title: cleanMessageText(selectedRole.title || roleTitle || ""),
@@ -138645,6 +138600,8 @@
               promptState: cleanMessageText(activeTask.promptState || ""),
               step: cleanMessageText(activeTask.step || ""),
               activePath: cleanMessageText(activeTask.activePath || ""),
+              canInterrupt: activeTask.canInterrupt !== false,
+              canResume: !!activeTask.canResume,
             }
           : null,
         jobSearchContext: jobSearchContext
@@ -138654,7 +138611,36 @@
               hasSurface: !!jobSearchContext.hasSurface,
             }
           : null,
-        memory: decision && decision.memory ? decision.memory : null,
+        cvProfile: cvProfile,
+        searchPreferences: {
+          preferredLocation: cleanMessageText(jobSearchPreferredLocation || ""),
+          currentQuery: cleanMessageText(
+            (jobSearchContext && jobSearchContext.query) ||
+              (memory &&
+                memory.conversationContextState &&
+                memory.conversationContextState.query) ||
+              ""
+          ),
+        },
+        recentMessages: [lastUserInputText]
+          .concat(
+            (
+              (memory && memory.conversationContextHistory) ||
+              []
+            )
+              .slice(-4)
+              .map(function (item) {
+                return cleanMessageText(
+                  (item && (item.userText || item.text || item.query)) || ""
+                );
+              })
+          )
+          .map(function (item) {
+            return cleanMessageText(item || "");
+          })
+          .filter(Boolean)
+          .slice(-5),
+        memory: memory,
       };
     }
 
@@ -138756,10 +138742,13 @@
         mappedIntent = "web_search";
         mappedAction = "web_search";
         query = getEmilyNlpServiceActionQuery(meaning, "web");
+      } else if (actionType === "career_context_confirmation") {
+        mappedIntent = "career_question";
+        mappedAction = "answer_directly";
       } else {
         return localDecision;
       }
-      if (!query) {
+      if (!query && mappedAction !== "answer_directly") {
         query =
           mappedAction === "show_job_results"
             ? normalizeApplyChatJobSearchQuery(value)
@@ -138785,7 +138774,22 @@
           : "new_topic";
       decision.nextAction = {
         type: mappedAction,
-        params: { query: query },
+        params:
+          mappedAction === "answer_directly"
+            ? {
+                careerDecision: {
+                  kind: "career_question",
+                  directAnswer: true,
+                  source: "emily_nlp_service",
+                },
+              }
+            : {
+                query: query,
+                constraints:
+                  meaning && meaning.rewrittenQueries
+                    ? meaning.rewrittenQueries.constraints || {}
+                    : {},
+              },
       };
       decision.route = {
         key: getEmilyDecisionRouteKey(mappedIntent, mappedAction),
@@ -138794,7 +138798,11 @@
         ),
       };
       decision.questionRoute =
-        mappedAction === "web_search" ? "web_search" : "job_search";
+        mappedAction === "web_search"
+          ? "web_search"
+          : mappedAction === "show_job_results"
+          ? "job_search"
+          : "career_question";
       decision.meaning = meaning;
       decision.meaning.debug = Object.assign({}, decision.meaning.debug || {}, {
         source: "emily_nlp_service",
@@ -138806,6 +138814,17 @@
           localDecision && localDecision.nextAction
             ? cleanMessageText(localDecision.nextAction.type || "")
             : "",
+      });
+      decision.reasoningPlan = Object.assign({}, decision.reasoningPlan || {}, {
+        objective:
+          mappedAction === "show_job_results"
+            ? "search_jobs"
+            : mappedAction === "web_search"
+            ? "answer_with_web_search"
+            : "answer_career_question",
+        action: mappedAction,
+        mode: "execute",
+        source: "emily_nlp_service",
       });
       decision.uiSurface = getConversationDecisionUiSurface(
         decision.nextAction,
@@ -138822,6 +138841,7 @@
         serviceMeaningAction: actionType,
         serviceMeaningConfidence: confidence,
         serviceRewrittenQuery: query,
+        servicePrimaryRouter: true,
       });
       return decision;
     }
@@ -138942,7 +138962,8 @@
         promptKey &&
         actionType !== "defer_to_prompt_handler" &&
         config.strictPromptProtection &&
-        intentConfidence < config.activePromptOverrideConfidence
+        intentConfidence < config.activePromptOverrideConfidence &&
+        source !== "emily_nlp_service"
       ) {
         valid = false;
         reason = "active_prompt_low_confidence_override";
@@ -140420,6 +140441,54 @@
       focusComposer("Ask a follow-up or tell me what to do next");
     }
 
+    function getComposedCareerAdviceFallbackHtml(value, decision) {
+      var clean = normalizeCareerIntentText(
+        cleanMessageText(value || "")
+      ).toLowerCase();
+      var hasCv = hasApplyChatCvAvailable();
+      var profile = "";
+      var profileSnippet = "";
+      try {
+        profile = describeCvProfile();
+      } catch (error) {
+        profile = "";
+      }
+      profileSnippet = cleanMessageText(profile || "").slice(0, 360);
+      var acknowledge = "Yes. Let’s treat this as a career question first.";
+      var diagnosis = hasCv && profile
+        ? "Based on your CV context, I would separate the problem into fit, targeting, and how clearly the evidence is being presented."
+        : "Without overfitting to one role, I would separate the problem into targeting, evidence, timing, and follow-up.";
+      var nextStep = "Tell me the specific outcome you want: more interviews, better roles, a market plan, or a stronger CV angle.";
+      if (/\b(?:tired|stuck|frustrated|exhausted|burn(?:ed|t)? out|no replies|not getting replies|fed up)\b/i.test(clean)) {
+        acknowledge = "I get it. Job search fatigue usually means the system needs tightening, not that you should just send more applications.";
+        diagnosis = hasCv && profile
+          ? "I’d check whether the roles match your actual seniority and whether the first half of the CV makes the recruiter’s decision easy."
+          : "I’d check three things first: whether the roles are realistic, whether the CV is proving the right evidence quickly, and whether follow-up is happening at the right time.";
+        nextStep = "The best next move is to pick one target lane and audit the last 10 applications against it.";
+      } else if (/\b(?:career question|career advice|talking through)\b/i.test(clean)) {
+        diagnosis = "I’ll keep the application parked and answer the broader question before returning to the role.";
+        nextStep = "Ask the question directly, or tell me the decision you are trying to make.";
+      }
+      return (
+        '<div class="sffc-crm-apply-chat__formatted sffc-crm-apply-chat__career-answer">' +
+        '<p dir="auto">' +
+        escapeHtml(acknowledge) +
+        "</p>" +
+        '<p dir="auto"><strong>How I’d read it:</strong> ' +
+        escapeHtml(diagnosis) +
+        "</p>" +
+        '<p dir="auto"><strong>Next step:</strong> ' +
+        escapeHtml(nextStep) +
+        "</p>" +
+        (profileSnippet
+          ? '<p class="sffc-crm-apply-chat__career-answer-context" dir="auto">I’ll keep your CV context in mind: ' +
+            escapeHtml(profileSnippet) +
+            ".</p>"
+          : "") +
+        "</div>"
+      );
+    }
+
     function executeConversationDecision(decision, value) {
       var action = decision && decision.nextAction ? decision.nextAction : {};
       if (looksLikeUnsupportedCvClaimInstruction(value)) {
@@ -140610,11 +140679,7 @@
                 "No problem. I’ll keep the application parked here and we can work through the question first.",
                 "I’ve stopped the application path. Nothing gets submitted unless you clearly ask me to resume.",
               ])
-            : pickVariant("emily_career_direct_fallback", [
-                "I can help with that. I’ll use the role, CV, and search context where it matters instead of giving you a generic answer.",
-                "Yes. Let’s treat that as a career question first, then return to the application only if it still makes sense.",
-                "I can work through that with you. Give me the part that feels unclear and I’ll tie the answer back to your current search.",
-              ]),
+            : getComposedCareerAdviceFallbackHtml(value, decision),
           humanComposeDelay("Career conversation fallback.", 900, 1800),
           function () {
             focusComposer("Ask Emily about your career or search");
@@ -141435,15 +141500,13 @@
     }
 
     function showCommercialBackgroundUpgradeMessage() {
-      var accountType = applySelectedPricingOption || "platform";
       var copy =
-        "Senna Pro lets Emily continue applying in the background, tailor each application, and track responses for you.";
+        "I can keep applying in the background, tailor each application, and track responses for you from here.";
       botMessage(
-        copy +
-          buildMembershipInlineActionRow(accountType, "Upgrade to Senna Pro"),
+        copy,
         humanComposeDelay(copy, 1200, 2400),
         function () {
-          focusComposer("Upgrade, ask a question, or apply one role manually");
+          focusComposer("Apply, ask a question, or choose another role");
         }
       );
     }
@@ -144859,7 +144922,6 @@
             "applicationDefaults.considerOtherRoles",
             "applicationDefaults.preferredCvMode",
             "applicationDefaults.submitPreference",
-            "applicationDefaults.readinessConfirmedAt",
           ],
           missingFields: missingFields,
           unsafeFields: [
@@ -145046,8 +145108,14 @@
       cursor[last] = buildApplicationProfileField(
         value,
         source || "user_confirmed",
-        cleanMessageText(value || "") ? 1 : 0,
-        !!cleanMessageText(value || ""),
+        Array.isArray(value)
+          ? value.length
+            ? 1
+            : 0
+          : cleanMessageText(value || "")
+          ? 1
+          : 0,
+        Array.isArray(value) ? value.length > 0 : !!cleanMessageText(value || ""),
         "edited in My profile"
       );
       return profile;
@@ -145122,13 +145190,41 @@
           setApplicationProfileFieldValue(
             merged,
             path,
-            Array.isArray(savedValue) ? savedValue.join(", ") : savedValue,
+            savedValue,
             savedField.source === "user_confirmed" || savedField.confirmed
               ? "user_confirmed"
-              : "profile"
+            : "profile"
           );
         }
       });
+      if (saved.answerMemory && typeof saved.answerMemory === "object") {
+        var mergedMemory =
+          merged.answerMemory && typeof merged.answerMemory === "object"
+            ? merged.answerMemory
+            : {};
+        merged.answerMemory = Object.assign({}, mergedMemory, {
+          screeningAnswers: Array.isArray(saved.answerMemory.screeningAnswers)
+            ? saved.answerMemory.screeningAnswers.slice(0, 60)
+            : Array.isArray(mergedMemory.screeningAnswers)
+            ? mergedMemory.screeningAnswers
+            : [],
+          customQuestionDrafts: Array.isArray(saved.answerMemory.customQuestionDrafts)
+            ? saved.answerMemory.customQuestionDrafts.slice(0, 40)
+            : Array.isArray(mergedMemory.customQuestionDrafts)
+            ? mergedMemory.customQuestionDrafts
+            : [],
+          approvedAnswers: Array.isArray(saved.answerMemory.approvedAnswers)
+            ? saved.answerMemory.approvedAnswers.slice(0, 80)
+            : Array.isArray(mergedMemory.approvedAnswers)
+            ? mergedMemory.approvedAnswers
+            : [],
+          rejectedAnswers: Array.isArray(saved.answerMemory.rejectedAnswers)
+            ? saved.answerMemory.rejectedAnswers.slice(0, 80)
+            : Array.isArray(mergedMemory.rejectedAnswers)
+            ? mergedMemory.rejectedAnswers
+            : [],
+        });
+      }
       return merged;
     }
 
@@ -145454,6 +145550,370 @@
         warnings: warnings,
         defaults: getApplicationProfileReadinessDefaults(profile),
       };
+    }
+
+    function getApplicationProfileVersionId(profile) {
+      var sourceName = cleanMessageText(
+        (profile && profile.evidence && profile.evidence.sourceCvFileName) ||
+          (currentCvFile && currentCvFile.name) ||
+          "profile"
+      )
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "")
+        .slice(0, 42);
+      var confirmedAt = cleanMessageText(
+        getApplicationProfileFieldValue(
+          profile,
+          "applicationDefaults.readinessConfirmedAt"
+        ) || ""
+      )
+        .replace(/[^0-9a-z]/gi, "")
+        .slice(0, 14);
+      var sourceCvId = cleanMessageText(
+        (profile && profile.evidence && profile.evidence.sourceCvId) || ""
+      )
+        .replace(/[^0-9a-z-]/gi, "")
+        .slice(0, 36);
+      return [
+        "ap-v1",
+        sourceCvId || sourceName || "session",
+        confirmedAt || "draft",
+      ]
+        .filter(Boolean)
+        .join("-");
+    }
+
+    function getApplicationProfileSubmitPreference(profile) {
+      var value = cleanMessageText(
+        getApplicationProfileFieldValue(
+          profile,
+          "applicationDefaults.submitPreference"
+        ) || ""
+      ).toLowerCase();
+      if (/^(?:auto_submit|submit_when_ready|submit)$/.test(value)) {
+        return "submit_when_ready";
+      }
+      if (/^(?:manual_review|review_first|ask_before_submit|ask)$/.test(value)) {
+        return "ask_before_submit";
+      }
+      return "ask_before_submit";
+    }
+
+    function buildApplicationAnswerMemorySnapshot(profile, answers) {
+      var memory =
+        profile && profile.answerMemory && typeof profile.answerMemory === "object"
+          ? profile.answerMemory
+          : {};
+      return {
+        screeningAnswers: Array.isArray(memory.screeningAnswers)
+          ? memory.screeningAnswers.slice(0, 60)
+          : [],
+        customQuestionDrafts: Array.isArray(memory.customQuestionDrafts)
+          ? memory.customQuestionDrafts.slice(0, 40)
+          : [],
+        approvedAnswers: Array.isArray(memory.approvedAnswers)
+          ? memory.approvedAnswers.slice(0, 80)
+          : [],
+        rejectedAnswers: Array.isArray(memory.rejectedAnswers)
+          ? memory.rejectedAnswers.slice(0, 80)
+          : [],
+        currentDraftAnswers:
+          answers && typeof answers === "object"
+            ? Object.assign({}, answers)
+            : {},
+        capturedAt: new Date().toISOString(),
+      };
+    }
+
+    function normalizeApplicationCustomQuestionDraft(rawDraft, index) {
+      var draft = rawDraft && typeof rawDraft === "object" ? rawDraft : {};
+      var question = cleanMessageText(
+        draft.question || draft.label || draft.field || "Employer question"
+      );
+      var answer = cleanMessageText(
+        draft.draft_answer || draft.answer || draft.value || ""
+      );
+      return {
+        id:
+          cleanMessageText(draft.id || draft.key || "") ||
+          "draft_" + String(index + 1),
+        key:
+          cleanMessageText(draft.key || draft.field || "") ||
+          question.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, ""),
+        type: cleanMessageText(draft.type || "custom_question"),
+        category: cleanMessageText(draft.category || "employer_question"),
+        question: question,
+        answer: answer,
+        evidence: Array.isArray(draft.evidence)
+          ? draft.evidence.map(cleanMessageText).filter(Boolean).slice(0, 4)
+          : [],
+        confidence: Number(draft.confidence || 0) || 0,
+        provider: cleanMessageText(draft.provider || ""),
+      };
+    }
+
+    function getApplicationWorkerCustomQuestionDrafts(data) {
+      var payload = data && data.result_payload && typeof data.result_payload === "object"
+        ? data.result_payload
+        : {};
+      var plans = [
+        data && data.workable_answer_plan,
+        data && data.greenhouse_answer_plan,
+        data && data.simple_form_answer_plan,
+        data && data.workday_answer_plan,
+        payload.workable_answer_plan,
+        payload.greenhouse_answer_plan,
+        payload.simple_form_answer_plan,
+        payload.workday_answer_plan,
+      ].filter(function (plan) {
+        return plan && typeof plan === "object";
+      });
+      var drafts = []
+        .concat(Array.isArray(data && data.custom_question_drafts) ? data.custom_question_drafts : [])
+        .concat(Array.isArray(payload.custom_question_drafts) ? payload.custom_question_drafts : [])
+        .concat(
+          plans.reduce(function (memo, plan) {
+            return memo.concat(
+              Array.isArray(plan.custom_question_drafts)
+                ? plan.custom_question_drafts
+                : []
+            );
+          }, [])
+        );
+      var seen = {};
+      return drafts
+        .map(normalizeApplicationCustomQuestionDraft)
+        .filter(function (draft) {
+          var key = draft.key + ":" + draft.answer;
+          if (!draft.question || !draft.answer || seen[key]) {
+            return false;
+          }
+          seen[key] = true;
+          return true;
+        })
+        .slice(0, 5);
+    }
+
+    function saveApplicationCustomQuestionDraftApproval(draft, approvedAnswer) {
+      var profile = getCurrentApplicationProfile();
+      var memory = profile.answerMemory && typeof profile.answerMemory === "object"
+        ? profile.answerMemory
+        : {};
+      var approved = Array.isArray(memory.approvedAnswers)
+        ? memory.approvedAnswers.slice(0, 79)
+        : [];
+      var savedDrafts = Array.isArray(memory.customQuestionDrafts)
+        ? memory.customQuestionDrafts.slice(0, 39)
+        : [];
+      var answer = cleanMessageText(approvedAnswer || draft.answer || "");
+      var item = {
+        key: draft.key,
+        question: draft.question,
+        answer: answer,
+        provider: draft.provider || "",
+        category: draft.category || "employer_question",
+        confidence: draft.confidence || 0,
+        evidence: draft.evidence || [],
+        approvedAt: new Date().toISOString(),
+      };
+      approved.unshift(item);
+      savedDrafts.unshift(Object.assign({}, item, { status: "approved" }));
+      profile.answerMemory = Object.assign({}, memory, {
+        approvedAnswers: approved,
+        customQuestionDrafts: savedDrafts,
+      });
+      applicationAnswerDraft[draft.key] = answer;
+      storeApplicationProfile(profile);
+      saveApplicationProfileToServer(profile);
+      return item;
+    }
+
+    function renderApplicationCustomQuestionDraftsCard(drafts, queueItem) {
+      var item = queueItem || {};
+      var role = cleanMessageText(item.title || roleTitle || "this role");
+      var company = cleanMessageText(item.company || roleCompany || "");
+      var rows = (drafts || [])
+        .map(function (draft, index) {
+          var evidence = draft.evidence && draft.evidence.length
+            ? '<ul class="sffc-crm-apply-chat__question-draft-evidence">' +
+              draft.evidence
+                .map(function (line) {
+                  return "<li>" + escapeHtml(line) + "</li>";
+                })
+                .join("") +
+              "</ul>"
+            : "";
+          return (
+            '<article class="sffc-crm-apply-chat__question-draft" data-sffc-application-question-draft data-draft-index="' +
+            escapeHtml(String(index)) +
+            '">' +
+            '<div class="sffc-crm-apply-chat__question-draft-head">' +
+            "<span>Employer question</span>" +
+            "<strong>" +
+            escapeHtml(draft.question) +
+            "</strong>" +
+            "</div>" +
+            '<textarea class="sffc-crm-apply-chat__question-draft-answer" data-sffc-application-question-draft-answer>' +
+            escapeHtml(draft.answer) +
+            "</textarea>" +
+            evidence +
+            '<div class="sffc-crm-apply-chat__question-draft-actions">' +
+            '<button type="button" class="sffc-crm-apply-chat__inline-action is-primary" data-sffc-application-question-draft-use="' +
+            escapeHtml(String(index)) +
+            '">Use this answer</button>' +
+            '<button type="button" class="sffc-crm-apply-chat__inline-action" data-sffc-application-question-draft-edit="' +
+            escapeHtml(String(index)) +
+            '">Edit answer</button>' +
+            "</div>" +
+            "</article>"
+          );
+        })
+        .join("");
+      return (
+        '<div class="sffc-crm-apply-chat__question-drafts" data-sffc-application-question-drafts>' +
+        '<div class="sffc-crm-apply-chat__question-drafts-head">' +
+        "<span>Application answer review</span>" +
+        "<h2>Emily drafted employer answers for review</h2>" +
+        "<p>I found custom questions for " +
+        escapeHtml(role) +
+        (company ? " at " + escapeHtml(company) : "") +
+        ". I’ve drafted answers from the CV/profile evidence, but I won’t use them until you approve or edit them.</p>" +
+        "</div>" +
+        rows +
+        "</div>"
+      );
+    }
+
+    function getApplicationProgressQueueItem(queueItem, statusLabel, data) {
+      var item =
+        (queueItem && typeof queueItem === "object" ? queueItem : null) ||
+        (commercialApplyQueueItemsState && commercialApplyQueueItemsState[0]) ||
+        getCommercialApplyQueueMainItem() ||
+        {};
+      var status = cleanMessageText(
+        statusLabel || (data && data.status) || item.status || "Queued"
+      );
+      return Object.assign({}, item, {
+        status: status,
+        workerStatus: status,
+        workerData: data && typeof data === "object" ? data : item.workerData,
+      });
+    }
+
+    function getApplicationProgressTitle(item) {
+      var role = cleanMessageText((item && item.title) || roleTitle || "this role");
+      var company = cleanMessageText((item && item.company) || roleCompany || "");
+      return company ? role + " at " + company : role;
+    }
+
+    function renderApplicationProgressCard(progress) {
+      var state = progress && typeof progress === "object" ? progress : {};
+      var item = state.item || {};
+      var model = getCommercialApplyQueueStatusModel(item);
+      var provider = cleanMessageText(
+        model.provider || getCommercialApplyQueueItemProvider(item) || ""
+      );
+      var title = getApplicationProgressTitle(item);
+      var detail = cleanMessageText(state.detail || model.summary || "");
+      var milestones = (model.milestones || [])
+        .filter(function (milestone) {
+          return milestone && !milestone.hidden;
+        })
+        .map(function (milestone) {
+          var rowState = cleanMessageText(milestone.state || "pending");
+          return (
+            '<li class="sffc-crm-apply-chat__application-progress-row is-' +
+            escapeHtml(rowState || "pending") +
+            '">' +
+            '<span class="sffc-crm-apply-chat__application-progress-dot" aria-hidden="true"></span>' +
+            '<span class="sffc-crm-apply-chat__application-progress-label">' +
+            escapeHtml(milestone.label || "Step") +
+            "</span>" +
+            '<span class="sffc-crm-apply-chat__application-progress-detail">' +
+            escapeHtml(milestone.detail || "") +
+            "</span>" +
+            "</li>"
+          );
+        })
+        .join("");
+      return (
+        '<section class="sffc-crm-apply-chat__application-progress" data-sffc-application-progress-card data-status="' +
+        escapeHtml(model.key || "") +
+        '">' +
+        '<div class="sffc-crm-apply-chat__application-progress-head">' +
+        '<span class="sffc-crm-apply-chat__application-progress-eyebrow">Application progress</span>' +
+        "<h2>" +
+        escapeHtml(model.label || "Application") +
+        "</h2>" +
+        "<p>" +
+        escapeHtml(title) +
+        (provider ? " · " + escapeHtml(getAutoSubmitProviderLabel(provider) || provider) : "") +
+        "</p>" +
+        "</div>" +
+        '<div class="sffc-crm-apply-chat__application-progress-summary is-tone-' +
+        escapeHtml(model.tone || "neutral") +
+        '">' +
+        escapeHtml(detail || model.summary || "I’ll update this as the employer form progresses.") +
+        "</div>" +
+        '<ol class="sffc-crm-apply-chat__application-progress-list">' +
+        milestones +
+        "</ol>" +
+        "</section>"
+      );
+    }
+
+    function showOrUpdateApplicationProgressCard(progress, options) {
+      var next = progress && typeof progress === "object" ? progress : {};
+      applicationProgressCardState = Object.assign(
+        {},
+        applicationProgressCardState || {},
+        next
+      );
+      if (next.item) {
+        applicationProgressCardState.item = next.item;
+      }
+      var html = renderApplicationProgressCard(applicationProgressCardState);
+      if (
+        applicationProgressCardRow &&
+        messages &&
+        messages.contains(applicationProgressCardRow)
+      ) {
+        var existing = applicationProgressCardRow.querySelector(
+          "[data-sffc-application-progress-card]"
+        );
+        if (existing) {
+          existing.outerHTML = html;
+          scrollToMessageStart(applicationProgressCardRow);
+          return applicationProgressCardRow;
+        }
+      }
+      applicationProgressCardRow = botMessageNow(html, null, {
+        skipChatLog: true,
+        skipTypewriter: true,
+        pinDuration: options && options.pinDuration,
+      });
+      return applicationProgressCardRow;
+    }
+
+    function updateApplicationProgressForTask(
+      taskUuid,
+      queueItem,
+      statusLabel,
+      detail,
+      data
+    ) {
+      var item = getApplicationProgressQueueItem(queueItem, statusLabel, data);
+      if (taskUuid) {
+        item.applicationTaskUuid = cleanMessageText(taskUuid || "");
+      }
+      showOrUpdateApplicationProgressCard({
+        taskUuid: cleanMessageText(taskUuid || ""),
+        item: item,
+        detail: detail,
+        updatedAt: new Date().toISOString(),
+      });
+      return item;
     }
 
     function renderApplicationProfileReadinessCard(review, queueItem) {
@@ -145857,201 +146317,80 @@
       }
 
       function waitForSignupCompletion() {
-        var waitForSignupPrompt = getWaitForSignupPrompt();
+        var waitForSignupPrompt = isArabicChat()
+          ? "سأتابع تجهيز الطلب هنا وأستخدم تفاصيل الملف الشخصي المتاحة."
+          : "I’ll continue preparing the application here using the profile details available.";
         botMessage(
           waitForSignupPrompt,
           humanComposeDelay(cleanMessageText(waitForSignupPrompt), 1600, 3200),
           function () {
-            setPromptState(
-              "apply_waiting_for_signup",
-              {
-                yes: function (value) {
-                  echoPromptChoice(value || "I'm signed up now");
-                  if (applyOnboardingPreferredEmail) {
-                    lookupApplyChatAccountEmail(applyOnboardingPreferredEmail)
-                      .then(function (data) {
-                        if (data && data.exists) {
-                          window.setTimeout(
-                            confirmAccountFound,
-                            randomBetween(650, 1200)
-                          );
-                          return;
-                        }
-                        window.setTimeout(
-                          askForAccountEmail,
-                          randomBetween(650, 1200)
-                        );
-                      })
-                      .catch(function () {
-                        window.setTimeout(
-                          askForAccountEmail,
-                          randomBetween(650, 1200)
-                        );
-                      });
-                    return;
-                  }
-                  window.setTimeout(
-                    askForAccountEmail,
-                    randomBetween(650, 1200)
-                  );
-                },
-                other: function (value) {
-                  botMessage(
-                    isArabicChat()
-                      ? "فقط أخبريني عندما يكتمل التسجيل وسأتابع من هناك."
-                      : "Just let me know once you're signed up and I'll pick it up from there.",
-                    humanComposeDelay(
-                      isArabicChat()
-                        ? "فقط أخبريني عندما يكتمل التسجيل وسأتابع من هناك."
-                        : "Just let me know once you're signed up and I'll pick it up from there.",
-                      1800,
-                      3600
-                    ),
-                    function () {
-                      focusComposer(getFlowPlaceholder("signed_up"));
-                    },
-                    humanReadDelay(value, 450)
-                  );
-                },
-              },
-              getFlowPlaceholder("signed_up")
-            );
-            focusComposer(getFlowPlaceholder("signed_up"));
+            clearPromptState();
+            revealWorkspaceForApplicationProfile();
           }
         );
       }
 
       function sendPrefilledSignupLink() {
-        var finalLink = buildPrefilledApplySignupUrl();
         applySignupLinkOpened = true;
         botMessage(
-          (isArabicChat()
-            ? 'تمام، أكملنا أغلب التفاصيل. هذا هو الرابط لإكمال الخطوة الأخيرة، وتأكدّي من اختيار "Apply for me" حتى نكمل.<br><a class="sffc-crm-apply-chat__link-pill" href="'
-            : 'Ok, we have most of the details completed, here\'s the link to complete the final part, make sure you select "Apply for me" so we can proceed.<br><a class="sffc-crm-apply-chat__link-pill" href="') +
-            escapeHtml(finalLink) +
-            '" target="_blank" rel="noopener noreferrer">' +
-            (isArabicChat()
-              ? "أكملي الخطوة الأخيرة"
-              : "Complete the final part") +
-            "</a>",
+          isArabicChat()
+            ? "تمام، لدينا أغلب التفاصيل. سأفتح مرحلة مراجعة الملف الشخصي والتطبيق هنا بدلاً من نقلك إلى صفحة أخرى."
+            : "Ok, we have most of the details. I’ll open the profile and application review here instead of sending you to another page.",
           humanComposeDelay(
             isArabicChat()
-              ? "تمام، أكملنا أغلب التفاصيل. هذا هو الرابط لإكمال الخطوة الأخيرة، وتأكدّي من اختيار Apply for me حتى نكمل."
-              : "Ok, we have most of the details completed, here's the link to complete the final part, make sure you select Apply for me so we can proceed.",
+              ? "تمام، لدينا أغلب التفاصيل. سأفتح مرحلة مراجعة الملف الشخصي والتطبيق هنا."
+              : "Ok, we have most of the details. I’ll open the profile and application review here.",
             3200,
             6200
           ),
           function () {
-            window.setTimeout(
-              waitForSignupCompletion,
-              randomBetween(650, 1200)
-            );
+            revealWorkspaceForApplicationProfile();
           }
         );
       }
 
       function openSelectedApplySignupPath(accountType) {
-        var option = getApplyPricingOption(accountType);
-        var finalLink;
-        if (!option) {
-          sendPrefilledSignupLink();
-          return;
-        }
         clearPromptState();
-        applySelectedPricingOption = String(option.account_type || "platform");
-        if (applySignupLinkOpened) {
-          return;
-        }
-        finalLink = buildPrefilledApplySignupUrl();
+        applySelectedPricingOption = cleanMessageText(accountType || "platform");
         applySignupLinkOpened = true;
-        try {
-          window.open(finalLink, "_blank", "noopener,noreferrer");
-        } catch (error) {
-          window.location.href = finalLink;
-          return;
-        }
         botMessage(
           isArabicChat()
-            ? "فتحت لك الخطوة الأخيرة في تبويب جديد. أخبريني عندما تكملي التسجيل."
-            : "I've opened the final step in a new tab. Let me know once you're signed up.",
+            ? "سأجهز التطبيق هنا وأستخدم تفاصيل ملفك الشخصي والسيرة الذاتية بدلاً من نقلك إلى صفحة أخرى."
+            : "I’ll prepare the application here using your profile details and CV instead of sending you to another page.",
           humanComposeDelay(
             isArabicChat()
-              ? "فتحت لك الخطوة الأخيرة في تبويب جديد. أخبريني عندما تكملي التسجيل."
-              : "I've opened the final step in a new tab. Let me know once you're signed up.",
+              ? "سأجهز التطبيق هنا وأستخدم تفاصيل ملفك الشخصي والسيرة الذاتية بدلاً من نقلك إلى صفحة أخرى."
+              : "I’ll prepare the application here using your profile details and CV instead of sending you to another page.",
             2200,
             4200
           ),
           function () {
-            window.setTimeout(
-              waitForSignupCompletion,
-              randomBetween(650, 1200)
-            );
+            revealWorkspaceForApplicationProfile();
           }
         );
       }
 
       function askApplyPricingOption() {
-        var cvOnly = getApplyPricingOption("platform");
-        var cvCover = getApplyPricingOption("mentorship");
         var promptHtml = isArabicChat()
-          ? "الخطوة التالية هي إنشاء حسابك وإكمال Checkout الخاص بـ Apply for me. اختاري الخيار المناسب لك أدناه."
-          : "The next step is to create your account and complete the Apply for me checkout. Choose the option you want below.";
+          ? "الخطوة التالية هي تجهيز الطلب. سأستخدم السيرة الذاتية وتفاصيل الملف الشخصي، وأسألك فقط عن الأشياء التي لا يجب أن أخمنها."
+          : "The next step is preparing the application. I’ll use the CV and profile details we have, then ask only for anything I should not guess.";
         if (applyNeedsCoverLetter === "yes") {
           promptHtml += isArabicChat()
             ? "<br><br>أضفت لك أيضاً خيار الـcover letter في الأسفل."
             : "<br><br>I have included the cover-letter option below as well.";
         }
-        if (cvOnly) {
-          promptHtml += buildApplyPricingArtifact(cvOnly);
-        }
-        if (cvCover) {
-          promptHtml += buildApplyPricingArtifact(cvCover);
-        }
         botMessage(
           promptHtml,
           humanComposeDelay(
             isArabicChat()
-              ? "الخطوة التالية هي إنشاء حسابك وإكمال Checkout الخاص بـ Apply for me. اختاري الخيار المناسب لك أدناه."
-              : "The next step is to create your account and complete the Apply for me checkout. Choose the option you want below.",
+              ? "الخطوة التالية هي تجهيز الطلب."
+              : "The next step is preparing the application.",
             2600,
             5200
           ),
           function () {
-            setPromptState(
-              "apply_select_pricing_option",
-              {
-                other: function (value) {
-                  botMessage(
-                    isArabicChat()
-                      ? "اختاري أحد الخيارات أعلاه وسأفتح لك الـcheckout المناسب."
-                      : "Choose one of the options above and I'll open the right checkout for you.",
-                    humanComposeDelay(
-                      isArabicChat()
-                        ? "اختاري أحد الخيارات أعلاه وسأفتح لك الـcheckout المناسب."
-                        : "Choose one of the options above and I'll open the right checkout for you.",
-                      1800,
-                      3600
-                    ),
-                    function () {
-                      focusComposer(
-                        isArabicChat()
-                          ? "اختاري أحد الخيارات أعلاه"
-                          : "Choose one of the options above"
-                      );
-                    },
-                    humanReadDelay(value, 450)
-                  );
-                },
-              },
-              isArabicChat()
-                ? "اختاري أحد الخيارات أعلاه"
-                : "Choose one of the options above"
-            );
-            focusComposer(
-              isArabicChat()
-                ? "اختاري أحد الخيارات أعلاه"
-                : "Choose one of the options above"
-            );
+            clearPromptState();
+            revealWorkspaceForApplicationProfile();
           }
         );
       }
@@ -146508,6 +146847,15 @@
             ? cvPayload.text
             : cleanMessageText(capturedCvText || "");
         var applicationProfile = getCurrentApplicationProfile();
+        var applicationProfileVersionId =
+          getApplicationProfileVersionId(applicationProfile);
+        var applicationSubmitPreference =
+          getApplicationProfileSubmitPreference(applicationProfile);
+        var applicationAnswerMemorySnapshot =
+          buildApplicationAnswerMemorySnapshot(
+            applicationProfile,
+            resolvedApplicationAnswers
+          );
         var candidatePhone = cleanMessageText(workableTestCandidatePhone || "");
         if (!candidatePhone && capturedCvText) {
           candidatePhone = cleanMessageText(findCvPhone(capturedCvText) || "");
@@ -146626,6 +146974,12 @@
           "application_profile",
           JSON.stringify(applicationProfile || {})
         );
+        formData.append("profile_version_id", applicationProfileVersionId);
+        formData.append(
+          "answer_memory_snapshot",
+          JSON.stringify(applicationAnswerMemorySnapshot || {})
+        );
+        formData.append("submit_preference", applicationSubmitPreference);
         saveApplicationProfileToServer(applicationProfile);
         formData.append(
           "successfactors_profile",
@@ -146639,6 +146993,8 @@
         if (workdayDetected) {
           var workdayUsesExistingAccount =
             workdayAccountPreference === "sign_in";
+          var workdayFinalSubmitAllowed =
+            applicationSubmitPreference === "submit_when_ready";
           formData.append(
             "workday_consent",
             JSON.stringify({
@@ -146646,7 +147002,7 @@
               account_route: workdayUsesExistingAccount ? "sign_in" : "create",
               create_account: !workdayUsesExistingAccount,
               sign_in: workdayUsesExistingAccount,
-              final_submit: true,
+              final_submit: workdayFinalSubmitAllowed,
               captured_at: new Date().toISOString(),
             })
           );
@@ -146668,6 +147024,8 @@
             successFactorsAccountPreference === "sign_in";
           var successFactorsCreateAccount =
             successFactorsAccountPreference === "create";
+          var successFactorsFinalSubmitAllowed =
+            applicationSubmitPreference === "submit_when_ready";
           formData.append(
             "successfactors_consent",
             JSON.stringify({
@@ -146679,7 +147037,7 @@
                 : "",
               create_account: successFactorsCreateAccount,
               sign_in: successFactorsUsesExistingAccount,
-              final_submit: true,
+              final_submit: successFactorsFinalSubmitAllowed,
               captured_at: new Date().toISOString(),
             })
           );
@@ -146833,6 +147191,11 @@
             fetchBrowserApplicationTaskStatus(taskUuid)
               .then(function (data) {
                 var status = cleanMessageText((data && data.status) || "");
+                var progressQueueItem =
+                  (commercialApplyQueueItemsState &&
+                    commercialApplyQueueItemsState[0]) ||
+                  getCommercialApplyQueueMainItem() ||
+                  {};
                 if (status === "queued" || status === "processing") {
                   if (commercialApplyQueueDetailsMode) {
                     commercialApplyQueueActivated = true;
@@ -146845,10 +147208,22 @@
                       data
                     );
                   }
+                  updateApplicationProgressForTask(
+                    taskUuid,
+                    progressQueueItem,
+                    status === "queued" ? "Queued" : "Running",
+                    status === "queued"
+                      ? "The application is waiting for the worker to pick it up."
+                      : "The worker is opening the employer form and preparing the application.",
+                    data
+                  );
                   pollBrowserApplicationTask(taskUuid, currentAttempt + 1);
                   return;
                 }
                 if (status === "submitted") {
+                  if (applicationWorkerQueue) {
+                    applicationWorkerQueue.disabled = false;
+                  }
                   if (commercialApplyQueueDetailsMode) {
                     updateCommercialQueueItemStatus(
                       0,
@@ -146857,6 +147232,13 @@
                       data
                     );
                   }
+                  updateApplicationProgressForTask(
+                    taskUuid,
+                    progressQueueItem,
+                    "Submitted",
+                    "The employer returned a submission confirmation.",
+                    data
+                  );
                   var submittedAccountMessage =
                     getBrowserApplicationGeneratedAccountMessage(data);
                   botMessage(
@@ -146872,6 +147254,9 @@
                   return;
                 }
                 if (status === "dry_run_ready") {
+                  if (applicationWorkerQueue) {
+                    applicationWorkerQueue.disabled = false;
+                  }
                   if (commercialApplyQueueDetailsMode) {
                     updateCommercialQueueItemStatus(
                       0,
@@ -146880,6 +147265,13 @@
                       data
                     );
                   }
+                  updateApplicationProgressForTask(
+                    taskUuid,
+                    progressQueueItem,
+                    "Ready to submit",
+                    "The worker completed the form and stopped before final submission.",
+                    data
+                  );
                   var dryRunAccountMessage =
                     getBrowserApplicationGeneratedAccountMessage(data);
                   botMessage(
@@ -146899,6 +147291,9 @@
                   return;
                 }
                 if (status === "verification_required") {
+                  if (applicationWorkerQueue) {
+                    applicationWorkerQueue.disabled = false;
+                  }
                   if (commercialApplyQueueDetailsMode) {
                     updateCommercialQueueItemStatus(
                       0,
@@ -146907,6 +147302,13 @@
                       data
                     );
                   }
+                  updateApplicationProgressForTask(
+                    taskUuid,
+                    progressQueueItem,
+                    "Needs verification",
+                    "The employer requires a verification code before the worker can continue.",
+                    data
+                  );
                   var verificationProvider = cleanMessageText(
                     (data && data.provider) || ""
                   );
@@ -147037,6 +147439,9 @@
                   return;
                 }
                 if (status === "review_required") {
+                  if (applicationWorkerQueue) {
+                    applicationWorkerQueue.disabled = false;
+                  }
                   if (commercialApplyQueueDetailsMode) {
                     updateCommercialQueueItemStatus(
                       0,
@@ -147044,6 +147449,52 @@
                       "Emily needs a manual review",
                       data
                     );
+                  }
+                  updateApplicationProgressForTask(
+                    taskUuid,
+                    progressQueueItem,
+                    "Review required",
+                    "The worker reached a point that needs review before it can continue.",
+                    data
+                  );
+                  var customQuestionDrafts =
+                    getApplicationWorkerCustomQuestionDrafts(data);
+                  if (customQuestionDrafts.length) {
+                    pendingApplicationCustomQuestionDrafts =
+                      customQuestionDrafts.slice(0, 5);
+                    var draftQueueItem =
+                      (commercialApplyQueueItemsState &&
+                        commercialApplyQueueItemsState[0]) ||
+                      getCommercialApplyQueueMainItem() ||
+                      {};
+                    pendingApplicationCustomQuestionDraftQueueItem =
+                      normalizeCommercialApplyQueueItem(
+                        draftQueueItem,
+                        "Review draft answers"
+                      );
+                    if (commercialApplyQueueDetailsMode) {
+                      updateCommercialQueueItemStatus(
+                        0,
+                        "Review draft answers",
+                        "Emily drafted employer answers for you to approve",
+                        data
+                      );
+                    }
+                    botMessage(
+                      renderApplicationCustomQuestionDraftsCard(
+                        pendingApplicationCustomQuestionDrafts,
+                        draftQueueItem
+                      ),
+                      humanComposeDelay(
+                        "Review employer answers.",
+                        1200,
+                        2600
+                      ),
+                      function () {
+                        focusComposer("Review or edit the draft answers");
+                      }
+                    );
+                    return;
                   }
                   if (commercialApplyQueueDetailsMode) {
                     askApplyResultsOfflineEmailConfirmation(
@@ -147087,6 +147538,9 @@
                   return;
                 }
                 if (status === "failed") {
+                  if (applicationWorkerQueue) {
+                    applicationWorkerQueue.disabled = false;
+                  }
                   if (commercialApplyQueueDetailsMode) {
                     updateCommercialQueueItemStatus(
                       0,
@@ -147095,6 +147549,13 @@
                       data
                     );
                   }
+                  updateApplicationProgressForTask(
+                    taskUuid,
+                    progressQueueItem,
+                    "Referred",
+                    "The automatic route stopped. This application needs a manual review or fallback route.",
+                    data
+                  );
                   var errorMessage = cleanMessageText(
                     (data && data.last_error) || ""
                   );
@@ -149202,7 +149663,6 @@
         var hasSchemaSignals =
           getGreenhouseApplicationQuestionLabels(schema).length > 0;
         var canWorkerSubmit = hasApplicationWorkerSubmitCapability();
-        var hasWorkerProAccess = hasApplicationWorkerProAccess();
         var html =
           '<div class="sffc-crm-apply-chat__application-workspace">' +
           '<div class="sffc-crm-apply-chat__application-header">' +
@@ -149237,18 +149697,16 @@
           '<div class="sffc-crm-apply-chat__application-next-step">' +
           '<div class="sffc-crm-apply-chat__application-next-step-copy">' +
           "<small>" +
-          (canWorkerSubmit ? "Pro+ option" : "Application form") +
+          (canWorkerSubmit ? "Application support" : "Application form") +
           "</small>" +
           "<strong>" +
           (canWorkerSubmit
-            ? "Want Senna to complete it for you?"
+            ? "Want Emily to complete it for you?"
             : "Complete the employer form inside Senna") +
           "</strong>" +
           "<p>" +
           (canWorkerSubmit
-            ? hasWorkerProAccess
-              ? "I’ll use your CV, name, and email, then ask any employer-required questions in a cleaner format before the worker submits the form."
-              : "Apply for me is available with a Pro+ subscription. You can still complete the embedded employer form here."
+            ? "I’ll use your CV, profile details, and safe defaults, then ask you only when the employer needs something I should not guess."
             : "The form is available here. I’ll keep the role context and screening signals beside it while you apply.") +
           "</p>" +
           "</div>" +
@@ -150051,7 +150509,7 @@
               yes: function () {
                 echoPromptChoice(getLocalizedDecisionLabel("yes"));
                 window.setTimeout(
-                  askOtherRolesPreference,
+                  askAccountStatusForApplyFlow,
                   randomBetween(650, 1400)
                 );
               },
@@ -150069,24 +150527,18 @@
                     ? "أكيد، تفضلي بسؤالك."
                     : "Sure, go ahead with your question.",
                   isArabicChat()
-                    ? "بعدها فقط أخبريني هل تريدينني أن أبحث عن أدوار أخرى مناسبة أيضاً."
-                    : "After that, just tell me whether you'd like me to look for other matching roles as well."
+                    ? "بعدها نرجع لتأكيد تفاصيل التقديم الأساسية."
+                    : "After that, we can come back to the basic application details."
                 );
               },
               other: function (value) {
-                botMessage(
-                  getNeedSpecificAnswerPrompt("role_search"),
-                  humanComposeDelay(
-                    cleanMessageText(
-                      getNeedSpecificAnswerPrompt("role_search")
-                    ),
-                    1900,
-                    3800
-                  ),
-                  function () {
-                    focusComposer(getComposerPlaceholder("reply"));
-                  },
-                  humanReadDelay(lastUserInputText, 450)
+                clearPromptState();
+                if (cleanMessageText(value).length > 2) {
+                  echoPromptChoice(value);
+                }
+                window.setTimeout(
+                  askAccountStatusForApplyFlow,
+                  randomBetween(650, 1400)
                 );
               },
             },
@@ -150164,7 +150616,7 @@
                     : "Go ahead and apply"
                 );
                 window.setTimeout(
-                  askMatchingRolesPreference,
+                  askAccountStatusForApplyFlow,
                   randomBetween(650, 1400)
                 );
               },
@@ -150261,79 +150713,22 @@
     function askJobSearchWaitForSignup() {
       var firstName = getFirstNameFromFullName(applyOnboardingFullName);
       var signedInAck = getJobSearchSignedInAckLine();
-      var signedInWait = getJobSearchSignedInWaitLine();
-      var membershipAccountType = getMembershipAccountTypeFromJobSearchPackage(
-        jobSearchSelectedPackage
-      );
-      var completeSignupLabel = isArabicChat()
-        ? "أكملي التسجيل"
-        : "Complete sign up";
-      var waitForSignupLine = getJobSearchWaitForSignupLine(
-        firstName,
-        isArabicChat() ? "صفحة العضوية" : "memberships"
-      );
+      var waitForSignupLine = firstName
+        ? firstName + ", I have enough to keep working from this brief."
+        : "I have enough to keep working from this brief.";
       botMessage(
-        waitForSignupLine +
-          '<div class="sffc-crm-apply-chat__inline-action-row">' +
-          '<button type="button" class="sffc-crm-apply-chat__inline-action" data-sffc-apply-chat-open-membership="' +
-          escapeHtml(membershipAccountType) +
-          '">' +
-          "<span>" +
-          completeSignupLabel +
-          "</span>" +
-          '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>' +
-          "</button>" +
-          "</div>",
+        waitForSignupLine,
         humanComposeDelay(waitForSignupLine, 1600, 2800),
         function () {
-          setPromptState(
-            "job_search_signed_in",
-            {
-              yes: function (value) {
-                echoPromptChoice(
-                  value || (isArabicChat() ? "أكملت التسجيل" : "I'm signed in")
-                );
-                applyMembershipCompleted = true;
-                botMessage(
-                  signedInAck,
-                  humanComposeDelay(signedInAck, 900, 1600),
-                  function () {
-                    beginJobSearchContinuityConversation("membership_complete");
-                  }
-                );
-              },
-              other: function (value) {
-                var clean = cleanMessageText(value || "").toLowerCase();
-                if (
-                  /(signed in|signed up|done|finished|completed|i'm in|im in)/i.test(
-                    clean
-                  )
-                ) {
-                  clearPromptState();
-                  echoPromptChoice(value);
-                  applyMembershipCompleted = true;
-                  botMessage(
-                    signedInAck,
-                    humanComposeDelay(signedInAck, 900, 1600),
-                    function () {
-                      beginJobSearchContinuityConversation(
-                        "membership_complete"
-                      );
-                    }
-                  );
-                  return;
-                }
-                showPromptRecoveryMessage(
-                  "job_search_signed_in",
-                  signedInWait,
-                  getFlowPlaceholder("signed_up"),
-                  value
-                );
-              },
-            },
-            getFlowPlaceholder("signed_up")
+          clearPromptState();
+          applyMembershipCompleted = true;
+          botMessage(
+            signedInAck,
+            humanComposeDelay(signedInAck, 900, 1600),
+            function () {
+              beginJobSearchContinuityConversation("membership_complete");
+            }
           );
-          focusComposer(getFlowPlaceholder("signed_up"));
         }
       );
     }
@@ -152669,55 +153064,28 @@
         botMessage(
           pickVariant("account_check", [
             isArabicChat()
-              ? "لا أستطيع رؤية حساب سنّا الخاص بك حتى الآن. هل أكملتِ التسجيل بالفعل؟"
-              : "I can't locate your MENA Careers account yet. Have you signed up already?",
+              ? "سأفتح مراجعة الملف الشخصي قبل الإرسال حتى تتأكدي من التفاصيل."
+              : "I’ll open the profile review before submission so you can confirm the details.",
             isArabicChat()
-              ? "لا أرى حساب سنّا مربوطاً هنا حتى الآن. هل أنشأتِ واحداً بالفعل؟"
-              : "I do not see a MENA Careers account linked here yet. Have you already created one?",
+              ? "قبل الإرسال، سأعرض التفاصيل التي سأستخدمها في الطلب."
+              : "Before submission, I’ll show the details I’m going to use for the application.",
             isArabicChat()
-              ? "قبل أن أفتح قسم الملف الشخصي لهذا، هل يمكنني التأكد إذا كنتِ قد أكملتِ التسجيل؟"
-              : "Before I open the profile for this, can I check if you have signed up already?",
+              ? "سأستخدم ما لدي من السيرة الذاتية والملف الشخصي وأسألك فقط عن الناقص."
+              : "I’ll use what I have from the CV and profile, then ask only for anything missing.",
             isArabicChat()
-              ? "تحقق سريع: هل لديك حساب سنّا بالفعل؟"
-              : "Quick check: do you already have a MENA Careers account?",
+              ? "الخطوة التالية هي مراجعة التفاصيل قبل تشغيل الطلب."
+              : "The next step is reviewing the details before I run the application.",
           ]),
           humanComposeDelay(
             isArabicChat()
-              ? "لا أستطيع رؤية حساب سنّا الخاص بك حتى الآن. هل أكملتِ التسجيل بالفعل؟"
-              : "I can't locate your MENA Careers account yet. Have you signed up already?",
+              ? "سأفتح مراجعة الملف الشخصي قبل الإرسال حتى تتأكدي من التفاصيل."
+              : "I’ll open the profile review before submission so you can confirm the details.",
             1800,
             4200
           ),
           function () {
-            setPromptState(
-              "account_signup_check",
-              {
-                yes: handleAccountYes,
-                no: handleAccountNo,
-                question: function () {
-                  clearPromptState();
-                  openQuestionDetour(
-                    getQuestionDetourIntro(),
-                    getAccountQuestionDetourResume()
-                  );
-                },
-                other: function (value) {
-                  var signupNudge = isArabicChat()
-                    ? "قولي لي إذا كنتِ أكملتِ التسجيل بالفعل، أو إذا ما زلتِ تحتاجين تنشئين الحساب."
-                    : "Tell me whether you've already signed up, or whether you still need to create the account.";
-                  botMessage(
-                    signupNudge,
-                    humanComposeDelay(signupNudge, 1700, 3600),
-                    function () {
-                      focusComposer(getComposerPlaceholder("reply"));
-                    },
-                    humanReadDelay(lastUserInputText, 450)
-                  );
-                },
-              },
-              getComposerPlaceholder("reply")
-            );
-            focusComposer(getComposerPlaceholder("reply"));
+            clearPromptState();
+            revealWorkspaceForApplicationProfile();
           }
         );
       }, randomBetween(500, 1200));
@@ -153638,6 +154006,190 @@
       closeChat(true);
     }
 
+    function cloneEmilyDebugValue(value) {
+      try {
+        return JSON.parse(JSON.stringify(value || null));
+      } catch (error) {
+        return null;
+      }
+    }
+
+    function compactEmilyDebugDecision(decision) {
+      var intent = (decision && decision.intent) || {};
+      var action = (decision && decision.nextAction) || {};
+      var route = (decision && decision.route) || {};
+      var meaning = (decision && decision.meaning) || {};
+      var logging = (decision && decision.logging) || {};
+      var routeEnsemble =
+        intent.routeEnsemble ||
+        logging.routeEnsemble ||
+        (decision && decision.debug && decision.debug.routeEnsemble) ||
+        null;
+      return {
+        intent: {
+          type: cleanMessageText(intent.type || ""),
+          confidence: Number(intent.confidence || 0) || 0,
+          source: cleanMessageText(intent.source || ""),
+          rawSignals: (intent.rawSignals || []).slice(0, 12),
+        },
+        route: {
+          key: cleanMessageText(route.key || ""),
+          label: cleanMessageText(
+            (route.definition && route.definition.label) || ""
+          ),
+          source: cleanMessageText(route.source || ""),
+        },
+        action: {
+          type: cleanMessageText(action.type || ""),
+          query: cleanMessageText(
+            (action.params && (action.params.query || action.params.searchQuery)) ||
+              action.query ||
+              ""
+          ),
+          intent: cleanMessageText(
+            (action.params && action.params.intent) || action.intent || ""
+          ),
+          params: cloneEmilyDebugValue(action.params || {}),
+        },
+        meaning: {
+          primaryIntent: cleanMessageText(meaning.primaryIntent || ""),
+          confidence: Number(meaning.confidence || 0) || 0,
+          secondaryIntents: (meaning.secondaryIntents || []).slice(0, 8),
+          entities: cloneEmilyDebugValue(meaning.entities || {}),
+          scores: cloneEmilyDebugValue(meaning.scores || {}),
+          rewrittenQueries: cloneEmilyDebugValue(meaning.rewrittenQueries || {}),
+          action: cloneEmilyDebugValue(meaning.action || {}),
+          explanation: cleanMessageText(meaning.explanation || ""),
+        },
+        ensemble: routeEnsemble
+          ? {
+              route: cleanMessageText(routeEnsemble.route || ""),
+              score: Number(routeEnsemble.score || 0) || 0,
+              calibratedProbability:
+                Number(routeEnsemble.calibratedProbability || 0) || 0,
+              margin: Number(routeEnsemble.margin || 0) || 0,
+              shouldClarify: !!routeEnsemble.shouldClarify,
+              runnerUp: cleanMessageText(routeEnsemble.runnerUp || ""),
+              candidates: (routeEnsemble.candidates || [])
+                .slice(0, 6)
+                .map(function (candidate) {
+                  return {
+                    route: cleanMessageText((candidate && candidate.route) || ""),
+                    score: Number((candidate && candidate.score) || 0) || 0,
+                    calibratedProbability:
+                      Number(
+                        (candidate && candidate.calibratedProbability) || 0
+                      ) || 0,
+                  };
+                }),
+            }
+          : null,
+        logging: {
+          validatorResult: cleanMessageText(logging.validatorResult || ""),
+          serviceApplied: !!logging.serviceApplied,
+          serviceRejected: cleanMessageText(logging.serviceRejected || ""),
+          serviceAction: cleanMessageText(logging.serviceAction || ""),
+          serviceConfidence: Number(logging.serviceConfidence || 0) || 0,
+        },
+      };
+    }
+
+    function getEmilyMeaningDebugContext(localDecision) {
+      var context = buildEmilyNlpServiceContext(localDecision || {});
+      return {
+        endpointConfigured: !!getEmilyNlpServiceEndpoint(),
+        tokenConfigured: !!getEmilyNlpServiceToken(),
+        promptState: cleanMessageText(promptState || ""),
+        activePath: cleanMessageText(activePath || ""),
+        step: cleanMessageText(step || ""),
+        selectedRole: cloneEmilyDebugValue(
+          getCurrentConversationDecisionSelectedRole()
+        ),
+        activeTask: cloneEmilyDebugValue(getConversationDecisionActiveTask()),
+        jobSearchContext: cloneEmilyDebugValue(
+          getCurrentJobSearchContextSnapshot()
+        ),
+        serviceContext: cloneEmilyDebugValue(context),
+      };
+    }
+
+    function buildEmilyMeaningDebugSummary(decision, validation, mode) {
+      var compact = compactEmilyDebugDecision(decision || {});
+      var actionType = compact.action.type;
+      return {
+        mode: cleanMessageText(mode || "local"),
+        primaryIntent:
+          compact.meaning.primaryIntent || compact.intent.type || "unknown",
+        actionType: actionType || "none",
+        routeKey: compact.route.key || "",
+        confidence:
+          compact.meaning.confidence || compact.intent.confidence || 0,
+        source: compact.intent.source || "",
+        rewrittenQueries: compact.meaning.rewrittenQueries || {},
+        shouldSearchJobs: actionType === "show_job_results",
+        shouldSearchWeb: actionType === "web_search",
+        shouldAskClarification: actionType === "ask_clarifying_question",
+        validation: validation || null,
+      };
+    }
+
+    function buildEmilyMeaningDebugReport(value, options) {
+      var clean = cleanMessageText(value || "");
+      var localDecision = buildConversationDecision(clean);
+      var localValidation = validateConversationDecision(localDecision, clean);
+      var report = {
+        message: clean,
+        generatedAt: new Date().toISOString(),
+        config: {
+          endpointConfigured: !!getEmilyNlpServiceEndpoint(),
+          decisionEngine: cloneEmilyDebugValue(getEmilyDecisionEngineConfig()),
+        },
+        context: getEmilyMeaningDebugContext(localDecision),
+        local: {
+          summary: buildEmilyMeaningDebugSummary(
+            localDecision,
+            localValidation,
+            "local"
+          ),
+          decision: compactEmilyDebugDecision(localDecision),
+          validation: localValidation,
+        },
+        final: null,
+        recent: {
+          decisions: conversationDecisionLog.slice(-8),
+          runtimeSafety: emilyRuntimeSafetyTelemetryLog.slice(-12),
+          audit: conversationTurnAuditLog.slice(-12),
+        },
+      };
+      if (
+        options &&
+        options.withService &&
+        getEmilyNlpServiceEndpoint() &&
+        typeof window.fetch === "function"
+      ) {
+        return buildConversationDecisionWithService(clean).then(function (
+          serviceDecision
+        ) {
+          var serviceValidation = validateConversationDecision(
+            serviceDecision,
+            clean
+          );
+          report.final = {
+            summary: buildEmilyMeaningDebugSummary(
+              serviceDecision,
+              serviceValidation,
+              "service"
+            ),
+            decision: compactEmilyDebugDecision(serviceDecision),
+            validation: serviceValidation,
+          };
+          return report;
+        });
+      }
+      report.final = report.local;
+      return report;
+    }
+
     if (getConfig().enableTestHooks) {
       root.__sffcApplyChatTest = {
         setCapturedCvText: function (text) {
@@ -153954,6 +154506,16 @@
             validation: validation,
             telemetry: emilyRuntimeSafetyTelemetryLog.slice(-20),
           };
+        },
+        debugEmilyMeaning: function (value) {
+          return buildEmilyMeaningDebugReport(value || "", {
+            withService: false,
+          });
+        },
+        debugEmilyMeaningWithService: function (value) {
+          return buildEmilyMeaningDebugReport(value || "", {
+            withService: true,
+          });
         },
         getEmilyDecisionRuntimeSafetyConfig: function () {
           return getEmilyDecisionEngineConfig();
@@ -154323,12 +154885,13 @@
         },
       };
       window.sffcDebugEmilyMeaning = function (value) {
-        return root.__sffcApplyChatTest.buildEmilyMeaningObject(value || "");
+        return root.__sffcApplyChatTest.debugEmilyMeaning(value || "");
       };
       window.sffcDebugEmilyMeaningWithService = function (value) {
-        return root.__sffcApplyChatTest.buildEmilyMeaningObjectWithService(
-          value || ""
-        );
+        return root.__sffcApplyChatTest.debugEmilyMeaningWithService(value || "");
+      };
+      window.sffcDebugEmilyMeaningObject = function (value) {
+        return root.__sffcApplyChatTest.buildEmilyMeaningObject(value || "");
       };
     }
 
@@ -155076,12 +155639,12 @@
         '">' +
         '<div class="sffc-crm-apply-results__remote-browser-bar">' +
         '<div><strong>' +
-        escapeHtml(uiText("Secure browser session", "جلسة متصفح آمنة")) +
+        escapeHtml(uiText("Assisted employer view", "عرض جهة العمل بمساعدة")) +
         "</strong><span>" +
         escapeHtml(
           uiText(
-            "Opening the employer page inside this chat.",
-            "نفتح صفحة جهة العمل داخل هذه المحادثة."
+            "Opening the employer page in a managed browser view.",
+            "نفتح صفحة جهة العمل في عرض متصفح مُدار."
           )
         ) +
         "</span></div>" +
@@ -155104,8 +155667,8 @@
         '<div class="sffc-crm-apply-results__remote-browser-viewport" data-sffc-remote-browser-viewport>' +
         renderApplyResultsPreviewLoader(
           uiText(
-            "Starting secure browser...",
-            "جار تشغيل المتصفح الآمن..."
+            "Starting assisted browser view...",
+            "جار تشغيل عرض المتصفح المساعد..."
           )
         ) +
         "</div>" +
@@ -155423,8 +155986,8 @@
         escapeHtml(
           message ||
             uiText(
-              "I could not start the secure browser. I’ll show the preview fallback instead.",
-              "تعذر تشغيل المتصفح الآمن. سأعرض المعاينة الاحتياطية بدلاً من ذلك."
+              "I could not start the assisted browser view. I’ll show the preview fallback instead.",
+              "تعذر تشغيل عرض المتصفح المساعد. سأعرض المعاينة الاحتياطية بدلاً من ذلك."
             )
         ) +
         "</div>";
@@ -155583,8 +156146,8 @@
         setApplyResultsRemoteBrowserError(
           remoteBrowser,
           uiText(
-            "The secure browser is not configured yet.",
-            "لم يتم إعداد المتصفح الآمن بعد."
+            "The assisted browser view is not configured yet.",
+            "لم يتم إعداد عرض المتصفح المساعد بعد."
           )
         );
         return;
@@ -155593,8 +156156,8 @@
         setApplyResultsRemoteBrowserError(
           remoteBrowser,
           uiText(
-            "I need a valid employer page before I can open the secure browser.",
-            "أحتاج إلى صفحة جهة عمل صالحة قبل فتح المتصفح الآمن."
+            "I need a valid employer page before I can open the assisted browser view.",
+            "أحتاج إلى صفحة جهة عمل صالحة قبل فتح عرض المتصفح المساعد."
           )
         );
         return;
@@ -155658,7 +156221,7 @@
               (data && data.message) ||
                 uiText(
                   "The secure browser did not return a session.",
-                  "لم يرجع المتصفح الآمن جلسة."
+                  "لم يرجع عرض المتصفح المساعد جلسة."
                 )
             );
           }
@@ -155675,8 +156238,8 @@
             remoteBrowser,
             (error && error.message) ||
               uiText(
-                "I could not start the secure browser.",
-                "تعذر تشغيل المتصفح الآمن."
+                "I could not start the assisted browser view.",
+                "تعذر تشغيل عرض المتصفح المساعد."
               )
           );
           if (preview) {
@@ -155732,13 +156295,13 @@
         return;
       }
       if (!config.remoteBrowserNonce || !config.ajaxUrl) {
-        setApplyResultsRemoteBrowserError(
-          remoteBrowser,
-          uiText(
-            "The secure browser controls are not configured yet.",
-            "لم يتم إعداد عناصر التحكم في المتصفح الآمن بعد."
-          )
-        );
+            setApplyResultsRemoteBrowserError(
+              remoteBrowser,
+              uiText(
+                "The assisted browser controls are not configured yet.",
+                "لم يتم إعداد عناصر التحكم في المتصفح المساعد بعد."
+              )
+            );
         return;
       }
       remoteBrowser.classList.add("is-updating-control");
@@ -156169,9 +156732,6 @@
       var draftLink = event.target.closest("[data-sffc-apply-chat-go-draft]");
       var coverLink = event.target.closest("[data-sffc-apply-chat-go-cover]");
       var rolesLink = event.target.closest("[data-sffc-apply-chat-go-roles]");
-      var unlockProLink = event.target.closest(
-        "[data-sffc-apply-chat-unlock-pro]"
-      );
       var pricingLink = event.target.closest(
         "[data-sffc-apply-chat-select-plan]"
       );
@@ -156226,9 +156786,6 @@
       );
       var applicationWorkerQueue = event.target.closest(
         "[data-sffc-application-worker-queue]"
-      );
-      var applicationWorkerLocked = event.target.closest(
-        "[data-sffc-application-worker-locked]"
       );
       var earlyUploadCvCta = event.target.closest(
         "[data-sffc-apply-chat-upload-cv-cta]"
@@ -156309,6 +156866,18 @@
       var applyResultsRemoteBrowserClose = event.target.closest(
         "[data-sffc-remote-browser-close]"
       );
+      var applicationReadinessConfirm = event.target.closest(
+        "[data-sffc-application-readiness-confirm]"
+      );
+      var applicationReadinessEdit = event.target.closest(
+        "[data-sffc-application-readiness-edit]"
+      );
+      var applicationQuestionDraftUse = event.target.closest(
+        "[data-sffc-application-question-draft-use]"
+      );
+      var applicationQuestionDraftEdit = event.target.closest(
+        "[data-sffc-application-question-draft-edit]"
+      );
       var applyResultsSampleCard = event.target.closest(
         ".sffc-crm-apply-results__result"
       );
@@ -156363,6 +156932,10 @@
           applyResultsRefreshPreview ||
           applyResultsRemoteBrowserControl ||
           applyResultsRemoteBrowserClose ||
+          applicationReadinessConfirm ||
+          applicationReadinessEdit ||
+          applicationQuestionDraftUse ||
+          applicationQuestionDraftEdit ||
           applyResultsClearSearch) &&
         event.target.closest('[data-sffc-apply-results-stale="1"]')
       ) {
@@ -156370,6 +156943,165 @@
         if (typeof event.stopImmediatePropagation === "function") {
           event.stopImmediatePropagation();
         }
+        return;
+      }
+      if (applicationReadinessConfirm || applicationReadinessEdit) {
+        event.preventDefault();
+        if (typeof event.stopImmediatePropagation === "function") {
+          event.stopImmediatePropagation();
+        }
+        if (
+          promptState === "application_profile_readiness_confirm" &&
+          promptHandlers
+        ) {
+          if (
+            applicationReadinessConfirm &&
+            typeof promptHandlers.yes === "function"
+          ) {
+            promptHandlers.yes(
+              applicationReadinessConfirm.textContent || "Looks right"
+            );
+            return;
+          }
+          if (
+            applicationReadinessEdit &&
+            typeof promptHandlers.no === "function"
+          ) {
+            promptHandlers.no(
+              applicationReadinessEdit.textContent || "Edit profile"
+            );
+            return;
+          }
+        }
+        if (applicationReadinessConfirm) {
+          markApplicationProfileReadinessConfirmed();
+        } else {
+          openApplicationProfilePanel();
+        }
+        return;
+      }
+      if (applicationQuestionDraftUse || applicationQuestionDraftEdit) {
+        var draftButton = applicationQuestionDraftUse || applicationQuestionDraftEdit;
+        var draftWrapper = draftButton.closest(
+          "[data-sffc-application-question-draft]"
+        );
+        var draftPanel = draftButton.closest(
+          "[data-sffc-application-question-drafts]"
+        );
+        var draftIndex = Number(
+          draftButton.getAttribute(
+            applicationQuestionDraftUse
+              ? "data-sffc-application-question-draft-use"
+              : "data-sffc-application-question-draft-edit"
+          ) || "0"
+        );
+        var draftAnswer = draftWrapper
+          ? draftWrapper.querySelector(
+              "[data-sffc-application-question-draft-answer]"
+            )
+          : null;
+        event.preventDefault();
+        if (typeof event.stopImmediatePropagation === "function") {
+          event.stopImmediatePropagation();
+        }
+        if (applicationQuestionDraftEdit) {
+          if (draftAnswer && typeof draftAnswer.focus === "function") {
+            draftAnswer.focus();
+            draftAnswer.select();
+          }
+          return;
+        }
+        if (
+          !pendingApplicationCustomQuestionDrafts[draftIndex] ||
+          !draftAnswer
+        ) {
+          botMessage(
+            "I could not find that draft answer in this chat session. I’ll ask the employer question again if it is still required.",
+            humanComposeDelay("Draft answer missing.", 900, 1800),
+            function () {
+              focusComposer("Continue the application");
+            }
+          );
+          return;
+        }
+        saveApplicationCustomQuestionDraftApproval(
+          pendingApplicationCustomQuestionDrafts[draftIndex],
+          draftAnswer.value || ""
+        );
+        draftButton.disabled = true;
+        draftButton.textContent = "Saved";
+        if (draftWrapper) {
+          draftWrapper.classList.add("is-approved");
+        }
+        var remainingDraftButtons = draftPanel
+          ? draftPanel.querySelectorAll(
+              "[data-sffc-application-question-draft-use]:not(:disabled)"
+            )
+          : [];
+        if (!remainingDraftButtons.length) {
+          var resumeDraftQueueItem =
+            pendingApplicationCustomQuestionDraftQueueItem ||
+            pendingApplyResultsSelection ||
+            getCommercialApplyQueueMainItem();
+          pendingApplicationCustomQuestionDrafts = [];
+          pendingApplicationCustomQuestionDraftQueueItem = null;
+          botMessage(
+            "Saved. I’ll continue the employer form with the approved answer now.",
+            humanComposeDelay("Draft answer saved.", 900, 1800),
+            function () {
+              if (
+                resumeDraftQueueItem &&
+                typeof root.__sffcQueueBrowserApplicationTask === "function"
+              ) {
+                root.__sffcQueueBrowserApplicationTask(resumeDraftQueueItem)
+                  .then(function (data) {
+                    var taskId = cleanMessageText(
+                      (data && data.task_uuid) || ""
+                    );
+                    updateApplicationProgressForTask(
+                      taskId,
+                      resumeDraftQueueItem,
+                      "Queued",
+                      "The application is queued again with the approved employer answer.",
+                      data || {}
+                    );
+                    if (
+                      taskId &&
+                      typeof root.__sffcPollBrowserApplicationTask ===
+                        "function"
+                    ) {
+                      root.__sffcPollBrowserApplicationTask(taskId, 0);
+                    }
+                    focusComposer(
+                      "I’ll update you when the employer form changes state"
+                    );
+                  })
+                  .catch(function (error) {
+                    var message =
+                      cleanMessageText((error && error.message) || "") ||
+                      "I could not continue the application automatically just now.";
+                    botMessage(
+                      message,
+                      humanComposeDelay(message, 900, 1800),
+                      function () {
+                        focusComposer("Continue the application");
+                      }
+                    );
+                  });
+                return;
+              }
+              focusComposer("Continue the application");
+            }
+          );
+          return;
+        }
+        botMessage(
+          "Saved. Review the remaining draft answer before I use it in the application.",
+          humanComposeDelay("Draft answer saved.", 900, 1800),
+          function () {
+            focusComposer("Review the remaining answer");
+          }
+        );
         return;
       }
       if (
@@ -157380,37 +158112,8 @@
         }
         return;
       }
-      if (applicationWorkerLocked) {
-        event.preventDefault();
-        botMessage(
-          isLoggedIn
-            ? "Apply for me is a Pro+ feature. You can complete the employer form here, or upgrade to let Senna handle the submission for you."
-            : "Apply for me needs a Pro+ subscription. Create an account or sign in to use managed application submission.",
-          humanComposeDelay("Apply for me needs Pro+.", 900, 1800),
-          function () {
-            focusComposer(
-              "Complete the embedded form, or join Pro+ for Apply for me"
-            );
-          }
-        );
-        return;
-      }
       if (applicationWorkerQueue) {
         event.preventDefault();
-        if (!hasApplicationWorkerProAccess()) {
-          botMessage(
-            isLoggedIn
-              ? "Apply for me is a Pro+ feature. You can complete the employer form here, or upgrade to let Senna handle the submission for you."
-              : "Apply for me needs a Pro+ subscription. Create an account or sign in to use managed application submission.",
-            humanComposeDelay("Apply for me needs Pro+.", 900, 1800),
-            function () {
-              focusComposer(
-                "Complete the embedded form, or join Pro+ for Apply for me"
-              );
-            }
-          );
-          return;
-        }
         if (!hasApplicationWorkerSubmitCapability()) {
           botMessage(
             "This employer form can be completed inside Senna, but managed worker submission is not switched on for this provider yet.",
@@ -157496,25 +158199,21 @@
                             var taskId = cleanMessageText(
                               (data && data.task_uuid) || ""
                             );
-                            var reply = taskId
-                              ? "Done. This application is queued for browser submission. Task ID: " +
-                                taskId +
-                                "."
-                              : "Done. This application is queued for browser submission.";
-                            botMessage(
-                              reply,
-                              humanComposeDelay(reply, 1200, 2600),
-                              function () {
-                                if (
-                                  taskId &&
-                                  typeof pollApplicationTask === "function"
-                                ) {
-                                  pollApplicationTask(taskId, 0);
-                                }
-                                focusComposer(
-                                  "I’ll update you when the worker returns the submission status"
-                                );
-                              }
+                            updateApplicationProgressForTask(
+                              taskId,
+                              activeQueueItem,
+                              "Queued",
+                              "The application is queued. I’ll keep this card updated as the worker opens the employer form.",
+                              data || {}
+                            );
+                            if (
+                              taskId &&
+                              typeof pollApplicationTask === "function"
+                            ) {
+                              pollApplicationTask(taskId, 0);
+                            }
+                            focusComposer(
+                              "I’ll update you when the employer form changes state"
                             );
                               })
                               .catch(function (error) {
@@ -157677,20 +158376,9 @@
         openJobListView("matching_cv");
         return;
       }
-      if (unlockProLink) {
-        event.preventDefault();
-        removeChoiceBlock();
-        window.setTimeout(
-          askJobSearchAccountQuestion,
-          randomBetween(650, 1200)
-        );
-        return;
-      }
       if (pricingLink) {
         event.preventDefault();
-        openSelectedApplySignupPath(
-          pricingLink.getAttribute("data-sffc-apply-chat-select-plan") || ""
-        );
+        startApplyForMeRoleDiscoveryFlow();
         return;
       }
       var communityApplyForMeRequest = event.target.closest(
@@ -157841,11 +158529,7 @@
       }
       if (membershipChoice) {
         event.preventDefault();
-        goToMembershipPage(
-          membershipChoice.getAttribute(
-            "data-sffc-apply-chat-membership-choice"
-          ) || ""
-        );
+        focusComposer("Tell me what role, market, or company to work on");
         return;
       }
       if (rolePreviewJobSearch) {
@@ -157899,13 +158583,11 @@
         applyOnboardingFullName = typedFullName;
         applyOnboardingPreferredEmail = typedEmail;
         applySelectedPricingOption = selectedAccountType;
-        syncApplyChatSignupPrefill(selectedAccountType).then(function () {
-          updateWorkspace({
-            membershipSelection: selectedAccountType,
-            membershipSetupComplete: true,
-          });
-          renderMembershipWorkspaceSelection();
+        updateWorkspace({
+          membershipSelection: selectedAccountType,
+          membershipSetupComplete: true,
         });
+        startApplyForMeRoleDiscoveryFlow();
         return;
       }
       var openMembershipCta = event.target.closest(
@@ -157913,11 +158595,7 @@
       );
       if (openMembershipCta) {
         event.preventDefault();
-        goToMembershipPage(
-          openMembershipCta.getAttribute(
-            "data-sffc-apply-chat-open-membership"
-          ) || ""
-        );
+        focusComposer("Search roles, pick a result, or ask Emily what to do next");
         return;
       }
       if (

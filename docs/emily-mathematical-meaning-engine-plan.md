@@ -507,7 +507,7 @@ Implementation notes:
 
 ### Phase 3: Dictionary Layer
 
-Status: complete.
+Status: complete for curated/local dictionaries; external taxonomy expansion remains optional.
 
 - [x] Create dictionary families:
   - action words
@@ -529,6 +529,7 @@ Completion criteria:
 - [x] "Dubai", "Riyadh", "Saudi Arabia", "UAE" detected as locations.
 - [x] "finance", "private equity", "HR", "recruitment", "credit analyst" detected as role/sector terms.
 - [x] "tired", "stuck", "frustrated" detected as emotional job-search signals.
+- [ ] ESCO/Tabiya and WordNet are not imported yet; this is deliberately deferred because the dependency-backed Emily NLP service now carries the heavier scoring path.
 
 Implementation notes:
 
@@ -569,7 +570,7 @@ Implementation notes:
 
 ### Phase 5: BM25 Archetype Matching
 
-- Status: complete.
+Status: complete through the dependency-backed Emily NLP service; local browser scorer remains fallback only.
 
 - [x] Build a small local corpus of intent archetypes.
 - Example archetypes:
@@ -580,7 +581,8 @@ Implementation notes:
   - "tell me about living in Riyadh"
   - "tailor my CV for this role"
 - [x] Add BM25-style score into the meaning/scoring formula.
-- [ ] Replace the local browser-safe scorer with `wink-bm25-text-search` if/when the plugin gets a frontend bundling step.
+- [x] Replace the local browser-safe scorer with `wink-bm25-text-search` in the Railway Emily NLP service.
+- [ ] Keep the browser-safe scorer as a fallback unless/until the plugin gets a frontend bundling step.
 
 Completion criteria:
 
@@ -597,13 +599,14 @@ Implementation notes:
 
 ### Phase 6: Naive Bayes Intent Classifier
 
-Status: complete.
+Status: complete through the dependency-backed Emily NLP service; local browser classifier remains fallback only.
 
 - [x] Add a Naive Bayes-style intent classifier.
 - [x] Train on curated examples for each intent family.
 - [x] Load the model at runtime from local in-script examples.
 - [x] Combine classifier probability with deterministic scores.
-- [ ] Replace the local browser-safe classifier with `wink-naive-bayes-text-classifier` if/when the plugin gets a frontend bundling step.
+- [x] Replace the local browser-safe classifier with `wink-naive-bayes-text-classifier` in the Railway Emily NLP service.
+- [ ] Keep the browser-safe classifier as a fallback unless/until the plugin gets a frontend bundling step.
 - [ ] Export a generated trained model JSON once the example corpus becomes large enough to justify a build step.
 
 Completion criteria:
@@ -621,7 +624,7 @@ Implementation notes:
 
 ### Phase 6.5: Dependency-Backed Emily NLP Service
 
-Status: complete for service build; WordPress bridge remains pending.
+Status: complete.
 
 - [x] Create a separate Railway-ready service under `services/senna-emily-nlp-service`.
 - [x] Add dependency-backed NLP packages:
@@ -677,19 +680,19 @@ define('SFFC_EMILY_NLP_ENDPOINT', 'https://your-emily-nlp-service.up.railway.app
 
 ### Phase 7: Query Rewriter
 
-- Status: partially complete in the service; WordPress bridge remains pending.
+Status: complete for positive and negative query rewriting and WordPress consumption.
 
 - [x] Convert service meaning objects into structured queries.
 - For job search:
   - [x] extract role/sector/location
   - [x] avoid filler words
-  - [ ] preserve negative constraints
+  - [x] preserve negative constraints
 - Prefer structured query components over raw text:
   - [x] `role`
   - [x] `sector`
   - [x] `location`
   - [x] `seniority`
-  - [ ] `constraints`
+  - [x] `constraints`
 - For web answer:
   - [x] rewrite into concise research query
   - [x] include location/sector/context if available
@@ -703,6 +706,7 @@ Completion criteria:
 - [x] "best recruiters in dubai" becomes web query `best recruitment agencies Dubai` in the service.
 - [x] "I'm tired of applying and getting no replies" becomes web query `job search burnout no replies improve application strategy practical steps` in the service.
 - [x] WordPress consumes the service rewrite output in live chat.
+- [x] Negative constraints such as "not banking", "exclude London", or "no junior roles" are preserved in the rewritten query/action payload.
 
 Implementation notes:
 
@@ -721,60 +725,89 @@ window.sffcDebugEmilyMeaningWithService("when is the best time to apply for jobs
 
 ### Phase 8: Context and Memory Integration
 
-- Add prior CV/profile signals into scoring.
-- Add current selected role into scoring, but make it a context bonus, not a hard guard.
-- Add recent user messages.
-- Add active flow state.
+Status: complete.
+
+- [x] Add prior CV/profile signals into scoring.
+- [x] Add current selected role into scoring, but make it a context bonus, not a hard guard.
+- [x] Add recent user messages.
+- [x] Add active flow state.
+- [x] Reuse previous search/CV context for short follow-up searches such as "what about Riyadh?"
+- [x] Keep market/country/timing/general questions routed to web research even when a selected role is active.
 
 Completion criteria:
 
-- General questions are not hijacked by selected-role context.
-- If user has uploaded CV, career advice can reference their profile.
-- If user asks "what about Riyadh?", memory can infer the last discussed job/sector where appropriate.
+- [x] General questions are not hijacked by selected-role context.
+- [x] If user has uploaded CV, career advice can reference their profile.
+- [x] If user asks "what about Riyadh?", memory can infer the last discussed job/sector where appropriate.
+
+Implementation notes:
+
+- WordPress now sends a bounded Emily NLP context payload with selected role, active flow state, current search context, recent messages, and compact CV/profile signals.
+- The NLP service uses CV/profile context for career-advice query rewriting and short location follow-ups without making the selected role a hard guard.
+- Regression fixtures cover "what about Riyadh?", selected-role country questions, and CV-aware job-search frustration.
 
 ### Phase 9: Action Router Replacement
 
-- Replace brittle trigger ordering with meaning-object routing.
-- Job database is called only for job-search actions.
-- Web answer service is called for market/country/recruiter/salary/timing/general unknown actions.
-- Clarification is used only when confidence is low or action conflict is real.
-- Move selected-role/application context into route scoring unless the message contains explicit apply/submit/tailor/status language.
-- Keep legacy step handlers as safety fallback until the prompt suite proves the decision engine can claim the turn.
+Status: complete.
+
+- [x] Replace brittle trigger ordering with meaning-object routing.
+- [x] Job database is called only for job-search actions.
+- [x] Web answer service is called for market/country/recruiter/salary/timing/general unknown actions.
+- [x] Clarification is used only when confidence is low or action conflict is real.
+- [x] Move selected-role/application context into route scoring unless the message contains explicit apply/submit/tailor/status language.
+- [x] Keep legacy step handlers as safety fallback until the prompt suite proves the decision engine can claim the turn.
+- [x] Add service-routed career-question clarification resolution so "we are talking through a career question" does not loop.
 
 Completion criteria:
 
-- "when is the best time to apply for jobs in Dubai" triggers web answer.
-- "find jobs in Riyadh" triggers job database.
-- "what is Saudi Arabia like" triggers web answer.
-- "we are talking through a career question" resolves current clarification without looping.
+- [x] "when is the best time to apply for jobs in Dubai" triggers web answer.
+- [x] "find jobs in Riyadh" triggers job database.
+- [x] "what is Saudi Arabia like" triggers web answer.
+- [x] "we are talking through a career question" resolves current clarification without looping.
+
+Implementation notes:
+
+- Service action types now map directly into WordPress router actions for job search, web answer, and career-context confirmation.
+- Service-routed decisions are tagged as the primary router and bypass old active-prompt blocking when confidence is sufficient.
+- The old local decision engine remains fallback when the service is unavailable, low-confidence, or returns an unsupported action.
 
 ### Phase 10: Response Composition
 
-- Use action type to choose Emily response style.
-- Career advice:
+Status: complete.
+
+- [x] Use action type to choose Emily response style.
+- [x] Career advice:
   - acknowledge
   - diagnose
   - next step
-- Web answer:
+- [x] Web answer:
   - direct answer
   - concise bullets
   - source card
-- Job search:
+- [x] Job search:
   - search summary
   - result cards
-- Clarification:
+- [x] Clarification:
   - only one direct question.
 
 Completion criteria:
 
-- Emily feels conversational, not like a database.
-- Web answers are not source dumps.
-- Job searches do not include filler query words.
+- [x] Emily feels conversational, not like a database.
+- [x] Web answers are not source dumps.
+- [x] Job searches do not include filler query words.
+
+Implementation notes:
+
+- Job-search prefaces now use the cleaned routed query instead of repeating generic database language.
+- Web-search prefaces now adapt to timing, salary, recruiter, market/country, and general research questions.
+- Direct career-question fallbacks now render a structured conversational answer with acknowledgement, diagnosis, and next step.
 
 ### Phase 11: Evaluation Harness
 
-- Build a fixed prompt suite.
-- Include:
+Status: complete.
+
+- [x] Build a fixed prompt suite.
+- [x] Include:
   - direct job searches
   - indirect job searches
   - career frustration
@@ -783,7 +816,7 @@ Completion criteria:
   - country/life questions
   - selected-role interruptions
   - multilingual/typo cases
-- Assert expected:
+- [x] Assert expected:
   - intent
   - action
   - rewritten query
@@ -791,33 +824,173 @@ Completion criteria:
 
 Completion criteria:
 
-- Test suite blocks regressions.
-- Each phase updates expected behavior.
+- [x] Test suite blocks regressions.
+- [x] Each phase updates expected behavior.
+
+Implementation notes:
+
+- The Emily NLP service now has 18 golden prompt fixtures across 8 categories.
+- The suite fails with category, message, expected route, actual route, and rewritten-query context.
+- The top-level Emily decision intelligence suite now runs the service golden prompts so routing regressions block the aggregate check.
 
 ### Phase 12: Observability and Debug Console
 
-- Add a dev-only console diagnostic:
+Status: complete.
+
+- [x] Add a dev-only console diagnostic:
 
 ```js
 window.sffcDebugEmilyMeaning("I'm tired of my job search")
 ```
 
-Output:
+Output now includes local routing, final routing, context, validation, recent decision logs, runtime-safety telemetry, and audit events:
 
 ```json
 {
-  "primaryIntent": "career_advice",
-  "scores": {},
-  "entities": {},
-  "rewrittenQueries": {},
-  "action": {}
+  "message": "I'm tired of my job search",
+  "local": {
+    "summary": {
+      "primaryIntent": "career_advice",
+      "actionType": "answer_directly",
+      "rewrittenQueries": {}
+    }
+  },
+  "final": {},
+  "context": {},
+  "recent": {}
 }
+```
+
+Use the service-aware path when Railway NLP is configured:
+
+```js
+await window.sffcDebugEmilyMeaningWithService("when is the best time to apply for jobs in Dubai")
 ```
 
 Completion criteria:
 
-- We can diagnose routing failures without guessing.
-- User can paste console output when Emily behaves incorrectly.
+- [x] We can diagnose routing failures without guessing.
+- [x] User can paste console output when Emily behaves incorrectly.
+
+Implementation notes:
+
+- `window.sffcDebugEmilyMeaning(...)` now returns the local decision diagnostic.
+- `window.sffcDebugEmilyMeaningWithService(...)` returns the local diagnostic plus the service-mapped final decision.
+- `window.sffcDebugEmilyMeaningObject(...)` remains available when only the compact meaning object is needed.
+
+### Phase 13: Rollout Hardening
+
+Status: complete.
+
+- [x] Add a static observability wiring guard for the WordPress bundle.
+- [x] Assert the public debug console helpers remain available.
+- [x] Assert diagnostics include local decision, final decision, context, recent decision logs, runtime-safety telemetry, and audit events.
+- [x] Add the observability guard to the aggregate Emily decision intelligence suite.
+
+Completion criteria:
+
+- [x] A future edit cannot silently remove the console diagnostics.
+- [x] The aggregate suite fails if the documented debug contract is no longer wired.
+
+Implementation notes:
+
+- Added `scripts/test-emily-observability-wiring.js`.
+- Added the observability check to `scripts/test-emily-decision-intelligence-suite.js`.
+
+### Phase 14: Production Service Readiness
+
+Status: complete for static wiring; optional live endpoint smoke checks were added in Phase 15.
+
+- [x] Guard the WordPress-to-service wiring for Emily NLP, web answer, SearXNG search, and LiteParse CV parsing.
+- [x] Verify PHP reads each service from `wp-config.php` constants or environment variables.
+- [x] Verify frontend config exposes the Emily NLP and web-search hooks used by the browser script.
+- [x] Verify the expected local service folders exist before packaging/deploying.
+
+Required WordPress constants:
+
+```php
+define('SFFC_EMILY_NLP_ENDPOINT', 'https://eloquent-reflection-production-5105.up.railway.app/meaning');
+define('SFFC_EMILY_NLP_TOKEN', '');
+
+define('SFFC_SEARCH_ANSWER_ENDPOINT', 'https://your-web-answer-service.up.railway.app/answer');
+define('SFFC_SEARCH_ANSWER_TOKEN', '');
+
+define('SFFC_SEARCH_ENDPOINT', 'https://clever-appreciation-production-3057.up.railway.app/search');
+define('SFFC_SEARCH_TOKEN', '');
+
+define('SFFC_LITEPARSE_ENDPOINT', 'https://senna-liteparse-service-production.up.railway.app/parse');
+define('SFFC_LITEPARSE_PUBLIC_TOKEN', '');
+```
+
+Completion criteria:
+
+- [x] The aggregate suite fails if a required service constant, getter, localized frontend value, AJAX hook, or service folder is removed.
+- [x] Setup notes distinguish the web answer service endpoint from the lower-level SearXNG `/search` endpoint.
+- [x] Optional live health checks for the configured Railway URLs are available through the Phase 15 smoke script.
+
+Implementation notes:
+
+- Added `scripts/test-emily-production-readiness.js`.
+- Added the production readiness check to `scripts/test-emily-decision-intelligence-suite.js`.
+
+### Phase 15: Gap Closure - Constraints and Live Smoke Hooks
+
+Status: complete.
+
+- [x] Preserve negative constraints from user prompts.
+- [x] Prevent excluded roles, sectors, locations, skills, and seniority terms from becoming positive rewritten query targets.
+- [x] Carry constraints through the service meaning object and WordPress mapped action params.
+- [x] Add regression fixtures for:
+  - `finance jobs in Dubai but not banking`
+  - `investment roles in Riyadh no junior roles`
+- [x] Add an optional live smoke-test runner for configured Railway services.
+- [x] Add the optional smoke runner to the aggregate suite; it skips when no `SFFC_SMOKE_*` endpoints are provided.
+
+Optional live smoke command:
+
+```bash
+SFFC_SMOKE_EMILY_NLP_ENDPOINT="https://eloquent-reflection-production-5105.up.railway.app/meaning" \
+SFFC_SMOKE_SEARCH_ANSWER_ENDPOINT="https://your-web-answer-service.up.railway.app/answer" \
+SFFC_SMOKE_SEARCH_ENDPOINT="https://clever-appreciation-production-3057.up.railway.app/search" \
+SFFC_SMOKE_LITEPARSE_HEALTH_ENDPOINT="https://senna-liteparse-service-production.up.railway.app/" \
+node scripts/smoke-emily-services.js
+```
+
+Completion criteria:
+
+- [x] `finance jobs in Dubai but not banking` rewrites to a finance/Dubai job query and records `banking` as an excluded sector.
+- [x] `no junior roles` records `junior` as excluded seniority.
+- [x] The aggregate suite covers negative constraints and includes the optional live-smoke hook.
+
+Implementation notes:
+
+- The Emily NLP service now separates included and excluded dictionary matches with nearby negation terms such as `not`, `no`, `without`, `exclude`, `excluding`, `except`, `avoid`, and `do not want`.
+- Added `scripts/smoke-emily-services.js`.
+- The smoke script only performs network calls when endpoints are provided via environment variables, so CI/local static runs remain stable.
+
+## Plan Audit: 2026-09-13
+
+Status: audited after Phase 15.
+
+Automated checks:
+
+- `node scripts/test-emily-decision-intelligence-suite.js /tmp/emily-decision-intelligence-suite-phase15.json` passes `20/20`.
+
+Confirmed implemented:
+
+- Phases 1-2: audit and canonical meaning object are implemented.
+- Phases 3-4: curated dictionary, token, phrase, and proximity scoring exist.
+- Phases 5-6: BM25 and Naive Bayes are dependency-backed in `services/senna-emily-nlp-service`; browser versions remain fallbacks.
+- Phase 6.5: Emily NLP service and WordPress bridge are implemented.
+- Phase 7: positive and negative job/web/career query rewriting is implemented and consumed by WordPress.
+- Phases 8-10: context, action routing, and response composition are covered by fixtures and static checks.
+- Phases 11-14: evaluation, observability, rollout hardening, and production wiring guards are implemented.
+
+Remaining known gaps:
+
+- ESCO/Tabiya and WordNet are not imported. This is not blocking current behavior because the Railway NLP service uses curated dictionaries plus wink NLP/BM25/Naive Bayes, but the larger taxonomy upgrade is still available for a future quality pass.
+- Live endpoint smoke tests are optional and environment-driven. They are available through `scripts/smoke-emily-services.js`, but the default aggregate suite skips network calls when no `SFFC_SMOKE_*` endpoints are provided.
+- The root repo does not have a single `npm test` command because there is no root `package.json`; the aggregate suite is run directly with Node.
 
 ## Success Metrics
 

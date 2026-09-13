@@ -41,6 +41,7 @@ SFFC_REMOTE_BROWSER_ALLOWED_ORIGIN=https://joinsenna.com
 SFFC_REMOTE_BROWSER_CHROME_EXECUTABLE=/usr/bin/google-chrome-stable
 SFFC_REMOTE_BROWSER_PROFILE_ROOT=/tmp/sffc-remote-browser
 SFFC_REMOTE_BROWSER_TRANSPORT=novnc
+SFFC_REMOTE_BROWSER_ALLOW_NOVNC_PUBLIC=0
 SFFC_REMOTE_BROWSER_NOVNC_WEB_ROOT=/usr/share/novnc
 SFFC_REMOTE_BROWSER_DISPLAY_BASE=100
 SFFC_REMOTE_BROWSER_RFB_PORT_BASE=5900
@@ -122,15 +123,39 @@ All endpoints except `/health` require `Authorization: Bearer <token>` or `X-SFF
 }
 ```
 
-The first production transport uses noVNC over a per-session reverse proxy so the chat can show a real interactive browser window. The older Puppeteer screenshot/control protocol remains available as a development fallback by passing `transport: "puppeteer"`.
+The original transport uses noVNC over a per-session reverse proxy. noVNC is now intended for internal/debug fallback only because it exposes a remote-desktop style UI. The preferred user-facing fallback is a managed live browser provider, configured with `SFFC_REMOTE_BROWSER_TRANSPORT=cloudflare_live_view` or `SFFC_REMOTE_BROWSER_TRANSPORT=browserless_live_url`.
+
+The older Puppeteer screenshot/control protocol remains available as a development fallback by passing `transport: "puppeteer"`.
 
 `GET /health` is public and returns capacity plus runtime availability for Railway health checks. `GET /capacity` requires the service token and returns active session summaries for WordPress/admin diagnostics.
 
 ## Transport
 
-The production default is `SFFC_REMOTE_BROWSER_TRANSPORT=novnc`.
+The safe default is `SFFC_REMOTE_BROWSER_TRANSPORT=novnc` with `SFFC_REMOTE_BROWSER_ALLOW_NOVNC_PUBLIC=0`, which prevents the WordPress apply-chat UI from exposing noVNC to candidates. Set a managed transport before enabling the public assisted browser path.
 
-For each session the service starts:
+Managed live browser transports:
+
+```bash
+# Browserless
+SFFC_REMOTE_BROWSER_TRANSPORT=browserless_live_url
+SFFC_BROWSERLESS_WS_ENDPOINT=wss://production-sfo.browserless.io?token=...
+
+# Cloudflare Browser Run
+SFFC_REMOTE_BROWSER_TRANSPORT=cloudflare_live_view
+SFFC_CLOUDFLARE_ACCOUNT_ID=...
+SFFC_CLOUDFLARE_API_TOKEN=...
+# Optional override:
+SFFC_CLOUDFLARE_BROWSER_WS_ENDPOINT=wss://api.cloudflare.com/client/v4/accounts/.../browser-run/devtools/browser?keep_alive=600000
+```
+
+noVNC public exposure should only be enabled deliberately:
+
+```bash
+SFFC_REMOTE_BROWSER_TRANSPORT=novnc
+SFFC_REMOTE_BROWSER_ALLOW_NOVNC_PUBLIC=1
+```
+
+For noVNC sessions the service starts:
 
 - isolated `Xvfb` display;
 - Google Chrome on that display;

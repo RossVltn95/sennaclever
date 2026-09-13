@@ -10502,6 +10502,15 @@ CSS;
             $application_url = esc_url_raw((string) $application_url);
             $host = strtolower((string) wp_parse_url($application_url, PHP_URL_HOST));
 
+            if ($provider === 'workable' || $provider === 'workable_board' || preg_match('~(^|\.)workable\.com$~i', $host)) {
+                return 'embed';
+            }
+            if ($provider === 'greenhouse' || preg_match('~(^|\.)greenhouse\.io$~i', $host)) {
+                return 'embed';
+            }
+            if (in_array($provider, ['simple_form', 'simple-form', 'basic_form', 'basic-form'], true)) {
+                return 'embed';
+            }
             if ($provider === 'workday' || preg_match('~(^|\.)myworkdayjobs\.com$|(^|\.)workdayjobs\.com$~i', $host) || preg_match('~/wday/cxs/~i', $application_url)) {
                 return 'remote_browser';
             }
@@ -10509,10 +10518,10 @@ CSS;
                 return 'remote_browser';
             }
             if ($provider === 'teamtailor' || $provider === 'teamtailor_rss' || preg_match('~(^|\.)teamtailor\.com$~i', $host)) {
-                return 'remote_browser';
+                return preg_match('~/jobs/\d+[^?#]*/applications/new~i', $application_url) ? 'remote_browser' : 'embed';
             }
 
-            return 'remote_browser';
+            return 'embed';
         }
 
         private function build_crm_apply_chat_review_surface_decision($provider, $application_url, $requested_mode = 'auto')
@@ -10575,26 +10584,12 @@ CSS;
                 ];
             }
 
-            $remote_browser_supported = $this->can_crm_apply_chat_use_remote_browser()
-                && $this->is_crm_apply_chat_remote_browser_url_allowed($application_url)
-                && $this->is_crm_apply_chat_remote_browser_provider_url_match($provider, $application_url);
-
-            if ($remote_browser_supported) {
-                return [
-                    'mode' => 'remote_browser',
-                    'surface' => 'remote_browser',
-                    'status' => 'remote_browser_supported',
-                    'remote_browser_supported' => true,
-                    'reason' => 'remote_browser_default',
-                ];
-            }
-
             return [
-                'mode' => 'screenshot',
-                'surface' => 'static_preview',
-                'status' => 'remote_browser_unavailable',
+                'mode' => 'embed',
+                'surface' => 'iframe_embed',
+                'status' => 'embed_candidate',
                 'remote_browser_supported' => false,
-                'reason' => 'remote_browser_default_unavailable',
+                'reason' => 'fallback_iframe_first',
             ];
         }
 
@@ -10663,8 +10658,55 @@ CSS;
             return trim($token);
         }
 
+        private function get_crm_apply_chat_remote_browser_transport()
+        {
+            $transport = defined('SFFC_REMOTE_BROWSER_TRANSPORT') ? (string) SFFC_REMOTE_BROWSER_TRANSPORT : '';
+            if ($transport === '') {
+                $transport = (string) getenv('SFFC_REMOTE_BROWSER_TRANSPORT');
+            }
+            if ($transport === '') {
+                $transport = (string) get_option('sffc_remote_browser_transport', '');
+            }
+            $transport = sanitize_key(trim($transport));
+            if ($transport === '') {
+                return 'novnc';
+            }
+            if (in_array($transport, ['cloudflare', 'cloudflare_live_view', 'browserless', 'browserless_live_url', 'managed_live_browser'], true)) {
+                return $transport;
+            }
+            if (in_array($transport, ['novnc', 'vnc'], true)) {
+                return 'novnc';
+            }
+            if (in_array($transport, ['puppeteer', 'screenshot'], true)) {
+                return $transport;
+            }
+            return 'novnc';
+        }
+
+        private function can_crm_apply_chat_expose_public_novnc()
+        {
+            if (defined('SFFC_REMOTE_BROWSER_ALLOW_NOVNC_PUBLIC')) {
+                $constant_value = SFFC_REMOTE_BROWSER_ALLOW_NOVNC_PUBLIC;
+                return $constant_value === true || $constant_value === 1 || $constant_value === '1' || $constant_value === 'true';
+            }
+
+            $env_value = getenv('SFFC_REMOTE_BROWSER_ALLOW_NOVNC_PUBLIC');
+            if ($env_value !== false && $env_value !== '') {
+                return in_array((string) $env_value, ['1', 'true', 'yes', 'on'], true);
+            }
+
+            return in_array((string) get_option('sffc_remote_browser_allow_novnc_public', ''), ['1', 'true', 'yes', 'on'], true);
+        }
+
         private function can_crm_apply_chat_use_remote_browser()
         {
+            $transport = $this->get_crm_apply_chat_remote_browser_transport();
+            if ($transport === 'novnc' && !$this->can_crm_apply_chat_expose_public_novnc()) {
+                return false;
+            }
+            if (in_array($transport, ['puppeteer', 'screenshot'], true)) {
+                return false;
+            }
             return $this->is_crm_apply_chat_remote_browser_enabled()
                 && $this->get_crm_apply_chat_remote_browser_service_url() !== ''
                 && $this->get_crm_apply_chat_remote_browser_token() !== '';
@@ -12930,13 +12972,6 @@ CSS;
 
             $current_user = is_user_logged_in() ? wp_get_current_user() : null;
             $user_id = $current_user instanceof \WP_User ? (int) $current_user->ID : 0;
-            if ($user_id <= 0 || !$this->current_user_has_crm_editorial_paid_membership_access()) {
-                wp_send_json_error([
-                    'message' => __('Join MENA Careers to request an expert Career Assessment.', 'senna-finance'),
-                    'redirect' => home_url('/memberships/'),
-                ], 403);
-            }
-
             $posted_name = sanitize_text_field((string) wp_unslash($_POST['candidate_name'] ?? ''));
             $posted_email = sanitize_email((string) wp_unslash($_POST['candidate_email'] ?? ''));
             $candidate_name = $user_id > 0
@@ -38722,7 +38757,7 @@ CRITICAL INSTRUCTIONS:
             $tracker_filter_button_label = $tracker_filter_label !== ''
                 ? sprintf(__('Tracker : %s', 'senna-finance'), $tracker_filter_label)
                 : __('Trackers', 'senna-finance');
-            $has_premium_access = is_user_logged_in() && $this->current_user_has_crm_editorial_paid_membership_access();
+            $has_premium_access = true;
             $current_user = wp_get_current_user();
             $join_prefill_name = $current_user instanceof WP_User && $current_user->exists() ? trim((string) $current_user->display_name) : '';
             $join_prefill_email = $current_user instanceof WP_User && $current_user->exists() ? sanitize_email((string) $current_user->user_email) : '';
@@ -40517,7 +40552,7 @@ CRITICAL INSTRUCTIONS:
                         'tone' => $match_rank === 'qualified' ? 'strong' : 'watch',
                     ],
                 ]);
-            $has_match_premium_access = is_user_logged_in() && $this->current_user_has_crm_editorial_paid_membership_access();
+            $has_match_premium_access = true;
             $show_match_premium_cta = !$has_match_premium_access;
             $review_user = is_user_logged_in() ? wp_get_current_user() : null;
             $review_default_name = $review_user instanceof \WP_User
@@ -41270,6 +41305,8 @@ CRITICAL INSTRUCTIONS:
                 'reviewSurfaceDecisionNonce' => wp_create_nonce('sffc_crm_apply_chat_review_surface_decision'),
                 'remoteBrowserNonce' => wp_create_nonce('sffc_crm_apply_chat_remote_browser'),
                 'remoteBrowserEnabled' => $this->can_crm_apply_chat_use_remote_browser(),
+                'remoteBrowserTransport' => $this->get_crm_apply_chat_remote_browser_transport(),
+                'remoteBrowserAllowNoVncPublic' => $this->can_crm_apply_chat_expose_public_novnc(),
                 'catchUpInviteNonce' => wp_create_nonce('sffc_crm_apply_chat_send_catch_up_invite'),
                 'jobsSearchNonce' => wp_create_nonce('sffc_crm_apply_chat_search_jobs'),
                 'webSearchNonce' => wp_create_nonce('sffc_crm_apply_chat_web_search'),
@@ -41350,7 +41387,7 @@ CRITICAL INSTRUCTIONS:
             $matching_recruiters_seed = [];
             $matching_salary_guides_seed = [];
             $membership_workspace = $this->render_apply_chat_membership_workspace();
-            $has_paid_editorial_access = is_user_logged_in() && $this->current_user_has_crm_editorial_paid_membership_access();
+            $has_paid_editorial_access = true;
             $membership_snapshot = is_user_logged_in() ? $this->get_crm_apply_chat_membership_snapshot(get_current_user_id()) : $this->get_crm_apply_chat_membership_snapshot(0);
             $member_onboarding_html = $this->render_crm_apply_chat_member_onboarding_dialog();
             $default_guest_avatar = 'https://media.joinsenna.com/2025/05/bb-profile-avatar-buddyboss.webp';
@@ -41729,7 +41766,7 @@ CRITICAL INSTRUCTIONS:
                                         </span>
                                         <span class="sffc-crm-apply-chat__app-rail-button-label"><?php esc_html_e('Applications', 'senna-finance'); ?></span>
                                     </button>
-                                    <button type="button" class="sffc-crm-apply-chat__app-rail-button" data-sffc-apply-chat-rail-view="intros" aria-label="<?php esc_attr_e('Saved roles', 'senna-finance'); ?>" data-sffc-apply-chat-membership-gated="1">
+                                    <button type="button" class="sffc-crm-apply-chat__app-rail-button" data-sffc-apply-chat-rail-view="intros" aria-label="<?php esc_attr_e('Saved roles', 'senna-finance'); ?>">
                                         <span class="sffc-crm-apply-chat__app-rail-button-icon" aria-hidden="true">
                                             <svg viewBox="0 0 24 24" fill="none"><path d="M5 12.2h5.2l2.1-2.6 2.2 4.2 1.8-2.2H19" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M7.2 7.2h9.6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M7.2 17h6.4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
                                         </span>
@@ -41747,7 +41784,7 @@ CRITICAL INSTRUCTIONS:
                                         </span>
                                         <span class="sffc-crm-apply-chat__app-rail-button-label"><?php esc_html_e('My profile', 'senna-finance'); ?></span>
                                     </button>
-                                    <button type="button" class="sffc-crm-apply-chat__app-rail-button" data-sffc-apply-chat-rail-view="sent" aria-label="<?php esc_attr_e('Career plan', 'senna-finance'); ?>" data-sffc-apply-chat-membership-gated="1">
+                                    <button type="button" class="sffc-crm-apply-chat__app-rail-button" data-sffc-apply-chat-rail-view="sent" aria-label="<?php esc_attr_e('Career plan', 'senna-finance'); ?>">
                                         <span class="sffc-crm-apply-chat__app-rail-button-icon" aria-hidden="true">
                                             <svg viewBox="0 0 24 24" fill="none"><path d="M5 7.5 12 12l7-4.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M6.75 6h10.5C18.2165 6 19 6.7835 19 7.75v8.5c0 .9665-.7835 1.75-1.75 1.75H6.75C5.7835 18 5 17.2165 5 16.25v-8.5C5 6.7835 5.7835 6 6.75 6Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
                                         </span>
@@ -41846,11 +41883,9 @@ CRITICAL INSTRUCTIONS:
                                             <button type="button" class="sffc-crm-apply-chat__desk-icon" data-sffc-apply-chat-desk-menu-toggle aria-label="<?php esc_attr_e('More', 'senna-finance'); ?>" aria-expanded="false">…</button>
                                             <div class="sffc-crm-apply-chat__desk-menu" data-sffc-apply-chat-desk-menu hidden>
                                                 <?php if (is_user_logged_in()) : ?>
-                                                    <button type="button" class="sffc-crm-apply-chat__desk-menu-item" data-sffc-apply-chat-open-membership="mentorship"><?php esc_html_e('Subscription', 'senna-finance'); ?></button>
                                                     <a href="mailto:support.team@joinsenna.com" class="sffc-crm-apply-chat__desk-menu-item"><?php esc_html_e('Support', 'senna-finance'); ?></a>
                                                     <a href="<?php echo esc_url(wp_logout_url(get_permalink(get_queried_object_id()) ?: home_url('/'))); ?>" class="sffc-crm-apply-chat__desk-menu-item"><?php esc_html_e('Logout', 'senna-finance'); ?></a>
                                                 <?php else : ?>
-                                                    <button type="button" class="sffc-crm-apply-chat__desk-menu-item" data-sffc-apply-chat-open-membership="mentorship"><?php esc_html_e('Subscription', 'senna-finance'); ?></button>
                                                     <a href="mailto:support.team@joinsenna.com" class="sffc-crm-apply-chat__desk-menu-item"><?php esc_html_e('Support', 'senna-finance'); ?></a>
                                                     <a href="<?php echo esc_url(home_url('/login/')); ?>" class="sffc-crm-apply-chat__desk-menu-item"><?php esc_html_e('Login', 'senna-finance'); ?></a>
                                                 <?php endif; ?>
@@ -43604,6 +43639,8 @@ CRITICAL INSTRUCTIONS:
                 'reviewSurfaceDecisionNonce' => wp_create_nonce('sffc_crm_apply_chat_review_surface_decision'),
                 'remoteBrowserNonce' => wp_create_nonce('sffc_crm_apply_chat_remote_browser'),
                 'remoteBrowserEnabled' => $this->can_crm_apply_chat_use_remote_browser(),
+                'remoteBrowserTransport' => $this->get_crm_apply_chat_remote_browser_transport(),
+                'remoteBrowserAllowNoVncPublic' => $this->can_crm_apply_chat_expose_public_novnc(),
                 'catchUpInviteNonce' => wp_create_nonce('sffc_crm_apply_chat_send_catch_up_invite'),
                 'jobsSearchNonce' => wp_create_nonce('sffc_crm_apply_chat_search_jobs'),
                 'webSearchNonce' => wp_create_nonce('sffc_crm_apply_chat_web_search'),
@@ -43773,7 +43810,7 @@ CRITICAL INSTRUCTIONS:
             $matching_recruiters_seed = [];
             $matching_salary_guides_seed = [];
             $membership_workspace = $this->render_apply_chat_membership_workspace();
-            $has_paid_editorial_access = is_user_logged_in() && $this->current_user_has_crm_editorial_paid_membership_access();
+            $has_paid_editorial_access = true;
             $membership_snapshot = is_user_logged_in() ? $this->get_crm_apply_chat_membership_snapshot(get_current_user_id()) : $this->get_crm_apply_chat_membership_snapshot(0);
             $member_onboarding_html = $this->render_crm_apply_chat_member_onboarding_dialog();
             $default_guest_avatar = 'https://media.joinsenna.com/2025/05/bb-profile-avatar-buddyboss.webp';
@@ -43960,7 +43997,7 @@ CRITICAL INSTRUCTIONS:
                                         </span>
                                         <span class="sffc-crm-apply-chat__app-rail-button-label"><?php esc_html_e('Applications', 'senna-finance'); ?></span>
                                     </button>
-                                    <button type="button" class="sffc-crm-apply-chat__app-rail-button" data-sffc-apply-chat-rail-view="intros" aria-label="<?php esc_attr_e('Saved roles', 'senna-finance'); ?>" data-sffc-apply-chat-membership-gated="1">
+                                    <button type="button" class="sffc-crm-apply-chat__app-rail-button" data-sffc-apply-chat-rail-view="intros" aria-label="<?php esc_attr_e('Saved roles', 'senna-finance'); ?>">
                                         <span class="sffc-crm-apply-chat__app-rail-button-icon" aria-hidden="true">
                                             <svg viewBox="0 0 24 24" fill="none"><path d="M5 12.2h5.2l2.1-2.6 2.2 4.2 1.8-2.2H19" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M7.2 7.2h9.6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M7.2 17h6.4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
                                         </span>
@@ -43978,7 +44015,7 @@ CRITICAL INSTRUCTIONS:
                                         </span>
                                         <span class="sffc-crm-apply-chat__app-rail-button-label"><?php esc_html_e('My profile', 'senna-finance'); ?></span>
                                     </button>
-                                    <button type="button" class="sffc-crm-apply-chat__app-rail-button" data-sffc-apply-chat-rail-view="sent" aria-label="<?php esc_attr_e('Career plan', 'senna-finance'); ?>" data-sffc-apply-chat-membership-gated="1">
+                                    <button type="button" class="sffc-crm-apply-chat__app-rail-button" data-sffc-apply-chat-rail-view="sent" aria-label="<?php esc_attr_e('Career plan', 'senna-finance'); ?>">
                                         <span class="sffc-crm-apply-chat__app-rail-button-icon" aria-hidden="true">
                                             <svg viewBox="0 0 24 24" fill="none"><path d="M5 7.5 12 12l7-4.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M6.75 6h10.5C18.2165 6 19 6.7835 19 7.75v8.5c0 .9665-.7835 1.75-1.75 1.75H6.75C5.7835 18 5 17.2165 5 16.25v-8.5C5 6.7835 5.7835 6 6.75 6Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
                                         </span>
@@ -44077,11 +44114,9 @@ CRITICAL INSTRUCTIONS:
                                             <button type="button" class="sffc-crm-apply-chat__desk-icon" data-sffc-apply-chat-desk-menu-toggle aria-label="<?php esc_attr_e('More', 'senna-finance'); ?>" aria-expanded="false">…</button>
                                             <div class="sffc-crm-apply-chat__desk-menu" data-sffc-apply-chat-desk-menu hidden>
                                                 <?php if (is_user_logged_in()) : ?>
-                                                    <button type="button" class="sffc-crm-apply-chat__desk-menu-item" data-sffc-apply-chat-open-membership="mentorship"><?php esc_html_e('Subscription', 'senna-finance'); ?></button>
                                                     <a href="mailto:support.team@joinsenna.com" class="sffc-crm-apply-chat__desk-menu-item"><?php esc_html_e('Support', 'senna-finance'); ?></a>
                                                     <a href="<?php echo esc_url(wp_logout_url(get_permalink(get_queried_object_id()) ?: home_url('/'))); ?>" class="sffc-crm-apply-chat__desk-menu-item"><?php esc_html_e('Logout', 'senna-finance'); ?></a>
                                                 <?php else : ?>
-                                                    <button type="button" class="sffc-crm-apply-chat__desk-menu-item" data-sffc-apply-chat-open-membership="mentorship"><?php esc_html_e('Subscription', 'senna-finance'); ?></button>
                                                     <a href="mailto:support.team@joinsenna.com" class="sffc-crm-apply-chat__desk-menu-item"><?php esc_html_e('Support', 'senna-finance'); ?></a>
                                                     <a href="<?php echo esc_url(home_url('/login/')); ?>" class="sffc-crm-apply-chat__desk-menu-item"><?php esc_html_e('Login', 'senna-finance'); ?></a>
                                                 <?php endif; ?>
@@ -44253,21 +44288,6 @@ CRITICAL INSTRUCTIONS:
                     <p><?php esc_html_e('Your Emily desk is available once you log in to your MENA Careers account.', 'senna-finance'); ?></p>
                     <div class="sffc-crm-apply-chat__member-gate-actions">
                         <a class="sffc-crm-apply-chat__member-gate-button" href="<?php echo esc_url(home_url('/login/')); ?>"><?php esc_html_e('Login', 'senna-finance'); ?></a>
-                        <a class="sffc-crm-apply-chat__member-gate-button is-secondary" href="<?php echo esc_url(home_url('/memberships/')); ?>"><?php esc_html_e('Join MENA Careers', 'senna-finance'); ?></a>
-                    </div>
-                </section>
-                <?php
-                return (string) ob_get_clean();
-            }
-
-            if (!$this->current_user_has_crm_editorial_paid_membership_access()) {
-                ob_start();
-                ?>
-                <section class="sffc-crm-apply-chat__member-gate">
-                    <strong><?php esc_html_e('Upgrade to open your Emily desk', 'senna-finance'); ?></strong>
-                    <p><?php esc_html_e('Emily updates, tailored applications, recruiter intros, and live search support are available on a paid MENA Careers membership.', 'senna-finance'); ?></p>
-                    <div class="sffc-crm-apply-chat__member-gate-actions">
-                        <a class="sffc-crm-apply-chat__member-gate-button" href="<?php echo esc_url(home_url('/memberships/')); ?>"><?php esc_html_e('View memberships', 'senna-finance'); ?></a>
                     </div>
                 </section>
                 <?php
@@ -45728,6 +45748,17 @@ CRITICAL INSTRUCTIONS:
             if (is_array($application_profile_decoded)) {
                 $application_profile = $this->sanitize_crm_application_task_diagnostic_value($application_profile_decoded);
             }
+            $profile_version_id = sanitize_text_field(wp_unslash((string) ($_POST['profile_version_id'] ?? '')));
+            $answer_memory_snapshot_raw = wp_unslash((string) ($_POST['answer_memory_snapshot'] ?? '{}'));
+            $answer_memory_snapshot = [];
+            $answer_memory_snapshot_decoded = json_decode($answer_memory_snapshot_raw, true);
+            if (is_array($answer_memory_snapshot_decoded)) {
+                $answer_memory_snapshot = $this->sanitize_crm_application_task_diagnostic_value($answer_memory_snapshot_decoded);
+            }
+            $submit_preference = sanitize_key((string) wp_unslash($_POST['submit_preference'] ?? 'ask_before_submit'));
+            if (!in_array($submit_preference, ['ask_before_submit', 'submit_when_ready'], true)) {
+                $submit_preference = 'ask_before_submit';
+            }
             $profile_identity = is_array($application_profile['identity'] ?? null) ? $application_profile['identity'] : [];
             if ($candidate_name === '') {
                 $profile_name_field = is_array($profile_identity['fullName'] ?? null) ? $profile_identity['fullName'] : [];
@@ -45798,6 +45829,9 @@ CRITICAL INSTRUCTIONS:
                 'cv_mode' => $cv_mode,
                 'tailored_cv_text' => $tailored_cv_text,
                 'application_profile' => $application_profile,
+                'profile_version_id' => $profile_version_id,
+                'answer_memory_snapshot' => $answer_memory_snapshot,
+                'submit_preference' => $submit_preference,
             ];
             $tailored_cv_model_raw = wp_unslash((string) ($_POST['tailored_cv_model'] ?? '{}'));
             $tailored_cv_model_decoded = json_decode($tailored_cv_model_raw, true);
@@ -46345,15 +46379,15 @@ CRITICAL INSTRUCTIONS:
             check_ajax_referer('sffc_crm_apply_chat_remote_browser', 'nonce');
 
             if (!$this->can_crm_apply_chat_use_remote_browser()) {
-                wp_send_json_error(['message' => __('The secure browser is not enabled yet.', 'senna-finance')], 503);
+                wp_send_json_error(['message' => __('The assisted browser view is not enabled yet.', 'senna-finance')], 503);
             }
             if ($this->is_crm_apply_chat_remote_browser_rate_limited('create', 8, 60)) {
-                wp_send_json_error(['message' => __('Too many secure browser requests. Please wait and try again.', 'senna-finance')], 429);
+                wp_send_json_error(['message' => __('Too many assisted browser requests. Please wait and try again.', 'senna-finance')], 429);
             }
 
             $application_url = esc_url_raw($this->get_crm_apply_chat_post_first_scalar(['application_url', 'employer_url']));
             if (!$this->is_crm_apply_chat_remote_browser_url_allowed($application_url)) {
-                wp_send_json_error(['message' => __('I need a valid external employer application URL before I can open the secure browser.', 'senna-finance')], 422);
+                wp_send_json_error(['message' => __('I need a valid external employer application URL before I can open the assisted browser view.', 'senna-finance')], 422);
             }
 
             $session_token = sanitize_text_field($this->get_crm_apply_chat_post_scalar('session_token'));
@@ -46383,7 +46417,7 @@ CRITICAL INSTRUCTIONS:
                 'conversationId' => $conversation_id > 0 ? $conversation_id : 0,
                 'provider' => $provider ?: 'unknown',
                 'employerUrl' => $application_url,
-                'transport' => 'novnc',
+                'transport' => $this->get_crm_apply_chat_remote_browser_transport(),
             ];
 
             $this->log_crm_apply_chat_remote_browser_event('create_requested', [
@@ -46409,7 +46443,7 @@ CRITICAL INSTRUCTIONS:
             $remote_session_id = sanitize_text_field((string) ($session['sessionId'] ?? ''));
             if ($remote_session_id === '' || empty($session['streamUrl'])) {
                 wp_send_json_error([
-                    'message' => __('The secure browser service did not return a usable session.', 'senna-finance'),
+                    'message' => __('The assisted browser service did not return a usable session.', 'senna-finance'),
                     'fallback' => 'static_preview',
                 ], 502);
             }
@@ -46429,7 +46463,7 @@ CRITICAL INSTRUCTIONS:
             wp_send_json_success([
                 'session' => $session,
                 'mode' => 'remote_browser',
-                'message' => __('I opened the employer page in a secure Senna browser window.', 'senna-finance'),
+                'message' => __('I opened the employer page in an assisted browser view.', 'senna-finance'),
             ]);
         }
 
@@ -46437,19 +46471,19 @@ CRITICAL INSTRUCTIONS:
         {
             check_ajax_referer('sffc_crm_apply_chat_remote_browser', 'nonce');
             if ($this->is_crm_apply_chat_remote_browser_rate_limited('status', 120, 60)) {
-                wp_send_json_error(['message' => __('Too many secure browser status checks. Please wait and try again.', 'senna-finance')], 429);
+                wp_send_json_error(['message' => __('Too many assisted browser status checks. Please wait and try again.', 'senna-finance')], 429);
             }
 
             $session_id = sanitize_text_field($this->get_crm_apply_chat_post_scalar('session_id'));
             if ($session_id === '') {
-                wp_send_json_error(['message' => __('Missing secure browser session ID.', 'senna-finance')], 422);
+                wp_send_json_error(['message' => __('Missing assisted browser session ID.', 'senna-finance')], 422);
             }
             $session_token = sanitize_text_field($this->get_crm_apply_chat_post_scalar('session_token'));
             if (!$this->current_user_can_access_crm_apply_chat_remote_browser_session($session_id, $session_token)) {
                 $this->log_crm_apply_chat_remote_browser_event('status_forbidden', [
                     'session_id' => $session_id,
                 ]);
-                wp_send_json_error(['message' => __('You do not have access to this secure browser session.', 'senna-finance')], 403);
+                wp_send_json_error(['message' => __('You do not have access to this assisted browser session.', 'senna-finance')], 403);
             }
 
             $result = $this->crm_apply_chat_remote_browser_request('GET', '/sessions/' . rawurlencode($session_id));
@@ -46466,19 +46500,19 @@ CRITICAL INSTRUCTIONS:
         {
             check_ajax_referer('sffc_crm_apply_chat_remote_browser', 'nonce');
             if ($this->is_crm_apply_chat_remote_browser_rate_limited('control', 60, 60)) {
-                wp_send_json_error(['message' => __('Too many secure browser control changes. Please wait and try again.', 'senna-finance')], 429);
+                wp_send_json_error(['message' => __('Too many assisted browser control changes. Please wait and try again.', 'senna-finance')], 429);
             }
 
             $session_id = sanitize_text_field($this->get_crm_apply_chat_post_scalar('session_id'));
             if ($session_id === '') {
-                wp_send_json_error(['message' => __('Missing secure browser session ID.', 'senna-finance')], 422);
+                wp_send_json_error(['message' => __('Missing assisted browser session ID.', 'senna-finance')], 422);
             }
             $session_token = sanitize_text_field($this->get_crm_apply_chat_post_scalar('session_token'));
             if (!$this->current_user_can_access_crm_apply_chat_remote_browser_session($session_id, $session_token)) {
                 $this->log_crm_apply_chat_remote_browser_event('control_forbidden', [
                     'session_id' => $session_id,
                 ]);
-                wp_send_json_error(['message' => __('You do not have access to this secure browser session.', 'senna-finance')], 403);
+                wp_send_json_error(['message' => __('You do not have access to this assisted browser session.', 'senna-finance')], 403);
             }
 
             $control = sanitize_key($this->get_crm_apply_chat_post_scalar('control'));
@@ -46489,7 +46523,7 @@ CRITICAL INSTRUCTIONS:
                 'read_only',
             ];
             if (!in_array($control, $allowed_controls, true)) {
-                wp_send_json_error(['message' => __('Unsupported secure browser control state.', 'senna-finance')], 422);
+                wp_send_json_error(['message' => __('Unsupported assisted browser control state.', 'senna-finance')], 422);
             }
 
             $this->log_crm_apply_chat_remote_browser_event('control_requested', [
@@ -46521,19 +46555,19 @@ CRITICAL INSTRUCTIONS:
         {
             check_ajax_referer('sffc_crm_apply_chat_remote_browser', 'nonce');
             if ($this->is_crm_apply_chat_remote_browser_rate_limited('close', 60, 60)) {
-                wp_send_json_error(['message' => __('Too many secure browser requests. Please wait and try again.', 'senna-finance')], 429);
+                wp_send_json_error(['message' => __('Too many assisted browser requests. Please wait and try again.', 'senna-finance')], 429);
             }
 
             $session_id = sanitize_text_field($this->get_crm_apply_chat_post_scalar('session_id'));
             if ($session_id === '') {
-                wp_send_json_error(['message' => __('Missing secure browser session ID.', 'senna-finance')], 422);
+                wp_send_json_error(['message' => __('Missing assisted browser session ID.', 'senna-finance')], 422);
             }
             $session_token = sanitize_text_field($this->get_crm_apply_chat_post_scalar('session_token'));
             if (!$this->current_user_can_access_crm_apply_chat_remote_browser_session($session_id, $session_token)) {
                 $this->log_crm_apply_chat_remote_browser_event('close_forbidden', [
                     'session_id' => $session_id,
                 ]);
-                wp_send_json_error(['message' => __('You do not have access to this secure browser session.', 'senna-finance')], 403);
+                wp_send_json_error(['message' => __('You do not have access to this assisted browser session.', 'senna-finance')], 403);
             }
 
             $this->log_crm_apply_chat_remote_browser_event('close_requested', [
@@ -51858,7 +51892,7 @@ CRITICAL INSTRUCTIONS:
             }
 
             $is_logged_in = is_user_logged_in();
-            $has_paid_editorial_access = $is_logged_in && $this->current_user_has_crm_editorial_paid_membership_access();
+            $has_paid_editorial_access = true;
             $show_gate = false;
             $show_full_details = $has_paid_editorial_access;
             $similar_limit = max(1, min(6, absint($atts['similar_limit'])));
@@ -65040,7 +65074,7 @@ HTML;
                 'pdfWorker' => 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js',
                 'membershipUrl' => $this->get_crm_reddit_membership_url(),
                 'loggedIn' => is_user_logged_in(),
-                'hasPremiumAccess' => is_user_logged_in() && $this->current_user_has_crm_editorial_paid_membership_access(),
+                'hasPremiumAccess' => true,
                 'pinnedMailboxKeys' => is_user_logged_in() ? $this->get_cv_match_studio_jobs_mailbox_pinned_keys_for_user(get_current_user_id()) : [],
                 'defaultMailboxPinKey' => !is_user_logged_in() ? $this->get_cv_match_studio_jobs_mailbox_default_pin_key($this->get_cv_match_studio_jobs_mailbox_items(0, [], 9)) : '',
                 'firstName' => '',
@@ -81813,7 +81847,7 @@ HTML;
             $this->enqueue_community_apply_for_me_shortcode_assets();
 
             $is_logged_in = is_user_logged_in();
-            $has_premium_access = $is_logged_in && $this->current_user_has_crm_editorial_paid_membership_access();
+            $has_premium_access = true;
             $community_locale = $this->get_member_pricing_signup_locale();
 
             ob_start();
@@ -81855,7 +81889,7 @@ HTML;
             $this->enqueue_community_apply_for_me_shortcode_assets();
 
             $is_logged_in = is_user_logged_in();
-            $has_premium_access = $is_logged_in && $this->current_user_has_crm_editorial_paid_membership_access();
+            $has_premium_access = true;
             $community_locale = $this->get_member_pricing_signup_locale();
 
             ob_start();
@@ -81954,7 +81988,7 @@ HTML;
                 'jobsSearchNonce' => wp_create_nonce('sffc_crm_apply_chat_search_jobs'),
                 'applicationTaskNonce' => wp_create_nonce('sffc_crm_apply_chat_queue_application_task'),
                 'isLoggedIn' => is_user_logged_in(),
-                'hasPremiumAccess' => is_user_logged_in() && $this->current_user_has_crm_editorial_paid_membership_access(),
+                'hasPremiumAccess' => true,
                 'currentUserEmail' => is_user_logged_in() ? sanitize_email((string) wp_get_current_user()->user_email) : '',
                 'currentUserName' => is_user_logged_in() ? sanitize_text_field((string) wp_get_current_user()->display_name) : '',
                 'membershipsUrl' => home_url('/memberships/'),
@@ -82304,7 +82338,7 @@ HTML;
                 'applyForMeMandateNonce' => wp_create_nonce('sffc_crm_editorial_apply_for_me_mandate'),
                 'accountNonce' => wp_create_nonce('sffc_crm_reddit_account'),
                 'isLoggedIn' => is_user_logged_in(),
-                'hasPremiumAccess' => is_user_logged_in() && $this->current_user_has_crm_editorial_paid_membership_access(),
+                'hasPremiumAccess' => true,
                 'currentUserEmail' => is_user_logged_in() ? sanitize_email((string) wp_get_current_user()->user_email) : '',
                 'requestHumanNonce' => wp_create_nonce('sffc_crm_apply_chat_request_human_followup'),
                 'membershipsUrl' => home_url('/memberships/'),
@@ -82340,7 +82374,7 @@ HTML;
 
             $user_id = get_current_user_id();
             $is_logged_in = is_user_logged_in();
-            $has_premium_access = $is_logged_in && $this->current_user_has_crm_editorial_paid_membership_access();
+            $has_premium_access = true;
             $saved_tracker_slugs = $this->get_crm_editorial_community_saved_tracker_slugs($user_id);
             $posts_limit = max(48, min(80, (int) $atts['posts_limit']));
             $groups_limit = max(6, min(8, (int) $atts['groups_limit']));
@@ -83833,11 +83867,7 @@ HTML;
                 return false;
             }
 
-            if ($this->current_user_has_crm_editorial_paid_membership_access($user_id)) {
-                return false;
-            }
-
-            return get_user_meta($user_id, 'sffc_crm_editorial_community_onboarding_seen', true) !== '1';
+            return false;
         }
 
         private function normalize_crm_editorial_community_feed_filters(array $filters = [])
@@ -84085,18 +84115,7 @@ HTML;
                 return [];
             }
 
-            if ($this->current_user_has_crm_editorial_paid_membership_access($user_id)) {
-                return array_values($feed_items);
-            }
-
-            $premium_tracker_slugs = $this->get_crm_editorial_community_premium_tracker_slugs();
-            if (empty($premium_tracker_slugs)) {
-                return array_values($feed_items);
-            }
-
-            return array_values(array_filter($feed_items, function ($item) use ($premium_tracker_slugs) {
-                return !$this->is_crm_editorial_community_item_in_premium_tracker((array) $item, $premium_tracker_slugs);
-            }));
+            return array_values($feed_items);
         }
 
         private function build_crm_editorial_community_tracker_feed_sections(array $feed_items, array $post_groups = [], $selected_group = '', array $selected_trackers = [])
@@ -84287,7 +84306,7 @@ HTML;
             $tracker_export_url = $slug !== '' ? $this->get_cv_match_studio_newsletter_group_export_url($slug) : '#';
             $show_saved_tracker_export = !empty($options['show_saved_tracker_export']);
             $is_logged_in = is_user_logged_in();
-            $has_premium_access = $is_logged_in && $this->current_user_has_crm_editorial_paid_membership_access();
+            $has_premium_access = true;
             $membership_url = get_option('sffc_registration_url', home_url('/memberships/'));
             $tracker_sort_membership_url = home_url('/memberships/');
             $visible_items = array_slice($items, 0, 8);
@@ -85351,8 +85370,7 @@ HTML;
                     !empty($focus_item)
                     && $this->does_crm_editorial_community_item_match_filters((array) $focus_item, $this->normalize_crm_editorial_community_feed_filters($filters))
                     && (
-                        $this->current_user_has_crm_editorial_paid_membership_access($user_id)
-                        || !$this->is_crm_editorial_community_item_in_premium_tracker((array) $focus_item)
+                        true
                     )
                 ) {
                     $items = array_values(array_filter($items, static function ($item) use ($focus_post_id) {
@@ -85552,7 +85570,7 @@ HTML;
                 $items = $this->get_crm_editorial_community_search_resources($term, 8);
             }
 
-            $has_premium_access = is_user_logged_in() && $this->current_user_has_crm_editorial_paid_membership_access();
+            $has_premium_access = true;
             $response_items = $has_premium_access ? $items : $this->mask_crm_editorial_community_search_items_for_public($items);
 
             wp_send_json_success([
@@ -86051,7 +86069,7 @@ HTML;
         {
             $category = sanitize_key((string) $category);
             $is_logged_in = is_user_logged_in();
-            $has_premium_access = $is_logged_in && $this->current_user_has_crm_editorial_paid_membership_access();
+            $has_premium_access = true;
             $heading = [
                 'jobs' => __('Jobs', 'senna-finance'),
                 'resources' => __('Resources', 'senna-finance'),
@@ -86163,7 +86181,7 @@ HTML;
             $posts = array_values((array) ($payload['posts'] ?? []));
             $term = trim((string) $term);
             $is_logged_in = is_user_logged_in();
-            $has_premium_access = $is_logged_in && $this->current_user_has_crm_editorial_paid_membership_access();
+            $has_premium_access = true;
 
             ob_start();
             if (empty($posts)) : ?>
@@ -86273,13 +86291,6 @@ HTML;
 
             if (!is_user_logged_in()) {
                 wp_send_json_error(['message' => __('Sign in to save your Get Hired brief.', 'senna-finance')], 403);
-            }
-
-            if (!$this->current_user_has_crm_editorial_paid_membership_access()) {
-                wp_send_json_error([
-                    'message' => __('A paid MENA Careers plan is required to save a Get Hired brief.', 'senna-finance'),
-                    'redirect' => home_url('/memberships/'),
-                ], 403);
             }
 
             $raw_mandate = isset($_POST['mandate']) ? wp_unslash((string) $_POST['mandate']) : '';
@@ -88244,7 +88255,7 @@ HTML;
         {
             $user_id = get_current_user_id();
             $is_logged_in = is_user_logged_in();
-            $has_premium_access = $is_logged_in && $this->current_user_has_crm_editorial_paid_membership_access();
+            $has_premium_access = true;
             $recruiter_item = is_array($recruiter_item) ? $recruiter_item : [];
             $discovery_name = trim((string) ($recruiter_item['name'] ?? ''));
             $discovery_display_name = $has_premium_access ? $discovery_name : $this->format_crm_reddit_recruiter_short_name($discovery_name);
@@ -89412,10 +89423,6 @@ HTML;
         public function ajax_crm_editorial_company_roles()
         {
             check_ajax_referer('sffc_crm_nonce', 'nonce');
-
-            if (!is_user_logged_in() || !$this->current_user_has_crm_editorial_paid_membership_access()) {
-                wp_send_json_error(['message' => __('Upgrade to view company role details.', 'senna-finance')], 403);
-            }
 
             $company_name = sanitize_text_field((string) ($_POST['company_name'] ?? ''));
             if ($company_name === '') {
@@ -90941,7 +90948,7 @@ HTML;
         private function render_crm_editorial_community_post_card(array $item, $variant = 'standard', $position = 0, $category_highlight_label = '', array $category_highlight_context = [])
         {
             $is_logged_in = is_user_logged_in();
-            $has_premium_access = $is_logged_in && $this->current_user_has_crm_editorial_paid_membership_access();
+            $has_premium_access = true;
             $user_id = get_current_user_id();
             $jobs_post_id = $this->resolve_cv_match_job_view_jobs_post_id(
                 (int) ($item['post_id'] ?? 0),
@@ -91406,7 +91413,7 @@ HTML;
         private function render_crm_editorial_community_recruiter_card(array $recruiter)
         {
             $is_logged_in = is_user_logged_in();
-            $has_premium_access = $is_logged_in && $this->current_user_has_crm_editorial_paid_membership_access();
+            $has_premium_access = true;
             $recruiter_name = trim((string) ($recruiter['name'] ?? __('Recruiter', 'senna-finance')));
             $display_recruiter_name = $has_premium_access ? $recruiter_name : $this->format_crm_reddit_recruiter_short_name($recruiter_name);
             $recruiter_initial = function_exists('mb_substr')
@@ -91612,7 +91619,7 @@ HTML;
         {
             $user_id = get_current_user_id();
             $is_logged_in = is_user_logged_in();
-            $has_premium_access = $is_logged_in && $this->current_user_has_crm_editorial_paid_membership_access();
+            $has_premium_access = true;
             $community_locale = $this->get_member_pricing_signup_locale();
             $posts_url = add_query_arg('community_tab', 'posts');
             ob_start();
@@ -91768,10 +91775,10 @@ HTML;
         {
             $community_locale = $this->get_member_pricing_signup_locale();
             $is_logged_in = is_user_logged_in();
-            $has_premium_access = $is_logged_in && $this->current_user_has_crm_editorial_paid_membership_access();
-            $show_sequence = $has_premium_access || (bool) $force_sequence;
+            $has_premium_access = true;
+            $show_sequence = true;
             $profile_url = home_url('/terminal/?community_tab=templates');
-            $memberships_url = home_url('/memberships/');
+            $memberships_url = $profile_url;
             $saved_mandate = $is_logged_in ? get_user_meta(get_current_user_id(), 'sffc_crm_editorial_apply_for_me_mandate', true) : [];
             $saved_mandate = is_array($saved_mandate) ? $saved_mandate : [];
             $resume_documents = $is_logged_in ? $this->get_crm_editorial_resume_documents(get_current_user_id()) : [];
@@ -92407,7 +92414,7 @@ HTML;
                             <?php
                             $item = (array) $item;
                             $is_job_post_logged_in = is_user_logged_in();
-                            $has_job_post_premium_access = $is_job_post_logged_in && $this->current_user_has_crm_editorial_paid_membership_access();
+                            $has_job_post_premium_access = true;
                             $item_jobs_post_id = $this->resolve_cv_match_job_view_jobs_post_id(
                                 isset($item['source']) && (string) $item['source'] === 'jobs' ? (int) ($item['post_id'] ?? 0) : 0,
                                 (int) ($item['wp_post_id'] ?? 0),
@@ -94219,93 +94226,7 @@ HTML;
 
         private function render_apply_chat_membership_workspace()
         {
-            $plans = $this->get_apply_chat_membership_plans();
-            if (empty($plans)) {
-                return ['html' => '', 'init_shortcode' => ''];
-            }
-
-            $memberpress_init_shortcode = '';
-            $default_plan = reset($plans);
-            foreach ($plans as $plan) {
-                if (!empty($plan['shortcode'])) {
-                    $memberpress_init_shortcode = (string) $plan['shortcode'];
-                    break;
-                }
-            }
-            $prefill_email = $this->get_signup_email_prefill_value();
-            $prefill_first_name = $this->get_valid_signup_cookie_value('sffc_signup_first_name');
-            $prefill_last_name = $this->get_valid_signup_cookie_value('sffc_signup_last_name');
-            $prefill_full_name = trim($prefill_first_name . ' ' . $prefill_last_name);
-
-            ob_start();
-            ?>
-            <section class="sffc-crm-apply-chat__membership" data-sffc-apply-chat-membership>
-                <div class="sffc-crm-apply-chat__membership-head">
-                    <small><?php esc_html_e('Subscription options', 'senna-finance'); ?></small>
-                    <strong><?php esc_html_e('Choose how Senna should run your search', 'senna-finance'); ?></strong>
-                    <p><?php esc_html_e('Pick the level that fits how hands-off you want the search to be. You can switch plans any time.', 'senna-finance'); ?></p>
-                </div>
-                <section class="sffc-crm-apply-chat__membership-intake" data-sffc-apply-chat-membership-intake>
-                    <div class="sffc-crm-apply-chat__membership-intake-card">
-                        <div class="sffc-crm-apply-chat__membership-intake-field">
-                            <label for="sffc-apply-chat-membership-full-name"><?php esc_html_e('Full name', 'senna-finance'); ?></label>
-                            <input id="sffc-apply-chat-membership-full-name" type="text" autocomplete="name" value="<?php echo esc_attr($prefill_full_name); ?>" data-sffc-apply-chat-membership-full-name>
-                        </div>
-                        <div class="sffc-crm-apply-chat__membership-intake-field">
-                            <label for="sffc-apply-chat-membership-email"><?php esc_html_e('Email', 'senna-finance'); ?></label>
-                            <input id="sffc-apply-chat-membership-email" type="email" autocomplete="email" value="<?php echo esc_attr($prefill_email); ?>" data-sffc-apply-chat-membership-email>
-                        </div>
-                        <fieldset class="sffc-crm-apply-chat__membership-intake-group">
-                            <legend><?php esc_html_e('What would you like help with?', 'senna-finance'); ?></legend>
-                            <div class="sffc-crm-apply-chat__membership-intake-choices">
-                                <?php foreach ($plans as $index => $plan) : ?>
-                                    <button type="button" class="sffc-crm-apply-chat__membership-intake-choice<?php echo $index === 0 ? ' is-active' : ''; ?>" data-sffc-apply-chat-membership-intake-choice="<?php echo esc_attr((string) $plan['account_type']); ?>" aria-pressed="<?php echo $index === 0 ? 'true' : 'false'; ?>">
-                                        <?php echo esc_html((string) $plan['signup_option_label']); ?>
-                                    </button>
-                                <?php endforeach; ?>
-                            </div>
-                        </fieldset>
-                        <p class="sffc-crm-apply-chat__membership-intake-error" data-sffc-apply-chat-membership-intake-error hidden></p>
-                        <button type="button" class="sffc-crm-apply-chat__membership-intake-primary" data-sffc-apply-chat-membership-intake-continue><?php esc_html_e('Continue to checkout', 'senna-finance'); ?></button>
-                        <p class="sffc-crm-apply-chat__membership-intake-signin">
-                            <?php esc_html_e('Already have an account?', 'senna-finance'); ?>
-                            <a href="<?php echo esc_url(home_url('/login/')); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e('Log in', 'senna-finance'); ?></a>
-                        </p>
-                    </div>
-                </section>
-                <div class="sffc-crm-apply-chat__membership-switch" data-sffc-apply-chat-membership-switch hidden>
-                    <?php foreach ($plans as $index => $plan) : ?>
-                        <button type="button" class="sffc-crm-apply-chat__membership-choice<?php echo $index === 0 ? ' is-active' : ''; ?>" data-sffc-apply-chat-membership-choice="<?php echo esc_attr((string) $plan['account_type']); ?>" aria-pressed="<?php echo $index === 0 ? 'true' : 'false'; ?>">
-                            <span class="sffc-crm-apply-chat__membership-choice-top">
-                                <span class="sffc-crm-apply-chat__membership-choice-title"><?php echo esc_html((string) $plan['signup_option_label']); ?></span>
-                                <?php if (!empty($plan['display_price'])) : ?>
-                                    <span class="sffc-crm-apply-chat__membership-choice-price">
-                                        <strong><?php echo esc_html((string) $plan['display_price']); ?></strong>
-                                        <?php if (!empty($plan['billing_cycle'])) : ?>
-                                            <em><?php echo esc_html((string) $plan['billing_cycle']); ?></em>
-                                        <?php endif; ?>
-                                    </span>
-                                <?php endif; ?>
-                            </span>
-                            <?php if (!empty($plan['eyebrow'])) : ?>
-                                <span class="sffc-crm-apply-chat__membership-choice-kicker"><?php echo esc_html((string) $plan['eyebrow']); ?></span>
-                            <?php endif; ?>
-                            <span class="sffc-crm-apply-chat__membership-choice-copy"><?php echo esc_html((string) ($plan['description'] ?? '')); ?></span>
-                        </button>
-                    <?php endforeach; ?>
-                </div>
-                <div class="sffc-crm-apply-chat__membership-panels" hidden>
-                    <div class="sffc-crm-apply-chat__membership-stage" data-sffc-apply-chat-membership-stage data-sffc-apply-chat-membership-selection="<?php echo esc_attr((string) ($default_plan['account_type'] ?? 'platform')); ?>">
-                        <?php echo $default_plan ? $this->render_apply_chat_membership_panel((array) $default_plan) : ''; ?>
-                    </div>
-                </div>
-            </section>
-            <?php
-
-            return [
-                'html' => (string) ob_get_clean(),
-                'init_shortcode' => $memberpress_init_shortcode,
-            ];
+            return ['html' => '', 'init_shortcode' => ''];
         }
 
         private function render_cv_match_studio_membership_dropdown(array $plans)
@@ -98219,7 +98140,7 @@ CRITICAL INSTRUCTIONS:
 
         private function build_cv_match_studio_jobs_mailbox_sender_label(array $item)
         {
-            $show_full_recruiter_name = is_user_logged_in() && $this->current_user_has_crm_editorial_paid_membership_access();
+            $show_full_recruiter_name = true;
             $recruiter_name = $this->get_crm_reddit_public_recruiter_name((string) ($item['recruiter_name'] ?? ''), $show_full_recruiter_name);
             $company = $show_full_recruiter_name ? trim((string) ($item['company'] ?? '')) : '';
 

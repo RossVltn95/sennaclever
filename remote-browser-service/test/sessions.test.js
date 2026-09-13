@@ -88,6 +88,26 @@ test("serializes noVNC stream URL with auto-connect and viewer token", async () 
   );
 });
 
+test("serializes managed live browser stream URLs without rewriting them", async () => {
+  await clearSessionsForTest();
+  const session = seedSessionForTest({
+    sessionId: "cloudflare-live-view-test",
+    transport: "cloudflare_live_view",
+    runtime: {
+      kind: "cloudflare_live_view",
+      liveUrl:
+        "https://live.browser.run/ui/tab?wss=live.browser.run/api/devtools/browser/session/page/target",
+    },
+  });
+  const serialized = serializeSession(session);
+
+  assert.equal(serialized.transport, "cloudflare_live_view");
+  assert.equal(
+    serialized.streamUrl,
+    "https://live.browser.run/ui/tab?wss=live.browser.run/api/devtools/browser/session/page/target"
+  );
+});
+
 test("identifies noVNC static assets separately from protected entrypoints", () => {
   assert.equal(
     isNoVncStaticAssetPath(["sessions", "abc", "novnc", "app", "styles", "base.css"]),

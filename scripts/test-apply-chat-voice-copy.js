@@ -164,7 +164,7 @@ const required = [
   "applicationMaterials:",
   "coverLetterDecision:",
   "syncApplyChatCanonicalState(\"cover_letter_decision\")",
-  "Hi, I’m Emily. I’ll help you search for roles, compare them against your CV, and decide what to apply for.",
+  "Search for a role or upload your CV. I’ll use the CV to judge fit and prepare the application details, then ask only for anything missing.",
   "function buildPersonalizedWelcomePills(",
   "function getGeneralWelcomePillLibrary(",
   "function getWelcomeTrendingPillItems(",
@@ -314,6 +314,22 @@ if (!/data-sffc-apply-results-selected-next="original">Jump to application/.test
 if (!/data-sffc-apply-results-selected-next="tailored">Tailor CV/.test(source)) {
   failures.push("Tailored CV button must use explicit tailored route");
 }
+
+if (/sequenceItems\.push\(guestWelcomeItem\)/.test(source)) {
+  failures.push("Guest role-entry launcher must not render a separate generic welcome before the role card");
+}
+
+[
+  "Do you already have a MENA Careers account?",
+  "Do you have a MENA Careers account already?",
+  "Do you already have the MENA Careers account?",
+  "just let me know if you already have a MENA Careers account.",
+  "just tell me whether you already have a MENA Careers account.",
+].forEach((needle) => {
+  if (source.includes(needle)) {
+    failures.push(`Guest apply flow still contains account-gate wording: ${needle}`);
+  }
+});
 
 const containsIntroApplyCardBody = getFunctionBody("containsIntroApplyCardHtml");
 if (!/application-material-(?:card|choice)/.test(containsIntroApplyCardBody)) {
