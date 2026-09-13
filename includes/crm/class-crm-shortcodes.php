@@ -10698,6 +10698,49 @@ CSS;
             return in_array((string) get_option('sffc_remote_browser_allow_novnc_public', ''), ['1', 'true', 'yes', 'on'], true);
         }
 
+        private function is_crm_apply_chat_remote_browser_admin_only()
+        {
+            if (defined('SFFC_REMOTE_BROWSER_ADMIN_ONLY')) {
+                $constant_value = SFFC_REMOTE_BROWSER_ADMIN_ONLY;
+                return $constant_value === true || $constant_value === 1 || $constant_value === '1' || $constant_value === 'true';
+            }
+
+            $env_value = getenv('SFFC_REMOTE_BROWSER_ADMIN_ONLY');
+            if ($env_value !== false && $env_value !== '') {
+                return in_array((string) $env_value, ['1', 'true', 'yes', 'on'], true);
+            }
+
+            return in_array((string) get_option('sffc_remote_browser_admin_only', ''), ['1', 'true', 'yes', 'on'], true);
+        }
+
+        private function is_crm_apply_chat_remote_browser_paying_beta()
+        {
+            if (defined('SFFC_REMOTE_BROWSER_PAYING_BETA')) {
+                $constant_value = SFFC_REMOTE_BROWSER_PAYING_BETA;
+                return $constant_value === true || $constant_value === 1 || $constant_value === '1' || $constant_value === 'true';
+            }
+
+            $env_value = getenv('SFFC_REMOTE_BROWSER_PAYING_BETA');
+            if ($env_value !== false && $env_value !== '') {
+                return in_array((string) $env_value, ['1', 'true', 'yes', 'on'], true);
+            }
+
+            return in_array((string) get_option('sffc_remote_browser_paying_beta', ''), ['1', 'true', 'yes', 'on'], true);
+        }
+
+        private function current_user_can_use_crm_apply_chat_remote_browser_rollout()
+        {
+            if ($this->is_crm_apply_chat_remote_browser_admin_only()) {
+                return current_user_can('manage_options');
+            }
+
+            if ($this->is_crm_apply_chat_remote_browser_paying_beta()) {
+                return current_user_can('manage_options') || $this->current_user_has_crm_reddit_premium_access();
+            }
+
+            return true;
+        }
+
         private function can_crm_apply_chat_use_remote_browser()
         {
             $transport = $this->get_crm_apply_chat_remote_browser_transport();
@@ -10708,6 +10751,7 @@ CSS;
                 return false;
             }
             return $this->is_crm_apply_chat_remote_browser_enabled()
+                && $this->current_user_can_use_crm_apply_chat_remote_browser_rollout()
                 && $this->get_crm_apply_chat_remote_browser_service_url() !== ''
                 && $this->get_crm_apply_chat_remote_browser_token() !== '';
         }
@@ -41307,6 +41351,8 @@ CRITICAL INSTRUCTIONS:
                 'remoteBrowserEnabled' => $this->can_crm_apply_chat_use_remote_browser(),
                 'remoteBrowserTransport' => $this->get_crm_apply_chat_remote_browser_transport(),
                 'remoteBrowserAllowNoVncPublic' => $this->can_crm_apply_chat_expose_public_novnc(),
+                'remoteBrowserAdminOnly' => $this->is_crm_apply_chat_remote_browser_admin_only(),
+                'remoteBrowserPayingBeta' => $this->is_crm_apply_chat_remote_browser_paying_beta(),
                 'catchUpInviteNonce' => wp_create_nonce('sffc_crm_apply_chat_send_catch_up_invite'),
                 'jobsSearchNonce' => wp_create_nonce('sffc_crm_apply_chat_search_jobs'),
                 'webSearchNonce' => wp_create_nonce('sffc_crm_apply_chat_web_search'),
@@ -43641,6 +43687,8 @@ CRITICAL INSTRUCTIONS:
                 'remoteBrowserEnabled' => $this->can_crm_apply_chat_use_remote_browser(),
                 'remoteBrowserTransport' => $this->get_crm_apply_chat_remote_browser_transport(),
                 'remoteBrowserAllowNoVncPublic' => $this->can_crm_apply_chat_expose_public_novnc(),
+                'remoteBrowserAdminOnly' => $this->is_crm_apply_chat_remote_browser_admin_only(),
+                'remoteBrowserPayingBeta' => $this->is_crm_apply_chat_remote_browser_paying_beta(),
                 'catchUpInviteNonce' => wp_create_nonce('sffc_crm_apply_chat_send_catch_up_invite'),
                 'jobsSearchNonce' => wp_create_nonce('sffc_crm_apply_chat_search_jobs'),
                 'webSearchNonce' => wp_create_nonce('sffc_crm_apply_chat_web_search'),

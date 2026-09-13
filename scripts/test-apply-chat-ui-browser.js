@@ -71,6 +71,53 @@ const html = String.raw`<!doctype html>
     .sffc-crm-apply-results__review[hidden] { display: none; }
     .sffc-crm-apply-results__review { margin-top: 14px; border-top: 1px solid #e8edf4; padding-top: 14px; }
     .sffc-crm-apply-results__review-frame { width: 100%; min-height: 180px; border: 1px solid #dfe5ee; border-radius: 8px; }
+    .sffc-crm-apply-results__remote-browser {
+      width: 100%;
+      margin-top: 14px;
+      border: 1px solid #dfe5ee;
+      border-radius: 8px;
+      overflow: hidden;
+      background: #fff;
+      box-sizing: border-box;
+    }
+    .sffc-crm-apply-results__remote-browser-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 14px;
+      border-bottom: 1px solid #e8edf4;
+      box-sizing: border-box;
+    }
+    .sffc-crm-apply-results__remote-browser-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+    .sffc-crm-apply-results__remote-browser-actions button,
+    .sffc-crm-apply-results__remote-browser-actions a {
+      border: 1px solid #dfe5ee;
+      border-radius: 8px;
+      padding: 8px 10px;
+      background: #fff;
+      color: #1a73e8;
+      text-decoration: none;
+      box-sizing: border-box;
+    }
+    .sffc-crm-apply-results__remote-browser-actions .is-primary {
+      background: #1a73e8;
+      border-color: #1a73e8;
+      color: #fff;
+    }
+    .sffc-crm-apply-results__remote-browser-frame {
+      width: 100%;
+      aspect-ratio: 16 / 10;
+      min-height: 260px;
+      border: 0;
+      display: block;
+      box-sizing: border-box;
+    }
     .sffc-crm-apply-chat__composer {
       position: fixed;
       left: 50%;
@@ -107,6 +154,18 @@ const html = String.raw`<!doctype html>
       .sffc-crm-apply-chat__composer { width: calc(100vw - 24px); bottom: 12px; }
       .sffc-crm-apply-results__actions { display: grid; }
       .sffc-crm-apply-results__title { font-size: 17px; }
+      .sffc-crm-apply-results__remote-browser-bar {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+      .sffc-crm-apply-results__remote-browser-actions {
+        width: 100%;
+        justify-content: stretch;
+      }
+      .sffc-crm-apply-results__remote-browser-actions button,
+      .sffc-crm-apply-results__remote-browser-actions a {
+        flex: 1 1 auto;
+      }
     }
   </style>
 </head>
@@ -132,6 +191,20 @@ const html = String.raw`<!doctype html>
             <div class="sffc-crm-apply-results__review" hidden id="review-1" data-sffc-apply-results-review-panel="role-1">
               <a class="sffc-crm-apply-results__review-link" href="https://example.com/apply" target="_blank" rel="noopener noreferrer">Open form</a>
               <iframe class="sffc-crm-apply-results__review-frame" data-sffc-apply-results-review-frame data-src="https://example.com/apply"></iframe>
+              <div class="sffc-crm-apply-results__remote-browser is-ready" data-sffc-apply-results-remote-browser>
+                <div class="sffc-crm-apply-results__remote-browser-bar">
+                  <div>
+                    <strong>Assisted employer view</strong>
+                    <p>Opening the employer page inside this chat.</p>
+                  </div>
+                  <div class="sffc-crm-apply-results__remote-browser-actions">
+                    <button type="button" class="is-primary">Take control</button>
+                    <button type="button">Let Emily drive</button>
+                    <a href="https://example.com/apply" target="_blank" rel="noopener noreferrer">Open tab</a>
+                  </div>
+                </div>
+                <iframe class="sffc-crm-apply-results__remote-browser-frame" src="https://example.com/live-view" title="Assisted employer view"></iframe>
+              </div>
             </div>
           </article>
         </div>
@@ -236,6 +309,30 @@ async function assertViewport(page, viewport) {
   if (expanded !== "true" || !frameSrc) {
     throw new Error("review panel did not expand and hydrate iframe");
   }
+  const remoteBrowserState = await page.$eval(".sffc-crm-apply-results__remote-browser", (node) => {
+    const rect = node.getBoundingClientRect();
+    const frame = node.querySelector(".sffc-crm-apply-results__remote-browser-frame");
+    const buttons = Array.from(node.querySelectorAll("button, a")).map((item) =>
+      String(item.textContent || "").replace(/\s+/g, " ").trim()
+    );
+    return {
+      width: rect.width,
+      frameSrc: frame ? frame.getAttribute("src") : "",
+      text: String(node.textContent || "").replace(/\s+/g, " ").trim(),
+      buttons,
+    };
+  });
+  if (remoteBrowserState.width < 240 || !remoteBrowserState.frameSrc) {
+    throw new Error("assisted browser panel is not sized or hydrated correctly");
+  }
+  if (/noVNC|websockify|Ctrl\+Alt\+Del|Clipboard|Scaling Mode|Repeater ID/i.test(remoteBrowserState.text)) {
+    throw new Error("assisted browser panel exposes noVNC controls in the user-facing UI");
+  }
+  ["Take control", "Let Emily drive", "Open tab"].forEach((label) => {
+    if (!remoteBrowserState.buttons.includes(label)) {
+      throw new Error(`assisted browser panel missing ${label} action`);
+    }
+  });
   const screenshotDir = "reports/apply-chat-ui";
   fs.mkdirSync(screenshotDir, { recursive: true });
   await page.screenshot({

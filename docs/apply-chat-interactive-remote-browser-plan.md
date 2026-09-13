@@ -665,6 +665,8 @@ SFFC_REMOTE_BROWSER_URL=
 SFFC_REMOTE_BROWSER_TOKEN=
 SFFC_REMOTE_BROWSER_TRANSPORT=cloudflare_live_view
 SFFC_REMOTE_BROWSER_ALLOW_NOVNC_PUBLIC=0
+SFFC_REMOTE_BROWSER_ADMIN_ONLY=0
+SFFC_REMOTE_BROWSER_PAYING_BETA=0
 SFFC_CLOUDFLARE_ACCOUNT_ID=
 SFFC_CLOUDFLARE_API_TOKEN=
 SFFC_REMOTE_BROWSER_MAX_SESSIONS=
@@ -726,6 +728,8 @@ Metrics:
 - user exits after static preview - pending frontend close/abandon analytics beyond review-surface telemetry.
 
 ## Phase 12: Testing Plan
+
+Status: partially implemented. Source-level checks now cover URL validation, provider policy defaults, configured transport forwarding, noVNC public blocking, Cloudflare/managed live-view serialization, and the new rollout flags. Fixture-level browser coverage now verifies result-card layout, iframe hydration, assisted-browser panel sizing, and noVNC UI leakage prevention. The remaining gap is live deployed E2E coverage against real rendered review cards and provider interactions.
 
 Unit tests:
 
@@ -833,10 +837,11 @@ SFFC_REMOTE_BROWSER_ADMIN_ONLY=1
 - [ ] Add static screenshot last-resort card.
 - [x] Add observability events.
 - [x] Add unit tests.
-- [ ] Add browser tests.
+- [x] Add browser fixture tests.
+- [ ] Add live deployed browser tests.
 - [x] Add Railway service configuration.
-- [ ] Add admin-only rollout flag.
-- [ ] Add paying-member beta flag.
+- [x] Add admin-only rollout flag.
+- [x] Add paying-member beta flag.
 
 ## Product Principle
 
@@ -883,6 +888,8 @@ SFFC_REMOTE_BROWSER_TOKEN=<shared WordPress-to-service token>
 SFFC_REMOTE_BROWSER_PUBLIC_URL=<Railway remote-browser-service URL>
 SFFC_CLOUDFLARE_ACCOUNT_ID=<Cloudflare account id>
 SFFC_CLOUDFLARE_API_TOKEN=<Cloudflare Browser Run token>
+SFFC_REMOTE_BROWSER_ADMIN_ONLY=0
+SFFC_REMOTE_BROWSER_PAYING_BETA=0
 ```
 
 Optional override if Cloudflare changes or provides a direct websocket endpoint:
@@ -914,6 +921,8 @@ define('SFFC_REMOTE_BROWSER_URL', 'https://<railway-remote-browser-service>');
 define('SFFC_REMOTE_BROWSER_TOKEN', '<shared WordPress-to-service token>');
 define('SFFC_REMOTE_BROWSER_TRANSPORT', 'cloudflare_live_view');
 define('SFFC_REMOTE_BROWSER_ALLOW_NOVNC_PUBLIC', false);
+define('SFFC_REMOTE_BROWSER_ADMIN_ONLY', false);
+define('SFFC_REMOTE_BROWSER_PAYING_BETA', false);
 ```
 
 ### Required Behaviour
