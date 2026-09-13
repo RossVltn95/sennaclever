@@ -38,8 +38,6 @@ const harperDialect = String(process.env.HARPER_DIALECT || "american").toLowerCa
 const harperMaxTextLength = Number(process.env.HARPER_MAX_TEXT_LENGTH || 20000);
 const pyresumeEnabled = process.env.PYRESUME_ENABLED !== "0";
 const pyresumeTimeoutMs = Number(process.env.PYRESUME_TIMEOUT_MS || 12000);
-const layoutParseEnabled = process.env.LAYOUT_PARSE_ENABLED !== "0";
-const layoutParseTimeoutMs = Number(process.env.LAYOUT_PARSE_TIMEOUT_MS || 12000);
 const parser = new LiteParse({
   outputFormat: "json",
   ocrEnabled: process.env.LITEPARSE_OCR_ENABLED !== "0",
@@ -258,180 +256,8 @@ const DATE_RANGE_REGEX = new RegExp(
 );
 const SINGLE_DATE_REGEX = new RegExp(`(?:${MONTH_PATTERN}\\.?\\s*,?\\s*)?\\d{4}`, "i");
 const BULLET_REGEX = /^\s*(?:[•▪●◦*·-]|§)\s*/;
-const SECTION_KEY_ALIASES = {
-  summary: [
-    "profile",
-    "summary",
-    "professional summary",
-    "career summary",
-    "career profile",
-    "personal profile",
-    "objective",
-    "about",
-    "about me",
-    "profil",
-    "profil professionnel",
-    "resume",
-    "résumé",
-    "riassunto",
-    "profilo",
-    "perfil",
-    "resumen",
-    "objetivo",
-    "kurzprofil",
-    "über mich",
-    "ملخص",
-    "نبذة",
-    "الهدف المهني",
-  ],
-  experience: [
-    "experience",
-    "work experience",
-    "professional experience",
-    "employment",
-    "employment history",
-    "career history",
-    "work history",
-    "professional history",
-    "professional background",
-    "professional experience",
-    "esperienza",
-    "esperienza professionale",
-    "esperienze professionali",
-    "experiencia",
-    "experiencia profesional",
-    "experiencia laboral",
-    "expérience",
-    "expérience professionnelle",
-    "expériences professionnelles",
-    "berufserfahrung",
-    "berufliche erfahrung",
-    "الخبرة العملية",
-    "الخبرات العملية",
-  ],
-  education: [
-    "education",
-    "academic",
-    "academic background",
-    "academic qualifications",
-    "qualifications",
-    "training",
-    "formazione",
-    "contatto formazione",
-    "contatto_formazione",
-    "formazione e istruzione",
-    "istruzione",
-    "formation",
-    "formation académique",
-    "educación",
-    "formación",
-    "formación académica",
-    "ausbildung",
-    "bildung",
-    "التعليم",
-    "المؤهلات",
-    "المؤهلات العلمية",
-  ],
-  skills: [
-    "skills",
-    "technical skills",
-    "core skills",
-    "key skills",
-    "professional skills",
-    "competencies",
-    "competences",
-    "competenze",
-    "competenze tecniche",
-    "compétences",
-    "compétences techniques",
-    "habilidades",
-    "habilidades técnicas",
-    "fähigkeiten",
-    "kenntnisse",
-    "مهارات",
-    "المهارات",
-  ],
-  languages: [
-    "languages",
-    "language",
-    "lingue",
-    "langues",
-    "idiomas",
-    "sprachen",
-    "اللغات",
-  ],
-  projects: [
-    "projects",
-    "project experience",
-    "selected projects",
-    "publications",
-    "publication",
-    "pubblicazioni",
-    "publicaciones",
-    "publications et projets",
-    "projekte",
-    "المشاريع",
-    "المنشورات",
-  ],
-  certifications: [
-    "certifications",
-    "certificates",
-    "licenses",
-    "licences",
-    "certificazioni",
-    "attestati",
-    "certificats",
-    "certificados",
-    "zertifikate",
-    "الشهادات",
-  ],
-  interests: [
-    "interests",
-    "additional interests",
-    "other interests",
-    "hobbies",
-    "interessi",
-    "centres d'intérêt",
-    "intereses",
-    "interessen",
-    "الاهتمامات",
-  ],
-};
-
-function normalizeSectionHeadingText(value) {
-  return cleanText(value)
-    .toLowerCase()
-    .replace(/[_/|]+/g, " ")
-    .replace(/[’']/g, "")
-    .replace(/^[\s:;.,&-]+|[\s:;.,&-]+$/g, "")
-    .replace(/\s+/g, " ")
-    .trim();
-}
-
-function inferSectionKeyFromHeading(title) {
-  const clean = normalizeSectionHeadingText(title);
-  if (!clean || clean === "&") return "";
-  const wordCount = clean.split(/\s+/).filter(Boolean).length;
-  for (const [key, aliases] of Object.entries(SECTION_KEY_ALIASES)) {
-    if (aliases.includes(clean)) return key;
-  }
-  if (wordCount <= 6) {
-    for (const [key, aliases] of Object.entries(SECTION_KEY_ALIASES)) {
-      if (
-        aliases.some(
-          (alias) => clean.startsWith(`${alias} `) || clean.endsWith(` ${alias}`)
-        )
-      ) {
-        return key;
-      }
-    }
-  }
-  return "";
-}
-
-function isEmbeddedSectionHeading(value) {
-  return !!inferSectionKeyFromHeading(value);
-}
+const EMBEDDED_SECTION_REGEX =
+  /^(?:profile|summary|education|work experience|professional experience|employment|career history|skills(?:\s+and\s+interests)?|technical skills|projects|certifications|languages|awards|achievements)$/i;
 
 function looksLikeLocation(value) {
   return /\b(?:uae|united arab emirates|dubai|abu dhabi|riyadh|saudi|qatar|doha|kuwait|bahrain|oman|london|uk|united kingdom|milan|rome|moscow|russia|italy|france|germany|spain|remote)\b/i.test(
@@ -589,30 +415,10 @@ function getCvDateConfidence(start, end, source) {
   return Math.max(0, Math.min(0.98, Number(score.toFixed(2))));
 }
 
-function looksLikeOpenEndedDateRange(value) {
-  const normalized = normalizeCvDateText(value);
-  return (
-    /(?:^|\s)(?:from|since)\s+/i.test(normalized) ||
-    /(?:-|to|until)\s*$/i.test(normalized)
-  );
-}
-
-function normalizeCvDateContext(value) {
-  const clean = cleanText(value).toLowerCase();
-  if (/education|academic|qualification|school|university|degree|gpa/.test(clean)) {
-    return "education";
-  }
-  if (/work|experience|employment|career|professional|job|role/.test(clean)) {
-    return "experience";
-  }
-  return clean || "unknown";
-}
-
 function normalizeCvDateRange(input) {
   const dates = cleanText(input?.dates || input?.date || "");
   const startDate = cleanText(input?.startDate || input?.start_date || "");
   const endDate = cleanText(input?.endDate || input?.end_date || "");
-  const context = normalizeCvDateContext(input?.context || input?.section || "");
   let start = startDate ? normalizeCvDatePoint(startDate, false) : null;
   let end = endDate ? normalizeCvDatePoint(endDate, true) : null;
   let rawMatched = cleanText([startDate, endDate].filter(Boolean).join(" - "));
@@ -630,11 +436,8 @@ function normalizeCvDateRange(input) {
         ? tokens[0].parsed
         : PRESENT_DATE_PATTERN.test(found.normalized)
         ? normalizeCvDatePoint("present", true)
-        : looksLikeOpenEndedDateRange(found.normalized)
-        ? normalizeCvDatePoint("present", true)
         : normalizeCvDatePoint(tokens[0].token, true);
       issues.push("single_date");
-      if (end?.isCurrent) issues.push("open_ended_current_role");
       rawMatched = tokens[0].token;
     } else {
       const first = tokens.find((token) => !token.parsed.isCurrent) || tokens[0];
@@ -668,7 +471,6 @@ function normalizeCvDateRange(input) {
   }
   const durationMonths = getCvDateDurationMonths({ start, end });
   if (durationMonths > 720) issues.push("very_long_duration");
-  const confidence = getCvDateConfidence(start, end, source);
   return {
     start,
     end,
@@ -677,24 +479,15 @@ function normalizeCvDateRange(input) {
     rawMatched: rawMatched || dates,
     durationMonths,
     durationYears: Number((durationMonths / 12).toFixed(1)),
-    confidence: context === "education" ? Math.max(0, Number((confidence - 0.08).toFixed(2))) : confidence,
+    confidence: getCvDateConfidence(start, end, source),
     source,
-    context,
-    contributesToWorkExperience: context === "experience" && confidence >= 0.42,
     issues,
   };
 }
 
 function calculateNonOverlappingExperienceMonths(entries) {
   const intervals = (Array.isArray(entries) ? entries : [])
-    .filter((entry) => {
-      const range = entry?.dateRange;
-      if (!range?.start || !range?.end) return false;
-      if (range.context === "education") return false;
-      if (Number(range.confidence || entry?.dateConfidence || 0) < 0.38) return false;
-      return true;
-    })
-    .map((entry) => entry.dateRange)
+    .map((entry) => entry?.dateRange)
     .filter((range) => range?.start && range?.end)
     .map((range) => ({
       start: getCvDateOrderValue(range.start),
@@ -744,24 +537,13 @@ function splitLineByColumns(rawLine) {
 function getLogicalSectionLines(sections, wantedPattern) {
   const out = [];
   (Array.isArray(sections) ? sections : []).forEach((section) => {
-    const sectionTitle = cleanText(section?.title || "");
-    const sectionKey = inferCanonicalSectionKey(
-      cleanText(section?.key || "") || sectionTitle
-    );
-    let active =
-      wantedPattern.test(sectionKey) ||
-      wantedPattern.test(sectionTitle) ||
-      wantedPattern.test(normalizeSectionHeadingText(sectionTitle));
+    let active = wantedPattern.test(cleanText(section?.title || ""));
     (Array.isArray(section?.lines) ? section.lines : []).forEach((line) => {
       const raw = String(line?.text || line || "");
       const clean = cleanText(raw);
       if (!clean) return;
-      if (isEmbeddedSectionHeading(clean)) {
-        const embeddedKey = inferCanonicalSectionKey(clean);
-        active =
-          wantedPattern.test(embeddedKey) ||
-          wantedPattern.test(clean) ||
-          wantedPattern.test(normalizeSectionHeadingText(clean));
+      if (EMBEDDED_SECTION_REGEX.test(clean)) {
+        active = wantedPattern.test(clean);
         return;
       }
       if (active) {
@@ -802,10 +584,7 @@ function parseRoleDateLine(line) {
 }
 
 function parseStructuredExperienceFromSections(sections) {
-  const lines = getLogicalSectionLines(
-    sections,
-    /^(?:experience|employment|work|professional_experience|career_history|work_history|experience_previous)$|experience|employment|history/i
-  );
+  const lines = getLogicalSectionLines(sections, /experience|employment|history/i);
   const entries = [];
   let pendingOrg = null;
   let current = null;
@@ -885,10 +664,7 @@ function parseStructuredExperienceFromSections(sections) {
 }
 
 function parseStructuredEducationFromSections(sections) {
-  const lines = getLogicalSectionLines(
-    sections,
-    /^(?:education|academic|qualification|qualifications|training|formation|formazione|istruzione|educacion|educación|ausbildung|bildung|contatto_formazione)$|education|academic|qualification|formation|formazione|educación|ausbildung|التعليم|المؤهلات/i
-  );
+  const lines = getLogicalSectionLines(sections, /^education$/i);
   const entries = [];
   let current = null;
 
@@ -951,10 +727,7 @@ function parseStructuredEducationFromSections(sections) {
 }
 
 function parseStructuredSkillsFromSections(sections) {
-  const lines = getLogicalSectionLines(
-    sections,
-    /^(?:skills|technical_skills|core_skills|key_skills|professional_skills|competencies|competences)$|skills|technical|competenc|competenze|compétences|habilidades|fähigkeiten|kenntnisse|المهارات/i
-  );
+  const lines = getLogicalSectionLines(sections, /skills/i);
   return normalizeStringList(
     lines.reduce((list, line) => {
       const text = cleanText(line.text).replace(BULLET_REGEX, "");
@@ -1025,23 +798,7 @@ function normalizeAtsSections(sections) {
     lines: (Array.isArray(section?.lines) ? section.lines : [])
       .map((line) => cleanText(line?.text || line))
       .filter(Boolean),
-    parserSource: cleanText(section?.parserSource || "resume-parser-ats"),
-    confidence: Number(section?.confidence || 0) || 0,
   }));
-}
-
-function normalizeLayoutSections(sections) {
-  return (Array.isArray(sections) ? sections : [])
-    .map((section) => ({
-      title: cleanText(section?.title),
-      key: cleanText(section?.key),
-      lines: (Array.isArray(section?.lines) ? section.lines : [])
-        .map((line) => cleanText(line?.text || line))
-        .filter(Boolean),
-      parserSource: cleanText(section?.parserSource || "layout"),
-      confidence: Number(section?.confidence || 0) || 0.62,
-    }))
-    .filter((section) => section.title || section.lines.length);
 }
 
 function normalizeParserExperienceEntry(entry, parserSource) {
@@ -1052,12 +809,7 @@ function normalizeParserExperienceEntry(entry, parserSource) {
   const endDate = cleanText(entry?.endDate || entry?.end_date);
   const location = cleanText(entry?.location);
   const bullets = normalizeStringList(entry?.bullets || entry?.descriptions || []);
-  const dateRange = normalizeCvDateRange({
-    dates,
-    startDate,
-    endDate,
-    context: "experience",
-  });
+  const dateRange = normalizeCvDateRange({ dates, startDate, endDate });
   const durationMonths = dateRange?.durationMonths || 0;
   return {
     type: "experience",
@@ -1087,480 +839,61 @@ function normalizeParserEducationEntry(entry, parserSource) {
   const degree = cleanText(entry?.degree);
   const dates = cleanText(entry?.dates || entry?.date);
   const details = normalizeStringList(entry?.details || entry?.descriptions || []);
-  const dateRange = normalizeCvDateRange({
-    dates,
-    context: "education",
-  });
   return {
     school,
     degree,
     dates,
     gpa: cleanText(entry?.gpa),
     details,
-    dateRange,
-    dateConfidence: Number(dateRange?.confidence || 0) || 0,
-    dateIssues: dateRange?.issues || [],
     parserSource: cleanText(entry?.parserSource || parserSource),
   };
 }
 
-function getParserSourceWeight(source) {
-  const clean = cleanText(source).toLowerCase();
-  if (/layout/.test(clean)) return 0.16;
-  if (/pyresume|leverparser/.test(clean)) return 0.15;
-  if (/resume-parser-ats/.test(clean)) return 0.12;
-  if (/lines/.test(clean)) return 0.1;
-  if (/ensemble/.test(clean)) return 0.08;
-  return 0.06;
-}
-
-function normalizeComparableText(value) {
-  return cleanText(value)
-    .toLowerCase()
-    .replace(/https?:\/\/\S+/g, " ")
-    .replace(/[^a-z0-9+&.#]+/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
-}
-
-function getComparableTokens(value) {
-  const stop = new Set([
-    "and",
-    "the",
-    "for",
-    "with",
-    "from",
-    "this",
-    "that",
-    "present",
-    "current",
-    "at",
-    "in",
-    "of",
-    "to",
-  ]);
-  return normalizeComparableText(value)
-    .split(/\s+/)
-    .filter((token) => token.length >= 2 && !stop.has(token));
-}
-
-function getTokenSimilarity(left, right) {
-  const leftTokens = new Set(getComparableTokens(left));
-  const rightTokens = new Set(getComparableTokens(right));
-  if (!leftTokens.size || !rightTokens.size) return 0;
-  let overlap = 0;
-  leftTokens.forEach((token) => {
-    if (rightTokens.has(token)) overlap += 1;
-  });
-  return overlap / Math.max(leftTokens.size, rightTokens.size);
-}
-
-function hasSameDateEvidence(left, right) {
-  const leftDate = left?.dateRange || normalizeCvDateRange(left || {});
-  const rightDate = right?.dateRange || normalizeCvDateRange(right || {});
-  if (!leftDate || !rightDate) return false;
-  if (
-    getCvDateOrderValue(leftDate.start) === getCvDateOrderValue(rightDate.start) &&
-    getCvDateOrderValue(leftDate.end) === getCvDateOrderValue(rightDate.end)
-  ) {
-    return true;
-  }
-  const leftStart = getCvDateOrderValue(leftDate.start);
-  const leftEnd = getCvDateOrderValue(leftDate.end);
-  const rightStart = getCvDateOrderValue(rightDate.start);
-  const rightEnd = getCvDateOrderValue(rightDate.end);
-  return leftStart <= rightEnd && rightStart <= leftEnd;
-}
-
-function getEntryRawText(entry) {
+function parserEntryKey(entry) {
   return cleanText(
-    (entry && entry.rawText) ||
-      [entry?.role || entry?.title, entry?.company, entry?.dates, entry?.location]
-        .concat(entry?.bullets || [])
-        .concat(entry?.lines || [])
-        .join("\n")
+    [
+      entry?.role || entry?.title || "",
+      entry?.company || "",
+      entry?.dates || entry?.startDate || "",
+    ]
+      .join("|")
+      .toLowerCase()
+      .replace(/[^a-z0-9|]+/g, " ")
   );
-}
-
-function looksContactLikeText(value) {
-  const clean = cleanText(value);
-  return /@|linkedin\.com|https?:\/\/|www\.|\b(?:email|phone|mobile|tel)\b/i.test(clean);
-}
-
-function looksEducationLikeText(value) {
-  return /\b(?:university|college|school|bsc|msc|mba|phd|degree|diploma|gpa|grade|course|modules?|bachelor|master|faculty|thesis)\b/i.test(
-    cleanText(value)
-  );
-}
-
-function looksSkillSoupText(value) {
-  const clean = cleanText(value);
-  const words = clean.split(/\s+/).filter(Boolean);
-  const separators = (clean.match(/[,;|]/g) || []).length;
-  if (separators >= 4) return true;
-  if (words.length >= 16 && separators >= 2) return true;
-  return /\b(?:excel|python|sql|power\s*bi|tableau|bloomberg|factset|capital iq|matlab|vba)\b/i.test(
-    clean
-  ) && separators >= 2;
-}
-
-function looksOverlongStructuredField(value) {
-  const clean = cleanText(value);
-  const words = clean.split(/\s+/).filter(Boolean);
-  return clean.length > 130 || words.length > 18;
-}
-
-function looksExperienceTitleLike(value) {
-  const clean = cleanText(value);
-  if (!clean || looksContactLikeText(clean) || looksEducationLikeText(clean)) return false;
-  if (looksSkillSoupText(clean) || looksOverlongStructuredField(clean)) return false;
-  return true;
-}
-
-function scoreParserExperienceEntry(entry) {
-  const normalized = normalizeParserExperienceEntry(entry || {}, entry?.parserSource || "ensemble");
-  const rawText = getEntryRawText(normalized);
-  let score = 0;
-  const penalties = [];
-  if (normalized.role) score += looksExperienceTitleLike(normalized.role) ? 0.2 : 0.04;
-  if (normalized.company) score += looksOverlongStructuredField(normalized.company) ? 0.04 : 0.16;
-  if (normalized.dateRange) score += 0.18 * Number(normalized.dateRange.confidence || 0.7);
-  if (normalized.bullets.length) score += Math.min(0.2, normalized.bullets.length * 0.04);
-  if (normalized.lines.length) score += Math.min(0.08, normalized.lines.length * 0.01);
-  score += getParserSourceWeight(normalized.parserSource);
-  if (!normalized.role && !normalized.company && !normalized.bullets.length) {
-    score -= 0.26;
-    penalties.push("empty_experience_entry");
-  }
-  if (looksContactLikeText([normalized.role, normalized.company].join(" "))) {
-    score -= 0.24;
-    penalties.push("contact_line_penalty");
-  }
-  if (looksEducationLikeText([normalized.role, normalized.company].join(" "))) {
-    score -= 0.2;
-    penalties.push("education_line_penalty");
-  }
-  if (looksSkillSoupText([normalized.role, normalized.company].join(" "))) {
-    score -= 0.16;
-    penalties.push("skill_list_penalty");
-  }
-  if (looksOverlongStructuredField(normalized.role)) {
-    score -= 0.12;
-    penalties.push("long_title_penalty");
-  }
-  if (normalized.dateRange && !normalized.role && !normalized.company) {
-    score -= 0.16;
-    penalties.push("orphan_date_penalty");
-  }
-  if (normalized.bullets.some((line) => looksEducationLikeText(line))) {
-    score -= 0.08;
-    penalties.push("education_bullet_penalty");
-  }
-  normalized.rawText = rawText;
-  normalized.confidence = Math.max(0, Math.min(0.98, Number(score.toFixed(2))));
-  normalized.warnings = normalizeStringList([].concat(normalized.dateIssues || []).concat(penalties));
-  return normalized;
-}
-
-function scoreParserEducationEntry(entry) {
-  const normalized = normalizeParserEducationEntry(entry || {}, entry?.parserSource || "ensemble");
-  let score = 0;
-  const penalties = [];
-  if (normalized.school) score += looksOverlongStructuredField(normalized.school) ? 0.05 : 0.26;
-  if (normalized.degree) score += looksOverlongStructuredField(normalized.degree) ? 0.04 : 0.2;
-  if (normalized.dates) score += 0.12;
-  if (normalized.gpa) score += 0.08;
-  if (normalized.details.length) score += Math.min(0.12, normalized.details.length * 0.03);
-  score += getParserSourceWeight(normalized.parserSource);
-  if (looksContactLikeText([normalized.school, normalized.degree].join(" "))) {
-    score -= 0.22;
-    penalties.push("contact_line_penalty");
-  }
-  if (looksSkillSoupText([normalized.school, normalized.degree].join(" "))) {
-    score -= 0.16;
-    penalties.push("skill_list_penalty");
-  }
-  if (!normalized.school && !normalized.degree && !normalized.details.length) {
-    score -= 0.2;
-    penalties.push("empty_education_entry");
-  }
-  normalized.rawText = cleanText(
-    [normalized.school, normalized.degree, normalized.dates, normalized.gpa]
-      .concat(normalized.details || [])
-      .join("\n")
-  );
-  normalized.confidence = Math.max(0, Math.min(0.98, Number(score.toFixed(2))));
-  normalized.warnings = normalizeStringList(penalties);
-  return normalized;
-}
-
-function entriesLikelySameExperience(left, right) {
-  if (!left || !right) return false;
-  const dateOverlap = hasSameDateEvidence(left, right);
-  const roleSimilarity = getTokenSimilarity(left.role || left.title, right.role || right.title);
-  const companySimilarity = getTokenSimilarity(left.company, right.company);
-  if (dateOverlap && (roleSimilarity >= 0.28 || companySimilarity >= 0.34)) return true;
-  if (dateOverlap && !left.company && !right.company && roleSimilarity >= 0.5) return true;
-  if (companySimilarity >= 0.72 && (dateOverlap || roleSimilarity >= 0.24)) return true;
-  if (roleSimilarity >= 0.72 && dateOverlap) return true;
-  return false;
-}
-
-function entriesLikelySameEducation(left, right) {
-  if (!left || !right) return false;
-  const schoolSimilarity = getTokenSimilarity(left.school, right.school);
-  const degreeSimilarity = getTokenSimilarity(left.degree, right.degree);
-  const dateOverlap = left.dates && right.dates && hasSameDateEvidence(left, right);
-  if (schoolSimilarity >= 0.55) return true;
-  if (degreeSimilarity >= 0.6 && dateOverlap) return true;
-  if (dateOverlap && schoolSimilarity >= 0.25 && degreeSimilarity >= 0.25) return true;
-  return false;
-}
-
-function pickBestExperienceField(candidates, field) {
-  let best = "";
-  let bestScore = -1;
-  candidates.forEach((candidate) => {
-    const value = cleanText(candidate?.[field]);
-    if (!value) return;
-    let score = Number(candidate.confidence || 0) + getParserSourceWeight(candidate.parserSource);
-    if (field === "role") {
-      if (looksExperienceTitleLike(value)) score += 0.2;
-      if (looksOverlongStructuredField(value) || looksSkillSoupText(value)) score -= 0.24;
-    }
-    if (field === "company") {
-      if (looksOverlongStructuredField(value) || looksEducationLikeText(value)) score -= 0.22;
-      if (/\b(?:ltd|llc|plc|inc|corp|group|capital|bank|company|consulting|partners|s\.?p\.?a\.?)\b/i.test(value)) {
-        score += 0.08;
-      }
-    }
-    if (field === "location" && looksContactLikeText(value)) score -= 0.2;
-    if (score > bestScore) {
-      best = value;
-      bestScore = score;
-    }
-  });
-  return best;
-}
-
-function pickBestDateCandidate(candidates) {
-  let best = null;
-  let bestScore = -1;
-  candidates.forEach((candidate) => {
-    if (!candidate?.dateRange && !candidate?.dates && !candidate?.startDate && !candidate?.endDate) {
-      return;
-    }
-    const range =
-      candidate.dateRange ||
-      normalizeCvDateRange({
-        dates: candidate.dates,
-        startDate: candidate.startDate,
-        endDate: candidate.endDate,
-      });
-    let score = Number(range?.confidence || 0) + Number(candidate.confidence || 0) * 0.2;
-    if (range?.durationMonths) score += Math.min(0.08, range.durationMonths / 240);
-    if (candidate.dates) score += Math.min(0.04, cleanText(candidate.dates).length / 120);
-    if (score > bestScore) {
-      best = { ...candidate, dateRange: range };
-      bestScore = score;
-    }
-  });
-  return best;
-}
-
-function mergeExperienceCandidateGroup(candidates) {
-  const sorted = candidates.slice().sort((left, right) => {
-    const rightScore = Number(right.confidence || 0) + getParserSourceWeight(right.parserSource);
-    const leftScore = Number(left.confidence || 0) + getParserSourceWeight(left.parserSource);
-    return rightScore - leftScore;
-  });
-  const dateCandidate = pickBestDateCandidate(sorted) || sorted[0] || {};
-  const dateRange = dateCandidate.dateRange || null;
-  const bullets = normalizeStringList(
-    sorted.reduce((list, candidate) => list.concat(candidate.bullets || []), [])
-  );
-  const lines = normalizeStringList(
-    sorted.reduce((list, candidate) => list.concat(candidate.lines || []), [])
-  );
-  const confidence = Math.max(
-    0,
-    Math.min(
-      0.98,
-      Number(
-        (
-          sorted.reduce((max, candidate) => Math.max(max, Number(candidate.confidence || 0)), 0) +
-          Math.min(0.12, (sorted.length - 1) * 0.04)
-        ).toFixed(2)
-      )
-    )
-  );
-  const role = pickBestExperienceField(sorted, "role");
-  const company = pickBestExperienceField(sorted, "company");
-  return {
-    type: "experience",
-    role,
-    title: role,
-    company,
-    dates: cleanText(dateCandidate.dates || dateRange?.raw || ""),
-    startDate: cleanText(dateCandidate.startDate || ""),
-    endDate: cleanText(dateCandidate.endDate || ""),
-    dateRange,
-    months: Number(dateRange?.durationMonths || 0) || 0,
-    years: dateRange?.durationMonths
-      ? Number((Number(dateRange.durationMonths || 0) / 12).toFixed(1))
-      : 0,
-    dateConfidence: Number(dateRange?.confidence || 0) || 0,
-    dateIssues: normalizeStringList(sorted.reduce((list, candidate) => list.concat(candidate.dateIssues || []), [])),
-    location: pickBestExperienceField(sorted, "location"),
-    bullets,
-    lines,
-    parserSource: "ensemble",
-    confidence,
-    rawText: normalizeStringList(sorted.map(getEntryRawText)).join("\n\n"),
-    sourceCandidates: sorted.map((candidate) => ({
-      parserSource: candidate.parserSource,
-      confidence: candidate.confidence,
-      role: candidate.role,
-      company: candidate.company,
-      dates: candidate.dates,
-    })),
-    warnings: normalizeStringList(sorted.reduce((list, candidate) => list.concat(candidate.warnings || []), [])),
-  };
-}
-
-function mergeEducationCandidateGroup(candidates) {
-  const sorted = candidates.slice().sort((left, right) => {
-    const rightScore = Number(right.confidence || 0) + getParserSourceWeight(right.parserSource);
-    const leftScore = Number(left.confidence || 0) + getParserSourceWeight(left.parserSource);
-    return rightScore - leftScore;
-  });
-  const details = normalizeStringList(
-    sorted.reduce((list, candidate) => list.concat(candidate.details || []), [])
-  );
-  const pickField = (field) => {
-    let best = "";
-    let bestScore = -1;
-    sorted.forEach((candidate) => {
-      const value = cleanText(candidate?.[field]);
-      if (!value) return;
-      let score = Number(candidate.confidence || 0) + getParserSourceWeight(candidate.parserSource);
-      if (looksContactLikeText(value) || looksSkillSoupText(value)) score -= 0.2;
-      if (field === "school" && looksEducationLikeText(value)) score += 0.08;
-      if (score > bestScore) {
-        best = value;
-        bestScore = score;
-      }
-    });
-    return best;
-  };
-  const bestDates = pickBestDateCandidate(sorted);
-  const confidence = Math.max(
-    0,
-    Math.min(
-      0.98,
-      Number(
-        (
-          sorted.reduce((max, candidate) => Math.max(max, Number(candidate.confidence || 0)), 0) +
-          Math.min(0.1, (sorted.length - 1) * 0.035)
-        ).toFixed(2)
-      )
-    )
-  );
-  return {
-    school: pickField("school"),
-    degree: pickField("degree"),
-    dates: cleanText(bestDates?.dates || bestDates?.dateRange?.raw || pickField("dates")),
-    gpa: pickField("gpa"),
-    details,
-    dateRange: bestDates?.dateRange || null,
-    dateConfidence: Number(bestDates?.dateRange?.confidence || bestDates?.dateConfidence || 0) || 0,
-    dateIssues: normalizeStringList(sorted.reduce((list, candidate) => list.concat(candidate.dateIssues || []), [])),
-    parserSource: "ensemble",
-    confidence,
-    rawText: normalizeStringList(sorted.map((candidate) => candidate.rawText)).join("\n\n"),
-    sourceCandidates: sorted.map((candidate) => ({
-      parserSource: candidate.parserSource,
-      confidence: candidate.confidence,
-      school: candidate.school,
-      degree: candidate.degree,
-      dates: candidate.dates,
-    })),
-    warnings: normalizeStringList(sorted.reduce((list, candidate) => list.concat(candidate.warnings || []), [])),
-  };
-}
-
-function flattenEntryLists(lists) {
-  return lists.reduce((out, entries) => out.concat(Array.isArray(entries) ? entries : []), []);
-}
-
-function mergeParserEntriesFromSources(entryLists) {
-  const candidates = flattenEntryLists(entryLists)
-    .map((entry) => scoreParserExperienceEntry(entry))
-    .filter((entry) => entry.confidence >= 0.24 || entry.role || entry.company || entry.bullets.length);
-  const groups = [];
-  candidates.forEach((candidate) => {
-    let group = groups.find((item) =>
-      item.some((existing) => entriesLikelySameExperience(existing, candidate))
-    );
-    if (!group) {
-      group = [];
-      groups.push(group);
-    }
-    group.push(candidate);
-  });
-  return groups
-    .map(mergeExperienceCandidateGroup)
-    .filter((entry) => entry.confidence >= 0.28 && (entry.role || entry.company || entry.bullets.length))
-    .sort((left, right) => {
-      const leftCurrent = left.dateRange?.isCurrent ? 1 : 0;
-      const rightCurrent = right.dateRange?.isCurrent ? 1 : 0;
-      if (leftCurrent !== rightCurrent) return rightCurrent - leftCurrent;
-      const leftEnd = getCvDateOrderValue(left.dateRange?.end);
-      const rightEnd = getCvDateOrderValue(right.dateRange?.end);
-      if (leftEnd !== rightEnd) return rightEnd - leftEnd;
-      return Number(right.confidence || 0) - Number(left.confidence || 0);
-    });
-}
-
-function mergeEducationEntriesFromSources(entryLists) {
-  const candidates = flattenEntryLists(entryLists)
-    .map((entry) => scoreParserEducationEntry(entry))
-    .filter((entry) => entry.confidence >= 0.22 || entry.school || entry.degree || entry.details.length);
-  const groups = [];
-  candidates.forEach((candidate) => {
-    let group = groups.find((item) =>
-      item.some((existing) => entriesLikelySameEducation(existing, candidate))
-    );
-    if (!group) {
-      group = [];
-      groups.push(group);
-    }
-    group.push(candidate);
-  });
-  return groups
-    .map(mergeEducationCandidateGroup)
-    .filter((entry) => entry.confidence >= 0.26 && (entry.school || entry.degree || entry.details.length))
-    .sort((left, right) => Number(right.confidence || 0) - Number(left.confidence || 0));
 }
 
 function mergeParserEntries(primary, secondary, parserSource) {
-  return mergeParserEntriesFromSources([
-    Array.isArray(primary) ? primary : [],
-    (Array.isArray(secondary) ? secondary : []).map((entry) => ({
-      ...entry,
-      parserSource: entry?.parserSource || parserSource,
-    })),
-  ]);
+  const seen = new Set();
+  const merged = [];
+  [primary || [], secondary || []].forEach((entries) => {
+    entries.forEach((entry) => {
+      const normalized = normalizeParserExperienceEntry(entry, parserSource);
+      const key = parserEntryKey(normalized);
+      if (!key || seen.has(key)) return;
+      seen.add(key);
+      merged.push(normalized);
+    });
+  });
+  return merged;
 }
 
 function mergeEducationEntries(primary, secondary, parserSource) {
-  return mergeEducationEntriesFromSources([
-    Array.isArray(primary) ? primary : [],
-    (Array.isArray(secondary) ? secondary : []).map((entry) => ({
-      ...entry,
-      parserSource: entry?.parserSource || parserSource,
-    })),
-  ]);
+  const seen = new Set();
+  const merged = [];
+  [primary || [], secondary || []].forEach((entries) => {
+    entries.forEach((entry) => {
+      const normalized = normalizeParserEducationEntry(entry, parserSource);
+      const key = cleanText(
+        [normalized.school, normalized.degree, normalized.dates]
+          .join("|")
+          .toLowerCase()
+      );
+      if (!key || seen.has(key)) return;
+      seen.add(key);
+      merged.push(normalized);
+    });
+  });
+  return merged;
 }
 
 function buildExperienceTimelineSummary(entries, pyresumeYears) {
@@ -1606,302 +939,6 @@ function buildExperienceTimelineSummary(entries, pyresumeYears) {
             ).toFixed(2)
           )
         : 0,
-  };
-}
-
-function normalizeCanonicalSource(source, fallback) {
-  return cleanText(source || fallback || "raw") || "raw";
-}
-
-function inferCanonicalSectionKey(title) {
-  const direct = inferSectionKeyFromHeading(title);
-  if (direct) return direct;
-  const clean = normalizeSectionHeadingText(title);
-  if (!clean) return "unknown";
-  if (/\b(?:profile|summary|objective|about|professional summary)\b/.test(clean)) {
-    return "summary";
-  }
-  if (
-    /\b(?:experience|employment|history|career|work|professional experience|esperienza|experiencia|expérience)\b/.test(
-      clean
-    )
-  ) {
-    return "experience";
-  }
-  if (
-    /\b(?:education|academic|qualification|formazione|formation|educación|ausbildung|contatto_formazione)\b/.test(
-      clean
-    )
-  ) {
-    return "education";
-  }
-  if (
-    /\b(?:skills|technical|competenc|competenze|competences|habilidades|fähigkeiten)\b/.test(
-      clean
-    )
-  ) {
-    return "skills";
-  }
-  if (/\b(?:language|languages|lingue|langues|idiomas|sprachen)\b/.test(clean)) {
-    return "languages";
-  }
-  if (/\b(?:project|projects|publication|publications)\b/.test(clean)) {
-    return "projects";
-  }
-  if (/\b(?:certification|certificate|license|licence)\b/.test(clean)) {
-    return "certifications";
-  }
-  return clean.replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "") || "unknown";
-}
-
-function scoreCanonicalExperienceEntry(entry) {
-  let score = 0.08;
-  if (cleanText(entry?.role || entry?.title)) score += 0.2;
-  if (cleanText(entry?.company)) score += 0.18;
-  if (entry?.dateRange) score += 0.18 * Number(entry.dateRange.confidence || 0.7);
-  if ((entry?.bullets || []).length) score += Math.min(0.22, entry.bullets.length * 0.055);
-  if ((entry?.lines || []).length) score += 0.06;
-  if (/ensemble|pyresume|resume-parser/i.test(cleanText(entry?.parserSource))) score += 0.08;
-  if (!cleanText(entry?.role || entry?.title) && !cleanText(entry?.company)) score -= 0.22;
-  if ((entry?.bullets || []).some((line) => /\b(?:university|school|gpa|degree)\b/i.test(line))) {
-    score -= 0.16;
-  }
-  return Math.max(0, Math.min(0.98, Number(score.toFixed(2))));
-}
-
-function scoreCanonicalEducationEntry(entry) {
-  let score = 0.08;
-  if (cleanText(entry?.school)) score += 0.28;
-  if (cleanText(entry?.degree)) score += 0.22;
-  if (cleanText(entry?.dates)) score += 0.12;
-  if ((entry?.details || []).length) score += 0.08;
-  if (/resume-parser|ensemble|pyresume/i.test(cleanText(entry?.parserSource))) score += 0.08;
-  return Math.max(0, Math.min(0.98, Number(score.toFixed(2))));
-}
-
-function canonicalizeExperienceEntry(entry, index) {
-  const normalized = normalizeParserExperienceEntry(entry || {}, entry?.parserSource || "ensemble");
-  const confidence = Number(entry?.confidence || 0) || scoreCanonicalExperienceEntry(normalized);
-  const rawText = cleanText(
-    (entry && entry.rawText) ||
-      [normalized.role, normalized.company, normalized.dates, normalized.location]
-        .concat(normalized.bullets || [])
-        .concat(normalized.lines || [])
-        .join("\n")
-  );
-  return {
-    id: `experience-${index + 1}`,
-    type: "experience",
-    title: normalized.role,
-    role: normalized.role,
-    company: normalized.company,
-    location: normalized.location,
-    dates: normalized.dates,
-    startDate: normalized.startDate,
-    endDate: normalized.endDate,
-    isCurrent: !!(normalized.dateRange && normalized.dateRange.isCurrent),
-    durationMonths: Number(normalized.months || 0) || 0,
-    durationYears: Number(normalized.years || 0) || 0,
-    bullets: normalized.bullets || [],
-    lines: normalized.lines || [],
-    rawText,
-    confidence,
-    source: normalizeCanonicalSource(normalized.parserSource, "ensemble"),
-    warnings: (normalized.dateIssues || []).slice(0, 6),
-    dateRange: normalized.dateRange || null,
-  };
-}
-
-function canonicalizeEducationEntry(entry, index) {
-  const normalized = normalizeParserEducationEntry(entry || {}, entry?.parserSource || "ensemble");
-  const confidence = Number(entry?.confidence || 0) || scoreCanonicalEducationEntry(normalized);
-  return {
-    id: `education-${index + 1}`,
-    type: "education",
-    school: normalized.school,
-    degree: normalized.degree,
-    dates: normalized.dates,
-    gpa: normalized.gpa,
-    details: normalized.details || [],
-    rawText: cleanText(
-      [normalized.school, normalized.degree, normalized.dates, normalized.gpa]
-        .concat(normalized.details || [])
-        .join("\n")
-    ),
-    confidence,
-    source: normalizeCanonicalSource(normalized.parserSource, "ensemble"),
-    warnings: (normalized.dateIssues || []).slice(0, 6),
-    dateRange: normalized.dateRange || null,
-    dateConfidence: Number(normalized.dateConfidence || 0) || 0,
-  };
-}
-
-function canonicalizeSections(structured) {
-  return (Array.isArray(structured?.sections) ? structured.sections : [])
-    .map((section, index) => {
-      const title = cleanText(section?.title || section?.key || "");
-      const lines = normalizeStringList(section?.lines || section?.items || []);
-      return {
-        id: `section-${index + 1}`,
-        key: cleanText(section?.key) || inferCanonicalSectionKey(title),
-        title,
-        lines,
-        confidence:
-          Number(section?.confidence || 0) ||
-          (title && lines.length ? 0.78 : lines.length ? 0.48 : 0.2),
-        source: normalizeCanonicalSource(section?.parserSource, "resume-parser-ats"),
-      };
-    })
-    .filter((section) => section.title || section.lines.length);
-}
-
-function buildRawFallbackSections(structured, normalized) {
-  const sections = canonicalizeSections(structured);
-  const structuredKeys = new Set(
-    []
-      .concat((structured?.experience || []).length ? ["experience"] : [])
-      .concat((structured?.education || []).length ? ["education"] : [])
-      .concat((structured?.skills || []).length ? ["skills"] : [])
-  );
-  const fallbacks = sections
-    .filter((section) => section.lines.length)
-    .filter((section) => section.key === "unknown" || !structuredKeys.has(section.key))
-    .map((section) => ({
-      key: section.key,
-      title: section.title || section.key,
-      text: section.lines.join("\n"),
-      lines: section.lines,
-      confidence: Math.min(0.72, section.confidence || 0.5),
-      source: section.source || "raw",
-    }));
-  if (!fallbacks.length && cleanText(normalized?.text)) {
-    const lines = cleanText(normalized.text)
-      .split(/\n+/)
-      .map(cleanText)
-      .filter(Boolean)
-      .slice(0, 160);
-    if (lines.length) {
-      fallbacks.push({
-        key: "raw",
-        title: "Original CV Text",
-        text: lines.join("\n"),
-        lines,
-        confidence: 0.36,
-        source: "liteparse-text",
-      });
-    }
-  }
-  return fallbacks;
-}
-
-function getCanonicalQualityMode(score, experience, education, rawFallbackSections) {
-  if (score >= 0.78 && experience.length && education.length) return "structured";
-  if (experience.length || education.length) return "partial_structured";
-  if ((rawFallbackSections || []).length) return "raw_fallback";
-  return "text_only";
-}
-
-function buildCanonicalResumeModel(normalized, structured) {
-  const source = structured || {};
-  const experience = (Array.isArray(source.experience) ? source.experience : [])
-    .map(canonicalizeExperienceEntry)
-    .filter((entry) => entry.role || entry.company || entry.bullets.length || entry.rawText);
-  const education = (Array.isArray(source.education) ? source.education : [])
-    .map(canonicalizeEducationEntry)
-    .filter((entry) => entry.school || entry.degree || entry.details.length || entry.rawText);
-  const skills = sanitizeStructuredSkills(source.skills || []).map((skill, index) => ({
-    id: `skill-${index + 1}`,
-    label: skill,
-    confidence: 0.72,
-    source: "ensemble",
-  }));
-  const sections = canonicalizeSections(source);
-  const rawFallbackSections = buildRawFallbackSections(source, normalized);
-  const experienceSummary = buildExperienceTimelineSummary(
-    experience.map((entry) => ({
-      role: entry.role,
-      company: entry.company,
-      dates: entry.dates,
-      dateRange: entry.dateRange,
-      months: entry.durationMonths,
-      years: entry.durationYears,
-      parserSource: entry.source,
-    })),
-    source?.metadata?.yearsExperience
-  );
-  const confidenceValues = []
-    .concat(experience.map((entry) => entry.confidence))
-    .concat(education.map((entry) => entry.confidence))
-    .concat(sections.map((section) => section.confidence))
-    .filter((value) => Number.isFinite(Number(value)));
-  const score = confidenceValues.length
-    ? Number(
-        (
-          confidenceValues.reduce((sum, value) => sum + Number(value || 0), 0) /
-          confidenceValues.length
-        ).toFixed(2)
-      )
-    : rawFallbackSections.length
-    ? 0.42
-    : 0.2;
-  const warnings = [];
-  if (!experience.length) warnings.push("experience_not_structured");
-  if (!education.length) warnings.push("education_not_structured");
-  if (!skills.length) warnings.push("skills_not_structured");
-  return {
-    ok: source?.ok !== false,
-    parser: cleanText(source?.parser || "resume-parser-ats+pyresume"),
-    quality: {
-      score,
-      mode: getCanonicalQualityMode(score, experience, education, rawFallbackSections),
-      warnings,
-    },
-    profile: {
-      ...(source.profile || {}),
-      headline: cleanText(
-        source.profile?.headline ||
-          experience[0]?.role ||
-          source.profile?.summary ||
-          ""
-      ),
-    },
-    summary: {
-      text: cleanText(source.profile?.summary || ""),
-      confidence: source.profile?.summary ? 0.76 : 0,
-      source: "profile",
-    },
-    sections,
-    experience,
-    education,
-    skills,
-    languages: [],
-    projects: Array.isArray(source.projects) ? source.projects : [],
-    rawFallbackSections,
-    diagnostics: {
-      pageCount: Number(normalized?.totalPages || 0) || 0,
-      ocrUsed: process.env.LITEPARSE_OCR_ENABLED !== "0",
-      layoutMode: cleanText(source?.metadata?.layout?.layoutMode || "text_order"),
-      layoutParser:
-        source?.metadata?.layout && typeof source.metadata.layout === "object"
-          ? {
-              ok: !!source.metadata.layout.ok,
-              mode: cleanText(source.metadata.layout.layoutMode || "text_order"),
-              lineCount: Number(source.metadata.layout.lineCount || 0) || 0,
-              sectionCount: Number(source.metadata.layout.sectionCount || 0) || 0,
-              error: cleanText(source.metadata.layout.error || ""),
-            }
-          : null,
-      parserSources: (source.parsers || []).map((item) => ({
-        parser: cleanText(item?.parser),
-        ok: !!item?.ok,
-        error: cleanText(item?.error),
-      })),
-      totalExperienceMonths: experienceSummary.totalExperienceMonths,
-      totalExperienceYears: experienceSummary.totalExperienceYears,
-      currentRoleMonths: experienceSummary.currentRoleMonths,
-      datedExperienceCount: experienceSummary.datedEntryCount,
-      dateConfidence: experienceSummary.dateConfidence,
-    },
   };
 }
 
@@ -2023,34 +1060,6 @@ async function parsePyresumeFromPath(tempPath) {
   }
 }
 
-async function parseLayoutFromPath(tempPath) {
-  if (!layoutParseEnabled) {
-    return {
-      ok: false,
-      parser: "layout",
-      error: "disabled",
-    };
-  }
-  try {
-    const bridgePath = path.join(process.cwd(), "layout_bridge.py");
-    const { stdout } = await execFileAsync("python3", [bridgePath, tempPath], {
-      timeout: layoutParseTimeoutMs,
-      maxBuffer: 10 * 1024 * 1024,
-    });
-    const parsed = JSON.parse(String(stdout || "{}"));
-    return parsed && typeof parsed === "object"
-      ? parsed
-      : { ok: false, parser: "layout", error: "empty_response" };
-  } catch (error) {
-    return {
-      ok: false,
-      parser: "layout",
-      error: "layout_exec_failed",
-      message: error && error.message ? error.message : String(error),
-    };
-  }
-}
-
 async function parseStructuredResumeEnsembleFromUpload(file, fallbackText) {
   if (!file?.buffer) {
     return null;
@@ -2062,7 +1071,7 @@ async function parseStructuredResumeEnsembleFromUpload(file, fallbackText) {
   );
   try {
     await writeFile(tempPath, file.buffer);
-    const [atsResult, pyresumeResult, layoutResult] = await Promise.all([
+    const [atsResult, pyresumeResult] = await Promise.all([
       parseResumeAsync({ filePath: tempPath })
         .then((parsed) => normalizeStructuredResume(parsed, fallbackText))
         .catch((error) => ({
@@ -2072,95 +1081,48 @@ async function parseStructuredResumeEnsembleFromUpload(file, fallbackText) {
           message: error && error.message ? error.message : String(error),
         })),
       parsePyresumeFromPath(tempPath),
-      parseLayoutFromPath(tempPath),
     ]);
     const atsOk = !!(atsResult && atsResult.ok);
     const pyresumeOk = !!(pyresumeResult && pyresumeResult.ok);
-    const layoutOk = !!(layoutResult && layoutResult.ok);
-    const atsSections = atsOk ? atsResult.sections || [] : [];
-    const layoutSections = layoutOk
-      ? normalizeLayoutSections(layoutResult.sections || [])
-      : [];
-    const sections =
-      layoutSections.length >= Math.min(2, atsSections.length || 2)
-        ? layoutSections
-        : atsSections;
-    const layoutExperience = layoutSections.length
-      ? parseStructuredExperienceFromSections(layoutSections).map((entry) => ({
-          ...entry,
-          parserSource: "layout",
-        }))
-      : [];
-    const layoutEducation = layoutSections.length
-      ? parseStructuredEducationFromSections(layoutSections).map((entry) => ({
-          ...entry,
-          parserSource: "layout",
-        }))
-      : [];
-    const layoutSkills = layoutSections.length
-      ? parseStructuredSkillsFromSections(layoutSections)
-      : [];
     const profile = mergeProfiles(
       atsOk ? atsResult.profile : {},
       pyresumeOk ? pyresumeResult.profile : {}
     );
-    const experience = mergeParserEntriesFromSources([
-      layoutExperience,
-      atsOk ? atsResult.experience || [] : [],
-      pyresumeOk ? pyresumeResult.experience || [] : [],
-    ]);
+    const experience = mergeParserEntries(
+      atsOk ? atsResult.experience : [],
+      pyresumeOk ? pyresumeResult.experience : [],
+      "ensemble"
+    );
     const experienceSummary = buildExperienceTimelineSummary(
       experience,
       pyresumeResult?.metadata?.yearsExperience
     );
-    const education = mergeEducationEntriesFromSources([
-      layoutEducation,
-      atsOk ? atsResult.education || [] : [],
-      pyresumeOk ? pyresumeResult.education || [] : [],
-    ]);
+    const education = mergeEducationEntries(
+      atsOk ? atsResult.education : [],
+      pyresumeOk ? pyresumeResult.education : [],
+      "ensemble"
+    );
     const skills = sanitizeStructuredSkills(
       normalizeStringList([])
-        .concat(layoutOk ? layoutSkills || [] : [])
         .concat(atsOk ? atsResult.skills || [] : [])
         .concat(pyresumeOk ? pyresumeResult.skills || [] : [])
     );
     return {
-      ok: atsOk || pyresumeOk || layoutOk,
-      parser:
-        [
-          atsOk ? "resume-parser-ats" : "",
-          pyresumeOk ? "pyresume" : "",
-          layoutOk ? "layout" : "",
-        ]
-          .filter(Boolean)
-          .join("+") || "resume-parser-ats",
+      ok: atsOk || pyresumeOk,
+      parser: pyresumeOk
+        ? "resume-parser-ats+pyresume"
+        : "resume-parser-ats",
       profile,
-      sections,
+      sections: atsOk ? atsResult.sections || [] : [],
       experience,
       experienceTimeline: experienceSummary.timeline,
       education,
       skills,
       projects: atsOk ? atsResult.projects || [] : [],
-      lines: layoutOk
-        ? normalizeStringList((layoutResult.lines || []).map((line) => line?.text || line))
-        : atsOk
-        ? atsResult.lines || []
-        : [],
+      lines: atsOk ? atsResult.lines || [] : [],
       metadata: {
         ats: atsResult?.metadata || {},
         pyresume: pyresumeResult?.metadata || {},
-        layout: {
-          ok: layoutOk,
-          error: layoutResult?.error || "",
-          message: layoutResult?.message || "",
-          layoutMode: layoutResult?.layoutMode || "text_order",
-          lineCount: Number(layoutResult?.lineCount || 0) || 0,
-          sectionCount: Array.isArray(layoutResult?.sections)
-            ? layoutResult.sections.length
-            : 0,
-          pageCount: Array.isArray(layoutResult?.pages) ? layoutResult.pages.length : 0,
-          source: layoutResult?.metadata?.source || "",
-        },
         yearsExperience:
           experienceSummary.totalExperienceYears ||
           Number(pyresumeResult?.metadata?.yearsExperience || 0) ||
@@ -2190,22 +1152,10 @@ async function parseStructuredResumeEnsembleFromUpload(file, fallbackText) {
             ? pyresumeResult.experience.length
             : 0,
         },
-        {
-          parser: "layout",
-          ok: layoutOk,
-          error: layoutResult?.error || "",
-          message: layoutResult?.message || "",
-          layoutMode: layoutResult?.layoutMode || "",
-          sectionCount: Array.isArray(layoutResult?.sections)
-            ? layoutResult.sections.length
-            : 0,
-          lineCount: Number(layoutResult?.lineCount || 0) || 0,
-        },
       ],
       ensemble: {
         ats: atsResult || null,
         pyresume: pyresumeResult || null,
-        layout: layoutResult || null,
       },
     };
   } finally {
@@ -2531,15 +1481,12 @@ function buildJobText(job) {
 app.get("/health", (req, res) => {
   res.json({
     ok: true,
-    parser:
-      "liteparse+resume-parser-ats" +
-      (pyresumeEnabled ? "+pyresume" : "") +
-      (layoutParseEnabled ? "+layout" : ""),
+    parser: pyresumeEnabled
+      ? "liteparse+resume-parser-ats+pyresume"
+      : "liteparse+resume-parser-ats",
     grammar: "harper",
     jobMatching: "skill-extractor",
     pyresumeEnabled,
-    layoutParser: "pymupdf",
-    layoutParseEnabled,
     ocrEnabled: process.env.LITEPARSE_OCR_ENABLED !== "0",
   });
 });
@@ -2673,17 +1620,6 @@ app.post("/parse", requireToken, upload.single("file"), async (req, res) => {
       req.file,
       normalized.text
     );
-    normalized.canonical = buildCanonicalResumeModel(
-      normalized,
-      normalized.structured
-    );
-    if (normalized.structured && typeof normalized.structured === "object") {
-      normalized.structured.quality = normalized.canonical.quality;
-      normalized.structured.rawFallbackSections =
-        normalized.canonical.rawFallbackSections;
-      normalized.structured.canonicalDiagnostics =
-        normalized.canonical.diagnostics;
-    }
     normalized.parser = normalized.structured?.ok
       ? `liteparse+${normalized.structured.parser}`
       : "liteparse";
