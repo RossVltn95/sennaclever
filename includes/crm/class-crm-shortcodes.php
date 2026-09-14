@@ -46497,15 +46497,23 @@ CRITICAL INSTRUCTIONS:
             ]);
             $result = $this->crm_apply_chat_remote_browser_request('POST', '/sessions', $payload);
             if (is_wp_error($result)) {
+                $remote_status = $this->get_crm_apply_chat_remote_browser_http_status($result);
+                $remote_error_data = $result->get_error_data();
+                $remote_response = is_array($remote_error_data) && is_array($remote_error_data['response'] ?? null)
+                    ? $remote_error_data['response']
+                    : [];
                 $this->log_crm_apply_chat_remote_browser_event('create_failed', [
                     'provider' => $provider ?: 'unknown',
                     'host' => $this->get_crm_apply_chat_remote_browser_host($application_url),
                     'error' => $result->get_error_message(),
+                    'status' => $remote_status,
                 ]);
                 wp_send_json_error([
                     'message' => $result->get_error_message(),
                     'fallback' => 'static_preview',
-                ], $this->get_crm_apply_chat_remote_browser_http_status($result));
+                    'status' => $remote_status,
+                    'retry_after_seconds' => absint($remote_response['retryAfterSeconds'] ?? 0),
+                ], $remote_status);
             }
 
             $session = is_array($result['session'] ?? null) ? $result['session'] : [];

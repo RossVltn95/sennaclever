@@ -1,12 +1,16 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {
+  clearManagedBrowserRateLimitsForTest,
   clearSessionsForTest,
+  createSession,
   getAllocatedSlots,
   getCapacitySnapshot,
+  getManagedBrowserRateLimitCooldown,
   getNextAvailableSlot,
   getSession,
   seedSessionForTest,
+  seedManagedBrowserRateLimitForTest,
   serializeSession,
   setSessionControl,
 } from "../src/sessions.js";
@@ -147,4 +151,27 @@ test("reports capacity from active sessions and max sessions", async () => {
   assert.deepEqual(capacity.allocatedSlots, [0]);
   assert.ok(capacity.sessionTtlSeconds >= 60);
   assert.ok(capacity.idleTtlSeconds >= 30);
+});
+
+test("blocks managed browser session creation while upstream cooldown is active", async () => {
+  await clearSessionsForTest();
+  clearManagedBrowserRateLimitsForTest();
+  seedManagedBrowserRateLimitForTest("cloudflare_live_view", 30);
+
+  await assert.rejects(
+    createSession({
+      employerUrl: "https://apply.workable.com/example",
+      transport: "cloudflare_live_view",
+    }),
+    (error) => {
+      assert.equal(error.statusCode, 429);
+      assert.equal(error.code, "upstream_rate_limited");
+      assert.ok(error.retryAfterSeconds > 0);
+      return true;
+    }
+  );
+
+  const cooldown = getManagedBrowserRateLimitCooldown("cloudflare_live_view");
+  assert.equal(cooldown.transport, "cloudflare_live_view");
+  assert.ok(cooldown.retryAfterSeconds > 0);
 });

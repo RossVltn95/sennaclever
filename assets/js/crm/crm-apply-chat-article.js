@@ -156009,12 +156009,19 @@
       var status = remoteBrowser
         ? remoteBrowser.querySelector("[data-sffc-remote-browser-status]")
         : null;
+      var isRateLimited = remoteBrowser
+        ? remoteBrowser.getAttribute("data-sffc-remote-browser-state") ===
+          "rate_limited"
+        : false;
       if (!remoteBrowser || !viewport) {
         return;
       }
       remoteBrowser.classList.remove("is-loading", "is-ready");
       remoteBrowser.classList.add("is-error");
-      remoteBrowser.setAttribute("data-sffc-remote-browser-state", "error");
+      remoteBrowser.setAttribute(
+        "data-sffc-remote-browser-state",
+        isRateLimited ? "rate_limited" : "error"
+      );
       viewport.innerHTML =
         '<div class="sffc-crm-apply-results__remote-browser-error">' +
         escapeHtml(
@@ -156026,10 +156033,15 @@
         ) +
         "</div>";
       if (status) {
-        status.textContent = uiText(
-          "Preview fallback is available below.",
-          "المعاينة الاحتياطية متاحة بالأسفل."
-        );
+        status.textContent = isRateLimited
+          ? uiText(
+              "Secure browser capacity is cooling down. Preview fallback is available below.",
+              "سعة المتصفح الآمن في فترة تهدئة. المعاينة الاحتياطية متاحة بالأسفل."
+            )
+          : uiText(
+              "Preview fallback is available below.",
+              "المعاينة الاحتياطية متاحة بالأسفل."
+            );
       }
       logApplyResultsReviewSurfaceEvent(
         remoteBrowser.closest(
@@ -156037,7 +156049,7 @@
         ),
         "remote_browser_error",
         {
-          state: "error",
+          state: isRateLimited ? "rate_limited" : "error",
           surface:
             remoteBrowser.getAttribute("data-sffc-remote-browser-surface") ||
             "managed_live_browser",
@@ -156177,6 +156189,8 @@
           : ""
       );
       var formData;
+      var retryAfterUntil;
+      var retryAfterRemaining;
       if (
         !remoteBrowser ||
         remoteBrowser.getAttribute("data-sffc-remote-browser-state") ===
@@ -156186,6 +156200,35 @@
       ) {
         return;
       }
+      retryAfterUntil = Number(
+        remoteBrowser.getAttribute("data-sffc-remote-browser-retry-after-until") ||
+          0
+      );
+      if (retryAfterUntil && retryAfterUntil > Date.now()) {
+        retryAfterRemaining = Math.max(
+          1,
+          Math.ceil((retryAfterUntil - Date.now()) / 1000)
+        );
+        remoteBrowser.setAttribute(
+          "data-sffc-remote-browser-state",
+          "rate_limited"
+        );
+        setApplyResultsRemoteBrowserError(
+          remoteBrowser,
+          uiText(
+            "The secure live browser is temporarily rate limited. Try again in " +
+              retryAfterRemaining +
+              " seconds, or use the preview fallback below.",
+            "المتصفح الآمن محدود مؤقتاً. حاول مرة أخرى بعد " +
+              retryAfterRemaining +
+              " ثانية، أو استخدم المعاينة الاحتياطية بالأسفل."
+          )
+        );
+        return;
+      }
+      remoteBrowser.removeAttribute(
+        "data-sffc-remote-browser-retry-after-until"
+      );
       if (!config.remoteBrowserEnabled || !config.remoteBrowserNonce) {
         setApplyResultsRemoteBrowserError(
           remoteBrowser,
@@ -156266,13 +156309,18 @@
         .then(function (payload) {
           var data = payload && payload.data ? payload.data : {};
           if (!payload || !payload.success || !data.session) {
-            throw new Error(
+            var error = new Error(
               (data && data.message) ||
                 uiText(
                   "The secure live browser did not return a session.",
                   "لم يرجع المتصفح الآمن جلسة."
                 )
             );
+            error.status = Number(data.status || 0) || 0;
+            error.retryAfterSeconds =
+              Number(data.retry_after_seconds || data.retryAfterSeconds || 0) ||
+              0;
+            throw error;
           }
           setApplyResultsRemoteBrowserReady(remoteBrowser, data.session);
         })
@@ -156283,9 +156331,27 @@
           var preview = panel
             ? panel.querySelector("[data-sffc-apply-results-preview-url]")
             : null;
+          if (error && Number(error.status || 0) === 429) {
+            var retryAfterSeconds =
+              Number(error.retryAfterSeconds || 0) || 60;
+            remoteBrowser.setAttribute(
+              "data-sffc-remote-browser-state",
+              "rate_limited"
+            );
+            remoteBrowser.setAttribute(
+              "data-sffc-remote-browser-retry-after-until",
+              String(Date.now() + Math.max(1, retryAfterSeconds) * 1000)
+            );
+          }
           setApplyResultsRemoteBrowserError(
             remoteBrowser,
-            (error && error.message) ||
+            error && Number(error.status || 0) === 429
+              ? (error.message ||
+                  uiText(
+                    "The secure live browser is temporarily rate limited.",
+                    "المتصفح الآمن محدود مؤقتاً."
+                  ))
+              : (error && error.message) ||
               uiText(
                 "I could not open the secure live browser session.",
                 "تعذر فتح جلسة المتصفح الآمنة."

@@ -10,6 +10,97 @@ import {
 import { closeNoVncSession, createNoVncSession, getNoVncStreamPath } from "./novnc.js";
 
 const sessions = new Map();
+const managedBrowserRateLimitCooldowns = new Map();
+
+function isManagedBrowserTransport(transport) {
+  const clean = cleanText(transport).toLowerCase();
+  return [
+    "cloudflare",
+    "cloudflare_live_view",
+    "browserless",
+    "browserless_live_url",
+    "managed_live_browser",
+  ].includes(clean);
+}
+
+function normalizeManagedBrowserTransportKey(transport) {
+  const clean = cleanText(transport).toLowerCase();
+  if (clean === "cloudflare" || clean === "cloudflare_live_view") {
+    return "cloudflare_live_view";
+  }
+  if (clean === "browserless" || clean === "browserless_live_url") {
+    return "browserless_live_url";
+  }
+  return "managed_live_browser";
+}
+
+function getManagedBrowserRateLimitCooldownMs() {
+  return Math.max(
+    10000,
+    Number(process.env.SFFC_REMOTE_BROWSER_UPSTREAM_429_COOLDOWN_MS || 120000) ||
+      120000
+  );
+}
+
+function getRetryAfterSeconds(error) {
+  const retryAfter =
+    Number(error?.retryAfterSeconds || error?.retryAfter || error?.retry_after || 0) ||
+    0;
+  return retryAfter > 0 ? Math.max(1, Math.ceil(retryAfter)) : 0;
+}
+
+function isUpstreamRateLimitError(error) {
+  const message = cleanText(error?.message || "").toLowerCase();
+  return (
+    Number(error?.statusCode || error?.status || 0) === 429 ||
+    /\b429\b/.test(message) ||
+    message.includes("too many requests") ||
+    message.includes("rate limit")
+  );
+}
+
+function createManagedBrowserRateLimitError(retryAfterSeconds) {
+  const seconds = Math.max(1, Number(retryAfterSeconds) || 1);
+  const error = new Error(
+    `Managed browser provider is rate limiting new sessions. Please wait ${seconds} seconds and try again.`
+  );
+  error.code = "upstream_rate_limited";
+  error.statusCode = 429;
+  error.retryAfterSeconds = seconds;
+  return error;
+}
+
+export function getManagedBrowserRateLimitCooldown(transport) {
+  const key = normalizeManagedBrowserTransportKey(transport);
+  const retryAt = Number(managedBrowserRateLimitCooldowns.get(key) || 0);
+  const now = Date.now();
+  if (!retryAt || retryAt <= now) {
+    managedBrowserRateLimitCooldowns.delete(key);
+    return null;
+  }
+  return {
+    transport: key,
+    retryAt,
+    retryAfterSeconds: Math.max(1, Math.ceil((retryAt - now) / 1000)),
+  };
+}
+
+export function clearManagedBrowserRateLimitsForTest() {
+  if (process.env.NODE_ENV !== "test") {
+    throw new Error("clearManagedBrowserRateLimitsForTest is only available during tests.");
+  }
+  managedBrowserRateLimitCooldowns.clear();
+}
+
+export function seedManagedBrowserRateLimitForTest(transport, retryAfterSeconds = 60) {
+  if (process.env.NODE_ENV !== "test") {
+    throw new Error("seedManagedBrowserRateLimitForTest is only available during tests.");
+  }
+  managedBrowserRateLimitCooldowns.set(
+    normalizeManagedBrowserTransportKey(transport),
+    Date.now() + Math.max(1, Number(retryAfterSeconds) || 60) * 1000
+  );
+}
 
 export function getMaxSessions() {
   return Math.max(1, Number(process.env.SFFC_REMOTE_BROWSER_MAX_SESSIONS || 5) || 5);
@@ -163,6 +254,12 @@ export async function createSession(payload) {
   const now = Date.now();
   const sessionId = crypto.randomUUID();
   const transport = cleanText(payload.transport || process.env.SFFC_REMOTE_BROWSER_TRANSPORT || "novnc").toLowerCase();
+  if (isManagedBrowserTransport(transport)) {
+    const cooldown = getManagedBrowserRateLimitCooldown(transport);
+    if (cooldown) {
+      throw createManagedBrowserRateLimitError(cooldown.retryAfterSeconds);
+    }
+  }
   const session = {
     sessionId,
     taskUuid: cleanText(payload.taskUuid || payload.task_uuid || ""),
@@ -219,6 +316,17 @@ export async function createSession(payload) {
     session.status = "failed";
     session.lastError = cleanText(error.message || "Remote browser failed to start.");
     await closeSession(sessionId);
+    if (isManagedBrowserTransport(transport) && isUpstreamRateLimitError(error)) {
+      const retryAfterSeconds =
+        getRetryAfterSeconds(error) ||
+        Math.ceil(getManagedBrowserRateLimitCooldownMs() / 1000);
+      const retryAt = Date.now() + retryAfterSeconds * 1000;
+      managedBrowserRateLimitCooldowns.set(
+        normalizeManagedBrowserTransportKey(transport),
+        retryAt
+      );
+      throw createManagedBrowserRateLimitError(retryAfterSeconds);
+    }
     throw error;
   }
 }

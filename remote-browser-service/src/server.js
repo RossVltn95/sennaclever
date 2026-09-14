@@ -383,6 +383,20 @@ async function handleRequest(request, response) {
         maxSessions: getMaxSessions(),
       });
     }
+    if (error.code === "upstream_rate_limited") {
+      response.setHeader(
+        "Retry-After",
+        String(Math.max(1, Math.ceil(Number(error.retryAfterSeconds || 60))))
+      );
+      auditEvent("remote_browser_upstream_rate_limited", {
+        path: parsedUrl.pathname,
+        method: request.method,
+        retryAfterSeconds: Math.max(
+          1,
+          Math.ceil(Number(error.retryAfterSeconds || 60))
+        ),
+      });
+    }
     auditEvent("remote_browser_request_failed", {
       path: parsedUrl.pathname,
       method: request.method,
@@ -393,7 +407,9 @@ async function handleRequest(request, response) {
       response,
       error.statusCode || (error.code === "capacity_full" ? 429 : 500),
       error.message || "Remote browser request failed.",
-      {},
+      error.retryAfterSeconds
+        ? { retryAfterSeconds: Math.max(1, Math.ceil(Number(error.retryAfterSeconds))) }
+        : {},
       corsHeaders
     );
   }
